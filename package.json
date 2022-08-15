@@ -1,0 +1,19 @@
+{
+  "name": "@cloudscape-design/dashboard-components",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudscape-design/dashboard-components.git"
+  },
+  "homepage": "https://cloudscape.design",
+  "files": [
+    "src"
+  ],
+  "scripts": {},
+  "engines": {
+    "node": ">= 14"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "devDependencies": {}
+}
