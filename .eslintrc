@@ -1,0 +1,76 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:prettier/recommended",
+    "plugin:no-unsanitized/DOM"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": [
+    "unicorn",
+    "react-hooks",
+    "no-unsanitized",
+    "header"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "react/no-danger": "error",
+    "react/no-unstable-nested-components": ["error", { "allowAsProps": true }],
+    "react/forbid-component-props": ["warn", { "forbid": ["className", "id"] }],
+    "react/jsx-boolean-value": ["error", "always"],
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
+      }
+    ],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": ["error"],
+    "unicorn/filename-case": "error",
+    "curly": "error",
+    "dot-notation": "error",
+    "eqeqeq": "error",
+    "no-return-await": "error",
+    "require-await": "error",
+    "header/header": [
+      "error",
+      "line",
+      [
+        " Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.",
+        " SPDX-License-Identifier: Apache-2.0"
+      ]
+    ]
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "overrides": [
+    {
+      "files": ["**/__integ__/**"],
+      "rules": {
+        // useBrowser is not a React hook
+        "react-hooks/rules-of-hooks": "off",
+        "react-hooks/exhaustive-deps": "off"
+      },
+      "env": {
+        "jest": true
+      }
+    }
+  ]
+}
