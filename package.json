@@ -10,7 +10,7 @@
     "src"
   ],
   "scripts": {
-    "build": "echo 0",
+    "build": "tsc",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
     "test": "vitest",
@@ -20,8 +20,13 @@
     "node": ">= 14"
   },
   "dependencies": {},
-  "peerDependencies": {},
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
+    "@cloudscape-design/components": "^3.0.28",
+    "@cloudscape-design/theming-build": "^1.0.4",
     "@testing-library/react": "^13.4.0",
     "@types/react": "^18.0.18",
     "@types/react-dom": "^18.0.6",
@@ -52,7 +57,7 @@
       "eslint --fix"
     ],
     "package-lock.json": [
-      "./scripts/prepare-package-lock.mjs"
+      "./scripts/prepare-package-lock.js"
     ]
   }
 }
