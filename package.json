@@ -7,7 +7,7 @@
   },
   "homepage": "https://cloudscape.design",
   "files": [
-    "src"
+    "lib"
   ],
   "scripts": {
     "build": "tsc",
