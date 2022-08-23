@@ -10,7 +10,7 @@
     "lib"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/compile-styles.js && tsc",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
     "test": "vitest",
