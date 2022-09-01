@@ -6,11 +6,10 @@
     "url": "https://github.com/cloudscape-design/dashboard-components.git"
   },
   "homepage": "https://cloudscape.design",
-  "files": [
-    "lib"
-  ],
   "scripts": {
+    "prebuild": "rm -rf lib",
     "build": "node scripts/compile-styles.js && tsc",
+    "postbuild": "cat package.json | jq  'del(.scripts)' > lib/components/package.json",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
     "test": "vitest",
