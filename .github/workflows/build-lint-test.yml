@@ -15,4 +15,6 @@ permissions:
 
 jobs:
   build:
-    uses: cloudscape-design/.github/.github/workflows/build-lint-test.yml@main
+    uses: cloudscape-design/.github/.github/workflows/build-lint-test.yml@skip-codeql
+    with:
+      skip-codeql: true
