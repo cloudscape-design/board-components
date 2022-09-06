@@ -13,7 +13,7 @@
     "build": "echo 0",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "engines": {
     "node": ">= 14"
