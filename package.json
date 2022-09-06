@@ -12,7 +12,8 @@
   "scripts": {
     "build": "echo 0",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "jest"
   },
   "engines": {
     "node": ">= 14"
@@ -20,8 +21,14 @@
   "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
+    "@cloudscape-design/jest-preset": "^2.0.1",
+    "@testing-library/react": "^13.4.0",
+    "@types/jest": "^28.1.8",
+    "@types/react": "^18.0.18",
+    "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
+    "babel-jest": "^28.1.3",
     "eslint": "^8.22.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-header": "^3.1.1",
@@ -31,8 +38,14 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-unicorn": "^43.0.2",
     "husky": "^8.0.1",
+    "jest": "^28.1.3",
+    "jest-environment-jsdom": "^28.1.3",
     "lint-staged": "^13.0.3",
+    "merge": "^2.1.1",
     "prettier": "2.7.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ts-jest": "^28.0.8",
     "typescript": "^4.7.4"
   },
   "lint-staged": {
