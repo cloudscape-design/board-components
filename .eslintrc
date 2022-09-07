@@ -15,15 +15,11 @@
       "jsx": true
     }
   },
-  "plugins": [
-    "unicorn",
-    "react-hooks",
-    "no-unsanitized",
-    "header"
-  ],
+  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "react/react-in-jsx-scope": "off",
     "react/no-danger": "error",
     "react/no-unstable-nested-components": ["error", { "allowAsProps": true }],
     "react/forbid-component-props": ["warn", { "forbid": ["className", "id"] }],
@@ -46,10 +42,7 @@
     "header/header": [
       "error",
       "line",
-      [
-        " Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.",
-        " SPDX-License-Identifier: Apache-2.0"
-      ]
+      [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"]
     ]
   },
   "settings": {
