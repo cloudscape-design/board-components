@@ -11,9 +11,12 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "lib/components",
     "declaration": true,
-    "jsx": "react-jsx",
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true
+  },
+  "include": [
+    "src",
+    "types"
+  ],
   }
-}
