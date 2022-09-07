@@ -8,17 +8,24 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "prebuild": "rm -rf lib",
-    "build": "node scripts/compile-styles.js && tsc",
+    "build": "concurrently -n build-css,build-js \"npm run build:css\" \"npm run build:js\"",
     "postbuild": "cat package.json | jq  'del(.scripts)' > lib/components/package.json",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
     "test": "vitest",
-    "start": "vite"
+    "start": "concurrently -n components,pages \"npm run watch\" \"vite\"",
+    "build:js": "tsc",
+    "build:css": "node scripts/compile-styles.js",
+    "watch:js": "tsc --watch",
+    "watch:css": "chokidar \"./src/**/*.scss\" -c \"npm run build:css\"",
+    "watch": "concurrently -n watch-css,watch-js \"npm run watch:css\" \"npm run watch:js\""
   },
   "engines": {
     "node": ">= 14"
   },
-  "dependencies": {},
+  "dependencies": {
+    "clsx": "^1.2.1"
+  },
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
     "react": "^18.2.0",
@@ -33,6 +40,8 @@
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
     "@vitejs/plugin-react": "^2.1.0",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^7.4.0",
     "eslint": "^8.22.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-header": "^3.1.1",
