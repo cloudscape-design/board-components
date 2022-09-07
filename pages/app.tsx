@@ -9,7 +9,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/:pageId" element={<PageWrapper />} />
+        <Route path="/:pageId" element={<PageWithFallback />} />
       </Routes>
     </HashRouter>
   );
@@ -18,16 +18,19 @@ export default function App() {
 const Index = () => (
   <ul>
     {pages.map((page) => (
-      <Link to={`/${page}`}>{page}</Link>
+      <Link key={page} to={`/${page}`}>
+        {page}
+      </Link>
     ))}
   </ul>
 );
 
-const PageWrapper = () => {
+const PageWithFallback = () => {
   const { pageId } = useParams();
 
   if (!pageId || !pages.includes(pageId)) {
     return <span>Not Found</span>;
   }
+
   return <Page pageId={pageId} />;
 };
