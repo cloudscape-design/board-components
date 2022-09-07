@@ -23,9 +23,7 @@
   "engines": {
     "node": ">= 14"
   },
-  "dependencies": {
-    "clsx": "^1.2.1"
-  },
+  "dependencies": {},
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
     "react": "^18.2.0",
