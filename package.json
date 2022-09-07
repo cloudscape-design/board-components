@@ -18,14 +18,16 @@
   "engines": {
     "node": ">= 14"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@cloudscape-design/components": "^3"
+  },
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@cloudscape-design/components": "^3.0.28",
-    "@cloudscape-design/theming-build": "^1.0.4",
+    "@cloudscape-design/components": "^3",
+    "@cloudscape-design/theming-build": "^1",
     "@testing-library/react": "^13.4.0",
     "@types/react": "^18.0.18",
     "@types/react-dom": "^18.0.6",
