@@ -13,6 +13,7 @@
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "outDir": "lib/components",
     "declaration": true,
     "rootDir": "src",

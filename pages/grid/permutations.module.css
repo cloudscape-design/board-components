@@ -1,0 +1,12 @@
+.stone {
+  border: 1px solid black;
+  aspect-ratio: 1;
+}
+
+.stone.black {
+  background-color: black;
+}
+
+.stone.white {
+  background-color: white;
+}
