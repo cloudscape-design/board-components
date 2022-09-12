@@ -2,31 +2,41 @@
 // SPDX-License-Identifier: Apache-2.0
 import { HashRouter, Link, Route, Routes, useParams } from "react-router-dom";
 import Page from "./page";
-import { pages } from "./pages";
+import { pages } from "../pages";
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/:pageId" element={<PageWithFallback />} />
+        <Route path="/" element={<Start />} />
+        <Route path="/:folder/:page" element={<PageWithFallback />} />
       </Routes>
     </HashRouter>
   );
 }
 
+const Start = () => (
+  <>
+    <h1>Pages</h1>
+    <main>
+      <Index />
+    </main>
+  </>
+);
+
 const Index = () => (
-  <ul>
+  <ul className="list">
     {pages.map((page) => (
-      <Link key={page} to={`/${page}`}>
-        {page}
-      </Link>
+      <li key={page}>
+        <Link to={`${page}`}>{page}</Link>
+      </li>
     ))}
   </ul>
 );
 
 const PageWithFallback = () => {
-  const { pageId } = useParams();
+  const { folder, page } = useParams();
+  const pageId = `/${folder}/${page}`;
 
   if (!pageId || !pages.includes(pageId)) {
     return <span>Not Found</span>;
