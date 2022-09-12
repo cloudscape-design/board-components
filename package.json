@@ -21,7 +21,7 @@
     "start": "run-p watch dev",
     "preview": "vite preview",
     "dev": "vite",
-    "build:src:js": "tsc",
+    "build:src:js": "tsc -p tsconfig.json ",
     "build:demos:ts": "tsc -p pages/tsconfig.json ",
     "build:demos:vite": "vite build",
     "build:src:css": "node scripts/compile-styles.js",
