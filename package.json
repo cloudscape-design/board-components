@@ -9,7 +9,7 @@
   "scripts": {
     "prebuild": "rm -rf lib",
     "build": "concurrently -n build-css,build-js \"npm run build:css\" \"npm run build:js\"",
-    "postbuild": "cat package.json | jq  'del(.scripts)' > lib/components/package.json",
+    "postbuild": "cat package.json | jq  'del(.scripts)' > lib/components/package.json && cp README.md lib/components/",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
     "test": "vitest",
