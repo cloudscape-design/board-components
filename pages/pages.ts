@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import React from "react";
 
-const pagesRaw = import.meta.glob("./**/*.pages.tsx");
-const pageIdRegex = /([\w,-,/]+)\.pages\.tsx/;
+const pagesRaw = import.meta.glob("./**/*.page.tsx");
+const pageIdRegex = /([\w,-,/]+)\.page\.tsx/;
 const getPage = (path: string) => path.match(pageIdRegex)?.[1];
 
 export const pages = Object.keys(pagesRaw).map(getPage);

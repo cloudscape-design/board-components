@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { HashRouter, Link, Route, Routes, useParams } from "react-router-dom";
+import { HashRouter, Link, Route, Routes, useLocation } from "react-router-dom";
 import Page from "./page";
 import { pages } from "../pages";
 
@@ -9,7 +9,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Start />} />
-        <Route path="/:folder/:page" element={<PageWithFallback />} />
+        <Route path="/*" element={<PageWithFallback />} />
       </Routes>
     </HashRouter>
   );
@@ -35,12 +35,11 @@ const Index = () => (
 );
 
 const PageWithFallback = () => {
-  const { folder, page } = useParams();
-  const pageId = `/${folder}/${page}`;
+  const { pathname: page } = useLocation();
 
-  if (!pageId || !pages.includes(pageId)) {
+  if (!page || !page.includes(page)) {
     return <span>Not Found</span>;
   }
 
-  return <Page pageId={pageId} />;
+  return <Page pageId={page} />;
 };
