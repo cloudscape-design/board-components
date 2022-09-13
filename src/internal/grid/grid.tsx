@@ -8,10 +8,11 @@ import { zipTwoArrays } from "./utils";
 
 import GridItem from "./item";
 
-function Grid({ layout, children, columns }: GridProps, ref: React.ForwardedRef<HTMLDivElement>) {
+function Grid({ layout, children, columns, rows }: GridProps, ref: React.ForwardedRef<HTMLDivElement>) {
   const zipped = zipTwoArrays<GridLayoutItem, React.ReactNode>(layout, React.Children.toArray(children));
   const data = {
     "data-columns": columns,
+    "data-rows": rows,
   };
 
   return (

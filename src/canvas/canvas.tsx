@@ -19,11 +19,11 @@ export default function Canvas<D = DataFallbackType>(props: CanvasProps<D>) {
   );
 
   const columns = measuredColumns ?? FULL_WIDTH_COLUMNS;
-  const { content, grid } = useGridLayout({ ...props, columns });
+  const { content, grid, rows } = useGridLayout({ ...props, columns });
 
   return (
     <section ref={containerQueryRef}>
-      <Grid columns={columns} layout={[...grid, ...content]}>
+      <Grid columns={columns} rows={rows} layout={[...grid, ...content]}>
         {grid.map(({ id }) => (
           <Placeholder key={id} state="default" />
         ))}

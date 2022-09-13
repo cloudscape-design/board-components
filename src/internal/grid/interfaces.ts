@@ -11,5 +11,6 @@ export interface GridLayoutItem {
 export interface GridProps {
   layout: GridLayoutItem[];
   columns: number;
+  rows: number;
   children?: React.ReactNode;
 }
