@@ -4,7 +4,10 @@
     "incremental": true,
     "target": "ES2019",
     "jsx": "react-jsx",
-    "lib": ["es2019", "dom"],
+    "lib": [
+      "es2019",
+      "dom"
+    ],
     "module": "ESNext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
@@ -19,4 +22,4 @@
     "src",
     "types"
   ],
-  }
+}
