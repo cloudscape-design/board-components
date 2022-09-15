@@ -38,7 +38,7 @@ jobs:
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v3
         with:
-          name: visual-regression-snapshots
+          name: visual-regression-snapshots-results
           path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
   update:
     name: Update Snapshots
