@@ -6,7 +6,12 @@ import react from "@vitejs/plugin-react";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  root: "./pages",
+  base: "./",
   server: {
-    open: "/pages/index.html",
+    open: "/index.html",
+  },
+  build: {
+    outDir: "../dist",
   },
 });

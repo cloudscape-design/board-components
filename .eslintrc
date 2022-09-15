@@ -27,7 +27,8 @@
       "error",
       "interface"
     ],
-    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "react/display-name": "off",
     "react/no-danger": "error",
     "react/no-unstable-nested-components": [
       "error",
@@ -98,15 +99,6 @@
       },
       "env": {
         "jest": true
-      }
-    },
-    {
-      "files": [
-        "./pages/**"
-      ],
-      "rules": {
-        "react/react-in-jsx-scope": 2,
-        "react/jsx-uses-react": 2
       }
     }
   ]
