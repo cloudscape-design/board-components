@@ -8,6 +8,11 @@ export default defineConfig({
   plugins: [react()],
   root: "./pages",
   base: "./",
+  resolve: {
+    alias: {
+      lodash: "lodash-es",
+    },
+  },
   server: {
     open: "/index.html",
   },

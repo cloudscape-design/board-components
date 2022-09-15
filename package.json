@@ -35,7 +35,12 @@
     "node": ">= 14"
   },
   "dependencies": {
-    "clsx": "^1.2.1"
+    "@dnd-kit/core": "^6.0.5",
+    "@dnd-kit/sortable": "^7.0.1",
+    "@types/lodash": "^4.14.185",
+    "clsx": "^1.2.1",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21"
   },
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
