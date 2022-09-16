@@ -1,24 +1,25 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { ReactNode } from "react";
+import DragHandle from "../internal/drag-handle/index";
+import type { WidgetContainerProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-interface WidgetContainerProps {
-  children: ReactNode;
-  header: ReactNode;
-  footer: ReactNode;
-  disableContentPaddings: boolean;
-  i18nStrings: {
-    dragHandleLabel: string;
-    resizeLabel: string;
-  };
-}
+export type { WidgetContainerProps };
 
-export default function WidgetContainer({ children, header, footer, disableContentPaddings }: WidgetContainerProps) {
+export default function WidgetContainer(props: WidgetContainerProps) {
+  const { children, ...containerProps } = props;
+  const header = (
+    <div className={styles.header}>
+      <div className={styles.handle}>
+        <DragHandle />
+      </div>
+      {props.header}
+    </div>
+  );
   return (
-    <Container header={header} footer={footer} disableContentPaddings={disableContentPaddings}>
-      <div className={styles.content}>{children}</div>
+    <Container {...containerProps} disableHeaderPaddings={true} header={header}>
+      {children}
     </Container>
   );
 }

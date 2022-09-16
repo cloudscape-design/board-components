@@ -1,4 +1,9 @@
-.content {
-  height: 410px;
-  background-color: #fff;
+.header {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+}
+
+.handle {
+  flex: 0 0 auto;
 }

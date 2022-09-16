@@ -1,0 +1,12 @@
+.handle {
+  appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: grab;
+  position: relative;
+}
+
+.handle:active {
+  cursor: grabbing;
+}
