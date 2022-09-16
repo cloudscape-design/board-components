@@ -1,0 +1,59 @@
+name: Visual Regressions
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+env:
+  VISUAL_REGRESSION_SNAPSHOT_DIRECTORY: '__image_snapshots__'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    if: github.event.ref != 'refs/head/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: 'npm'
+      - name: "Download artifacts"
+        # Turns out you can not use artifacts from a previous workflow run.
+        # I'm reluctant to check in the resulting screenshots into the repository, 
+        # which is why we use the following hack, until it's solved on Github side: 
+        # https://github.com/actions/download-artifact/issues/3
+        run: |
+          RUN_ID=`gh run --repo $GITHUB_REPOSITORY --branch main list --workflow "Visual Regressions" --json databaseId --jq .[0].databaseId`
+          echo "Downloading snapshots created in run ${RUN_ID}"
+          gh run --repo $GITHUB_REPOSITORY download ${RUN_ID} -n "visual-regression-snapshots" -D ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
+      - run: npm install
+      - run: npm run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v3
+        with:
+          name: visual-regression-snapshots-results
+          path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
+  update:
+    name: Update Snapshots
+    runs-on: ubuntu-latest
+    if: github.event.ref == 'refs/head/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: 'npm'
+      - run: npm install
+      - run: npm run build
+      - run: npm run test:e2e:update
+      - uses: actions/upload-artifact@v3
+        with:
+          name: visual-regression-snapshots
+          path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}

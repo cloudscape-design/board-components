@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { pagesMap } from "../pages";
 
 export interface PageProps {

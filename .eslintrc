@@ -15,24 +15,52 @@
       "jsx": true
     }
   },
-  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header"],
+  "plugins": [
+    "unicorn",
+    "react-hooks",
+    "no-unsanitized",
+    "header"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",
-    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "@typescript-eslint/consistent-type-definitions": [
+      "error",
+      "interface"
+    ],
     "react/react-in-jsx-scope": "off",
     "react/no-danger": "error",
-    "react/no-unstable-nested-components": ["error", { "allowAsProps": true }],
-    "react/forbid-component-props": ["warn", { "forbid": ["className", "id"] }],
-    "react/jsx-boolean-value": ["error", "always"],
+    "react/no-unstable-nested-components": [
+      "error",
+      {
+        "allowAsProps": true
+      }
+    ],
+    "react/forbid-component-props": [
+      "warn",
+      {
+        "forbid": [
+          "className",
+          "id"
+        ]
+      }
+    ],
+    "react/jsx-boolean-value": [
+      "error",
+      "always"
+    ],
     "@typescript-eslint/naming-convention": [
       "error",
       {
         "selector": "typeLike",
-        "format": ["PascalCase"]
+        "format": [
+          "PascalCase"
+        ]
       }
     ],
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": ["error"],
+    "react-hooks/exhaustive-deps": [
+      "error"
+    ],
     "unicorn/filename-case": "error",
     "curly": "error",
     "dot-notation": "error",
@@ -42,7 +70,10 @@
     "header/header": [
       "error",
       "line",
-      [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"]
+      [
+        " Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.",
+        " SPDX-License-Identifier: Apache-2.0"
+      ]
     ]
   },
   "settings": {
@@ -56,7 +87,10 @@
   },
   "overrides": [
     {
-      "files": ["**/__integ__/**"],
+      "files": [
+        "**/__integ__/**",
+        "./test/**"
+      ],
       "rules": {
         // useBrowser is not a React hook
         "react-hooks/rules-of-hooks": "off",
@@ -64,6 +98,15 @@
       },
       "env": {
         "jest": true
+      }
+    },
+    {
+      "files": [
+        "./pages/**"
+      ],
+      "rules": {
+        "react/react-in-jsx-scope": 2,
+        "react/jsx-uses-react": 2
       }
     }
   ]
