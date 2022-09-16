@@ -13,7 +13,7 @@ configure({
     seleniumUrl: `http://localhost:9515`,
   },
   webdriverOptions: {
-    baseUrl: `http://localhost:8000`,
+    baseUrl: `http://localhost:4173`,
     implicitTimeout: 200,
   },
 });
@@ -21,7 +21,5 @@ configure({
 const toMatchImageSnapshot = configureToMatchImageSnapshot({
   customSnapshotsDir: snapshotDir,
 });
-
-process.env.TEST_HOST = "http://localhost:4173";
 
 expect.extend({ toMatchImageSnapshot });

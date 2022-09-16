@@ -6,7 +6,7 @@ import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page
 
 function setupTest(testFn: (page: ScreenshotPageObject) => Promise<void>) {
   return useBrowser(async (browser) => {
-    await browser.url(`${process.env.TEST_HOST}`);
+    await browser.url(`/`);
     const page = new ScreenshotPageObject(browser);
     await page.waitForVisible("body");
     await testFn(page);
