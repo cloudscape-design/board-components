@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import React from "react";
 import Canvas, { CanvasItem } from "../../lib/components/canvas";
 import { TestBed } from "../app/test-bed";
 import classnames from "./layouts.module.css";
