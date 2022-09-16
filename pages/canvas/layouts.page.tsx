@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Canvas, { CanvasItem } from "../../lib/components/canvas";
+import { TestBed } from "../app/test-bed";
 import classnames from "./layouts.module.css";
 
 const singleItem: CanvasItem[] = [
@@ -22,9 +23,15 @@ export default function CanvasPage() {
     <>
       <h1>Canvas</h1>
       <main>
-        <Canvas items={singleItem} renderItem={(item) => <Block key={item.id} />} />
-        <Canvas items={spacedOutTtems} renderItem={(item) => <Block key={item.id} />} />
-        <Canvas items={nextRowItems} renderItem={(item) => <Block key={item.id} />} />
+        <TestBed>
+          <Canvas items={singleItem} renderItem={(item) => <Block key={item.id} />} />
+        </TestBed>
+        <TestBed>
+          <Canvas items={spacedOutTtems} renderItem={(item) => <Block key={item.id} />} />
+        </TestBed>
+        <TestBed>
+          <Canvas items={nextRowItems} renderItem={(item) => <Block key={item.id} />} />
+        </TestBed>
       </main>
     </>
   );

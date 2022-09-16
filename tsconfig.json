@@ -24,4 +24,7 @@
     "src",
     "types"
   ],
+  "exclude": [
+    "**/*.test.tsx"
+  ]
 }

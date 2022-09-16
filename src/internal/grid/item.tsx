@@ -21,7 +21,7 @@ const GridItem = (props: GridItemProps) => {
   };
 
   // Grid row start can not be set as part of a CSS class names,
-  // since we an potential infinite height grid.
+  // since we have an potential infinite height grid.
   return (
     <div {...data} className={className} style={{ gridRowStart: rowOffset }}>
       {children}
