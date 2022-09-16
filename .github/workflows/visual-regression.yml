@@ -15,7 +15,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    if: github.event.ref != 'refs/head/main'
+    if: github.event.ref != 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -43,7 +43,7 @@ jobs:
   update:
     name: Update Snapshots
     runs-on: ubuntu-latest
-    if: github.event.ref == 'refs/head/main'
+    if: github.event.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
