@@ -44,6 +44,7 @@
   "devDependencies": {
     "@cloudscape-design/browser-test-tools": "^3.0.4",
     "@cloudscape-design/components": "^3",
+    "@cloudscape-design/design-tokens": "^3",
     "@cloudscape-design/global-styles": "^1.0.1",
     "@cloudscape-design/theming-build": "^1",
     "@juggle/resize-observer": "^3.4.0",
