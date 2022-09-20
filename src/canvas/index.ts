@@ -1,7 +1,4 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test } from "vitest";
-
-test("dummy", () => {
-  expect(1 + 1).toEqual(2);
-});
+export { default as default } from "./canvas";
+export type { CanvasProps, CanvasItem } from "./interfaces";

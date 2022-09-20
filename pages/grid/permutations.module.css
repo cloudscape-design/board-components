@@ -1,0 +1,27 @@
+.stone {
+  border: 1px solid black;
+  aspect-ratio: 1;
+}
+
+.stone.black {
+  background-color: black;
+}
+
+.stone.white {
+  background-color: white;
+}
+
+.block {
+  background-color: brown;
+  height: 150px;
+}
+
+.pixel {
+  background-color: black;
+  aspect-ratio: 1;
+}
+
+.dummy {
+  background-color: #3F9FD9;
+  height: 100%;
+}

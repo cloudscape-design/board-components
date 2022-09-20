@@ -3,21 +3,21 @@
 import { test, expect } from "vitest";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
+import { routes } from "../pages/pages";
 
-function setupTest(testFn: (page: ScreenshotPageObject) => Promise<void>) {
+function setupTest(testFn: (browser: ScreenshotPageObject["browser"]) => Promise<void>) {
   return useBrowser(async (browser) => {
-    await browser.url(`/`);
-    const page = new ScreenshotPageObject(browser);
-    await page.waitForVisible("body");
-    await testFn(page);
+    await testFn(browser);
   });
 }
 
-// Test can be removed after adding real screenshots tests
-test(
-  "matches index page",
-  setupTest(async (page) => {
+test.each(routes)("matches snapshot for %s", (route) => {
+  return setupTest(async (browser) => {
+    await browser.url(route);
+    const page = new ScreenshotPageObject(browser);
+    await page.waitForVisible("main");
+
     const pngString = await page.fullPageScreenshot();
     expect(pngString).toMatchImageSnapshot();
-  })
-);
+  })();
+});
