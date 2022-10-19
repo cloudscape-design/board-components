@@ -1,24 +1,29 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { ReactNode } from "react";
+import DragHandle from "../internal/drag-handle/index";
+import type { WidgetContainerProps } from "./interfaces";
+import WidgetContainerHeader from "./header";
+import ResizeHandle from "../internal/resize-handle/index";
 import styles from "./styles.css.js";
 
-interface WidgetContainerProps {
-  children: ReactNode;
-  header: ReactNode;
-  footer: ReactNode;
-  disableContentPaddings: boolean;
-  i18nStrings: {
-    dragHandleLabel: string;
-    resizeLabel: string;
-  };
-}
+export type { WidgetContainerProps };
 
-export default function WidgetContainer({ children, header, footer, disableContentPaddings }: WidgetContainerProps) {
+export default function WidgetContainer(props: WidgetContainerProps) {
+  const { children, header, settings, i18nStrings, ...containerProps } = props;
+  const headerComponent = (
+    <WidgetContainerHeader handle={<DragHandle ariaLabel={i18nStrings.dragHandleLabel} />} settings={settings}>
+      {header}
+    </WidgetContainerHeader>
+  );
   return (
-    <Container header={header} footer={footer} disableContentPaddings={disableContentPaddings}>
-      <div className={styles.content}>{children}</div>
-    </Container>
+    <div className={styles.wrapper}>
+      <Container {...containerProps} disableHeaderPaddings={true} header={headerComponent}>
+        {children}
+      </Container>
+      <div className={styles.resizer}>
+        <ResizeHandle ariaLabel={i18nStrings.resizeLabel} />
+      </div>
+    </div>
   );
 }

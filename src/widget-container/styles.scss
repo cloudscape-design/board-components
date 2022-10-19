@@ -1,4 +1,41 @@
-.content {
-  height: 410px;
-  background-color: #fff;
+@use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+.header {
+  display: flex;
+  flex-direction: row nowrap;
+  justify-items: center;
+  padding: cs.$space-scaled-s cs.$space-container-horizontal;
+}
+
+.flexible {
+  flex: 1 1 min-content;
+}
+
+.handle {
+  margin-top: cs.$space-scaled-xxs;
+}
+
+.children {
+  margin-left: 10px;
+}
+
+.settings {
+  margin-top: cs.$space-scaled-xxxs;
+  margin-left: cs.$space-static-xs;
+}
+
+.fixed {
+  flex: 0 0 auto;
+}
+
+.resizer {
+  position: absolute;
+  bottom: cs.$space-scaled-xs;
+  right: cs.$space-static-s;
+}
+
+.wrapper {
+  position: relative;
+  height: 100%;
+  display: grid;
 }

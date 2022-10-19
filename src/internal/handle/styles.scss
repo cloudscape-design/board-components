@@ -1,0 +1,16 @@
+@use "../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+.handle {
+  appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  position: relative;
+  border: transparent solid 2px;
+  border-radius: cs.$border-radius-control-default-focus-ring;
+  color: cs.$color-text-status-inactive;
+}
+
+.handle:focus {
+  border-color: cs.$color-border-item-focused;
+}
