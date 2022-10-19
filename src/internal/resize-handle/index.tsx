@@ -4,12 +4,15 @@ import React, { ForwardedRef } from "react";
 
 import Handle from "../handle";
 import { ResizeHandleIcon } from "./icon";
+import styles from "./styles.css.js";
 
-export type ResizeHandleProps = Record<string, never>;
+export interface ResizeHandleProps {
+  ariaLabel?: string;
+}
 
-function ResizeHandle(props: ResizeHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
+function ResizeHandle({ ariaLabel }: ResizeHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
   return (
-    <Handle ref={ref}>
+    <Handle className={styles.handle} ariaLabel={ariaLabel} ref={ref}>
       <ResizeHandleIcon />
     </Handle>
   );

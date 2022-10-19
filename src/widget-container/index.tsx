@@ -3,23 +3,27 @@
 import Container from "@cloudscape-design/components/container";
 import DragHandle from "../internal/drag-handle/index";
 import type { WidgetContainerProps } from "./interfaces";
+import WidgetContainerHeader from "./header";
+import ResizeHandle from "../internal/resize-handle/index";
 import styles from "./styles.css.js";
 
 export type { WidgetContainerProps };
 
 export default function WidgetContainer(props: WidgetContainerProps) {
-  const { children, ...containerProps } = props;
-  const header = (
-    <div className={styles.header}>
-      <div className={styles.handle}>
-        <DragHandle />
-      </div>
-      {props.header}
-    </div>
+  const { children, header, settings, i18nStrings, ...containerProps } = props;
+  const headerComponent = (
+    <WidgetContainerHeader handle={<DragHandle ariaLabel={i18nStrings.dragHandleLabel} />} settings={settings}>
+      {header}
+    </WidgetContainerHeader>
   );
   return (
-    <Container {...containerProps} disableHeaderPaddings={true} header={header}>
-      {children}
-    </Container>
+    <div className={styles.wrapper}>
+      <Container {...containerProps} disableHeaderPaddings={true} header={headerComponent}>
+        {children}
+      </Container>
+      <div className={styles.resizer}>
+        <ResizeHandle ariaLabel={i18nStrings.resizeLabel} />
+      </div>
+    </div>
   );
 }

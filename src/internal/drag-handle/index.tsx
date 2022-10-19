@@ -4,12 +4,15 @@ import React, { ForwardedRef } from "react";
 
 import Handle from "../handle";
 import DragHandleIcon from "./icon";
+import styles from "./styles.css.js";
 
-export type DragHandleProps = Record<string, never>;
+export interface DragHandleProps {
+  ariaLabel?: string;
+}
 
-function DragHandle(props: DragHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
+function DragHandle({ ariaLabel }: DragHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
   return (
-    <Handle ref={ref}>
+    <Handle className={styles.handle} ref={ref} ariaLabel={ariaLabel}>
       <DragHandleIcon />
     </Handle>
   );

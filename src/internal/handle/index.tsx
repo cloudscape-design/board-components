@@ -1,16 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import clsx from "clsx";
 import React, { ForwardedRef } from "react";
 import styles from "./styles.css.js";
 
 export interface HandleProps {
   children?: React.ReactNode;
+  className?: string;
+  ariaLabel?: string;
 }
 
-function Handle({ children }: HandleProps, ref: ForwardedRef<HTMLButtonElement>) {
-  const className = styles.handle;
+function Handle({ children, className, ariaLabel }: HandleProps, ref: ForwardedRef<HTMLButtonElement>) {
   return (
-    <button className={className} ref={ref}>
+    <button className={clsx(styles.handle, className)} ref={ref} aria-label={ariaLabel}>
       {children}
     </button>
   );
