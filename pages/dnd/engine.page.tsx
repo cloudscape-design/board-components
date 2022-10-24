@@ -69,31 +69,33 @@ export default function () {
   }
 
   return (
-    <Box>
-      <DndContext
-        onDragEnd={handleReorder}
-        onDragMove={(event) => {
-          const sourceGrid = itemsToGrid(items, columnsCount);
-          const nextGrid = calculateShifts(
-            sourceGrid,
-            event.collisions as Array<CollisionDescriptor>,
-            event.active,
-            event.over
-          );
-          setTransforms(createTransforms(nextGrid, sourceGrid, event.active.rect.current.initial!));
-        }}
-      >
-        <div className={css.grid} style={{ "--columns-count": columnsCount } as any}>
-          {items.map((item) => (
-            <SortableItem
-              key={item.id}
-              item={item}
-              animate={transforms !== null}
-              transform={transforms?.find((t) => t.id === item.id)?.transform ?? null}
-            />
-          ))}
-        </div>
-      </DndContext>
-    </Box>
+    <main>
+      <Box>
+        <DndContext
+          onDragEnd={handleReorder}
+          onDragMove={(event) => {
+            const sourceGrid = itemsToGrid(items, columnsCount);
+            const nextGrid = calculateShifts(
+              sourceGrid,
+              event.collisions as Array<CollisionDescriptor>,
+              event.active,
+              event.over
+            );
+            setTransforms(createTransforms(nextGrid, sourceGrid, event.active.rect.current.initial!));
+          }}
+        >
+          <div className={css.grid} style={{ "--columns-count": columnsCount } as any}>
+            {items.map((item) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                animate={transforms !== null}
+                transform={transforms?.find((t) => t.id === item.id)?.transform ?? null}
+              />
+            ))}
+          </div>
+        </DndContext>
+      </Box>
+    </main>
   );
 }
