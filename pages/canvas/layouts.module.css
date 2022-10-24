@@ -1,15 +1,5 @@
 .block {
   border-radius: 6px;
-  background-color: #586efb;
+  background-color: #586EFB;
   height: 100%;
-  color: #fff;
-  padding: 20%;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.spaceBetween {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
