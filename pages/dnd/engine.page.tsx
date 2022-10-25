@@ -7,12 +7,13 @@ import css from "./styles.module.css";
 import clsx from "clsx";
 import { CSSProperties, useState } from "react";
 import { calculateShifts, itemsToGrid, createTransforms, gridToItems } from "./layout";
-import { initialItems } from "./items";
+import { initialItems, Item } from "./items";
+import Canvas from "../../lib/components/canvas";
 
-const columnsCount = 3;
+const columnsCount = 4;
 
 interface SortableItemProps {
-  item: typeof initialItems[0];
+  item: Item;
   transform: Transform | null;
   animate: boolean;
 }
@@ -30,7 +31,7 @@ function SortableItem({ item, transform }: SortableItemProps) {
 
   const style: CSSProperties = {
     transform: CSSUtil.Translate.toString(dragTransform ?? transform),
-    backgroundColor: item.color,
+    backgroundColor: item.data.color,
     transition:
       !dragTransform && active
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
@@ -53,7 +54,7 @@ function SortableItem({ item, transform }: SortableItemProps) {
 
 export default function () {
   const [items, setItems] = useState(initialItems);
-  const [transforms, setTransforms] = useState<Array<{ id: number; transform: Transform }> | null>(null);
+  const [transforms, setTransforms] = useState<Array<{ id: string; transform: Transform }> | null>(null);
 
   function handleReorder(event: DragEndEvent) {
     setTransforms(null);
@@ -84,16 +85,17 @@ export default function () {
             setTransforms(createTransforms(nextGrid, sourceGrid, event.active.rect.current.initial!));
           }}
         >
-          <div className={css.grid} style={{ "--columns-count": columnsCount } as any}>
-            {items.map((item) => (
+          <Canvas
+            items={items}
+            renderItem={(item) => (
               <SortableItem
                 key={item.id}
                 item={item}
                 animate={transforms !== null}
                 transform={transforms?.find((t) => t.id === item.id)?.transform ?? null}
               />
-            ))}
-          </div>
+            )}
+          />
         </DndContext>
       </Box>
     </main>

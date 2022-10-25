@@ -4,7 +4,7 @@ import { Active, CollisionDescriptor, Over } from "@dnd-kit/core";
 import { Item } from "./items";
 
 interface Layout {
-  id: number;
+  id: string;
   x: number;
   y: number;
   width: number;
@@ -27,15 +27,32 @@ export function itemsToGrid(items: ReadonlyArray<Item>, columns: number) {
   return layout;
 }
 
-export function gridToItems(grid: ReadonlyArray<Layout>, sourceItems: ReadonlyArray<Item>) {
-  const sorted = grid.slice().sort((a, b) => {
+export function gridToItems(grid: ReadonlyArray<Layout>, sourceItems: ReadonlyArray<Item>): Item[] {
+  const sourceById = sourceItems.reduce((map, item) => map.set(item.id, item), new Map<string, Item>());
+
+  const sortedLayout = grid.slice().sort((a, b) => {
     if (a.y !== b.y) {
       return a.y > b.y ? 1 : -1;
     }
     return a.x > b.x ? 1 : -1;
   });
 
-  return sorted.map((layout) => sourceItems.find((item) => item.id === layout.id)!);
+  const canvasItems: Item[] = [];
+
+  let currentRow = 0;
+  let currentColumnOffset = 1;
+
+  for (const layoutItem of sortedLayout) {
+    if (layoutItem.y !== currentRow) {
+      currentRow = layoutItem.y;
+      currentColumnOffset = 1;
+    }
+    const matchedCanvasItem = { ...sourceById.get(layoutItem.id)!, columnOffset: currentColumnOffset };
+    canvasItems.push(matchedCanvasItem);
+    currentColumnOffset += matchedCanvasItem.columnSpan;
+  }
+
+  return canvasItems;
 }
 
 export function createTransforms(
