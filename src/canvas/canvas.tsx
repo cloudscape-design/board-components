@@ -6,7 +6,7 @@ import { CanvasProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import useGridLayout from "./use-grid-layout";
 import useContainerQuery from "../internal/hooks/use-container-query";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constrants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
 
 export default function Canvas<D = DataFallbackType>({ items, renderItem }: CanvasProps<D>) {
   const [containerSize, containerQueryRef] = useContainerQuery(
