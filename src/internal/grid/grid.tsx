@@ -8,15 +8,10 @@ import { zipTwoArrays } from "./utils";
 
 import GridItem from "./item";
 
-function Grid({ layout, children, columns, rows }: GridProps, ref: React.ForwardedRef<HTMLDivElement>) {
+export default function Grid({ layout, children, columns, rows }: GridProps) {
   const zipped = zipTwoArrays<GridLayoutItem, React.ReactNode>(layout, React.Children.toArray(children));
-  const data = {
-    "data-columns": columns,
-    "data-rows": rows,
-  };
-
   return (
-    <div {...data} className={styles.grid} ref={ref}>
+    <div data-columns={columns} data-rows={rows} className={styles.grid}>
       {zipped.map(([item, children]) => (
         <GridItem key={item.id} {...item}>
           {children}
@@ -25,5 +20,3 @@ function Grid({ layout, children, columns, rows }: GridProps, ref: React.Forward
     </div>
   );
 }
-
-export default React.forwardRef(Grid);

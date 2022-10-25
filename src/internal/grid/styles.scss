@@ -20,21 +20,21 @@
 $columns: 4;
 
 @for $i from 1 through $columns {
-  .grid[data-columns="1"]>.grid__item[data-column-span="#{$i}"] {
+  .grid[data-columns="1"] > .grid__item[data-column-span="#{$i}"] {
     grid-column-end: span 1;
   }
 
-  .grid[data-columns="4"]>.grid__item[data-column-span="#{$i}"] {
+  .grid[data-columns="4"] > .grid__item[data-column-span="#{$i}"] {
     grid-column-end: span $i;
   }
 }
 
 @for $i from 1 through $columns {
-  .grid[data-columns="1"]>.grid__item[data-column-offset="#{$i}"] {
+  .grid[data-columns="1"] > .grid__item[data-column-offset="#{$i}"] {
     grid-column-start: 1;
   }
 
-  .grid[data-columns="4"]>.grid__item[data-column-offset="#{$i}"] {
+  .grid[data-columns="4"] > .grid__item[data-column-offset="#{$i}"] {
     grid-column-start: $i;
   }
 }
@@ -42,7 +42,7 @@ $columns: 4;
 $rows: 4;
 
 @for $i from 1 through $rows {
-  .grid>.grid__item[data-row-span="#{$i}"] {
+  .grid > .grid__item[data-row-span="#{$i}"] {
     grid-row-end: span $i;
   }
 }

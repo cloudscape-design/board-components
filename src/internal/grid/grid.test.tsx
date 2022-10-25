@@ -1,6 +1,5 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
 import { test, expect } from "vitest";
 import { render } from "@testing-library/react";
 import Grid, { GridProps } from "../../../lib/components/internal/grid";
@@ -26,14 +25,6 @@ test("renders children content", async () => {
 
   const children = await result.findAllByTestId("child");
   expect(children.length).toBe(2);
-});
-
-test("provides forward ref", () => {
-  const ref = React.createRef<HTMLDivElement>();
-
-  render(<Grid {...defaultProps} ref={ref} />);
-
-  expect(ref.current?.classList.contains(gridStyles.grid)).toBeTruthy();
 });
 
 test("annotates data attributes on root element", () => {

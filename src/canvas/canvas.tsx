@@ -4,30 +4,26 @@ import Grid from "../internal/grid";
 import type { DataFallbackType } from "../interfaces";
 import { CanvasProps } from "./interfaces";
 import Placeholder from "./placeholder";
-import useGridLayout from "./hooks/use-grid-layout";
+import useGridLayout from "./use-grid-layout";
 import useContainerQuery from "../internal/hooks/use-container-query";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
 
-// TODO: Use constant breakpoint
-const SMALL_WIDTH_BREAKPOINT = 688;
-const SMALL_WIDTH_COLUMNS = 1;
-const FULL_WIDTH_COLUMNS = 4;
-
-export default function Canvas<D = DataFallbackType>(props: CanvasProps<D>) {
-  const [measuredColumns, containerQueryRef] = useContainerQuery(
-    (entry) => (entry.contentBoxWidth < SMALL_WIDTH_BREAKPOINT ? SMALL_WIDTH_COLUMNS : FULL_WIDTH_COLUMNS),
+export default function Canvas<D = DataFallbackType>({ items, renderItem }: CanvasProps<D>) {
+  const [containerSize, containerQueryRef] = useContainerQuery(
+    (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
   );
 
-  const columns = measuredColumns ?? FULL_WIDTH_COLUMNS;
-  const { content, grid, rows } = useGridLayout({ ...props, columns });
+  const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
+  const { content, placeholders, rows } = useGridLayout({ items, columns });
 
   return (
     <section ref={containerQueryRef}>
-      <Grid columns={columns} rows={rows} layout={[...grid, ...content]}>
-        {grid.map(({ id }) => (
+      <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
+        {placeholders.map(({ id }) => (
           <Placeholder key={id} state="default" />
         ))}
-        {props.items.map((item) => props.renderItem(item))}
+        {items.map((item) => renderItem(item))}
       </Grid>
     </section>
   );
