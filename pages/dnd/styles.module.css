@@ -1,0 +1,24 @@
+.grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(var(--columns-count), 1fr);
+}
+
+.item {
+  border-radius: 6px;
+  background-color: #586efb;
+  height: 100%;
+  font-size: 60px;
+  font-weight: bold;
+  color: #fff;
+  padding: 80px;
+  text-align: center;
+  box-sizing: border-box;
+}
+.itemDragging {
+  box-shadow: 0 4px 20px 1px rgba(0, 7, 22, 0.1); /*awsui.shadowDropdown */
+  position: relative;
+  z-index: 1;
+}
