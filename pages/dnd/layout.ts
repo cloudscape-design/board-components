@@ -1,46 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Active, CollisionDescriptor, Over } from "@dnd-kit/core";
-import { Item } from "./items";
+import { LayoutItem } from "../../lib/components/internal/layout";
 
-interface Layout {
-  id: number;
-  x: number;
-  y: number;
-  width: number;
-}
 const GAP = 10;
 
-export function itemsToGrid(items: ReadonlyArray<Item>, columns: number) {
-  let x = 0;
-  let y = 0;
-  const layout: Array<Layout> = [];
-  for (const item of items) {
-    const colspan = item.columnSpan ?? 1;
-    if (x + colspan > columns) {
-      y++;
-      x = 0;
-    }
-    layout.push({ id: item.id, x, y, width: colspan });
-    x += colspan;
-  }
-  return layout;
-}
-
-export function gridToItems(grid: ReadonlyArray<Layout>, sourceItems: ReadonlyArray<Item>) {
-  const sorted = grid.slice().sort((a, b) => {
-    if (a.y !== b.y) {
-      return a.y > b.y ? 1 : -1;
-    }
-    return a.x > b.x ? 1 : -1;
-  });
-
-  return sorted.map((layout) => sourceItems.find((item) => item.id === layout.id)!);
-}
-
 export function createTransforms(
-  newGrid: ReadonlyArray<Layout> | null,
-  prevGrid: ReadonlyArray<Layout> | null,
+  newGrid: null | readonly LayoutItem[],
+  prevGrid: null | readonly LayoutItem[],
   activeRect: { width: number; height: number }
 ) {
   if (!newGrid || !prevGrid) {
@@ -60,11 +27,11 @@ export function createTransforms(
 }
 
 export function calculateShifts(
-  grid: Array<Layout>,
-  collisions: ReadonlyArray<CollisionDescriptor>,
+  grid: readonly LayoutItem[],
+  collisions: readonly CollisionDescriptor[],
   active: Active,
   over: Over | null
-) {
+): null | readonly LayoutItem[] {
   if (!over || over.id === active.id) {
     return null;
   }

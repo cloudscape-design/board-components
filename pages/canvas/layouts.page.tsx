@@ -5,17 +5,52 @@ import { TestBed } from "../app/test-bed";
 import classnames from "./layouts.module.css";
 
 const singleItem: CanvasItem[] = [
-  { id: "1", columnSpan: 1, rowSpan: 1, definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, columnOffset: 1 },
+  {
+    id: "1",
+    columnSpan: 1,
+    rowSpan: 1,
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+    columnOffset: 1,
+    data: {},
+  },
 ];
 
 const spacedOutTtems: CanvasItem[] = [
-  { id: "1", columnSpan: 1, rowSpan: 1, definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, columnOffset: 1 },
-  { id: "2", columnSpan: 1, rowSpan: 1, definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, columnOffset: 4 },
+  {
+    id: "1",
+    columnSpan: 1,
+    rowSpan: 1,
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+    columnOffset: 1,
+    data: {},
+  },
+  {
+    id: "2",
+    columnSpan: 1,
+    rowSpan: 1,
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+    columnOffset: 4,
+    data: {},
+  },
 ];
 
 const nextRowItems: CanvasItem[] = [
-  { id: "1", columnSpan: 2, rowSpan: 1, definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, columnOffset: 1 },
-  { id: "2", columnSpan: 1, rowSpan: 1, definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, columnOffset: 1 },
+  {
+    id: "1",
+    columnSpan: 2,
+    rowSpan: 1,
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+    columnOffset: 1,
+    data: {},
+  },
+  {
+    id: "2",
+    columnSpan: 1,
+    rowSpan: 1,
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+    columnOffset: 1,
+    data: {},
+  },
 ];
 
 export default function CanvasPage() {

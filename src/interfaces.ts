@@ -12,5 +12,5 @@ export interface ItemDefinition {
 export interface ItemBase<D = DataFallbackType> {
   id: string;
   definition: ItemDefinition;
-  data?: D;
+  data: D;
 }
