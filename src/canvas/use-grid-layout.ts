@@ -6,7 +6,7 @@ import type { GridLayoutItem } from "../internal/grid/index";
 import { createGridItems, createGridPlaceholders } from "../internal/layout";
 
 interface UseGridLayoutProps {
-  items: CanvasItem<any>[];
+  items: readonly CanvasItem<any>[];
   columns: number;
 }
 

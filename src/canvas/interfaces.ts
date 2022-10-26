@@ -9,6 +9,6 @@ export interface CanvasItem<D = DataFallbackType> extends ItemBase<D> {
 }
 
 export interface CanvasProps<D = DataFallbackType> {
-  items: CanvasItem<D>[];
+  items: readonly CanvasItem<D>[];
   renderItem(item: CanvasItem<D>): React.ReactNode;
 }

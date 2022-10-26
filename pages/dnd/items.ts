@@ -9,7 +9,7 @@ export interface ItemData {
 
 export type Item = CanvasItem<ItemData>;
 
-export const initialItems: Item[] = [
+export const initialItems: readonly Item[] = [
   makeItem({ id: 1, columnOffset: 1, color: awsuiTokens.colorChartsPaletteCategorical1 }),
   makeItem({ id: 2, columnOffset: 2, columnSpan: 2, color: awsuiTokens.colorChartsPaletteCategorical2 }),
   makeItem({ id: 3, columnOffset: 4, color: awsuiTokens.colorChartsPaletteCategorical3 }),

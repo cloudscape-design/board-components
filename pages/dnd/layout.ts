@@ -27,11 +27,11 @@ export function createTransforms(
 }
 
 export function calculateShifts(
-  grid: LayoutItem[],
+  grid: readonly LayoutItem[],
   collisions: readonly CollisionDescriptor[],
   active: Active,
   over: Over | null
-) {
+): null | readonly LayoutItem[] {
   if (!over || over.id === active.id) {
     return null;
   }
