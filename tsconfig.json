@@ -5,26 +5,18 @@
     "target": "ES2019",
     "jsx": "react-jsx",
     "types": [],
-    "lib": [
-      "es2019",
-      "dom"
-    ],
+    "lib": ["es2019", "dom"],
     "module": "ESNext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "outDir": "lib/components",
+    "outDir": "lib",
     "declaration": true,
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true
   },
-  "include": [
-    "src",
-    "types"
-  ],
-  "exclude": [
-    "**/*.test.tsx"
-  ]
+  "include": ["src", "types"],
+  "exclude": ["**/*.test.tsx"]
 }

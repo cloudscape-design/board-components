@@ -1,14 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CanvasItem } from "../../canvas";
-import { LayoutItem } from "./interfaces";
+import { LayoutItem, CanvasLayoutItem } from "./interfaces";
 
 export function layoutToCanvasItems<D>(
   grid: readonly LayoutItem[],
-  sourceItems: readonly CanvasItem<D>[]
-): readonly CanvasItem<D>[] {
-  const sourceById = sourceItems.reduce((map, item) => map.set(item.id, item), new Map<string, CanvasItem<D>>());
+  sourceItems: readonly CanvasLayoutItem<D>[]
+): readonly CanvasLayoutItem<D>[] {
+  const sourceById = sourceItems.reduce((map, item) => map.set(item.id, item), new Map<string, CanvasLayoutItem<D>>());
 
   const sortedLayout = grid.slice().sort((a, b) => {
     if (a.y !== b.y) {
@@ -17,7 +16,7 @@ export function layoutToCanvasItems<D>(
     return a.x > b.x ? 1 : -1;
   });
 
-  const canvasItems: CanvasItem<D>[] = [];
+  const canvasItems: CanvasLayoutItem<D>[] = [];
 
   let currentRow = 0;
   let currentColumnOffset = 1;

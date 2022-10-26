@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import Canvas, { CanvasItem } from "../../lib/components/canvas";
+import Canvas from "../../lib/components/canvas";
+import { CanvasLayoutItem } from "../../lib/internal/layout";
 import { TestBed } from "../app/test-bed";
 import classnames from "./layouts.module.css";
 
-const singleItem: CanvasItem[] = [
+const singleItem: CanvasLayoutItem[] = [
   {
     id: "1",
     columnSpan: 1,
@@ -15,7 +16,7 @@ const singleItem: CanvasItem[] = [
   },
 ];
 
-const spacedOutTtems: CanvasItem[] = [
+const spacedOutTtems: CanvasLayoutItem[] = [
   {
     id: "1",
     columnSpan: 1,
@@ -34,7 +35,7 @@ const spacedOutTtems: CanvasItem[] = [
   },
 ];
 
-const nextRowItems: CanvasItem[] = [
+const nextRowItems: CanvasLayoutItem[] = [
   {
     id: "1",
     columnSpan: 2,

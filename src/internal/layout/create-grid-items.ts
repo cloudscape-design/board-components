@@ -1,10 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CanvasItem } from "../../canvas";
-import { GridLayoutItem } from "../grid";
+import { GridLayoutItem, CanvasLayoutItem } from "./interfaces";
 
-export function createGridItems(items: readonly CanvasItem<any>[], columns: number): readonly GridLayoutItem[] {
+export function createGridItems(items: readonly CanvasLayoutItem<any>[], columns: number): readonly GridLayoutItem[] {
   const result: GridLayoutItem[] = [];
 
   let rowOffset = 1;

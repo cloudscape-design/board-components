@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Active, CollisionDescriptor, Over } from "@dnd-kit/core";
-import { LayoutItem } from "../../lib/components/internal/layout";
+import { LayoutItem } from "../../lib/internal/layout";
 
 const GAP = 10;
 

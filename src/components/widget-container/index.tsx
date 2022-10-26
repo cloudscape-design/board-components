@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import DragHandle from "../internal/drag-handle/index";
+import DragHandle from "../../internal/components/drag-handle";
 import type { WidgetContainerProps } from "./interfaces";
 import WidgetContainerHeader from "./header";
-import ResizeHandle from "../internal/resize-handle/index";
+import ResizeHandle from "../../internal/components/resize-handle";
 import styles from "./styles.css.js";
 
 export type { WidgetContainerProps };

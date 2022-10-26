@@ -9,7 +9,7 @@ import { CSSProperties, useState } from "react";
 import { calculateShifts, createTransforms } from "./layout";
 import { initialItems, Item } from "./items";
 import Canvas from "../../lib/components/canvas";
-import { canvasItemsToLayout, layoutToCanvasItems } from "../../lib/components/internal/layout";
+import { canvasItemsToLayout, layoutToCanvasItems } from "../../lib/internal/layout";
 
 const columnsCount = 4;
 

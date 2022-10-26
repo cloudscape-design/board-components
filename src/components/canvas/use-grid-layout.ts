@@ -1,12 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { CanvasItem } from "./interfaces";
-import type { GridLayoutItem } from "../internal/grid/index";
-import { createGridItems, createGridPlaceholders } from "../internal/layout";
+import { createGridItems, createGridPlaceholders, GridLayoutItem, CanvasLayoutItem } from "../../internal/layout";
 
 interface UseGridLayoutProps {
-  items: readonly CanvasItem<any>[];
+  items: readonly CanvasLayoutItem<any>[];
   columns: number;
 }
 
