@@ -1,9 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import type { CanvasItem } from "./interfaces";
-import type { GridLayoutItem } from "../internal/grid/index";
 
-export function createContentGridItems(items: CanvasItem<any>[], columns: number): GridLayoutItem[] {
+import { CanvasItem } from "../../canvas";
+import { GridLayoutItem } from "../grid";
+
+export function createGridItems(items: readonly CanvasItem<any>[], columns: number): readonly GridLayoutItem[] {
   const result: GridLayoutItem[] = [];
 
   let rowOffset = 1;
@@ -23,24 +24,6 @@ export function createContentGridItems(items: CanvasItem<any>[], columns: number
     ) {
       // Increment row count if the next item will not fit in the same row anymore
       rowOffset++;
-    }
-  }
-
-  return result;
-}
-
-export function createPlaceholderGridItems(rows: number, columns: number): GridLayoutItem[] {
-  const result: GridLayoutItem[] = [];
-
-  for (let rowOffset = 1; rowOffset <= rows; rowOffset++) {
-    for (let columnOffset = 1; columnOffset <= columns; columnOffset++) {
-      result.push({
-        id: `${rowOffset}-${columnOffset}}`,
-        rowOffset,
-        columnOffset,
-        rowSpan: 1,
-        columnSpan: 1,
-      });
     }
   }
 

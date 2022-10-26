@@ -6,9 +6,10 @@ import { Transform, useCombinedRefs, CSS as CSSUtil } from "@dnd-kit/utilities";
 import css from "./styles.module.css";
 import clsx from "clsx";
 import { CSSProperties, useState } from "react";
-import { calculateShifts, itemsToGrid, createTransforms, gridToItems } from "./layout";
+import { calculateShifts, createTransforms } from "./layout";
 import { initialItems, Item } from "./items";
 import Canvas from "../../lib/components/canvas";
+import { canvasItemsToLayout, layoutToCanvasItems } from "../../lib/components/internal/layout";
 
 const columnsCount = 4;
 
@@ -59,13 +60,13 @@ export default function () {
   function handleReorder(event: DragEndEvent) {
     setTransforms(null);
     const nextGrid = calculateShifts(
-      itemsToGrid(items, columnsCount),
+      canvasItemsToLayout(items, columnsCount),
       event.collisions as Array<CollisionDescriptor>,
       event.active,
       event.over
     );
     if (nextGrid) {
-      setItems(gridToItems(nextGrid, items));
+      setItems(layoutToCanvasItems(nextGrid, items));
     }
   }
 
@@ -75,7 +76,7 @@ export default function () {
         <DndContext
           onDragEnd={handleReorder}
           onDragMove={(event) => {
-            const sourceGrid = itemsToGrid(items, columnsCount);
+            const sourceGrid = canvasItemsToLayout(items, columnsCount);
             const nextGrid = calculateShifts(
               sourceGrid,
               event.collisions as Array<CollisionDescriptor>,
