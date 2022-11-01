@@ -1,12 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-export interface GridLayoutItem {
-  id: string;
-  columnSpan: number;
-  rowSpan: number;
-  columnOffset: number;
-  rowOffset: number;
-}
+
+import { GridLayoutItem } from "../layout";
 
 export interface GridProps {
   layout: GridLayoutItem[];

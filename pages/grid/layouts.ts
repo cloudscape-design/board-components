@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import type { GridLayoutItem } from "../../lib/components/internal/grid";
+import type { GridLayoutItem } from "../../lib/components/internal/layout";
 
 function generate<T>(amount: number, factory: (index: number) => T) {
   return new Array(amount).fill(0).map((_, index) => factory(index));

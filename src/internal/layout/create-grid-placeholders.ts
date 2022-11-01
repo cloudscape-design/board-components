@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem } from "../grid";
+import { GridLayoutItem } from "./interfaces";
 
 export function createGridPlaceholders(rows: number, columns: number): readonly GridLayoutItem[] {
   const result: GridLayoutItem[] = [];

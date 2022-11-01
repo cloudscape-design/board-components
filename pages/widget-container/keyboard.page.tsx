@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import WidgetContainer from "../../lib/components/widget-container/index";
+import WidgetContainer from "../../lib/components/widget-container";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
 import { widgetContainer } from "../shared/i18n";

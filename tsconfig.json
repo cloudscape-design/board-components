@@ -5,10 +5,7 @@
     "target": "ES2019",
     "jsx": "react-jsx",
     "types": [],
-    "lib": [
-      "es2019",
-      "dom"
-    ],
+    "lib": ["es2019", "dom"],
     "module": "ESNext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
@@ -20,11 +17,6 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "include": [
-    "src",
-    "types"
-  ],
-  "exclude": [
-    "**/*.test.tsx"
-  ]
+  "include": ["src", "types"],
+  "exclude": ["**/*.test.tsx"]
 }

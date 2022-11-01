@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import React from "react";
 
-import { GridLayoutItem, GridProps } from "./interfaces";
+import { GridProps } from "./interfaces";
 import styles from "./styles.css.js";
 import { zipTwoArrays } from "./utils";
-
+import { GridLayoutItem } from "../layout";
 import GridItem from "./item";
 
 export default function Grid({ layout, children, columns, rows }: GridProps) {
