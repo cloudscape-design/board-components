@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { test, expect } from "vitest";
 import { render } from "@testing-library/react";
-import Grid, { GridProps } from "../../../../lib/internal/components/grid";
-import gridStyles from "../../../../lib/internal/components/grid/styles.selectors";
+import Grid, { GridProps } from "../../../lib/components/internal/grid";
+import gridStyles from "../../../lib/components/internal/grid/styles.selectors";
 
 const defaultProps: GridProps = {
   rows: 1,

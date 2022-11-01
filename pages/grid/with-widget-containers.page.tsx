@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Header } from "@cloudscape-design/components";
-import Grid, { GridProps } from "../../lib/internal/components/grid";
+import Grid, { GridProps } from "../../lib/components/internal/grid";
 import WidgetContainer from "../../lib/components/widget-container";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";

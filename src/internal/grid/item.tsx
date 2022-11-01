@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from "react";
-import { GridLayoutItem } from "../../layout";
+import { GridLayoutItem } from "../layout";
 import styles from "./styles.css.js";
 
 export interface GridItemProps extends GridLayoutItem {

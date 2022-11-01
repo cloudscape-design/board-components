@@ -4,7 +4,7 @@ import { buildThemedComponentsInternal, ThemeBuilder } from "@cloudscape-design/
 
 await buildThemedComponentsInternal({
   primary: new ThemeBuilder("unused", ":root", []).build(),
-  componentsOutputDir: "lib",
+  componentsOutputDir: "lib/components",
   skip: ["design-tokens", "preset"],
   scssDir: "src",
   variablesMap: {},

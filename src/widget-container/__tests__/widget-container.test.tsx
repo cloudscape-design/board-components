@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import type { WidgetContainerProps } from "../../../../lib/components/widget-container";
-import WidgetContainer from "../../../../lib/components/widget-container";
+import type { WidgetContainerProps } from "../../../lib/components/widget-container";
+import WidgetContainer from "../../../lib/components/widget-container";
 import { render, cleanup } from "@testing-library/react";
 import { describe, test, expect, afterEach } from "vitest";
 

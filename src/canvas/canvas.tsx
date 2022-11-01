@@ -1,12 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import Grid from "../../internal/components/grid";
-import type { DataFallbackType } from "../../interfaces";
+
+import Grid from "../internal/grid";
+import type { DataFallbackType } from "../interfaces";
 import { CanvasProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import useGridLayout from "./use-grid-layout";
-import useContainerQuery from "../../internal/hooks/use-container-query";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../../constants";
+import useContainerQuery from "../internal/use-container-query/index";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
 
 export default function Canvas<D = DataFallbackType>({ items, renderItem }: CanvasProps<D>) {
   const [containerSize, containerQueryRef] = useContainerQuery(
