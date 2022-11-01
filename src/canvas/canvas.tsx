@@ -5,9 +5,10 @@ import Grid from "../internal/grid";
 import type { DataFallbackType } from "../interfaces";
 import { CanvasProps } from "./interfaces";
 import Placeholder from "./placeholder";
-import useGridLayout from "./use-grid-layout";
+import createGridLayout from "./create-grid-layout";
 import useContainerQuery from "../internal/use-container-query/index";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
+import styles from "./styles.css.js";
 
 export default function Canvas<D = DataFallbackType>({ items, renderItem }: CanvasProps<D>) {
   const [containerSize, containerQueryRef] = useContainerQuery(
@@ -16,7 +17,7 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem }: Canv
   );
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = useGridLayout({ items, columns });
+  const { content, placeholders, rows } = createGridLayout({ items, columns });
 
   return (
     <section ref={containerQueryRef}>
@@ -24,7 +25,11 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem }: Canv
         {placeholders.map(({ id }) => (
           <Placeholder key={id} state="default" />
         ))}
-        {items.map((item) => renderItem(item))}
+        {items.map((item) => (
+          <div key={item.id} className={styles.item}>
+            {renderItem(item)}
+          </div>
+        ))}
       </Grid>
     </section>
   );
