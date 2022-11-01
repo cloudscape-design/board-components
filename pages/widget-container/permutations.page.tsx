@@ -3,7 +3,7 @@
 import { Box, Button, ButtonDropdown, SpaceBetween } from "@cloudscape-design/components";
 import Header from "@cloudscape-design/components/header";
 
-import WidgetContainer from "../../lib/components/widget-container";
+import { WidgetContainer } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
 import { widgetContainer } from "../shared/i18n";

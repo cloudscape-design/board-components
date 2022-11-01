@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import Canvas from "../../lib/components/canvas";
-import { CanvasLayoutItem } from "../../lib/components/internal/layout";
+
+import { Canvas, CanvasLayoutItem } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import classnames from "./layouts.module.css";
 

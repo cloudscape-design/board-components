@@ -7,3 +7,5 @@ export interface CanvasProps<D = DataFallbackType> {
   items: readonly CanvasLayoutItem<D>[];
   renderItem(item: CanvasLayoutItem<D>): React.ReactNode;
 }
+
+export type { CanvasLayoutItem };

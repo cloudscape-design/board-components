@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import * as awsuiTokens from "@cloudscape-design/design-tokens";
-import { CanvasLayoutItem } from "../../lib/components/internal/layout";
+import { CanvasLayoutItem } from "../../lib/components";
 
 export interface ItemData {
   color: string;

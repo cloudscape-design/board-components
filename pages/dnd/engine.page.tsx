@@ -8,7 +8,7 @@ import clsx from "clsx";
 import { CSSProperties, useState } from "react";
 import { calculateShifts, createTransforms } from "./layout";
 import { initialItems, Item } from "./items";
-import Canvas from "../../lib/components/canvas";
+import { Canvas } from "../../lib/components";
 import { canvasItemsToLayout, layoutToCanvasItems } from "../../lib/components/internal/layout";
 
 const columnsCount = 4;
