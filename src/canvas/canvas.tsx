@@ -6,7 +6,7 @@ import type { DataFallbackType } from "../interfaces";
 import { CanvasProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import useGridLayout from "./use-grid-layout";
-import useContainerQuery from "../internal/use-container-query/index";
+import useContainerQuery from "../internal/use-container-query";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
 import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import { CollisionDescriptor, DndContext, DragEndEvent, DragMoveEvent } from "@dnd-kit/core";
