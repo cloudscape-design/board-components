@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
+import { ReactNode } from "react";
 
 import classnames from "./page-layout.module.css";
 
 export interface PageLayoutProps {
-  header?: React.ReactNode;
-  children?: React.ReactNode;
+  header?: ReactNode;
+  children?: ReactNode;
 }
 
 export default function PageLayout({ children, header }: PageLayoutProps) {

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import React, { ForwardedRef } from "react";
+import { forwardRef, ForwardedRef } from "react";
 import styles from "./styles.css.js";
 
 export interface HandleProps {
@@ -18,4 +18,4 @@ function Handle({ children, className, ariaLabel }: HandleProps, ref: ForwardedR
   );
 }
 
-export default React.forwardRef(Handle);
+export default forwardRef(Handle);

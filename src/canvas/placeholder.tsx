@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import React from "react";
+import { memo } from "react";
 
 import styles from "./styles.css.js";
 
@@ -15,4 +15,4 @@ function Placeholder({ state }: PlaceholderProps) {
   return <div className={clsx(styles.placeholder, styles[`placeholder--${state}`])} />;
 }
 
-export default React.memo(Placeholder);
+export default memo(Placeholder);

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import React from "react";
+import { ReactNode } from "react";
 import Canvas from "../../lib/components/canvas";
 import { CanvasLayoutItem } from "../../lib/components/internal/layout";
 import { TestBed } from "../app/test-bed";
@@ -79,6 +79,6 @@ export default function CanvasPage() {
   );
 }
 
-function Block({ children }: { children: React.ReactNode }) {
+function Block({ children }: { children: ReactNode }) {
   return <div className={classnames.block}>{children}</div>;
 }
