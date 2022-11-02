@@ -5,7 +5,7 @@ import Grid from "../internal/grid";
 import type { DataFallbackType } from "../interfaces";
 import { CanvasProps } from "./interfaces";
 import Placeholder from "./placeholder";
-import useGridLayout from "./use-grid-layout";
+import createGridLayout from "./create-grid-layout";
 import useContainerQuery from "../internal/use-container-query";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
 import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
@@ -24,7 +24,7 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem, onItem
   );
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = useGridLayout({ items, columns });
+  const { content, placeholders, rows } = createGridLayout({ items, columns });
 
   const [transforms, setTransforms] = useState<Array<{ id: string; transform: Transform }> | null>(null);
 
