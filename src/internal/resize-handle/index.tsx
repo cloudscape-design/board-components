@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import React, { ForwardedRef } from "react";
+import { forwardRef, ForwardedRef } from "react";
 
 import Handle from "../handle";
 import { ResizeHandleIcon } from "./icon";
@@ -18,4 +18,4 @@ function ResizeHandle({ ariaLabel }: ResizeHandleProps, ref: ForwardedRef<HTMLBu
   );
 }
 
-export default React.forwardRef(ResizeHandle);
+export default forwardRef(ResizeHandle);

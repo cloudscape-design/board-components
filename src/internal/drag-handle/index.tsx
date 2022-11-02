@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import React, { ForwardedRef } from "react";
+import { forwardRef, ForwardedRef } from "react";
 
 import Handle from "../handle";
 import DragHandleIcon from "./icon";
@@ -18,4 +18,4 @@ function DragHandle({ ariaLabel }: DragHandleProps, ref: ForwardedRef<HTMLButton
   );
 }
 
-export default React.forwardRef(DragHandle);
+export default forwardRef(DragHandle);
