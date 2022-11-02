@@ -1,13 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import * as awsuiTokens from "@cloudscape-design/design-tokens";
-import { CanvasLayoutItem } from "../../lib/components/internal/layout";
+import { CanvasProps } from "../../lib/components/canvas";
 
-export interface ItemData {
-  color: string;
-}
-
-export type Item = CanvasLayoutItem<ItemData>;
+export type Item = CanvasProps.Item<{ color: string }>;
 
 export const initialItems: readonly Item[] = [
   makeItem({ id: 1, columnOffset: 1, color: awsuiTokens.colorChartsPaletteCategorical1 }),

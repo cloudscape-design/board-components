@@ -54,19 +54,23 @@ const nextRowItems: CanvasLayoutItem[] = [
   },
 ];
 
+const noop = () => {
+  /* readonly demos */
+};
+
 export default function CanvasPage() {
   return (
     <>
       <h1>Canvas</h1>
       <main>
         <TestBed>
-          <Canvas items={singleItem} renderItem={(item) => <Block key={item.id} />} />
+          <Canvas items={singleItem} renderItem={(item) => <Block key={item.id} />} onItemsChange={noop} />
         </TestBed>
         <TestBed>
-          <Canvas items={spacedOutTtems} renderItem={(item) => <Block key={item.id} />} />
+          <Canvas items={spacedOutTtems} renderItem={(item) => <Block key={item.id} />} onItemsChange={noop} />
         </TestBed>
         <TestBed>
-          <Canvas items={nextRowItems} renderItem={(item) => <Block key={item.id} />} />
+          <Canvas items={nextRowItems} renderItem={(item) => <Block key={item.id} />} onItemsChange={noop} />
         </TestBed>
       </main>
     </>
