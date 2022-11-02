@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /** Temporarily taken from Component Toolkit until available in NPM */
-import React, { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useLayoutEffect, useState, useCallback, DependencyList, Ref, RefObject } from "react";
 import { ResizeObserver, ResizeObserverEntry } from "@juggle/resize-observer";
 
 /**
@@ -59,7 +59,7 @@ export interface ContainerQueryEntry {
 /**
  * React reference or element callback
  */
-export type ElementReference = (() => Element | null) | React.RefObject<Element>;
+export type ElementReference = (() => Element | null) | RefObject<Element>;
 
 /**
  * Attaches resize-observer to the referenced element.
@@ -162,8 +162,8 @@ function convertResizeObserverEntry(entry: ResizeObserverEntry): ContainerQueryE
  */
 export default function useContainerQuery<ObservedState>(
   mapFn: (entry: ContainerQueryEntry, prev: null | ObservedState) => ObservedState,
-  deps: React.DependencyList = []
-): [null | ObservedState, React.Ref<HTMLElement>] {
+  deps: DependencyList = []
+): [null | ObservedState, Ref<HTMLElement>] {
   const elementRef = useRef<HTMLElement>(null);
   const [state, setState] = useState<null | ObservedState>(null);
 

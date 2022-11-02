@@ -1,13 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import React from "react";
+import { ReactNode } from "react";
 import styles from "./styles.css.js";
 
 export interface WidgetContainerHeaderProps {
-  handle: React.ReactNode;
-  children?: React.ReactNode;
-  settings?: React.ReactNode;
+  handle: ReactNode;
+  children?: ReactNode;
+  settings?: ReactNode;
 }
 
 export default function WidgetContainerHeader({ handle, children, settings }: WidgetContainerHeaderProps) {

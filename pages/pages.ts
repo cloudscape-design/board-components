@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
+import { lazy } from "react";
 
 const pagesRaw = import.meta.glob("./**/*.page.tsx");
 const pageIdRegex = /([\w-/]+)\.page\.tsx/;
@@ -10,11 +10,11 @@ const getRoute = (page: string) => `/#${page}`;
 export const pages = Object.keys(pagesRaw).map(getPage);
 export const routes = pages.map(getRoute);
 
-type ComponentFactory = Parameters<typeof React.lazy>[0];
+type ComponentFactory = Parameters<typeof lazy>[0];
 
 export const pagesMap = Object.fromEntries(
   Object.entries(pagesRaw).map(([path, dynamicImport]) => {
     const match = getPage(path);
-    return [match, React.lazy(dynamicImport as ComponentFactory)];
+    return [match, lazy(dynamicImport as ComponentFactory)];
   })
 );

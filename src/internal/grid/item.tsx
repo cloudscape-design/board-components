@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import React from "react";
+import { ReactNode, memo } from "react";
 import { GridLayoutItem } from "../layout";
 import styles from "./styles.css.js";
 
 export interface GridItemProps extends GridLayoutItem {
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 const GridItem = (props: GridItemProps) => {
@@ -29,4 +29,4 @@ const GridItem = (props: GridItemProps) => {
   );
 };
 
-export default React.memo(GridItem);
+export default memo(GridItem);
