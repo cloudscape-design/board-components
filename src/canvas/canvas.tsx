@@ -14,7 +14,6 @@ import { Transform } from "@dnd-kit/utilities";
 import { SortableItem } from "./sortable-item";
 import { createCustomEvent } from "../internal/utils/events";
 import { calculateShifts, createTransforms } from "./layout";
-import styles from "./styles.css.js";
 
 const columnsCount = 4;
 
@@ -64,11 +63,7 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem, onItem
               <SortableItem
                 key={item.id}
                 id={item.id}
-                renderItem={(ctx) => (
-                  <div key={item.id} className={styles.item}>
-                    {renderItem(item, ctx)}
-                  </div>
-                )}
+                renderItem={(ctx) => renderItem(item, ctx)}
                 animate={transforms !== null}
                 transform={transforms?.find((t) => t.id === item.id)?.transform ?? null}
               />
