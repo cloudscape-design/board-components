@@ -3,23 +3,23 @@
 import { Box, Button, ButtonDropdown, SpaceBetween } from "@cloudscape-design/components";
 import Header from "@cloudscape-design/components/header";
 
-import WidgetContainer from "../../lib/components/widget-container";
+import { DashboardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
-import { widgetContainer } from "../shared/i18n";
+import * as i18nStrings from "../shared/i18n";
 
 export default function WidgetContainerPermutations() {
   return (
     <PageLayout header={<h1>Widget Container</h1>}>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           header={<Header variant="h2">Text Header</Header>}
-        ></WidgetContainer>
+        ></DashboardItem>
       </TestBed>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           header={<Header variant="h2">Text Header with Settings</Header>}
           settings={
             <ButtonDropdown
@@ -30,11 +30,11 @@ export default function WidgetContainerPermutations() {
               variant="icon"
             ></ButtonDropdown>
           }
-        ></WidgetContainer>
+        ></DashboardItem>
       </TestBed>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           header={
             <Header
               variant="h2"
@@ -57,11 +57,11 @@ export default function WidgetContainerPermutations() {
               variant="icon"
             ></ButtonDropdown>
           }
-        ></WidgetContainer>
+        ></DashboardItem>
       </TestBed>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           header={
             <Header variant="h2">
               Text Header wraps - I will make this a long title that wraps into the next line so that I can test the
@@ -77,11 +77,11 @@ export default function WidgetContainerPermutations() {
               variant="icon"
             ></ButtonDropdown>
           }
-        ></WidgetContainer>
+        ></DashboardItem>
       </TestBed>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           header={
             <Header
               variant="h2"
@@ -95,23 +95,23 @@ export default function WidgetContainerPermutations() {
               Text Header with actions
             </Header>
           }
-        ></WidgetContainer>
+        ></DashboardItem>
       </TestBed>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           disableContentPaddings={true}
           header={<Header variant="h2">Text Header</Header>}
         >
           <Box textAlign="center">Content without paddings</Box>
-        </WidgetContainer>
+        </DashboardItem>
       </TestBed>
       <TestBed>
-        <WidgetContainer
-          i18nStrings={widgetContainer}
+        <DashboardItem
+          i18nStrings={i18nStrings.dashboardItem}
           header={<Header variant="h2">Footer Content</Header>}
           footer={<Box textAlign="center">More</Box>}
-        ></WidgetContainer>
+        ></DashboardItem>
       </TestBed>
     </PageLayout>
   );
