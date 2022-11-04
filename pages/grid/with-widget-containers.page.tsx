@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Header } from "@cloudscape-design/components";
 import Grid, { GridProps } from "../../lib/components/internal/grid";
-import WidgetContainer from "../../lib/components/widget-container";
+import { DashboardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
-import { widgetContainer } from "../shared/i18n";
+import * as i18nStrings from "../shared/i18n";
 
 export default function GridWithWidgetContainerPage() {
   const layout: GridProps["layout"] = [
@@ -19,21 +19,36 @@ export default function GridWithWidgetContainerPage() {
     <PageLayout header={<h1>Grid with Widget Container</h1>}>
       <TestBed>
         <Grid layout={layout} columns={4} rows={3}>
-          <WidgetContainer i18nStrings={widgetContainer} header={<Header variant="h2">Widget Container</Header>}>
+          <DashboardItem
+            i18nStrings={i18nStrings.dashboardItem}
+            header={<Header variant="h2">Widget Container</Header>}
+          >
             Content Area
-          </WidgetContainer>
-          <WidgetContainer i18nStrings={widgetContainer} header={<Header variant="h2">Widget Container</Header>}>
+          </DashboardItem>
+          <DashboardItem
+            i18nStrings={i18nStrings.dashboardItem}
+            header={<Header variant="h2">Widget Container</Header>}
+          >
             <div style={{ minHeight: 300 }}>Content Area with min-height of 300px</div>
-          </WidgetContainer>
-          <WidgetContainer i18nStrings={widgetContainer} header={<Header variant="h2">Widget Container</Header>}>
+          </DashboardItem>
+          <DashboardItem
+            i18nStrings={i18nStrings.dashboardItem}
+            header={<Header variant="h2">Widget Container</Header>}
+          >
             Content Area
-          </WidgetContainer>
-          <WidgetContainer i18nStrings={widgetContainer} header={<Header variant="h2">Widget Container</Header>}>
+          </DashboardItem>
+          <DashboardItem
+            i18nStrings={i18nStrings.dashboardItem}
+            header={<Header variant="h2">Widget Container</Header>}
+          >
             Content Area
-          </WidgetContainer>
-          <WidgetContainer i18nStrings={widgetContainer} header={<Header variant="h2">Widget Container</Header>}>
+          </DashboardItem>
+          <DashboardItem
+            i18nStrings={i18nStrings.dashboardItem}
+            header={<Header variant="h2">Widget Container</Header>}
+          >
             Content Area
-          </WidgetContainer>
+          </DashboardItem>
         </Grid>
       </TestBed>
     </PageLayout>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import clsx from "clsx";
 import Box from "@cloudscape-design/components/box";
 import css from "./styles.module.css";
-import Canvas from "../../lib/components/canvas";
+import { DashboardLayout } from "../../lib/components";
 import { initialItems, Item } from "./items";
 
 export default function () {
@@ -13,7 +13,7 @@ export default function () {
   return (
     <main>
       <Box padding="m">
-        <Canvas
+        <DashboardLayout
           items={items}
           renderItem={(item, context) => (
             <div

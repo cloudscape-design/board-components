@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode } from "react";
-import Canvas from "../../lib/components/canvas";
-import { CanvasLayoutItem } from "../../lib/components/internal/layout";
+import { DashboardLayout, DashboardLayoutProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import classnames from "./layouts.module.css";
 
-const singleItem: CanvasLayoutItem[] = [
+const singleItem: DashboardLayoutProps.Item<any>[] = [
   {
     id: "1-1",
     columnSpan: 1,
@@ -18,7 +17,7 @@ const singleItem: CanvasLayoutItem[] = [
   },
 ];
 
-const spacedOutTtems: CanvasLayoutItem[] = [
+const spacedOutTtems: DashboardLayoutProps.Item<any>[] = [
   {
     id: "2-1",
     columnSpan: 1,
@@ -37,7 +36,7 @@ const spacedOutTtems: CanvasLayoutItem[] = [
   },
 ];
 
-const nextRowItems: CanvasLayoutItem[] = [
+const nextRowItems: DashboardLayoutProps.Item<any>[] = [
   {
     id: "3-1",
     columnSpan: 2,
@@ -60,25 +59,37 @@ const noop = () => {
   /* readonly demos */
 };
 
-export default function CanvasPage() {
+export default function DashboardLayoutPage() {
   return (
     <>
-      <h1>Canvas</h1>
+      <h1>Dashboard layout</h1>
       <main>
         <TestBed>
-          <Canvas items={singleItem} renderItem={(item) => <Block>{item.id}</Block>} onItemsChange={noop} />
+          <DashboardLayout
+            items={singleItem}
+            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            onItemsChange={noop}
+          />
         </TestBed>
         <TestBed>
-          <Canvas items={spacedOutTtems} renderItem={(item) => <Block>{item.id}</Block>} onItemsChange={noop} />
+          <DashboardLayout
+            items={spacedOutTtems}
+            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            onItemsChange={noop}
+          />
         </TestBed>
         <TestBed>
-          <Canvas items={nextRowItems} renderItem={(item) => <Block>{item.id}</Block>} onItemsChange={noop} />
+          <DashboardLayout
+            items={nextRowItems}
+            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            onItemsChange={noop}
+          />
         </TestBed>
       </main>
     </>
   );
 }
 
-function Block({ children }: { children: ReactNode }) {
+function CustomDashboardItem({ children }: { children: ReactNode }) {
   return <div className={classnames.block}>{children}</div>;
 }
