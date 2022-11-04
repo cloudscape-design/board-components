@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { CSSProperties } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { Transform, useCombinedRefs, CSS as CSSUtil } from "@dnd-kit/utilities";
+import { CSSProperties } from "react";
 import { ItemContext } from "./interfaces";
 
 interface SortableItemProps {

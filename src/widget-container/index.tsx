@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
 import DragHandle from "../internal/drag-handle";
-import type { WidgetContainerProps } from "./interfaces";
-import WidgetContainerHeader from "./header";
 import ResizeHandle from "../internal/resize-handle";
+import WidgetContainerHeader from "./header";
+import type { WidgetContainerProps } from "./interfaces";
 import styles from "./styles.css.js";
 
 export type { WidgetContainerProps };

@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useState } from "react";
-import clsx from "clsx";
 import Box from "@cloudscape-design/components/box";
-import css from "./styles.module.css";
+import clsx from "clsx";
+import { useState } from "react";
 import { DashboardLayout } from "../../lib/components";
 import { initialItems, Item } from "./items";
+import css from "./styles.module.css";
 
 export default function () {
   const [items, setItems] = useState<ReadonlyArray<Item>>(initialItems);
