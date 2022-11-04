@@ -4,12 +4,12 @@ import Container from "@cloudscape-design/components/container";
 import DragHandle from "../internal/drag-handle";
 import ResizeHandle from "../internal/resize-handle";
 import WidgetContainerHeader from "./header";
-import type { WidgetContainerProps } from "./interfaces";
+import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export type { WidgetContainerProps };
+export type { DashboardItemProps };
 
-export default function WidgetContainer(props: WidgetContainerProps) {
+export default function DashboardItem(props: DashboardItemProps) {
   const { children, header, settings, i18nStrings, ...containerProps } = props;
   const headerComponent = (
     <WidgetContainerHeader handle={<DragHandle ariaLabel={i18nStrings.dragHandleLabel} />} settings={settings}>

@@ -3,22 +3,26 @@
 import { CollisionDescriptor, DndContext, DragEndEvent, DragMoveEvent } from "@dnd-kit/core";
 import { Transform } from "@dnd-kit/utilities";
 import { Ref, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
-import type { DataFallbackType } from "../interfaces";
+import type { DataFallbackType } from "../internal/base-types";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import Grid from "../internal/grid";
 import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import useContainerQuery from "../internal/use-container-query";
 import { createCustomEvent } from "../internal/utils/events";
 import { irregularRectIntersection } from "./collision";
 import createGridLayout from "./create-grid-layout";
-import { CanvasProps } from "./interfaces";
+import { DashboardLayoutProps } from "./interfaces";
 import { calculateShifts, createTransforms } from "./layout";
 import Placeholder from "./placeholder";
 import { SortableItem } from "./sortable-item";
 
 const columnsCount = 4;
 
-export default function Canvas<D = DataFallbackType>({ items, renderItem, onItemsChange }: CanvasProps<D>) {
+export default function DashboardLayout<D = DataFallbackType>({
+  items,
+  renderItem,
+  onItemsChange,
+}: DashboardLayoutProps<D>) {
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
