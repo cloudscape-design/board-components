@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /** Temporarily taken from Component Toolkit until available in NPM */
-import { useRef, useEffect, useLayoutEffect, useState, useCallback, DependencyList, Ref, RefObject } from "react";
 import { ResizeObserver, ResizeObserverEntry } from "@juggle/resize-observer";
+import { useRef, useEffect, useLayoutEffect, useState, useCallback, DependencyList, Ref, RefObject } from "react";
 
 /**
  * A callback that stays stable between renders even as the dependencies change.

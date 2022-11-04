@@ -1,20 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Ref, useState } from "react";
-import Grid from "../internal/grid";
-import type { DataFallbackType } from "../interfaces";
-import { CanvasProps } from "./interfaces";
-import Placeholder from "./placeholder";
-import createGridLayout from "./create-grid-layout";
-import useContainerQuery from "../internal/use-container-query";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
-import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import { CollisionDescriptor, DndContext, DragEndEvent, DragMoveEvent } from "@dnd-kit/core";
 import { Transform } from "@dnd-kit/utilities";
-import { SortableItem } from "./sortable-item";
+import { Ref, useState } from "react";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
+import type { DataFallbackType } from "../interfaces";
+import Grid from "../internal/grid";
+import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
+import useContainerQuery from "../internal/use-container-query";
 import { createCustomEvent } from "../internal/utils/events";
-import { calculateShifts, createTransforms } from "./layout";
 import { irregularRectIntersection } from "./collision";
+import createGridLayout from "./create-grid-layout";
+import { CanvasProps } from "./interfaces";
+import { calculateShifts, createTransforms } from "./layout";
+import Placeholder from "./placeholder";
+import { SortableItem } from "./sortable-item";
 
 const columnsCount = 4;
 
