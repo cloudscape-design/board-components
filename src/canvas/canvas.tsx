@@ -14,6 +14,7 @@ import { Transform } from "@dnd-kit/utilities";
 import { SortableItem } from "./sortable-item";
 import { createCustomEvent } from "../internal/utils/events";
 import { calculateShifts, createTransforms } from "./layout";
+import { irregularRectIntersection } from "./collision";
 
 const columnsCount = 4;
 
@@ -52,7 +53,7 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem, onItem
     }
   }
   return (
-    <DndContext onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
+    <DndContext onDragMove={handleDragMove} onDragEnd={handleDragEnd} collisionDetection={irregularRectIntersection}>
       <div ref={containerQueryRef as Ref<HTMLDivElement>}>
         <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
           {placeholders.map(({ id }) => (
