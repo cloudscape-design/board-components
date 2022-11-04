@@ -15,7 +15,7 @@
       "jsx": true
     }
   },
-  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header"],
+  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header", "import"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
@@ -66,6 +66,12 @@
             "message": "Prefer named imports."
           }
         ]
+      }
+    ],
+    "import/no-useless-path-segments": [
+      "warn",
+      {
+        "noUselessIndex": true
       }
     ]
   },
