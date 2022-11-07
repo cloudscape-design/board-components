@@ -1,9 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { LayoutItem, CanvasLayoutItem } from "./interfaces";
+import { DashboardLayoutProps } from "../../layout";
+import { LayoutItem } from "./interfaces";
 
-export function canvasItemsToLayout<D>(items: readonly CanvasLayoutItem<D>[], columns: number): readonly LayoutItem[] {
+export function canvasItemsToLayout<D>(
+  items: readonly DashboardLayoutProps.Item<D>[],
+  columns: number
+): readonly LayoutItem[] {
   let x = 0;
   let y = 0;
   const layout: LayoutItem[] = [];

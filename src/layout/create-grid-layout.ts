@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { createGridItems, createGridPlaceholders, GridLayoutItem, CanvasLayoutItem } from "../internal/layout";
+import { createGridItems, createGridPlaceholders, GridLayoutItem } from "../internal/layout";
+import { DashboardLayoutProps } from "./interfaces";
 
-interface UseGridLayoutProps {
-  items: readonly CanvasLayoutItem<any>[];
+interface GridLayoutConfig {
+  items: readonly DashboardLayoutProps.Item<unknown>[];
   columns: number;
 }
 
@@ -15,7 +16,7 @@ interface GridLayout {
   rows: number;
 }
 
-export default function createGridLayout({ items, columns }: UseGridLayoutProps): GridLayout {
+export default function createGridLayout({ items, columns }: GridLayoutConfig): GridLayout {
   const content = createGridItems(items, columns);
   const rows = content.reduce((acc, item) => Math.max(acc, item.rowOffset + item.rowSpan - 1), 1);
   const placeholders = createGridPlaceholders(rows, columns);
