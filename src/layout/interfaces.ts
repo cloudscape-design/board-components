@@ -1,14 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { HTMLAttributes, Ref } from "react";
 import { DataFallbackType, ItemBase } from "../internal/base-types";
-
-// TODO: remove this context argument and integrate this info into DashboardItem
-export interface ItemContext {
-  ref: Ref<any>;
-  props: HTMLAttributes<HTMLElement>;
-  isDragging: boolean;
-}
 
 export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
@@ -20,7 +12,7 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
    * Specifies a function to render a dashboard item content. The return value must include dashboard item component.
    */
-  renderItem(item: DashboardLayoutProps.Item<D>, context: ItemContext): JSX.Element;
+  renderItem(item: DashboardLayoutProps.Item<D>): JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.

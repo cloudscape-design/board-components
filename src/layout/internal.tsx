@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { CollisionDescriptor, DndContext, DragEndEvent, DragMoveEvent } from "@dnd-kit/core";
-import { Transform } from "@dnd-kit/utilities";
 import { Ref, useState } from "react";
 import type { DataFallbackType } from "../internal/base-types";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import Grid from "../internal/grid";
+import { ItemContext, ItemContextProvider } from "../internal/item-context";
 import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import useContainerQuery from "../internal/use-container-query";
 import { createCustomEvent } from "../internal/utils/events";
@@ -14,7 +14,6 @@ import createGridLayout from "./create-grid-layout";
 import { DashboardLayoutProps } from "./interfaces";
 import { calculateShifts, createTransforms } from "./layout";
 import Placeholder from "./placeholder";
-import { SortableItem } from "./sortable-item";
 
 const columnsCount = 4;
 
@@ -31,7 +30,7 @@ export default function DashboardLayout<D = DataFallbackType>({
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const { content, placeholders, rows } = createGridLayout({ items, columns });
 
-  const [transforms, setTransforms] = useState<Array<{ id: string; transform: Transform }> | null>(null);
+  const [transforms, setTransforms] = useState<Array<ItemContext> | null>(null);
 
   function handleDragMove(event: DragMoveEvent) {
     const sourceGrid = canvasItemsToLayout(items, columnsCount);
@@ -65,13 +64,12 @@ export default function DashboardLayout<D = DataFallbackType>({
           ))}
           {items.map((item) => {
             return (
-              <SortableItem
+              <ItemContextProvider
                 key={item.id}
-                id={item.id}
-                renderItem={(ctx) => renderItem(item, ctx)}
-                animate={transforms !== null}
-                transform={transforms?.find((t) => t.id === item.id)?.transform ?? null}
-              />
+                value={transforms?.find((t) => t.id === item.id) ?? { id: item.id, transform: null }}
+              >
+                {renderItem(item)}
+              </ItemContextProvider>
             );
           })}
         </Grid>

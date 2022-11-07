@@ -2,9 +2,9 @@
 
 .header {
   display: flex;
-  flex-direction: row nowrap;
   justify-items: center;
   padding: cs.$space-scaled-s cs.$space-container-horizontal;
+  padding-left: calc(#{cs.$space-container-horizontal} - #{cs.$space-scaled-xs});
 }
 
 .flexible {
@@ -38,4 +38,7 @@
   position: relative;
   height: 100%;
   display: grid;
+  &.wrapperDragging {
+    z-index: 1;
+  }
 }
