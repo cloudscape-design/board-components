@@ -17,7 +17,7 @@ const singleItem: DashboardLayoutProps.Item<any>[] = [
   },
 ];
 
-const spacedOutTtems: DashboardLayoutProps.Item<any>[] = [
+const spacedOutItems: DashboardLayoutProps.Item<any>[] = [
   {
     id: "2-1",
     columnSpan: 1,
@@ -73,7 +73,7 @@ export default function DashboardLayoutPage() {
         </TestBed>
         <TestBed>
           <DashboardLayout
-            items={spacedOutTtems}
+            items={spacedOutItems}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
           />

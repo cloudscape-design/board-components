@@ -9,8 +9,8 @@ const defaultProps: GridProps = {
   rows: 1,
   columns: 4,
   layout: [
-    { id: "one", columnOffset: 1, columnSpan: 2, rowOffset: 1, rowSpan: 1 },
-    { id: "two", columnOffset: 3, columnSpan: 2, rowOffset: 1, rowSpan: 1 },
+    { id: "one", x: 1, width: 2, y: 1, height: 1 },
+    { id: "two", x: 3, width: 2, y: 1, height: 1 },
   ],
   children: (
     <>

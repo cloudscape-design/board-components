@@ -14,3 +14,11 @@ export interface ItemBase<D = DataFallbackType> {
   definition: ItemDefinition;
   data: D;
 }
+
+export interface GridLayoutItem {
+  id: string;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}
