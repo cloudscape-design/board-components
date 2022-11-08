@@ -12,7 +12,7 @@ export interface ResizeHandleProps {
 
 function ResizeHandle({ ariaLabel }: ResizeHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
   return (
-    <Handle className={styles.handle} ariaLabel={ariaLabel} ref={ref}>
+    <Handle className={styles.handle} aria-label={ariaLabel} ref={ref}>
       <ResizeHandleIcon />
     </Handle>
   );
