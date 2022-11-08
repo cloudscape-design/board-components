@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { render as libRender, cleanup } from "@testing-library/react";
+import { cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement } from "react";
-import { describe, test, expect, afterEach } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import { ItemContextProvider } from "../../../lib/components/internal/item-context";
 import type { DashboardItemProps } from "../../../lib/components/item";
 import DashboardItem from "../../../lib/components/item";

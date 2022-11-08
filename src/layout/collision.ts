@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { CollisionDetection, ClientRect } from "@dnd-kit/core";
+import { ClientRect, CollisionDetection } from "@dnd-kit/core";
 
 function withinBounds(rect: ClientRect, [top, left, right, bottom]: readonly [number, number, number, number]) {
   return rect.top <= top && rect.left >= left && rect.right <= right && rect.bottom >= bottom;

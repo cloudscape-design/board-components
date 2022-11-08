@@ -68,6 +68,7 @@
         ]
       }
     ],
+    "sort-imports": ["error", { "ignoreDeclarationSort": true }],
     "import/order": ["error", { "alphabetize": { "order": "asc" } }],
     "import/no-useless-path-segments": [
       "warn",

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
 function setupTest(testFn: (browser: ScreenshotPageObject) => Promise<void>) {
   return useBrowser(async (browser) => {
