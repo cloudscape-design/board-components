@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import Grid from "../../lib/components/internal/grid";
 import { TestBed } from "../app/test-bed";
-import { chess, jenga, cross, dashboard } from "./layouts";
+import { chess, cross, dashboard, jenga } from "./layouts";
 
 import classnames from "./permutations.module.css";
 

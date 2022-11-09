@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { DraggableSyntheticListeners } from "@dnd-kit/core";
-import { forwardRef, ForwardedRef } from "react";
+import { ForwardedRef, forwardRef } from "react";
 
 import Handle from "../handle";
 import DragHandleIcon from "./icon";

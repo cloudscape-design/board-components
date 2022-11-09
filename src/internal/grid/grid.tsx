@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ReactNode, Children } from "react";
+import { Children, ReactNode } from "react";
 
 import { GridLayoutItem } from "../layout";
 import { GridProps } from "./interfaces";

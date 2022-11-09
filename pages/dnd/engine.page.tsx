@@ -4,7 +4,7 @@ import Box from "@cloudscape-design/components/box";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
 import { DashboardItem, DashboardItemProps, DashboardLayout } from "../../lib/components";
-import { initialItems, Item } from "./items";
+import { Item, initialItems } from "./items";
 
 const itemStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag me",

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { render } from "@testing-library/react";
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 import Grid, { GridProps } from "../../../lib/components/internal/grid";
 import gridStyles from "../../../lib/components/internal/grid/styles.selectors";
 

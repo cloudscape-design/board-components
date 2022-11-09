@@ -3,7 +3,7 @@
 
 /** Temporarily taken from Component Toolkit until available in NPM */
 import { ResizeObserver, ResizeObserverEntry } from "@juggle/resize-observer";
-import { useRef, useEffect, useLayoutEffect, useState, useCallback, DependencyList, Ref, RefObject } from "react";
+import { DependencyList, Ref, RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * A callback that stays stable between renders even as the dependencies change.

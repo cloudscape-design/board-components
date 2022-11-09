@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { useCombinedRefs, CSS as CSSUtil } from "@dnd-kit/utilities";
+import { CSS as CSSUtil, useCombinedRefs } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties } from "react";
 import DragHandle from "../internal/drag-handle";
