@@ -17,6 +17,7 @@
     "test:e2e:update": "run-p -r preview test:e2e:vitest:update",
     "test:e2e:vitest": "vitest run --config vite.e2e.config.js",
     "test:e2e:vitest:update": "vitest run -u --config vite.e2e.config.js",
+    "pretest": "tsc -p tsconfig.test.json",
     "test": "npm run test:unit",
     "start": "run-p watch dev",
     "preview": "vite preview",

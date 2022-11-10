@@ -3,7 +3,7 @@
 import { render } from "@testing-library/react";
 import { expect, test } from "vitest";
 import Grid, { GridProps } from "../../../lib/components/internal/grid";
-import gridStyles from "../../../lib/components/internal/grid/styles.selectors";
+import gridStyles from "../../../lib/components/internal/grid/styles.selectors.js";
 
 const defaultProps: GridProps = {
   rows: 1,
