@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { GridLayoutItem } from "../../internal/base-types";
+import { DashboardLayoutProps } from "../interfaces";
 
-import { DashboardLayoutProps } from "../../layout";
-import { LayoutItem } from "./interfaces";
-
-export function layoutToCanvasItems<D>(
-  grid: readonly LayoutItem[],
+export function exportLayout<D>(
+  grid: readonly GridLayoutItem[],
   sourceItems: readonly DashboardLayoutProps.Item<D>[]
 ): readonly DashboardLayoutProps.Item<D>[] {
   const sourceById = sourceItems.reduce(
@@ -21,18 +20,9 @@ export function layoutToCanvasItems<D>(
   });
 
   const canvasItems: DashboardLayoutProps.Item<D>[] = [];
-
-  let currentRow = 0;
-  let currentColumnOffset = 1;
-
   for (const layoutItem of sortedLayout) {
-    if (layoutItem.y !== currentRow) {
-      currentRow = layoutItem.y;
-      currentColumnOffset = 1;
-    }
-    const matchedCanvasItem = { ...sourceById.get(layoutItem.id)!, columnOffset: currentColumnOffset };
+    const matchedCanvasItem = { ...sourceById.get(layoutItem.id)!, columnOffset: layoutItem.x };
     canvasItems.push(matchedCanvasItem);
-    currentColumnOffset += matchedCanvasItem.columnSpan;
   }
 
   return canvasItems;

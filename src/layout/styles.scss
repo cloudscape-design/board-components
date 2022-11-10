@@ -1,8 +1,12 @@
-.placeholder {
-  height: 100%;
-}
+@use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
-.placeholder.default {
-  background-color: transparent;
-  border-color: transparent;
+.placeholder {
+  border-radius: cs.$border-radius-container;
+  height: 100%;
+  &--active {
+    background-color: #eaeded;
+  }
+  &--hover {
+    background-color: #99cbe4;
+  }
 }

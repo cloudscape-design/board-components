@@ -1,21 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { CollisionDescriptor, DndContext, DragEndEvent, DragMoveEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragMoveEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { Ref, useState } from "react";
 import type { DataFallbackType } from "../internal/base-types";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import Grid from "../internal/grid";
 import { ItemContext, ItemContextProvider } from "../internal/item-context";
-import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import { createCustomEvent } from "../internal/utils/events";
-import { irregularRectIntersection } from "./collision";
-import createGridLayout from "./create-grid-layout";
-import { DashboardLayoutProps } from "./interfaces";
-import { calculateShifts, createTransforms } from "./layout";
-import Placeholder from "./placeholder";
 
-const columnsCount = 4;
+import { irregularRectIntersection } from "./calculations/collision";
+import { createLayout } from "./calculations/create-layout";
+import { exportLayout } from "./calculations/export-layout";
+import { calculateShifts, createTransforms } from "./calculations/reorder";
+
+import { DashboardLayoutProps } from "./interfaces";
+import Placeholder from "./placeholder";
 
 export default function DashboardLayout<D = DataFallbackType>({
   items,
@@ -26,41 +26,56 @@ export default function DashboardLayout<D = DataFallbackType>({
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
   );
+  const [transforms, setTransforms] = useState<Array<ItemContext> | null>(null);
+  const [collisionIds, setCollisionIds] = useState<null | Array<UniqueIdentifier>>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = createGridLayout({ items, columns });
+  const { content, placeholders, rows } = createLayout(items, columns, isDragging);
 
-  const [transforms, setTransforms] = useState<Array<ItemContext> | null>(null);
+  function parseDragEvent(event: DragMoveEvent | DragEndEvent) {
+    return {
+      collisions: event.collisions!.map((collision) => placeholders.find((p) => p.id === collision.id)!),
+      active: content.find((item) => item.id === event.active.id)!,
+    };
+  }
+
+  function handleDragStart() {
+    setIsDragging(true);
+  }
 
   function handleDragMove(event: DragMoveEvent) {
-    const sourceGrid = canvasItemsToLayout(items, columnsCount);
-    const nextGrid = calculateShifts(
-      sourceGrid,
-      event.collisions as Array<CollisionDescriptor>,
-      event.active,
-      event.over
-    );
-    setTransforms(createTransforms(nextGrid, sourceGrid, event.active.rect.current.initial!));
+    const { collisions, active } = parseDragEvent(event);
+    setCollisionIds(collisions.map((collision) => collision.id));
+    const nextGrid = calculateShifts(content, collisions, active);
+    setTransforms(createTransforms(nextGrid, content, event.active.rect.current.initial!));
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    setTransforms(null);
-    const nextGrid = calculateShifts(
-      canvasItemsToLayout(items, columnsCount),
-      event.collisions as Array<CollisionDescriptor>,
-      event.active,
-      event.over
-    );
+    const { collisions, active } = parseDragEvent(event);
+    const nextGrid = calculateShifts(content, collisions, active);
     if (nextGrid) {
-      onItemsChange(createCustomEvent({ items: layoutToCanvasItems(nextGrid, items) }));
+      onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));
     }
+    setIsDragging(false);
+    setTransforms(null);
+    setCollisionIds(null);
   }
   return (
-    <DndContext onDragMove={handleDragMove} onDragEnd={handleDragEnd} collisionDetection={irregularRectIntersection}>
+    <DndContext
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
+      collisionDetection={irregularRectIntersection}
+    >
       <div ref={containerQueryRef as Ref<HTMLDivElement>}>
         <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
-          {placeholders.map(({ id }) => (
-            <Placeholder key={id} state="default" />
+          {placeholders.map((placeholder) => (
+            <Placeholder
+              key={placeholder.id}
+              id={placeholder.id}
+              state={isDragging ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            />
           ))}
           {items.map((item) => {
             return (

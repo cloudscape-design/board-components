@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { CSS as CSSUtil, useCombinedRefs } from "@dnd-kit/utilities";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties } from "react";
 import DragHandle from "../internal/drag-handle";
@@ -30,7 +30,6 @@ export default function DashboardItem({
     active,
     isDragging,
   } = useDraggable({ id });
-  const { setNodeRef: setDropRef } = useDroppable({ id });
 
   const style: CSSProperties = {
     transform: CSSUtil.Translate.toString(dragTransform ?? transform),
@@ -41,7 +40,7 @@ export default function DashboardItem({
   };
   return (
     <div
-      ref={useCombinedRefs(setDragRef, setDropRef)}
+      ref={setDragRef}
       {...attributes}
       className={clsx(styles.wrapper, isDragging && styles.wrapperDragging)}
       style={style}
