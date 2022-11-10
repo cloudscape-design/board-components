@@ -1,11 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useState } from "react";
-import clsx from "clsx";
 import Box from "@cloudscape-design/components/box";
-import css from "./styles.module.css";
-import Canvas from "../../lib/components/canvas";
-import { initialItems, Item } from "./items";
+import Header from "@cloudscape-design/components/header";
+import { useState } from "react";
+import { DashboardItem, DashboardItemProps, DashboardLayout } from "../../lib/components";
+import { Item, initialItems } from "./items";
+
+const itemStrings: DashboardItemProps["i18nStrings"] = {
+  dragHandleLabel: "Drag me",
+  resizeLabel: "Resize me",
+};
 
 export default function () {
   const [items, setItems] = useState<ReadonlyArray<Item>>(initialItems);
@@ -13,17 +17,12 @@ export default function () {
   return (
     <main>
       <Box padding="m">
-        <Canvas
+        <DashboardLayout
           items={items}
-          renderItem={(item, context) => (
-            <div
-              ref={context.ref}
-              className={clsx(css.item, context.isDragging && css.itemDragging)}
-              {...context.props}
-              style={{ ...context.props.style, backgroundColor: item.data.color }}
-            >
-              {item.id}
-            </div>
+          renderItem={(item) => (
+            <DashboardItem header={<Header>Widget #{item.id}</Header>} i18nStrings={itemStrings}>
+              <div>Dummy content</div>
+            </DashboardItem>
           )}
           onItemsChange={(event) => setItems(event.detail.items)}
         />

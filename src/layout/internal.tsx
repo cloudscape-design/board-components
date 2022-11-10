@@ -1,23 +1,27 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Ref, useState } from "react";
-import Grid from "../internal/grid";
-import type { DataFallbackType } from "../interfaces";
-import { CanvasProps } from "./interfaces";
-import Placeholder from "./placeholder";
-import createGridLayout from "./create-grid-layout";
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../constants";
-import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import { CollisionDescriptor, DndContext, DragEndEvent, DragMoveEvent } from "@dnd-kit/core";
-import { Transform } from "@dnd-kit/utilities";
-import { SortableItem } from "./sortable-item";
+import { Ref, useState } from "react";
+import type { DataFallbackType } from "../internal/base-types";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
+import Grid from "../internal/grid";
+import { ItemContext, ItemContextProvider } from "../internal/item-context";
+import { canvasItemsToLayout, layoutToCanvasItems } from "../internal/layout";
 import { createCustomEvent } from "../internal/utils/events";
+import { irregularRectIntersection } from "./collision";
+import createGridLayout from "./create-grid-layout";
+import { DashboardLayoutProps } from "./interfaces";
 import { calculateShifts, createTransforms } from "./layout";
+import Placeholder from "./placeholder";
 
 const columnsCount = 4;
 
-export default function Canvas<D = DataFallbackType>({ items, renderItem, onItemsChange }: CanvasProps<D>) {
+export default function DashboardLayout<D = DataFallbackType>({
+  items,
+  renderItem,
+  onItemsChange,
+}: DashboardLayoutProps<D>) {
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
@@ -26,7 +30,7 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem, onItem
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const { content, placeholders, rows } = createGridLayout({ items, columns });
 
-  const [transforms, setTransforms] = useState<Array<{ id: string; transform: Transform }> | null>(null);
+  const [transforms, setTransforms] = useState<Array<ItemContext> | null>(null);
 
   function handleDragMove(event: DragMoveEvent) {
     const sourceGrid = canvasItemsToLayout(items, columnsCount);
@@ -52,7 +56,7 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem, onItem
     }
   }
   return (
-    <DndContext onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
+    <DndContext onDragMove={handleDragMove} onDragEnd={handleDragEnd} collisionDetection={irregularRectIntersection}>
       <div ref={containerQueryRef as Ref<HTMLDivElement>}>
         <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
           {placeholders.map(({ id }) => (
@@ -60,13 +64,12 @@ export default function Canvas<D = DataFallbackType>({ items, renderItem, onItem
           ))}
           {items.map((item) => {
             return (
-              <SortableItem
+              <ItemContextProvider
                 key={item.id}
-                id={item.id}
-                renderItem={(ctx) => renderItem(item, ctx)}
-                animate={transforms !== null}
-                transform={transforms?.find((t) => t.id === item.id)?.transform ?? null}
-              />
+                value={transforms?.find((t) => t.id === item.id) ?? { id: item.id, transform: null }}
+              >
+                {renderItem(item)}
+              </ItemContextProvider>
             );
           })}
         </Grid>

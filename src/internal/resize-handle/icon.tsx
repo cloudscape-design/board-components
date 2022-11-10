@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { memo } from "react";
 import Icon from "@cloudscape-design/components/icon";
+import { memo } from "react";
 
 export function ResizeHandleIcon() {
   return <Icon svg={<SVG />} />;

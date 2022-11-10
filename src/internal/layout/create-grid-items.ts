@@ -1,9 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem, CanvasLayoutItem } from "./interfaces";
+import { DashboardLayoutProps } from "../../layout";
+import { GridLayoutItem } from "./interfaces";
 
-export function createGridItems(items: readonly CanvasLayoutItem<any>[], columns: number): readonly GridLayoutItem[] {
+export function createGridItems(
+  items: readonly DashboardLayoutProps.Item<unknown>[],
+  columns: number
+): readonly GridLayoutItem[] {
   const result: GridLayoutItem[] = [];
 
   let rowOffset = 1;

@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { forwardRef, ForwardedRef } from "react";
+import { ForwardedRef, forwardRef } from "react";
 
 import Handle from "../handle";
 import { ResizeHandleIcon } from "./icon";
@@ -12,7 +12,7 @@ export interface ResizeHandleProps {
 
 function ResizeHandle({ ariaLabel }: ResizeHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
   return (
-    <Handle className={styles.handle} ariaLabel={ariaLabel} ref={ref}>
+    <Handle className={styles.handle} aria-label={ariaLabel} ref={ref}>
       <ResizeHandleIcon />
     </Handle>
   );
