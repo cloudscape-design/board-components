@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { DndContext, DragEndEvent, DragMoveEvent, UniqueIdentifier } from "@dnd-kit/core";
-import { Ref, useState } from "react";
+import { DndContext, DragEndEvent, DragMoveEvent, DragOverlay, DragStartEvent, UniqueIdentifier } from "@dnd-kit/core";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { Ref, useRef, useState } from "react";
 import type { DataFallbackType } from "../internal/base-types";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import Grid from "../internal/grid";
@@ -21,17 +22,22 @@ export default function DashboardLayout<D = DataFallbackType>({
   items,
   renderItem,
   onItemsChange,
+  ...rest
 }: DashboardLayoutProps<D>) {
+  const bubbleUp = (rest as any).bubbleUp;
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
   );
   const [transforms, setTransforms] = useState<Array<ItemContext> | null>(null);
   const [collisionIds, setCollisionIds] = useState<null | Array<UniqueIdentifier>>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [activeDragGhost, setActiveDragGhost] = useState<string | null>(null);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = createLayout(items, columns, isDragging);
+  const { content, placeholders, rows } = createLayout(items, columns, !!activeDragGhost);
+
+  // There is an issue in dnd-kit where onDragMove can be fired after onDragEnd
+  const dragInProgressRef = useRef(false);
 
   function parseDragEvent(event: DragMoveEvent | DragEndEvent) {
     return {
@@ -40,11 +46,20 @@ export default function DashboardLayout<D = DataFallbackType>({
     };
   }
 
-  function handleDragStart() {
-    setIsDragging(true);
+  function handleDragStart(event: DragStartEvent) {
+    const dragContainer: HTMLElement = event.active.data.current!.elementRef.current;
+    const dragContainerRect = dragContainer.getBoundingClientRect();
+    const containerCopy = dragContainer.cloneNode(true) as HTMLElement;
+    containerCopy.style.width = dragContainerRect.width + `px`;
+    containerCopy.style.height = dragContainerRect.height + `px`;
+    setActiveDragGhost(containerCopy.outerHTML);
+    dragInProgressRef.current = true;
   }
 
   function handleDragMove(event: DragMoveEvent) {
+    if (!dragInProgressRef.current) {
+      return;
+    }
     const { collisions, active } = parseDragEvent(event);
     setCollisionIds(collisions.map((collision) => collision.id));
     const nextGrid = calculateShifts(content, collisions, active);
@@ -57,16 +72,18 @@ export default function DashboardLayout<D = DataFallbackType>({
     if (nextGrid) {
       onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));
     }
-    setIsDragging(false);
+    setActiveDragGhost(null);
     setTransforms(null);
     setCollisionIds(null);
+    dragInProgressRef.current = false;
   }
   return (
     <DndContext
+      modifiers={[restrictToWindowEdges]}
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
-      collisionDetection={irregularRectIntersection}
+      collisionDetection={irregularRectIntersection(bubbleUp)}
     >
       <div ref={containerQueryRef as Ref<HTMLDivElement>}>
         <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
@@ -74,7 +91,7 @@ export default function DashboardLayout<D = DataFallbackType>({
             <Placeholder
               key={placeholder.id}
               id={placeholder.id}
-              state={isDragging ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+              state={activeDragGhost ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
             />
           ))}
           {items.map((item) => {
@@ -89,6 +106,13 @@ export default function DashboardLayout<D = DataFallbackType>({
           })}
         </Grid>
       </div>
+
+      <DragOverlay>
+        {activeDragGhost && (
+          // eslint-disable-next-line react/no-danger
+          <div dangerouslySetInnerHTML={{ __html: activeDragGhost }}></div>
+        )}
+      </DragOverlay>
     </DndContext>
   );
 }
