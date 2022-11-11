@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { useDraggable } from "@dnd-kit/core";
-import { CSS as CSSUtil } from "@dnd-kit/utilities";
+import { useDndContext, useDraggable } from "@dnd-kit/core";
+import { CSS as CSSUtil, useCombinedRefs } from "@dnd-kit/utilities";
 import clsx from "clsx";
-import { CSSProperties } from "react";
+import { CSSProperties, useRef } from "react";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
@@ -21,26 +21,32 @@ export default function DashboardItem({
   i18nStrings,
   ...containerProps
 }: DashboardItemProps) {
+  const { draggableNodes } = useDndContext();
+  const elementRef = useRef<HTMLElement>();
   const { id, transform } = useItemContext();
   const {
     setNodeRef: setDragRef,
     attributes,
     listeners,
-    transform: dragTransform,
+    // transform: dragTransform,
     active,
     isDragging,
-  } = useDraggable({ id });
+  } = useDraggable({
+    id,
+    // put draggable nodes to be used in collision check. The object is mutable.
+    data: { draggableNodes, elementRef },
+  });
 
   const style: CSSProperties = {
-    transform: CSSUtil.Translate.toString(dragTransform ?? transform),
-    transition:
-      !dragTransform && active
-        ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
-        : undefined,
+    transform: CSSUtil.Translate.toString(transform),
+    opacity: isDragging ? 0 : 1,
+    transition: active
+      ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
+      : undefined,
   };
   return (
     <div
-      ref={setDragRef}
+      ref={useCombinedRefs(setDragRef, (newNode) => (elementRef.current = newNode ?? undefined))}
       {...attributes}
       className={clsx(styles.wrapper, isDragging && styles.wrapperDragging)}
       style={style}

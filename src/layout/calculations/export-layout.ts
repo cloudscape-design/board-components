@@ -3,6 +3,29 @@
 import { GridLayoutItem } from "../../internal/base-types";
 import { DashboardLayoutProps } from "../interfaces";
 
+function range(from: number, length: number) {
+  return Array.from({ length }, (_, i) => from + i);
+}
+
+function bubbleUpItems(grid: ReadonlyArray<GridLayoutItem>) {
+  const matrix = grid.reduce((matrix, item) => {
+    for (const x of range(item.x, item.width)) {
+      if (!matrix[x]) {
+        matrix[x] = [];
+      }
+      for (const y of range(item.y, item.height)) {
+        matrix[x][y] = item;
+      }
+    }
+    return matrix;
+  }, [] as Array<Array<GridLayoutItem>>);
+  for (const item of grid) {
+    while (item.y > 1 && range(item.x, item.width).every((x) => !matrix[x][item.y - 1])) {
+      item.y -= 1;
+    }
+  }
+}
+
 export function exportLayout<D>(
   grid: readonly GridLayoutItem[],
   sourceItems: readonly DashboardLayoutProps.Item<D>[]
@@ -11,6 +34,8 @@ export function exportLayout<D>(
     (map, item) => map.set(item.id, item),
     new Map<string, DashboardLayoutProps.Item<D>>()
   );
+
+  bubbleUpItems(grid);
 
   const sortedLayout = grid.slice().sort((a, b) => {
     if (a.y !== b.y) {
