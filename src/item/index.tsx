@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { useDndContext, useDraggable } from "@dnd-kit/core";
 import { CSS as CSSUtil, useCombinedRefs } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, useRef } from "react";
+import { useDraggable } from "../internal/dnd";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
@@ -21,35 +21,32 @@ export default function DashboardItem({
   i18nStrings,
   ...containerProps
 }: DashboardItemProps) {
-  const { draggableNodes } = useDndContext();
   const elementRef = useRef<HTMLElement>();
   const { id, transform, resizable } = useItemContext();
   const {
+    // attributes,
     setNodeRef: setDragRef,
-    attributes,
     listeners,
     transform: dragTransform,
-    active,
-    isDragging,
-  } = useDraggable({
-    id,
-    // put draggable nodes to be used in collision check. The object is mutable.
-    data: { draggableNodes, elementRef },
-  });
+    currentDragId,
+    // active,
+  } = useDraggable(id);
+
+  console.log(dragTransform);
 
   const style: CSSProperties = {
-    transform: CSSUtil.Translate.toString((!resizable && dragTransform) || transform),
-    opacity: isDragging && resizable ? 0 : 1,
+    transform: CSSUtil.Translate.toString(dragTransform ?? transform),
+    // opacity: isDragging && resizable ? 0 : 1,
     transition:
-      active && resizable
+      currentDragId && !dragTransform
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
   };
   return (
     <div
       ref={useCombinedRefs(setDragRef, (newNode) => (elementRef.current = newNode ?? undefined))}
-      {...attributes}
-      className={clsx(styles.wrapper, isDragging && styles.wrapperDragging)}
+      //{...attributes}
+      className={clsx(styles.wrapper, currentDragId === id && styles.wrapperDragging)}
       style={style}
       // override attributes coming from dnd-kit
       tabIndex={undefined}
