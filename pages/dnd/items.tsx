@@ -1,49 +1,67 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import * as awsuiTokens from "@cloudscape-design/design-tokens";
 import { ReactNode } from "react";
 import { DashboardLayoutProps } from "../../lib/components";
+import { PaletteProps } from "../../src/palette/interfaces";
 import { Counter } from "./commons";
 
 interface ItemData {
-  color: string;
-  content?: ReactNode;
+  content: ReactNode;
+  title: string;
+  description: string;
 }
-export type Item = DashboardLayoutProps.Item<ItemData>;
 
-export const initialItems: readonly Item[] = [
-  makeItem({ id: 1, columnOffset: 1 }, { color: awsuiTokens.colorChartsPaletteCategorical1 }),
-  makeItem({ id: 2, columnOffset: 2, columnSpan: 2 }, { color: awsuiTokens.colorChartsPaletteCategorical2 }),
-  makeItem({ id: 3, columnOffset: 4 }, { color: awsuiTokens.colorChartsPaletteCategorical3 }),
-  makeItem({ id: 4, columnOffset: 1 }, { color: awsuiTokens.colorChartsPaletteCategorical4 }),
-  makeItem({ id: 5, columnOffset: 2 }, { color: awsuiTokens.colorChartsPaletteCategorical5 }),
-  makeItem({ id: 6, columnOffset: 3 }, { color: awsuiTokens.colorChartsPaletteCategorical6 }),
-  makeItem({ id: 7, columnOffset: 1 }, { color: awsuiTokens.colorChartsPaletteCategorical7, content: <Counter /> }),
-  makeItem({ id: 8, columnOffset: 2 }, { color: awsuiTokens.colorChartsPaletteCategorical8 }),
-  makeItem({ id: 9, columnOffset: 3 }, { color: awsuiTokens.colorChartsPaletteCategorical9 }),
-  makeItem({ id: 10, columnOffset: 1 }, { color: awsuiTokens.colorChartsPaletteCategorical10 }),
-  makeItem({ id: 11, columnOffset: 2 }, { color: awsuiTokens.colorChartsPaletteCategorical11 }),
-  makeItem({ id: 12, columnOffset: 1 }, { color: awsuiTokens.colorChartsPaletteCategorical12 }),
+const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
+const createDefaultWidget = (id: string) => ({
+  title: `Widget ${id}`,
+  description: "Dummy description",
+  content: "Dummy content",
+  definition: defaultDefinition,
+});
+
+export const allWidgets: Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined> =
+  {
+    demo: {
+      definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+      data: { title: "Demo widget", description: "Most minimal widget", content: <>Hello world!</> },
+    },
+    counter: {
+      data: { title: "Counter", description: "State management demo", content: <Counter /> },
+    },
+    docked1: {
+      data: { title: "Generic docked 1", description: "No description", content: "No content" },
+    },
+    docked2: {
+      data: { title: "Generic docked 2", description: "No description", content: "No content" },
+    },
+  };
+
+export const storedPositions = [
+  { id: "demo", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
+  { id: "2", columnOffset: 2, rowSpan: 1, columnSpan: 2 },
+  { id: "3", columnOffset: 4, rowSpan: 1, columnSpan: 1 },
+  { id: "4", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
+  { id: "5", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
+  { id: "6", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
+  { id: "7", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
+  { id: "8", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
+  { id: "9", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
+  { id: "10", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
 ];
 
-function makeItem(
-  {
-    id,
-    columnOffset,
-    columnSpan,
-  }: {
-    id: number | string;
-    columnOffset: number;
-    columnSpan?: number;
-  },
-  data: ItemData
-): Item {
+export const initialLayoutItems: ReadonlyArray<DashboardLayoutProps.Item<ItemData>> = storedPositions.map((pos) => {
+  const config = allWidgets[pos.id];
   return {
-    id: id.toString(),
-    data,
-    columnOffset,
-    columnSpan: columnSpan ?? 1,
-    rowSpan: 1,
-    definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+    ...pos,
+    data: config?.data ?? createDefaultWidget(pos.id),
+    definition: config?.definition ?? defaultDefinition,
   };
-}
+});
+
+export const initialPaletteItems: ReadonlyArray<PaletteProps.Item<ItemData>> = Object.entries(allWidgets)
+  .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
+  .map(([key, widget]) => ({
+    id: key,
+    definition: widget?.definition ?? defaultDefinition,
+    data: widget?.data ?? createDefaultWidget(key),
+  }));

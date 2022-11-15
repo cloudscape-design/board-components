@@ -28,17 +28,19 @@ export function createTransforms(
   activeRect: { width: number; height: number }
 ) {
   if (!newGrid || !prevGrid) {
-    return null;
+    return {};
   }
-  return newGrid.map((item, index) => ({
-    id: item.id,
-    transform: {
-      x: (item.x - prevGrid[index].x) * (activeRect.width + GAP),
-      y: (item.y - prevGrid[index].y) * (activeRect.height + GAP),
-      scaleX: 1,
-      scaleY: 1,
-    },
-  }));
+  return Object.fromEntries(
+    newGrid.map((item, index) => [
+      item.id,
+      {
+        x: (item.x - prevGrid[index].x) * (activeRect.width + GAP),
+        y: (item.y - prevGrid[index].y) * (activeRect.height + GAP),
+        scaleX: 1,
+        scaleY: 1,
+      },
+    ])
+  );
 }
 
 export function calculateShifts(

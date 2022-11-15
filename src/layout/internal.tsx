@@ -3,11 +3,11 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { DndContext, DragEndEvent, DragMoveEvent, DragOverlay, DragStartEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { Transform } from "@dnd-kit/utilities";
 import { Ref, useRef, useState } from "react";
-import type { DataFallbackType } from "../internal/base-types";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import Grid from "../internal/grid";
-import { ItemContext, ItemContextProvider } from "../internal/item-context";
+import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
 
 import { irregularRectIntersection } from "./calculations/collision";
@@ -18,18 +18,13 @@ import { calculateShifts, createTransforms } from "./calculations/reorder";
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 
-export default function DashboardLayout<D = DataFallbackType>({
-  items,
-  renderItem,
-  onItemsChange,
-  ...rest
-}: DashboardLayoutProps<D>) {
+export default function DashboardLayout<D>({ items, renderItem, onItemsChange, ...rest }: DashboardLayoutProps<D>) {
   const bubbleUp = (rest as any).bubbleUp;
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
   );
-  const [transforms, setTransforms] = useState<Array<ItemContext> | null>(null);
+  const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<UniqueIdentifier>>(null);
   const [activeDragGhost, setActiveDragGhost] = useState<string | null>(null);
 
@@ -73,7 +68,7 @@ export default function DashboardLayout<D = DataFallbackType>({
       onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));
     }
     setActiveDragGhost(null);
-    setTransforms(null);
+    setTransforms({});
     setCollisionIds(null);
     dragInProgressRef.current = false;
   }
@@ -98,7 +93,11 @@ export default function DashboardLayout<D = DataFallbackType>({
             return (
               <ItemContextProvider
                 key={item.id}
-                value={transforms?.find((t) => t.id === item.id) ?? { id: item.id, transform: null }}
+                value={{
+                  id: item.id,
+                  resizable: true,
+                  transform: transforms[item.id] ?? null,
+                }}
               >
                 {renderItem(item)}
               </ItemContextProvider>

@@ -5,6 +5,7 @@ import { createContext, useContext } from "react";
 
 export interface ItemContext {
   id: string;
+  resizable: boolean;
   transform: Transform | null;
 }
 
