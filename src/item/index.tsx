@@ -23,12 +23,12 @@ export default function DashboardItem({
 }: DashboardItemProps) {
   const { draggableNodes } = useDndContext();
   const elementRef = useRef<HTMLElement>();
-  const { id, transform } = useItemContext();
+  const { id, transform, resizable } = useItemContext();
   const {
     setNodeRef: setDragRef,
     attributes,
     listeners,
-    // transform: dragTransform,
+    transform: dragTransform,
     active,
     isDragging,
   } = useDraggable({
@@ -38,11 +38,12 @@ export default function DashboardItem({
   });
 
   const style: CSSProperties = {
-    transform: CSSUtil.Translate.toString(transform),
-    opacity: isDragging ? 0 : 1,
-    transition: active
-      ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
-      : undefined,
+    transform: CSSUtil.Translate.toString((!resizable && dragTransform) || transform),
+    opacity: isDragging && resizable ? 0 : 1,
+    transition:
+      active && resizable
+        ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
+        : undefined,
   };
   return (
     <div
@@ -68,9 +69,11 @@ export default function DashboardItem({
       >
         {children}
       </Container>
-      <div className={styles.resizer}>
-        <ResizeHandle ariaLabel={i18nStrings.resizeLabel} />
-      </div>
+      {resizable && (
+        <div className={styles.resizer}>
+          <ResizeHandle ariaLabel={i18nStrings.resizeLabel} />
+        </div>
+      )}
     </div>
   );
 }
