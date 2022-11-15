@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { range } from "lodash";
-import { test, expect, describe } from "vitest";
+import { describe, expect, test } from "vitest";
 import { applyMove } from "../engine";
-import { generateGrid, generateMovePath, createMoveRunner, createMoveTestSuite } from "./helpers";
+import { createMoveRunner, createMoveTestSuite, generateGrid, generateMovePath } from "./helpers";
 
 /*
   The below tests validate if the first move should be allowed or not.

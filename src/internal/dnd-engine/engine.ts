@@ -3,7 +3,7 @@
 
 import { MoveType } from "./interfaces";
 import { DndItem, MovePath } from "./interfaces";
-import { GridDefinition, ItemId, Item, DndGrid, Move, DndGridCell, Direction, GridTransition } from "./interfaces";
+import { Direction, DndGrid, DndGridCell, GridDefinition, GridTransition, Item, ItemId, Move } from "./interfaces";
 
 /**
   Applies user move to the grid of items.

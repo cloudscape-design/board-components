@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { applyMove, refloatGrid } from "../engine";
-import { Item, GridDefinition, ItemId, Direction, MovePath, Position, GridTransition } from "../interfaces";
+import { Direction, GridDefinition, GridTransition, Item, ItemId, MovePath, Position } from "../interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

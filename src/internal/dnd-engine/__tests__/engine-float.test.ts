@@ -5,7 +5,7 @@ import { range } from "lodash";
 import { expect, test } from "vitest";
 import { applyMove, refloatGrid } from "../engine";
 import { Item } from "../interfaces";
-import { generateGrid, generateMovePath, createTextGrid, parseTextGrid, stringifyTextGrid } from "./helpers";
+import { createTextGrid, generateGrid, generateMovePath, parseTextGrid, stringifyTextGrid } from "./helpers";
 
 test("all items float to the top after move", () => {
   range(0, 100).forEach(() => {
