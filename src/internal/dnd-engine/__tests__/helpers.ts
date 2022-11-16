@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { applyMove, refloatGrid } from "../engine";
+import { applyMove, applyResize, refloatGrid } from "../engine";
 import { Direction, GridDefinition, GridTransition, Item, ItemId, MovePath, Position, Resize } from "../interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -57,23 +57,61 @@ export function createMoveTestSuite(
   ];
 }
 
+export function createResizeTestSuite(
+  description: string,
+  start: string[][],
+  resize: Resize,
+  expectation: string[][]
+): TestCase {
+  const run = createResizeRunner(start, resize);
+  return [
+    description,
+    () => {
+      const transition = run();
+      return {
+        expectation: stringifyTextGrid(expectation),
+        result: stringifyTextGrid(createTextGrid(transition.end)),
+        transition,
+      };
+    },
+  ];
+}
+
 export function createMoveRunner(textGrid: string[][], path: string): () => GridTransition {
   return () => {
     const grid = parseTextGrid(textGrid);
     const movePath = createMovePath(grid, parseTextPath(path));
-    const applyTransition = applyMove(parseTextGrid(textGrid), movePath);
+    const moveTransition = applyMove(parseTextGrid(textGrid), movePath);
 
-    if (applyTransition.blocks.length === 0) {
-      const refloatTransition = refloatGrid(applyTransition.end);
+    if (moveTransition.blocks.length === 0) {
+      const refloatTransition = refloatGrid(moveTransition.end);
       return {
-        start: applyTransition.start,
+        start: moveTransition.start,
         end: refloatTransition.end,
-        moves: [...applyTransition.moves, ...refloatTransition.moves],
+        moves: [...moveTransition.moves, ...refloatTransition.moves],
         blocks: [],
       };
     }
 
-    return applyTransition;
+    return moveTransition;
+  };
+}
+
+export function createResizeRunner(textGrid: string[][], resize: Resize): () => GridTransition {
+  return () => {
+    const resizeTransition = applyResize(parseTextGrid(textGrid), resize);
+
+    if (resizeTransition.blocks.length === 0) {
+      const refloatTransition = refloatGrid(resizeTransition.end);
+      return {
+        start: resizeTransition.start,
+        end: refloatTransition.end,
+        moves: [...resizeTransition.moves, ...refloatTransition.moves],
+        blocks: [],
+      };
+    }
+
+    return resizeTransition;
   };
 }
 
