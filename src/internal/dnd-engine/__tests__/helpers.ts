@@ -3,7 +3,7 @@
 
 import { range } from "lodash";
 import { applyMove, applyResize, refloatGrid } from "../engine";
-import { GridDefinition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../public-interfaces";
+import { GridDefinition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../interfaces";
 
 export const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

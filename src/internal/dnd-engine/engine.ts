@@ -1,16 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction, DndGrid, DndGridCell, DndItem } from "./internal-interfaces";
-import {
-  CommittedMove,
-  GridDefinition,
-  GridTransition,
-  Item,
-  ItemId,
-  MoveCommand,
-  ResizeCommand,
-} from "./public-interfaces";
+import { Direction, DndGrid, DndItem } from "./dnd-grid";
+import { CommittedMove, GridDefinition, GridTransition, Item, ItemId, MoveCommand, ResizeCommand } from "./interfaces";
 
 /**
   Applies user move to the grid of items.
@@ -21,18 +13,12 @@ import {
   The final grid can have unresolved conflicts that are resolvable by moving the target further.
  */
 export function applyMove(gridDefinition: GridDefinition, { itemId, path }: MoveCommand): GridTransition {
-  const grid = createDndGrid(gridDefinition, itemId);
+  const grid = new DndGrid(gridDefinition, itemId);
+
+  // TODO: validate path to be of single steps
+  // TODO: validate path to not include repetitive steps
 
   for (const step of path) {
-    const moveTarget = grid.getItem(itemId);
-    const diffHorizontal = step.x - moveTarget.x;
-    const diffVertical = step.y - moveTarget.y;
-
-    // It is only allowed to move one cell at a time.
-    if (Math.abs(diffHorizontal) + Math.abs(diffVertical) !== 1) {
-      throw new Error("Invalid move");
-    }
-
     const move: CommittedMove = { itemId, x: step.x, y: step.y, type: "USER" };
 
     findBlocks(grid, move);
@@ -51,7 +37,7 @@ export function applyMove(gridDefinition: GridDefinition, { itemId, path }: Move
   The produced result includes the final grid and a list of all item moves caused by the resize.
  */
 export function applyResize(gridDefinition: GridDefinition, resize: ResizeCommand): GridTransition {
-  const grid = createDndGrid(gridDefinition, resize.itemId);
+  const grid = new DndGrid(gridDefinition, resize.itemId);
 
   commitResize(grid, resize);
 
@@ -65,7 +51,7 @@ export function applyResize(gridDefinition: GridDefinition, resize: ResizeComman
   This needs to be performed after the item is dropped.
  */
 export function refloatGrid(gridDefinition: GridDefinition): GridTransition {
-  const grid = createDndGrid(gridDefinition);
+  const grid = new DndGrid(gridDefinition);
 
   refloatDndGrid(grid);
 
@@ -113,218 +99,103 @@ function resolveConflicts(grid: DndGrid): void {
   }
 }
 
-function createDndGrid(gridDefinition: GridDefinition, target?: ItemId): DndGrid {
-  const byId = new Map<ItemId, DndItem>();
-  const width = gridDefinition.width;
-  const layout: DndGridCell[][] = [];
-  const moves: CommittedMove[] = [];
-  const conflicts: ItemId[] = [];
-  const blocks = new Set<ItemId>();
-
-  for (const item of gridDefinition.items) {
-    byId.set(item.id, {
-      ...item,
-      originalY: item.y,
-      originalX: item.x,
-      priority: item.id === target ? Number.POSITIVE_INFINITY : 0,
-    });
-
-    for (let y = item.y; y < item.y + item.height; y++) {
-      while (layout.length <= y) {
-        layout.push([...Array(width)].map(() => []));
-      }
-
-      for (let x = item.x; x < item.x + item.width; x++) {
-        layout[y][x].push(item.id);
-      }
-    }
-  }
-
-  const getItem = (id: ItemId): DndItem => {
-    const item = byId.get(id);
-    if (!item) {
-      throw new Error(`Item with id "${id}" not found in the grid.`);
-    }
-    return item;
-  };
-
-  return { width, layout, moves, conflicts, blocks, getItem };
-}
-
 function createGridTransition(start: GridDefinition, grid: DndGrid): GridTransition {
-  const itemsSet = new Set<ItemId>();
-
-  for (let y = 0; y < grid.layout.length; y++) {
-    for (let x = 0; x < grid.width; x++) {
-      for (const item of grid.layout[y][x]) {
-        item && itemsSet.add(item);
-      }
-    }
-  }
-
-  const items = [...itemsSet].map((id) => grid.getItem(id)).sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
-
-  const end = { items, width: grid.width };
-
-  return {
-    start,
-    end,
-    moves: grid.moves,
-    blocks: [...grid.blocks],
+  const end = {
+    items: start.items.map(({ id }) => grid.getItem(id)).sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y)),
+    width: grid.width,
   };
+  return { start, end, moves: grid.moves, blocks: [...grid.blocks] };
 }
 
 function findBlocks(grid: DndGrid, move: CommittedMove): void {
   grid.blocks = new Set<ItemId>();
 
   const moveTarget = grid.getItem(move.itemId);
-  const diffHorizontal = move.x - moveTarget.x;
-  const diffVertical = move.y - moveTarget.y;
+  const direction = `${move.x - moveTarget.x}:${move.y - moveTarget.y}`;
 
-  if (diffHorizontal !== 0 && diffVertical === 0) {
-    // Move to the right
-    if (diffHorizontal > 0) {
-      const rightEdgeStart = moveTarget.x + moveTarget.width;
-      const rightEdge = Math.min(grid.width - 1, rightEdgeStart + diffHorizontal - 1);
+  // TODO: map directions to Direction type
+  switch (direction) {
+    case "-1:0": {
+      const left = Math.max(0, moveTarget.left - 1);
       for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-        for (const overlapId of grid.layout[y][rightEdge]) {
-          if (overlapId && overlapId !== move.itemId) {
-            const overlapItem = grid.getItem(overlapId);
-            if (overlapItem.x + overlapItem.width - 1 > rightEdge) {
-              grid.blocks.add(overlapId);
-            }
-          }
+        const block = grid.getLayoutConflict(left, y, moveTarget.id);
+        if (block && block.x < left) {
+          grid.blocks.add(block.id);
         }
       }
+      break;
     }
-    // Move to the left
-    else {
-      const leftEdge = Math.max(0, move.x);
+    case "1:0": {
+      const right = Math.min(grid.width - 1, moveTarget.right + 1);
       for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-        for (const overlapId of grid.layout[y][leftEdge]) {
-          if (overlapId && overlapId !== move.itemId) {
-            const overlapItem = grid.getItem(overlapId);
-            if (overlapItem.x < leftEdge) {
-              grid.blocks.add(overlapId);
-            }
-          }
+        const block = grid.getLayoutConflict(right, y, moveTarget.id);
+        if (block && block.x + block.width - 1 > right) {
+          grid.blocks.add(block.id);
         }
       }
+      break;
     }
-  }
-
-  if (diffVertical !== 0 && diffHorizontal === 0) {
-    // Move to the bottom
-    if (diffVertical > 0) {
-      const bottomEdgeStart = moveTarget.y + moveTarget.height;
-      const bottomEdge = bottomEdgeStart + diffVertical - 1;
+    case "0:-1": {
+      const top = Math.max(0, moveTarget.top - 1);
       for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        for (const overlapId of grid.layout[bottomEdge]?.[x] ?? []) {
-          if (overlapId && overlapId !== move.itemId) {
-            const overlapItem = grid.getItem(overlapId);
-            if (overlapItem.y + overlapItem.height - 1 > bottomEdge) {
-              grid.blocks.add(overlapId);
-            }
-          }
+        const block = grid.getLayoutConflict(x, top, moveTarget.id);
+        if (block && block.y < top) {
+          grid.blocks.add(block.id);
         }
       }
+      break;
     }
-    // Move to the top
-    else {
-      const topEdge = Math.max(0, move.y);
+    case "0:1": {
+      const bottom = moveTarget.bottom + 1;
       for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        for (const overlapId of grid.layout[topEdge]?.[x] ?? []) {
-          if (overlapId && overlapId !== move.itemId) {
-            const overlapItem = grid.getItem(overlapId);
-            if (overlapItem.y < topEdge) {
-              grid.blocks.add(overlapId);
-            }
-          }
+        const block = grid.getLayoutConflict(x, bottom, moveTarget.id);
+        if (block && block.y + block.height - 1 > bottom) {
+          grid.blocks.add(block.id);
         }
       }
+      break;
     }
+    default:
+      throw new Error("Invalid move: only possible to move item one cell at a time.");
   }
 }
 
 function commitResize(grid: DndGrid, resize: ResizeCommand): void {
   const resizeTarget = grid.getItem(resize.itemId);
 
-  // Remove old.
-  for (let y = resizeTarget.y + resizeTarget.height - 1; y >= resizeTarget.y; y--) {
-    for (let x = resizeTarget.x + resizeTarget.width - 1; x >= resizeTarget.x; x--) {
-      grid.layout[y][x] = grid.layout[y][x].filter((id) => id !== resizeTarget.id);
-    }
-  }
+  grid.removeLayoutItem(resizeTarget);
 
   resizeTarget.height = resize.height;
   resizeTarget.width = Math.min(grid.width, resize.width);
 
-  // Insert new.
-  for (let y = resizeTarget.y + resizeTarget.height - 1; y >= resizeTarget.y; y--) {
-    for (let x = resizeTarget.x + resizeTarget.width - 1; x >= resizeTarget.x; x--) {
-      // Insert new rows if needed.
-      while (!grid.layout[y]) {
-        grid.layout.push([...Array(grid.width)].map(() => []));
-      }
-
-      // Move item to a new place.
-      grid.layout[y][x] = grid.layout[y][x].filter((id) => id !== resizeTarget.id);
-      grid.layout[y][x].push(resizeTarget.id);
-    }
-  }
+  grid.insertLayoutItem(resizeTarget);
 
   findConflictsByItem(grid, resizeTarget);
 }
 
-// Performs move on the grid layout.
 function commitMove(grid: DndGrid, move: CommittedMove): void {
   const moveTarget = grid.getItem(move.itemId);
 
-  // Remove old.
-  for (let y = moveTarget.y + moveTarget.height - 1; y >= moveTarget.y; y--) {
-    for (let x = moveTarget.x + moveTarget.width - 1; x >= moveTarget.x; x--) {
-      grid.layout[y][x] = grid.layout[y][x].filter((id) => id !== moveTarget.id);
-    }
-  }
+  grid.removeLayoutItem(moveTarget);
 
-  // Insert new.
-  for (let y = moveTarget.y + moveTarget.height - 1; y >= moveTarget.y; y--) {
-    for (let x = moveTarget.x + moveTarget.width - 1; x >= moveTarget.x; x--) {
-      const newY = move.y + (y - moveTarget.y);
-      const newX = move.x + (x - moveTarget.x);
-
-      // Insert new rows if needed.
-      while (!grid.layout[newY]) {
-        grid.layout.push([...Array(grid.width)].map(() => []));
-      }
-
-      // Move item to a new place.
-      grid.layout[newY][newX] = grid.layout[newY][newX].filter((id) => id !== moveTarget.id);
-      grid.layout[newY][newX].push(moveTarget.id);
-    }
-  }
-
-  // Update item's priority to minimize the amount of moves applied per item.
-  moveTarget.priority++;
-  // Update item's position.
+  moveTarget.committed = true;
   moveTarget.x = move.x;
   moveTarget.y = move.y;
 
-  if (moveTarget.priority === 10) {
-    throw new Error("The item has been moved too many times. It is likely an infinite loop.");
-  }
+  grid.insertLayoutItem(moveTarget);
 
   findConflictsByItem(grid, moveTarget);
 
   grid.moves.push(move);
 }
 
+// TODO: find conflicts while inserting items
 function findConflictsByItem(grid: DndGrid, target: Item): void {
   // Find conflicts caused by the move.
   const conflicts = new Set<ItemId>(grid.conflicts);
   for (let y = 0; y < grid.layout.length; y++) {
     for (let x = 0; x < grid.width; x++) {
-      const hasTarget = grid.layout[y][x].some((id) => id === target.id);
+      const hasTarget = grid.layout[y][x].has(target.id);
       if (hasTarget) {
         for (const itemId of grid.layout[y][x]) {
           if (itemId !== target.id) {
@@ -381,13 +252,12 @@ function tryFindPriorityMove(grid: DndGrid, conflict: ItemId): null | CommittedM
   return move;
 }
 
-function getConflictWith(grid: DndGrid, conflictItem: DndItem): DndItem {
-  for (let y = conflictItem.y; y < conflictItem.y + conflictItem.height; y++) {
-    for (let x = conflictItem.x; x < conflictItem.x + conflictItem.width; x++) {
-      for (const item of grid.layout[y][x]) {
-        if (item && item !== conflictItem.id) {
-          return grid.getItem(item);
-        }
+function getConflictWith(grid: DndGrid, targetItem: DndItem): DndItem {
+  for (let y = targetItem.y; y < targetItem.y + targetItem.height; y++) {
+    for (let x = targetItem.x; x < targetItem.x + targetItem.width; x++) {
+      const conflict = grid.getLayoutConflict(x, y, targetItem.id);
+      if (conflict) {
+        return conflict;
       }
     }
   }
@@ -435,8 +305,8 @@ function validatePriorityMove(grid: DndGrid, moveAttempt: CommittedMove): "ok" |
       for (const itemId of grid.layout[newY]?.[newX] ?? []) {
         const item = grid.getItem(itemId);
 
-        // The probed destination cell has higher prio.
-        if (item.priority > moveTarget.priority) {
+        // The probed destination has a committed item.
+        if (item.committed) {
           return "priority";
         }
 
@@ -552,7 +422,7 @@ function refloatDndGrid(grid: DndGrid): void {
       const itemFloatAfforance = new Map<ItemId, number>();
 
       for (let x = 0; x < grid.width; x++) {
-        const item = grid.layout[y][x][0];
+        const item = [...grid.layout[y][x]][0];
         const prevRowAffordance = floatAffordance[y - 1]?.[x] ?? 0;
 
         if (item) {

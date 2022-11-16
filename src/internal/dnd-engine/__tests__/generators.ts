@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction } from "../internal-interfaces";
-import { GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../public-interfaces";
+import { Direction } from "../dnd-grid";
+import { GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../interfaces";
 import { LETTER_INDICES, createTextGrid } from "./helpers";
 
 type GenerateMoveType = "horizontal-or-vertical" | "vertical" | "horizontal" | "any";
