@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { applyMove, refloatGrid } from "../engine";
-import { Direction, GridDefinition, GridTransition, Item, ItemId, MovePath, Position } from "../interfaces";
+import { Direction, GridDefinition, GridTransition, Item, ItemId, MovePath, Position, Resize } from "../interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -221,6 +221,14 @@ function getRandomOffset(gridWidth: number, itemWidth: number): number {
   return Math.floor(Math.random() * (1 + gridWidth - itemWidth));
 }
 
+function getRandomDirection(): number {
+  return Math.random() > 0.5 ? 1 : -1;
+}
+
+function getRandomInt(from: number, until: number): number {
+  return Math.floor(Math.random() * (until - from)) + from;
+}
+
 function getGridItemId(index: number): string {
   const letter = LETTER_INDICES[index % LETTER_INDICES.length];
   const letterIndex = Math.floor(index / LETTER_INDICES.length);
@@ -341,6 +349,50 @@ export function generateMovePath(grid: GridDefinition, type: MoveType = "any"): 
   const path = createRandomPath({ y: moveTarget.y, x: moveTarget.x }, position);
 
   return { itemId: moveTarget.id, path };
+}
+
+export function generateResize(
+  grid: GridDefinition,
+  maxWidthIncrement = grid.width - 1,
+  maxWidthDecrement = grid.width - 1,
+  maxHeightIncrement = Math.floor((grid.items.length - 1) % 2) + 1,
+  maxHeightDecrement = Math.floor((grid.items.length - 1) % 2) + 1
+): Resize {
+  const resizeTarget = grid.items[getRandomIndex(grid.items)];
+
+  let maxWidthDelta = getRandomDirection();
+  if (maxWidthDelta === 1 && maxWidthIncrement) {
+    maxWidthDelta *= maxWidthIncrement;
+  } else if (maxWidthDelta === -1 && maxWidthDecrement) {
+    maxWidthDelta *= maxWidthDecrement;
+  } else if (maxWidthIncrement) {
+    maxWidthDelta = maxWidthIncrement;
+  } else {
+    maxWidthDelta = -maxWidthDecrement;
+  }
+  if (resizeTarget.width + maxWidthDelta < 1) {
+    maxWidthDelta = -(resizeTarget.width - 1);
+  } else if (resizeTarget.x + resizeTarget.width + maxWidthDelta >= grid.width) {
+    maxWidthDelta = grid.width - (resizeTarget.x + resizeTarget.width);
+  }
+  const widthDelta = Math.sign(maxWidthDelta) * getRandomInt(0, Math.abs(maxWidthDelta) + 1);
+
+  let maxHeightDelta = getRandomDirection();
+  if (maxHeightDelta === 1 && maxHeightIncrement) {
+    maxHeightDelta *= maxHeightIncrement;
+  } else if (maxHeightDelta === -1 && maxHeightDecrement) {
+    maxHeightDelta *= maxHeightDecrement;
+  } else if (maxHeightIncrement) {
+    maxHeightDelta = maxHeightIncrement;
+  } else {
+    maxHeightDelta = -maxHeightDecrement;
+  }
+  if (resizeTarget.height + maxHeightDelta < 1) {
+    maxHeightDelta = -(resizeTarget.height - 1);
+  }
+  const heightDelta = Math.sign(maxHeightDelta) * getRandomInt(0, Math.abs(maxHeightDelta) + 1);
+
+  return { itemId: resizeTarget.id, width: resizeTarget.width + widthDelta, height: resizeTarget.height + heightDelta };
 }
 
 function createRandomPath(from: Position, to: Position): Position[] {

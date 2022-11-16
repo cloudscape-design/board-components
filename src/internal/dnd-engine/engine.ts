@@ -1,9 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { MoveType } from "./interfaces";
-import { DndItem, MovePath } from "./interfaces";
-import { Direction, DndGrid, DndGridCell, GridDefinition, GridTransition, Item, ItemId, Move } from "./interfaces";
+import {
+  Direction,
+  DndGrid,
+  DndGridCell,
+  DndItem,
+  GridDefinition,
+  GridTransition,
+  Item,
+  ItemId,
+  Move,
+  MovePath,
+  MoveType,
+  Resize,
+} from "./interfaces";
 
 /**
   Applies user move to the grid of items.
@@ -31,48 +42,28 @@ export function applyMove(gridDefinition: GridDefinition, movePath: MovePath): G
     // Commit the move to find possible conflicts.
     commitMove(grid, move);
 
-    const tier2Conflicts: ItemId[] = [];
-
-    // Try resolving conflicts by finding the vacant space considering the move directions.
-    let conflict = grid.conflicts.pop();
-    while (conflict) {
-      // Ignoring blocked items - those must stay in place.
-      if (grid.blocks.has(conflict)) {
-        conflict = grid.conflicts.pop();
-        continue;
-      }
-
-      const nextMove = tryFindVacantMove(grid, conflict);
-      if (nextMove) {
-        commitMove(grid, nextMove);
-      } else {
-        tier2Conflicts.push(conflict);
-      }
-      conflict = grid.conflicts.pop();
-    }
-
-    // Try resolving conflicts by moving against items that have the same or lower priority.
-    grid.conflicts = tier2Conflicts;
-    conflict = grid.conflicts.pop();
-    while (conflict) {
-      // Ignoring blocked items - those must stay in place.
-      if (grid.blocks.has(conflict)) {
-        conflict = grid.conflicts.pop();
-        continue;
-      }
-
-      const nextMove = tryFindPriorityMove(grid, conflict);
-      if (nextMove) {
-        commitMove(grid, nextMove);
-      } else {
-        // There is no good way to resolve conflicts at this point.
-      }
-      conflict = grid.conflicts.pop();
-    }
+    resolveConflicts(grid);
   }
 
   // Create new grid definition from the current state of dnd-grid.
   // The transition contains the original grid, the new grid, and the list of all moves that have been performed.
+  return createGridTransition(gridDefinition, grid);
+}
+
+/**
+  Applies user resize to the grid of items.
+
+  The produced result includes the final grid and a list of all item moves caused by the resize.
+ */
+export function applyResize(gridDefinition: GridDefinition, resize: Resize): GridTransition {
+  // Create mutable dnd-grid structure to be used for computations.
+  const grid = createDndGrid(gridDefinition, resize.itemId);
+
+  commitResize(grid, resize);
+
+  resolveConflicts(grid);
+
+  // Create new grid definition from the current state of dnd-grid.
   return createGridTransition(gridDefinition, grid);
 }
 
@@ -89,6 +80,47 @@ export function refloatGrid(gridDefinition: GridDefinition): GridTransition {
 
   // Create new grid definition from the current state of dnd-grid.
   return createGridTransition(gridDefinition, grid);
+}
+
+function resolveConflicts(grid: DndGrid) {
+  const tier2Conflicts: ItemId[] = [];
+
+  // Try resolving conflicts by finding the vacant space considering the move directions.
+  let conflict = grid.conflicts.pop();
+  while (conflict) {
+    // Ignoring blocked items - those must stay in place.
+    if (grid.blocks.has(conflict)) {
+      conflict = grid.conflicts.pop();
+      continue;
+    }
+
+    const nextMove = tryFindVacantMove(grid, conflict);
+    if (nextMove) {
+      commitMove(grid, nextMove);
+    } else {
+      tier2Conflicts.push(conflict);
+    }
+    conflict = grid.conflicts.pop();
+  }
+
+  // Try resolving conflicts by moving against items that have the same or lower priority.
+  grid.conflicts = tier2Conflicts;
+  conflict = grid.conflicts.pop();
+  while (conflict) {
+    // Ignoring blocked items - those must stay in place.
+    if (grid.blocks.has(conflict)) {
+      conflict = grid.conflicts.pop();
+      continue;
+    }
+
+    const nextMove = tryFindPriorityMove(grid, conflict);
+    if (nextMove) {
+      commitMove(grid, nextMove);
+    } else {
+      // There is no good way to resolve conflicts at this point.
+    }
+    conflict = grid.conflicts.pop();
+  }
 }
 
 function createDndGrid(gridDefinition: GridDefinition, target?: ItemId): DndGrid {
@@ -227,6 +259,33 @@ function findBlocks(grid: DndGrid, move: Move, origin: Item): Set<ItemId> {
   return blocks;
 }
 
+function commitResize(grid: DndGrid, resize: Resize): void {
+  const resizeTarget = grid.getItem(resize.itemId);
+
+  // Remove old.
+  for (let y = resizeTarget.y + resizeTarget.height - 1; y >= resizeTarget.y; y--) {
+    for (let x = resizeTarget.x + resizeTarget.width - 1; x >= resizeTarget.x; x--) {
+      grid.layout[y][x] = grid.layout[y][x].filter((id) => id !== resizeTarget.id);
+    }
+  }
+
+  // Insert new.
+  for (let y = resizeTarget.y + resize.height - 1; y >= resizeTarget.y; y--) {
+    for (let x = resizeTarget.x + Math.min(grid.width, resize.width) - 1; x >= resizeTarget.x; x--) {
+      // Insert new rows if needed.
+      while (!grid.layout[y]) {
+        grid.layout.push([...Array(grid.width)].map(() => []));
+      }
+
+      // Move item to a new place.
+      grid.layout[y][x] = grid.layout[y][x].filter((id) => id !== resizeTarget.id);
+      grid.layout[y][x].push(resizeTarget.id);
+    }
+  }
+
+  findConflictsByItem(grid, resizeTarget);
+}
+
 // Performs move on the grid layout.
 function commitMove(grid: DndGrid, move: Move): void {
   const moveTarget = grid.getItem(move.itemId);
@@ -244,7 +303,7 @@ function commitMove(grid: DndGrid, move: Move): void {
       const newY = move.y + (y - moveTarget.y);
       const newX = move.x + (x - moveTarget.x);
 
-      // Insert new rows of needed.
+      // Insert new rows if needed.
       while (!grid.layout[newY]) {
         grid.layout.push([...Array(grid.width)].map(() => []));
       }
@@ -265,14 +324,20 @@ function commitMove(grid: DndGrid, move: Move): void {
     throw new Error("The item has been moved too many times. It is likely an infinite loop.");
   }
 
+  findConflictsByItem(grid, moveTarget);
+
+  grid.moves.push(move);
+}
+
+function findConflictsByItem(grid: DndGrid, target: Item): void {
   // Find conflicts caused by the move.
   const conflicts = new Set<ItemId>(grid.conflicts);
   for (let y = 0; y < grid.layout.length; y++) {
     for (let x = 0; x < grid.width; x++) {
-      const hasTarget = grid.layout[y][x].some((id) => id === moveTarget.id);
+      const hasTarget = grid.layout[y][x].some((id) => id === target.id);
       if (hasTarget) {
         for (const itemId of grid.layout[y][x]) {
-          if (itemId !== moveTarget.id) {
+          if (itemId !== target.id) {
             conflicts.add(itemId);
           }
         }
@@ -280,8 +345,6 @@ function commitMove(grid: DndGrid, move: Move): void {
     }
   }
   grid.conflicts = [...conflicts];
-
-  grid.moves.push(move);
 }
 
 function tryFindVacantMove(grid: DndGrid, conflict: ItemId): null | Move {

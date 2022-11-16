@@ -13,6 +13,12 @@ export interface MovePath {
   path: Position[];
 }
 
+export interface Resize {
+  itemId: ItemId;
+  width: number;
+  height: number;
+}
+
 export type Direction = "top" | "right" | "bottom" | "left";
 
 export interface Item {
