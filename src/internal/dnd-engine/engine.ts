@@ -269,9 +269,12 @@ function commitResize(grid: DndGrid, resize: Resize): void {
     }
   }
 
+  resizeTarget.height = resize.height;
+  resizeTarget.width = Math.min(grid.width, resize.width);
+
   // Insert new.
-  for (let y = resizeTarget.y + resize.height - 1; y >= resizeTarget.y; y--) {
-    for (let x = resizeTarget.x + Math.min(grid.width, resize.width) - 1; x >= resizeTarget.x; x--) {
+  for (let y = resizeTarget.y + resizeTarget.height - 1; y >= resizeTarget.y; y--) {
+    for (let x = resizeTarget.x + resizeTarget.width - 1; x >= resizeTarget.x; x--) {
       // Insert new rows if needed.
       while (!grid.layout[y]) {
         grid.layout.push([...Array(grid.width)].map(() => []));
@@ -370,20 +373,25 @@ function tryFindPriorityMove(grid: DndGrid, conflict: ItemId): null | Move {
 
   for (const direction of directions) {
     for (const moveAttempt of getMovesForDirection(conflictItem, conflictWith, direction, "PRIORITY")) {
-      if (validatePriorityMove(grid, moveAttempt)) {
+      if (validatePriorityMove(grid, moveAttempt) === "ok") {
         return moveAttempt;
       }
     }
   }
 
-  return null;
-
   // If can't find a good move - "teleport" item to the bottom.
-  // const moveAttempt = { itemId: conflictItem.id, y: conflictItem.y + 1, x: conflictItem.x };
-  // while (!validatePriorityMove(grid, moveAttempt)) {
-  //   moveAttempt.y++;
-  // }
-  // return moveAttempt;
+  const moveAttempt: Move = { itemId: conflictItem.id, y: conflictItem.y + 1, x: conflictItem.x, type: "ESCAPE" };
+  let canMove = validatePriorityMove(grid, moveAttempt);
+  while (canMove !== "ok") {
+    moveAttempt.y++;
+    canMove = validatePriorityMove(grid, moveAttempt);
+
+    // Can't move over blocked items.
+    if (canMove === "blocked") {
+      return null;
+    }
+  }
+  return moveAttempt;
 }
 
 function getConflictWith(grid: DndGrid, conflictItem: DndItem): DndItem {
@@ -424,7 +432,7 @@ function validateVacantMove(grid: DndGrid, moveAttempt: Move): boolean {
   return true;
 }
 
-function validatePriorityMove(grid: DndGrid, moveAttempt: Move): boolean {
+function validatePriorityMove(grid: DndGrid, moveAttempt: Move): "ok" | "blocked" | "priority" {
   const moveTarget = grid.getItem(moveAttempt.itemId);
 
   for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -434,7 +442,7 @@ function validatePriorityMove(grid: DndGrid, moveAttempt: Move): boolean {
 
       // Outside the grid.
       if (newY < 0 || newX < 0 || newX >= grid.width) {
-        return false;
+        return "blocked";
       }
 
       for (const itemId of grid.layout[newY]?.[newX] ?? []) {
@@ -442,18 +450,18 @@ function validatePriorityMove(grid: DndGrid, moveAttempt: Move): boolean {
 
         // The probed destination cell has higher prio.
         if (item.priority > moveTarget.priority) {
-          return false;
+          return "priority";
         }
 
         // The probed destination i currently blocked.
         if (grid.blocks.has(itemId)) {
-          return false;
+          return "blocked";
         }
       }
     }
   }
 
-  return true;
+  return "ok";
 }
 
 // Retrieve all possible moves for the given direction (same direction but different length).

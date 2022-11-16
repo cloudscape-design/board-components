@@ -34,7 +34,7 @@ export interface GridDefinition {
   width: number;
 }
 
-export type MoveType = "USER" | "VACANT" | "PRIORITY" | "FLOAT";
+export type MoveType = "USER" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT";
 
 export interface Move {
   itemId: ItemId;
