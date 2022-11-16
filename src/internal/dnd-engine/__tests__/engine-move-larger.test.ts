@@ -326,3 +326,30 @@ describe("empty spaces are prioritized over disturbing other items", () => {
     expect(result).toBe(expectation);
   });
 });
+
+describe("escape moves", () => {
+  test.each([
+    [
+      "swap A with C",
+      [
+        ["A", " ", "B", "B"],
+        ["A", " ", "B", "B"],
+        ["D", "C", "C", "F"],
+        ["D", "G", "H", " "],
+        ["E", " ", " ", " "],
+      ],
+      "C4 B4 A4",
+      [
+        ["A", "C", "C", "F"],
+        ["A", "D", "G", " "],
+        ["H", "D", "B", "B"],
+        ["E", " ", "B", "B"],
+      ],
+      { itemId: "B", x: 2, y: 4, type: "ESCAPE" },
+    ],
+  ])("%s", (_, start, move, end, escapeMove) => {
+    const { result, expectation, transition } = runMoveAndRefloat(start, move, end);
+    expect(result).toBe(expectation);
+    expect(transition.moves.find((move) => move.itemId === "B")).toEqual(escapeMove);
+  });
+});
