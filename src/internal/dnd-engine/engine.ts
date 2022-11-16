@@ -20,11 +20,20 @@ import {
   The produced result includes the final grid and a list of all item moves.
   The final grid can have unresolved conflicts that are resolvable by moving the target further.
  */
-export function applyMove(gridDefinition: GridDefinition, movePath: MoveCommand): GridTransition {
-  const grid = createDndGrid(gridDefinition, movePath.itemId);
+export function applyMove(gridDefinition: GridDefinition, { itemId, path }: MoveCommand): GridTransition {
+  const grid = createDndGrid(gridDefinition, itemId);
 
-  for (const step of movePath.path) {
-    const move: CommittedMove = { itemId: movePath.itemId, x: step.x, y: step.y, type: "USER" };
+  for (const step of path) {
+    const moveTarget = grid.getItem(itemId);
+    const diffHorizontal = step.x - moveTarget.x;
+    const diffVertical = step.y - moveTarget.y;
+
+    // It is only allowed to move one cell at a time.
+    if (Math.abs(diffHorizontal) + Math.abs(diffVertical) !== 1) {
+      throw new Error("Invalid move");
+    }
+
+    const move: CommittedMove = { itemId, x: step.x, y: step.y, type: "USER" };
 
     findBlocks(grid, move);
 
@@ -108,6 +117,9 @@ function createDndGrid(gridDefinition: GridDefinition, target?: ItemId): DndGrid
   const byId = new Map<ItemId, DndItem>();
   const width = gridDefinition.width;
   const layout: DndGridCell[][] = [];
+  const moves: CommittedMove[] = [];
+  const conflicts: ItemId[] = [];
+  const blocks = new Set<ItemId>();
 
   for (const item of gridDefinition.items) {
     byId.set(item.id, {
@@ -136,7 +148,7 @@ function createDndGrid(gridDefinition: GridDefinition, target?: ItemId): DndGrid
     return item;
   };
 
-  return { width, layout, moves: [], conflicts: [], blocks: new Set(), getItem };
+  return { width, layout, moves, conflicts, blocks, getItem };
 }
 
 function createGridTransition(start: GridDefinition, grid: DndGrid): GridTransition {
@@ -163,24 +175,18 @@ function createGridTransition(start: GridDefinition, grid: DndGrid): GridTransit
 }
 
 function findBlocks(grid: DndGrid, move: CommittedMove): void {
-  const origin = grid.getItem(move.itemId);
-
   grid.blocks = new Set<ItemId>();
 
-  const diffHorizontal = move.x - origin.x;
-  const diffVertical = move.y - origin.y;
-
-  // Only allow to move one step at a time
-  if (Math.abs(diffHorizontal) + Math.abs(diffVertical) !== 1) {
-    throw new Error("Invalid move");
-  }
+  const moveTarget = grid.getItem(move.itemId);
+  const diffHorizontal = move.x - moveTarget.x;
+  const diffVertical = move.y - moveTarget.y;
 
   if (diffHorizontal !== 0 && diffVertical === 0) {
     // Move to the right
     if (diffHorizontal > 0) {
-      const rightEdgeStart = origin.x + origin.width;
+      const rightEdgeStart = moveTarget.x + moveTarget.width;
       const rightEdge = Math.min(grid.width - 1, rightEdgeStart + diffHorizontal - 1);
-      for (let y = origin.y; y < origin.y + origin.height; y++) {
+      for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
         for (const overlapId of grid.layout[y][rightEdge]) {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
@@ -194,7 +200,7 @@ function findBlocks(grid: DndGrid, move: CommittedMove): void {
     // Move to the left
     else {
       const leftEdge = Math.max(0, move.x);
-      for (let y = origin.y; y < origin.y + origin.height; y++) {
+      for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
         for (const overlapId of grid.layout[y][leftEdge]) {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
@@ -210,9 +216,9 @@ function findBlocks(grid: DndGrid, move: CommittedMove): void {
   if (diffVertical !== 0 && diffHorizontal === 0) {
     // Move to the bottom
     if (diffVertical > 0) {
-      const bottomEdgeStart = origin.y + origin.height;
+      const bottomEdgeStart = moveTarget.y + moveTarget.height;
       const bottomEdge = bottomEdgeStart + diffVertical - 1;
-      for (let x = origin.x; x < origin.x + origin.width; x++) {
+      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
         for (const overlapId of grid.layout[bottomEdge]?.[x] ?? []) {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
@@ -226,7 +232,7 @@ function findBlocks(grid: DndGrid, move: CommittedMove): void {
     // Move to the top
     else {
       const topEdge = Math.max(0, move.y);
-      for (let x = origin.x; x < origin.x + origin.width; x++) {
+      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
         for (const overlapId of grid.layout[topEdge]?.[x] ?? []) {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
