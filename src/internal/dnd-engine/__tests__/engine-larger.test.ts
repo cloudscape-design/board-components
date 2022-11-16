@@ -4,13 +4,9 @@
 import { describe, expect, test } from "vitest";
 import { createMoveTestSuite } from "./helpers";
 
-/*
-  The below tests ensure D&D moves on larger items work as expected.
-*/
-
 describe("vertical swaps of larger items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "swap E with G",
       [
         ["A", "B", "C"],
@@ -23,9 +19,9 @@ describe("vertical swaps of larger items", () => {
         ["D", " ", "I"],
         [" ", "E", "E"],
         ["G", "G", " "],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap B with H",
       [
         ["A", "B", "B"],
@@ -37,9 +33,9 @@ describe("vertical swaps of larger items", () => {
         ["A", "E", "F"],
         ["D", "H", "H"],
         ["G", "B", "B"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap A with G",
       [
         ["A", "A", "A"],
@@ -51,9 +47,9 @@ describe("vertical swaps of larger items", () => {
         ["D", "E", "E"],
         ["G", "G", "H"],
         ["A", "A", "A"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap A with H",
       [
         ["A", "A", " "],
@@ -67,9 +63,9 @@ describe("vertical swaps of larger items", () => {
         ["G", "G", " "],
         [" ", "H", "H"],
         ["A", "A", " "],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap C with A",
       [
         ["A", "A", "A"],
@@ -81,9 +77,9 @@ describe("vertical swaps of larger items", () => {
         ["B", "C", "C"],
         ["A", "A", "A"],
         ["A", "A", "A"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap A with C",
       [
         ["A", "A", "A"],
@@ -95,17 +91,17 @@ describe("vertical swaps of larger items", () => {
         ["B", "C", "C"],
         ["A", "A", "A"],
         ["A", "A", "A"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("horizontal swaps of larger items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "swap F and H",
       [
         ["A", "B", "C", "D"],
@@ -118,9 +114,9 @@ describe("horizontal swaps of larger items", () => {
         ["E", "E", "I", "F"],
         ["G", "G", " ", "H"],
         [" ", " ", " ", "H"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap A and B",
       [
         ["A", "A", "C", "B", "B"],
@@ -132,9 +128,9 @@ describe("horizontal swaps of larger items", () => {
         ["C", "B", "B", "A", "A"],
         ["D", "B", "B", "A", "A"],
         ["E", "F", "G", "A", "A"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap K and B",
       [
         [" ", "K", "C", "B", "B"],
@@ -146,17 +142,17 @@ describe("horizontal swaps of larger items", () => {
         [" ", "C", "B", "B", "K"],
         [" ", "D", "B", "B", "K"],
         [" ", "E", "F", "G", "K"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("diagonal swaps of larger items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "swap A and D via B",
       [
         ["A", "A", "B", "B"],
@@ -170,9 +166,9 @@ describe("diagonal swaps of larger items", () => {
         ["B", "B", "D", "D"],
         ["C", "C", "A", "A"],
         ["C", "C", "A", "A"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap A and D via C",
       [
         ["A", "A", "B", "B"],
@@ -186,17 +182,17 @@ describe("diagonal swaps of larger items", () => {
         ["C", "C", "B", "B"],
         ["D", "D", "A", "A"],
         ["D", "D", "A", "A"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("replacement moves of larger items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "move A to D touching C",
       [
         ["A", "A", "B", "B"],
@@ -212,9 +208,9 @@ describe("replacement moves of larger items", () => {
         [" ", " ", "A", "A"],
         [" ", " ", "D", "D"],
         [" ", " ", "D", "D"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "move A to D touching B",
       [
         ["A", "A", "B", "B"],
@@ -228,10 +224,36 @@ describe("replacement moves of larger items", () => {
         ["B", "B", "D", "D"],
         ["C", "C", "A", "A"],
         ["C", "C", "A", "A"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
+  });
+});
+
+describe("long path moves", () => {
+  test.each([
+    [
+      "A travels to bottom-right corner",
+      [
+        ["A", "F", "F", "F"],
+        ["E", "D", "K", "R"],
+        ["B", "B", "B", "M"],
+        ["B", "B", "B", "M"],
+        ["C", "C", "S", "G"],
+      ],
+      "A1 A2 B2 C2 D2 D3 D4 D5 C5 B5 A5",
+      [
+        ["E", "F", "F", "F"],
+        ["D", "K", "R", "M"],
+        ["B", "B", "B", "M"],
+        ["B", "B", "B", "G"],
+        ["A", "C", "C", "S"],
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });

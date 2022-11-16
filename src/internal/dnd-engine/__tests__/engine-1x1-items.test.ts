@@ -4,14 +4,9 @@
 import { describe, expect, test } from "vitest";
 import { createMoveTestSuite } from "./helpers";
 
-/*
-  The below tests ensure simple D&D moves produce logical results that are easy to reason about.
-  All tests are defined on 3x3 grid with 1x1 items and no empty spaces.
-*/
-
 describe("swap adjacent items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "swap E with B",
       [
         ["A", "B", "C"],
@@ -23,9 +18,9 @@ describe("swap adjacent items", () => {
         ["A", "E", "C"],
         ["D", "B", "F"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap E with H",
       [
         ["A", "B", "C"],
@@ -37,9 +32,9 @@ describe("swap adjacent items", () => {
         ["A", "B", "C"],
         ["D", "H", "F"],
         ["G", "E", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap E with D",
       [
         ["A", "B", "C"],
@@ -51,9 +46,9 @@ describe("swap adjacent items", () => {
         ["A", "B", "C"],
         ["E", "D", "F"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap E with F",
       [
         ["A", "B", "C"],
@@ -65,17 +60,17 @@ describe("swap adjacent items", () => {
         ["A", "B", "C"],
         ["D", "F", "E"],
         ["G", "H", "I"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("replace closest diagonal items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "replace A with E via B",
       [
         ["A", "B", "C"],
@@ -87,9 +82,9 @@ describe("replace closest diagonal items", () => {
         ["E", "A", "C"],
         ["D", "B", "F"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace A with E via D",
       [
         ["A", "B", "C"],
@@ -101,9 +96,9 @@ describe("replace closest diagonal items", () => {
         ["E", "B", "C"],
         ["A", "D", "F"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace C with E via B",
       [
         ["A", "B", "C"],
@@ -115,9 +110,9 @@ describe("replace closest diagonal items", () => {
         ["A", "C", "E"],
         ["D", "B", "F"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace C with E via F",
       [
         ["A", "B", "C"],
@@ -129,9 +124,9 @@ describe("replace closest diagonal items", () => {
         ["A", "B", "E"],
         ["D", "F", "C"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace G with E via G",
       [
         ["A", "B", "C"],
@@ -143,9 +138,9 @@ describe("replace closest diagonal items", () => {
         ["A", "B", "C"],
         ["D", "H", "F"],
         ["E", "G", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace G with E via D",
       [
         ["A", "B", "C"],
@@ -157,9 +152,9 @@ describe("replace closest diagonal items", () => {
         ["A", "B", "C"],
         ["G", "D", "F"],
         ["E", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace I with E via H",
       [
         ["A", "B", "C"],
@@ -171,9 +166,9 @@ describe("replace closest diagonal items", () => {
         ["A", "B", "C"],
         ["D", "H", "F"],
         ["G", "I", "E"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace I with E via F",
       [
         ["A", "B", "C"],
@@ -185,17 +180,17 @@ describe("replace closest diagonal items", () => {
         ["A", "B", "C"],
         ["D", "F", "I"],
         ["G", "H", "E"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("swap distant items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "swap H with E,B",
       [
         ["A", "B", "C"],
@@ -207,9 +202,9 @@ describe("swap distant items", () => {
         ["A", "H", "C"],
         ["D", "B", "F"],
         ["G", "E", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap B with E,H",
       [
         ["A", "B", "C"],
@@ -221,9 +216,9 @@ describe("swap distant items", () => {
         ["A", "E", "C"],
         ["D", "H", "F"],
         ["G", "B", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap D with E,F",
       [
         ["A", "B", "C"],
@@ -235,9 +230,9 @@ describe("swap distant items", () => {
         ["A", "B", "C"],
         ["E", "F", "D"],
         ["G", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "swap F with E,D",
       [
         ["A", "B", "C"],
@@ -249,17 +244,17 @@ describe("swap distant items", () => {
         ["A", "B", "C"],
         ["F", "D", "E"],
         ["G", "H", "I"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("replace distant diagonal items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "replace I with A",
       [
         ["A", "B", "C"],
@@ -271,9 +266,9 @@ describe("replace distant diagonal items", () => {
         ["B", "E", "C"],
         ["D", "H", "F"],
         ["G", "I", "A"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace A with I",
       [
         ["A", "B", "C"],
@@ -285,9 +280,9 @@ describe("replace distant diagonal items", () => {
         ["I", "A", "B"],
         ["D", "E", "C"],
         ["G", "H", "F"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace C with G",
       [
         ["A", "B", "C"],
@@ -299,9 +294,9 @@ describe("replace distant diagonal items", () => {
         ["A", "B", "G"],
         ["D", "F", "C"],
         ["H", "E", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace G with C",
       [
         ["A", "B", "C"],
@@ -313,17 +308,17 @@ describe("replace distant diagonal items", () => {
         ["A", "B", "F"],
         ["G", "D", "E"],
         ["C", "H", "I"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });
 
 describe("replace arbitrary items", () => {
   test.each([
-    createMoveTestSuite(
+    [
       "replace F with G",
       [
         ["A", "B", "C"],
@@ -335,9 +330,9 @@ describe("replace arbitrary items", () => {
         ["A", "B", "C"],
         ["E", "F", "G"],
         ["D", "H", "I"],
-      ]
-    ),
-    createMoveTestSuite(
+      ],
+    ],
+    [
       "replace I with B",
       [
         ["A", "B", "C"],
@@ -349,10 +344,10 @@ describe("replace arbitrary items", () => {
         ["A", "E", "C"],
         ["D", "F", "I"],
         ["G", "H", "B"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });

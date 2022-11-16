@@ -4,7 +4,8 @@
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
 import { applyResize } from "../engine";
-import { createResizeTestSuite, createTextGrid, generateGrid, generateResize, stringifyTextGrid } from "./helpers";
+import { generateGrid, generateResize } from "./generators";
+import { createResizeTestSuite, createTextGrid, stringifyTextGrid } from "./helpers";
 
 test("decrease in element size never issues other element movements", () => {
   range(0, 10).forEach(() => {
@@ -31,7 +32,7 @@ test("elements resize never leave grid with unresolved conflicts", () => {
 
 describe("resize scenarios", () => {
   test.each([
-    createResizeTestSuite(
+    [
       "resize A to 3:1",
       [
         ["A", "A", "F"],
@@ -43,9 +44,9 @@ describe("resize scenarios", () => {
         ["A", "A", "A"],
         ["B", "E", "F"],
         [" ", "C", "D"],
-      ]
-    ),
-    createResizeTestSuite(
+      ],
+    ],
+    [
       "resize A to 3:3",
       [
         ["A", "A", "F"],
@@ -60,10 +61,10 @@ describe("resize scenarios", () => {
         ["B", "C", "D"],
         [" ", " ", "F"],
         [" ", " ", "E"],
-      ]
-    ),
-  ])("%s", (_, run) => {
-    const { result, expectation } = run();
-    expect(result).toBe(expectation);
+      ],
+    ],
+  ])("%s", (_, ...inputs) => {
+    const { run, expectation } = createResizeTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 });

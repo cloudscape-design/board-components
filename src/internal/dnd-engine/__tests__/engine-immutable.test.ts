@@ -4,7 +4,7 @@
 import { cloneDeep, range } from "lodash";
 import { expect, test } from "vitest";
 import { applyMove, applyResize, refloatGrid } from "../engine";
-import { generateGrid, generateMovePath, generateResize } from "./helpers";
+import { generateGrid, generateMovePath, generateResize } from "./generators";
 
 test("input arguments stay unchanged when using engine", () => {
   range(0, 10).forEach(() => {

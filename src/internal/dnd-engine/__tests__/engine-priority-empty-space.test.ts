@@ -4,12 +4,8 @@
 import { expect, test } from "vitest";
 import { createMoveTestSuite } from "./helpers";
 
-/*
-  The below tests validate that empty spaces are preferred over occupied when resolving conflicts.
-*/
-
 test.each([
-  createMoveTestSuite(
+  [
     "E pushes C to the bottom",
     [
       ["A", "B", "C"],
@@ -22,9 +18,9 @@ test.each([
       ["A", "B", "E"],
       ["D", "F", "C"],
       [" ", "F", "C"],
-    ]
-  ),
-  createMoveTestSuite(
+    ],
+  ],
+  [
     "A pushes D to the bottom creating new line",
     [
       ["D", "A"],
@@ -35,9 +31,9 @@ test.each([
       ["A", "F"],
       ["D", " "],
       ["D", " "],
-    ]
-  ),
-  createMoveTestSuite(
+    ],
+  ],
+  [
     "E pushes F to the right",
     [
       ["A", "B", "C", "C"],
@@ -51,9 +47,9 @@ test.each([
       ["D", " ", "E", "F"],
       ["G", "G", " ", "F"],
       ["H", "H", "H", " "],
-    ]
-  ),
-  createMoveTestSuite(
+    ],
+  ],
+  [
     "G pushes E to the left",
     [
       ["A", "B", "C"],
@@ -68,9 +64,9 @@ test.each([
       ["E", "G", "C"],
       ["E", "G", " "],
       ["E", "F", "F"],
-    ]
-  ),
-])("%s", (_, run) => {
-  const { result, expectation } = run();
-  expect(result).toBe(expectation);
+    ],
+  ],
+])("$s", (_, ...inputs) => {
+  const { run, expectation } = createMoveTestSuite(...inputs);
+  expect(run().result).toBe(expectation);
 });
