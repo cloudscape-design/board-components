@@ -5,33 +5,34 @@ import { range } from "lodash";
 import { expect, test } from "vitest";
 import { applyMove, refloatGrid } from "../engine";
 import { Item } from "../interfaces";
-import { createTextGrid, generateGrid, generateMovePath, parseTextGrid, stringifyTextGrid } from "./helpers";
+import { createTextGrid, generateGrid, generateMovePath, parseTextGrid } from "./helpers";
 
 test("all items float to the top after move", () => {
   range(0, 100).forEach(() => {
     const grid = generateGrid();
     const movePath = generateMovePath(grid, "any");
-    const transition = refloatGrid(applyMove(grid, movePath).end);
-    const textGrid = createTextGrid(transition.end);
+    const moveTransition = applyMove(grid, movePath);
 
-    let invalid: null | Item = null;
-    for (const item of transition.end.items) {
-      invalid = item;
+    if (moveTransition.blocks.length === 0) {
+      const floatTransition = refloatGrid(moveTransition.end);
+      const textGrid = createTextGrid(floatTransition.end);
 
-      for (let x = item.x; x < item.x + item.width; x++) {
-        if (item.y === 0 || textGrid[item.y - 1][x] !== " ") {
-          invalid = null;
+      let invalid: null | Item = null;
+      for (const item of floatTransition.end.items) {
+        invalid = item;
+
+        for (let x = item.x; x < item.x + item.width; x++) {
+          if (item.y === 0 || textGrid[item.y - 1][x] !== " ") {
+            invalid = null;
+            break;
+          }
+        }
+
+        if (invalid) {
           break;
         }
       }
 
-      if (invalid) {
-        break;
-      }
-    }
-
-    const hasUnresolved = stringifyTextGrid(textGrid).includes("/");
-    if (!hasUnresolved) {
       expect(invalid, `Expected item "${invalid?.id}" to float.`).toBe(null);
     }
   });
