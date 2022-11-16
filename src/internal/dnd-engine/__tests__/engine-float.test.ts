@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { Item } from "../interfaces";
 import { generateGrid, generateMovePath } from "./generators";
 import { createTextGrid, forEachTimes, runMoveAndRefloat } from "./helpers";
 
@@ -14,23 +13,23 @@ test("all items float to the top after move", () => {
     if (transition.blocks.length === 0) {
       const textGrid = createTextGrid(transition.end);
 
-      let invalid: null | Item = null;
+      let invalidItem: null | string = null;
       for (const item of transition.end.items) {
-        invalid = item;
+        invalidItem = item.id;
 
         for (let x = item.x; x < item.x + item.width; x++) {
           if (item.y === 0 || textGrid[item.y - 1][x] !== " ") {
-            invalid = null;
+            invalidItem = null;
             break;
           }
         }
 
-        if (invalid) {
+        if (invalidItem) {
           break;
         }
       }
 
-      expect(invalid, `Expected item "${invalid?.id}" to float.`).toBe(null);
+      expect(invalidItem, `Expected item "${invalidItem}" to float.`).toBe(null);
     }
   });
 });

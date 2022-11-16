@@ -1,20 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { Direction, DndGrid, DndGridCell, DndItem } from "./internal-interfaces";
 import {
-  Direction,
-  DndGrid,
-  DndGridCell,
-  DndItem,
+  CommittedMove,
   GridDefinition,
   GridTransition,
   Item,
   ItemId,
-  Move,
-  MovePath,
-  MoveType,
-  Resize,
-} from "./interfaces";
+  MoveCommand,
+  ResizeCommand,
+} from "./public-interfaces";
 
 /**
   Applies user move to the grid of items.
@@ -24,29 +20,19 @@ import {
   The produced result includes the final grid and a list of all item moves.
   The final grid can have unresolved conflicts that are resolvable by moving the target further.
  */
-export function applyMove(gridDefinition: GridDefinition, movePath: MovePath): GridTransition {
-  // Create mutable dnd-grid structure to be used for computations.
+export function applyMove(gridDefinition: GridDefinition, movePath: MoveCommand): GridTransition {
   const grid = createDndGrid(gridDefinition, movePath.itemId);
 
   for (const step of movePath.path) {
-    const moveTarget = grid.getItem(movePath.itemId);
-    const move: Move = { itemId: movePath.itemId, x: step.x, y: step.y, type: "USER" };
+    const move: CommittedMove = { itemId: movePath.itemId, x: step.x, y: step.y, type: "USER" };
 
-    // Update origin.
-    moveTarget.originalX = moveTarget.x;
-    moveTarget.originalY = moveTarget.y;
+    findBlocks(grid, move);
 
-    // Find elements that can't be swapped with the target yet.
-    grid.blocks = findBlocks(grid, move, moveTarget);
-
-    // Commit the move to find possible conflicts.
     commitMove(grid, move);
 
     resolveConflicts(grid);
   }
 
-  // Create new grid definition from the current state of dnd-grid.
-  // The transition contains the original grid, the new grid, and the list of all moves that have been performed.
   return createGridTransition(gridDefinition, grid);
 }
 
@@ -55,15 +41,13 @@ export function applyMove(gridDefinition: GridDefinition, movePath: MovePath): G
 
   The produced result includes the final grid and a list of all item moves caused by the resize.
  */
-export function applyResize(gridDefinition: GridDefinition, resize: Resize): GridTransition {
-  // Create mutable dnd-grid structure to be used for computations.
+export function applyResize(gridDefinition: GridDefinition, resize: ResizeCommand): GridTransition {
   const grid = createDndGrid(gridDefinition, resize.itemId);
 
   commitResize(grid, resize);
 
   resolveConflicts(grid);
 
-  // Create new grid definition from the current state of dnd-grid.
   return createGridTransition(gridDefinition, grid);
 }
 
@@ -72,17 +56,14 @@ export function applyResize(gridDefinition: GridDefinition, resize: Resize): Gri
   This needs to be performed after the item is dropped.
  */
 export function refloatGrid(gridDefinition: GridDefinition): GridTransition {
-  // Create mutable dnd-grid structure to be used for computations.
   const grid = createDndGrid(gridDefinition);
 
-  // All grid items are expected to "float" to the top. After all D&D movements are committed this property is to be reassured.
   refloatDndGrid(grid);
 
-  // Create new grid definition from the current state of dnd-grid.
   return createGridTransition(gridDefinition, grid);
 }
 
-function resolveConflicts(grid: DndGrid) {
+function resolveConflicts(grid: DndGrid): void {
   const tier2Conflicts: ItemId[] = [];
 
   // Try resolving conflicts by finding the vacant space considering the move directions.
@@ -181,8 +162,10 @@ function createGridTransition(start: GridDefinition, grid: DndGrid): GridTransit
   };
 }
 
-function findBlocks(grid: DndGrid, move: Move, origin: Item): Set<ItemId> {
-  const blocks = new Set<ItemId>();
+function findBlocks(grid: DndGrid, move: CommittedMove): void {
+  const origin = grid.getItem(move.itemId);
+
+  grid.blocks = new Set<ItemId>();
 
   const diffHorizontal = move.x - origin.x;
   const diffVertical = move.y - origin.y;
@@ -202,7 +185,7 @@ function findBlocks(grid: DndGrid, move: Move, origin: Item): Set<ItemId> {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
             if (overlapItem.x + overlapItem.width - 1 > rightEdge) {
-              blocks.add(overlapId);
+              grid.blocks.add(overlapId);
             }
           }
         }
@@ -216,7 +199,7 @@ function findBlocks(grid: DndGrid, move: Move, origin: Item): Set<ItemId> {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
             if (overlapItem.x < leftEdge) {
-              blocks.add(overlapId);
+              grid.blocks.add(overlapId);
             }
           }
         }
@@ -234,7 +217,7 @@ function findBlocks(grid: DndGrid, move: Move, origin: Item): Set<ItemId> {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
             if (overlapItem.y + overlapItem.height - 1 > bottomEdge) {
-              blocks.add(overlapId);
+              grid.blocks.add(overlapId);
             }
           }
         }
@@ -248,18 +231,16 @@ function findBlocks(grid: DndGrid, move: Move, origin: Item): Set<ItemId> {
           if (overlapId && overlapId !== move.itemId) {
             const overlapItem = grid.getItem(overlapId);
             if (overlapItem.y < topEdge) {
-              blocks.add(overlapId);
+              grid.blocks.add(overlapId);
             }
           }
         }
       }
     }
   }
-
-  return blocks;
 }
 
-function commitResize(grid: DndGrid, resize: Resize): void {
+function commitResize(grid: DndGrid, resize: ResizeCommand): void {
   const resizeTarget = grid.getItem(resize.itemId);
 
   // Remove old.
@@ -290,7 +271,7 @@ function commitResize(grid: DndGrid, resize: Resize): void {
 }
 
 // Performs move on the grid layout.
-function commitMove(grid: DndGrid, move: Move): void {
+function commitMove(grid: DndGrid, move: CommittedMove): void {
   const moveTarget = grid.getItem(move.itemId);
 
   // Remove old.
@@ -350,15 +331,15 @@ function findConflictsByItem(grid: DndGrid, target: Item): void {
   grid.conflicts = [...conflicts];
 }
 
-function tryFindVacantMove(grid: DndGrid, conflict: ItemId): null | Move {
+function tryFindVacantMove(grid: DndGrid, conflict: ItemId): null | CommittedMove {
   const conflictItem = grid.getItem(conflict);
   const conflictWith = getConflictWith(grid, conflictItem);
   const directions = getMoveDirections(grid, conflictWith);
 
   for (const direction of directions) {
-    for (const moveAttempt of getMovesForDirection(conflictItem, conflictWith, direction, "VACANT")) {
-      if (validateVacantMove(grid, moveAttempt)) {
-        return { ...moveAttempt, type: "VACANT" };
+    for (const move of getMovesForDirection(conflictItem, conflictWith, direction, "VACANT")) {
+      if (validateVacantMove(grid, move)) {
+        return move;
       }
     }
   }
@@ -366,32 +347,32 @@ function tryFindVacantMove(grid: DndGrid, conflict: ItemId): null | Move {
   return null;
 }
 
-function tryFindPriorityMove(grid: DndGrid, conflict: ItemId): null | Move {
+function tryFindPriorityMove(grid: DndGrid, conflict: ItemId): null | CommittedMove {
   const conflictItem = grid.getItem(conflict);
   const conflictWith = getConflictWith(grid, conflictItem);
   const directions = getMoveDirections(grid, conflictWith);
 
   for (const direction of directions) {
-    for (const moveAttempt of getMovesForDirection(conflictItem, conflictWith, direction, "PRIORITY")) {
-      if (validatePriorityMove(grid, moveAttempt) === "ok") {
-        return moveAttempt;
+    for (const move of getMovesForDirection(conflictItem, conflictWith, direction, "PRIORITY")) {
+      if (validatePriorityMove(grid, move) === "ok") {
+        return move;
       }
     }
   }
 
   // If can't find a good move - "teleport" item to the bottom.
-  const moveAttempt: Move = { itemId: conflictItem.id, y: conflictItem.y + 1, x: conflictItem.x, type: "ESCAPE" };
-  let canMove = validatePriorityMove(grid, moveAttempt);
+  const move: CommittedMove = { itemId: conflictItem.id, y: conflictItem.y + 1, x: conflictItem.x, type: "ESCAPE" };
+  let canMove = validatePriorityMove(grid, move);
   while (canMove !== "ok") {
-    moveAttempt.y++;
-    canMove = validatePriorityMove(grid, moveAttempt);
+    move.y++;
+    canMove = validatePriorityMove(grid, move);
 
     // Can't move over blocked items.
     if (canMove === "blocked") {
       return null;
     }
   }
-  return moveAttempt;
+  return move;
 }
 
 function getConflictWith(grid: DndGrid, conflictItem: DndItem): DndItem {
@@ -407,7 +388,7 @@ function getConflictWith(grid: DndGrid, conflictItem: DndItem): DndItem {
   throw new Error("Invariant violation - no conflicts found.");
 }
 
-function validateVacantMove(grid: DndGrid, moveAttempt: Move): boolean {
+function validateVacantMove(grid: DndGrid, moveAttempt: CommittedMove): boolean {
   const moveTarget = grid.getItem(moveAttempt.itemId);
 
   for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -432,7 +413,7 @@ function validateVacantMove(grid: DndGrid, moveAttempt: Move): boolean {
   return true;
 }
 
-function validatePriorityMove(grid: DndGrid, moveAttempt: Move): "ok" | "blocked" | "priority" {
+function validatePriorityMove(grid: DndGrid, moveAttempt: CommittedMove): "ok" | "blocked" | "priority" {
   const moveTarget = grid.getItem(moveAttempt.itemId);
 
   for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -465,7 +446,12 @@ function validatePriorityMove(grid: DndGrid, moveAttempt: Move): "ok" | "blocked
 }
 
 // Retrieve all possible moves for the given direction (same direction but different length).
-function getMovesForDirection(moveTarget: Item, conflict: DndItem, direction: Direction, moveType: MoveType): Move[] {
+function getMovesForDirection(
+  moveTarget: Item,
+  conflict: DndItem,
+  direction: Direction,
+  moveType: CommittedMove["type"]
+): CommittedMove[] {
   switch (direction) {
     case "top": {
       const conflictTop = conflict.y;
@@ -473,7 +459,7 @@ function getMovesForDirection(moveTarget: Item, conflict: DndItem, direction: Di
       const targetTop = targetBottom - (moveTarget.height - 1);
 
       const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY));
-      const moves: Move[] = [];
+      const moves: CommittedMove[] = [];
       for (let i = distance; i >= 0; i--) {
         moves.push({ itemId: moveTarget.id, y: targetTop - i, x: moveTarget.x, type: moveType });
       }
@@ -486,7 +472,7 @@ function getMovesForDirection(moveTarget: Item, conflict: DndItem, direction: Di
       const targetBottom = conflictBottom;
 
       const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY));
-      const moves: Move[] = [];
+      const moves: CommittedMove[] = [];
       for (let i = distance; i >= 0; i--) {
         moves.push({ itemId: moveTarget.id, y: targetBottom + i, x: moveTarget.x, type: moveType });
       }
@@ -500,7 +486,7 @@ function getMovesForDirection(moveTarget: Item, conflict: DndItem, direction: Di
       const targetLeft = targetRight - (moveTarget.width - 1);
 
       const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX));
-      const moves: Move[] = [];
+      const moves: CommittedMove[] = [];
       for (let i = distance; i >= 0; i--) {
         moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: targetLeft - i, type: moveType });
       }
@@ -513,7 +499,7 @@ function getMovesForDirection(moveTarget: Item, conflict: DndItem, direction: Di
       const targetLeft = conflictRight;
 
       const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX));
-      const moves: Move[] = [];
+      const moves: CommittedMove[] = [];
       for (let i = distance; i >= 0; i--) {
         moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: targetLeft + i, type: moveType });
       }

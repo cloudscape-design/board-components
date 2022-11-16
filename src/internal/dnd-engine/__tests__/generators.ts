@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction, GridDefinition, Item, MovePath, Position, Resize } from "../interfaces";
+import { Direction } from "../internal-interfaces";
+import { GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../public-interfaces";
 import { LETTER_INDICES, createTextGrid } from "./helpers";
 
 type GenerateMoveType = "horizontal-or-vertical" | "vertical" | "horizontal" | "any";
@@ -80,7 +81,7 @@ export function generateGrid(
   return { items, width };
 }
 
-export function generateMovePath(grid: GridDefinition, type: GenerateMoveType = "any"): MovePath {
+export function generateMovePath(grid: GridDefinition, type: GenerateMoveType = "any"): MoveCommand {
   const textGrid = createTextGrid(grid);
   const moveTarget = grid.items[getRandomIndex(grid.items)];
 
@@ -198,7 +199,7 @@ export function generateResize(
   maxWidthDecrement = grid.width - 1,
   maxHeightIncrement = Math.floor((grid.items.length - 1) % 2) + 1,
   maxHeightDecrement = Math.floor((grid.items.length - 1) % 2) + 1
-): Resize {
+): ResizeCommand {
   const resizeTarget = grid.items[getRandomIndex(grid.items)];
 
   let maxWidthDelta = getRandomDirection();
@@ -256,7 +257,7 @@ function createRandomPath(from: Position, to: Position): Position[] {
   return path;
 }
 
-function getRandomIndex(array: unknown[]): number {
+function getRandomIndex(array: readonly unknown[]): number {
   return Math.floor(Math.random() * array.length);
 }
 

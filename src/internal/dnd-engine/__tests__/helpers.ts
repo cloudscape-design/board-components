@@ -3,7 +3,7 @@
 
 import { range } from "lodash";
 import { applyMove, applyResize, refloatGrid } from "../engine";
-import { GridDefinition, Item, ItemId, MovePath, Position, Resize } from "../interfaces";
+import { GridDefinition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../public-interfaces";
 
 export const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -17,7 +17,7 @@ function parseTextPath(path: string): Position[] {
   });
 }
 
-function createMovePath(grid: GridDefinition, path: Position[]): MovePath {
+function createMovePath(grid: GridDefinition, path: Position[]): MoveCommand {
   const [start, ...rest] = path;
   const moveTarget = grid.items.find(
     (item) => item.y <= start.y && start.y < item.y + item.height && item.x <= start.x && start.x < item.x + item.width
@@ -33,7 +33,11 @@ function createMovePath(grid: GridDefinition, path: Position[]): MovePath {
 /**
  * Creates test definition for applyMove featuring simple text-based input definition and results comparison.
  */
-export function runMoveAndRefloat(start: GridDefinition | string[][], path: string | MovePath, end: string[][] = []) {
+export function runMoveAndRefloat(
+  start: GridDefinition | string[][],
+  path: string | MoveCommand,
+  end: string[][] = []
+) {
   const expectation = stringifyTextGrid(end);
   const grid = Array.isArray(start) ? parseTextGrid(start) : start;
   const movePath = typeof path === "string" ? createMovePath(grid, parseTextPath(path)) : path;
@@ -51,7 +55,7 @@ export function runMoveAndRefloat(start: GridDefinition | string[][], path: stri
   return { transition, result, expectation };
 }
 
-export function runResizeAndRefloat(start: GridDefinition | string[][], resize: Resize, end: string[][] = []) {
+export function runResizeAndRefloat(start: GridDefinition | string[][], resize: ResizeCommand, end: string[][] = []) {
   const expectation = stringifyTextGrid(end);
   const grid = Array.isArray(start) ? parseTextGrid(start) : start;
   let transition = applyResize(grid, resize);
