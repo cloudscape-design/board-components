@@ -4,7 +4,7 @@ import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
 import { Ref, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragState } from "../internal/dnd";
+import { useDragSubscription } from "../internal/dnd";
 import Grid from "../internal/grid";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
@@ -17,7 +17,7 @@ import { calculateShifts, createTransforms } from "./calculations/reorder";
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 
-export default function DashboardLayout<D>({ items, renderItem, onItemsChange, ...rest }: DashboardLayoutProps<D>) {
+export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
   // const bubbleUp = (rest as any).bubbleUp;
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -28,37 +28,33 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, .
   const [activeDragGhost, setActiveDragGhost] = useState<boolean>(false);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  // TODO: content var is not up to date in effects
   const { content, placeholders, rows } = createLayout(items, columns, activeDragGhost);
 
-  useDragState(
-    () => setActiveDragGhost(true),
-    (state) => {
-      const collisionsIds = getCollisions(state.active, state.droppables, state.dropData);
-      setCollisionIds(collisionsIds);
-      const nextGrid = calculateShifts(
-        content,
-        collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-        content.find((item) => item.id === state.activeData)!
-      );
-      setTransforms(createTransforms(nextGrid, content, state.active.getBoundingClientRect()));
-    },
-    (state) => {
-      const collisionsIds = getCollisions(state.active, state.droppables, state.dropData);
-      setCollisionIds(collisionsIds);
-      const nextGrid = calculateShifts(
-        content,
-        collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-        content.find((item) => item.id === state.activeData)!
-      );
-      if (nextGrid) {
-        onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));
-      }
-      setActiveDragGhost(false);
-      setTransforms({});
-      setCollisionIds(null);
+  useDragSubscription("start", () => setActiveDragGhost(true));
+  useDragSubscription("move", ({ active, activeId, droppableIds, droppables }) => {
+    const collisionsIds = getCollisions(active, droppables, droppableIds);
+    setCollisionIds(collisionsIds);
+    const nextGrid = calculateShifts(
+      content,
+      collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
+      content.find((item) => item.id === activeId)!
+    );
+    setTransforms(createTransforms(nextGrid, content, active.getBoundingClientRect()));
+  });
+  useDragSubscription("drop", ({ active, activeId, droppableIds, droppables }) => {
+    const collisionsIds = getCollisions(active, droppables, droppableIds);
+    const nextGrid = calculateShifts(
+      content,
+      collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
+      content.find((item) => item.id === activeId)!
+    );
+    if (nextGrid) {
+      onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));
     }
-  );
+    setActiveDragGhost(false);
+    setTransforms({});
+    setCollisionIds(null);
+  });
 
   return (
     <div ref={containerQueryRef as Ref<HTMLDivElement>}>

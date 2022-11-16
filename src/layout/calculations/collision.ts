@@ -16,7 +16,7 @@ function getMinDistance(min: number, current: number, collision: number) {
 export const getCollisions = (
   active: HTMLElement,
   droppables: Set<HTMLElement>,
-  dropData: WeakMap<HTMLElement, any>
+  droppableIds: WeakMap<HTMLElement, string>
 ) => {
   const collisionRect = active.getBoundingClientRect();
   let bounds = {
@@ -45,6 +45,7 @@ export const getCollisions = (
     bounds.left = bounds.right - width;
   }
   // make sure collision sticks to the bottom of the current layout
+  // TODO: decide on this feature
   // if (bubbleUp) {
   //   const nodes: DndContextDescriptor["draggableNodes"] = active.data.current!.draggableNodes;
   //   const maxBottom =
@@ -62,5 +63,5 @@ export const getCollisions = (
   // return all rects inside adjusted collision box
   return [...droppables]
     .filter((droppable) => isInsideRect(droppable.getBoundingClientRect(), bounds))
-    .map((droppable) => dropData.get(droppable));
+    .map((droppable) => droppableIds.get(droppable)!);
 };
