@@ -353,7 +353,7 @@ function findConflictsByItem(grid: DndGrid, target: Item): void {
 function tryFindVacantMove(grid: DndGrid, conflict: ItemId): null | Move {
   const conflictItem = grid.getItem(conflict);
   const conflictWith = getConflictWith(grid, conflictItem);
-  const directions = getMoveDirections(conflictItem, conflictWith);
+  const directions = getMoveDirections(grid, conflictWith);
 
   for (const direction of directions) {
     for (const moveAttempt of getMovesForDirection(conflictItem, conflictWith, direction, "VACANT")) {
@@ -369,7 +369,7 @@ function tryFindVacantMove(grid: DndGrid, conflict: ItemId): null | Move {
 function tryFindPriorityMove(grid: DndGrid, conflict: ItemId): null | Move {
   const conflictItem = grid.getItem(conflict);
   const conflictWith = getConflictWith(grid, conflictItem);
-  const directions = getMoveDirections(conflictItem, conflictWith);
+  const directions = getMoveDirections(grid, conflictWith);
 
   for (const direction of directions) {
     for (const moveAttempt of getMovesForDirection(conflictItem, conflictWith, direction, "PRIORITY")) {
@@ -524,12 +524,17 @@ function getMovesForDirection(moveTarget: Item, conflict: DndItem, direction: Di
 }
 
 // Get priority move directions by comparing conflicting items positions.
-function getMoveDirections(moveTarget: Item, origin: DndItem): Direction[] {
-  const diffVertical = getDiffVertical(origin, moveTarget);
+function getMoveDirections(grid: DndGrid, origin: DndItem): Direction[] {
+  const originMoves = grid.moves.filter((m) => m.itemId === origin.id);
+
+  // The move is missing when origin resizes.
+  const lastOriginMove = originMoves[originMoves.length - 1] || { x: origin.originalX, y: origin.originalY };
+
+  const diffVertical = origin.originalY - lastOriginMove.y;
   const firstVertical = diffVertical > 0 ? "bottom" : "top";
   const nextVertical = firstVertical === "bottom" ? "top" : "bottom";
 
-  const diffHorizontal = getDiffHorizontal(origin, moveTarget);
+  const diffHorizontal = origin.originalX - lastOriginMove.x;
   const firstHorizontal = diffHorizontal > 0 ? "right" : "left";
   const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
 
@@ -539,52 +544,6 @@ function getMoveDirections(moveTarget: Item, origin: DndItem): Direction[] {
       : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
 
   return directions;
-}
-
-function getDiffHorizontal(origin: DndItem, source: Item): number {
-  // Origin moved vertically - ignoring horizontal diff
-  if (origin.originalX === origin.x) {
-    return 0;
-  }
-
-  const originLeft = origin.originalX;
-  const originRight = origin.originalX + origin.width - 1;
-  const sourceLeft = source.x;
-  const sourceRight = source.x + source.width - 1;
-
-  if (originLeft === sourceLeft && originRight === sourceRight) {
-    return 0;
-  }
-  if (originLeft <= sourceLeft) {
-    return -1;
-  }
-  if (sourceRight <= originRight) {
-    return 1;
-  }
-  return 0;
-}
-
-function getDiffVertical(origin: DndItem, source: Item): number {
-  // Origin moved horizontally - ignoring vertical diff
-  if (origin.originalY === origin.y) {
-    return 0;
-  }
-
-  const originTop = origin.originalY;
-  const originBottom = origin.originalY + origin.height - 1;
-  const sourceTop = source.y;
-  const sourceBottom = source.y + source.height - 1;
-
-  if (originTop === sourceTop && originBottom === sourceBottom) {
-    return 0;
-  }
-  if (originTop <= sourceTop) {
-    return -1;
-  }
-  if (sourceBottom <= originBottom) {
-    return 1;
-  }
-  return 0;
 }
 
 // Find items that can "float" to the top and apply the necessary moves.

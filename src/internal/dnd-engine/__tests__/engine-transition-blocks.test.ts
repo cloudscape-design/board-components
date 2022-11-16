@@ -4,7 +4,7 @@
 import { describe, expect, test } from "vitest";
 import { applyMove } from "../engine";
 import { generateGrid, generateMovePath } from "./generators";
-import { createMoveRunner, createMoveTestSuite, forEachTimes } from "./helpers";
+import { createMoveTestSuite, forEachTimes } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {
   forEachTimes(33, [generateGrid(4, 10, 1, 1), generateGrid(5, 15, 1, 1), generateGrid(6, 20, 1, 1)], (grid) => {
@@ -44,13 +44,13 @@ describe("swap right", () => {
   });
 
   test.each([
-    createMoveRunner([["A", "B", "B"]], "A1 B1 C1"),
-    createMoveRunner([["A", "B", "B", "B"]], "A1 B1 C1 D1"),
-    createMoveRunner([["A", "A", "B", "B"]], "A1 B1 C1"),
-    createMoveRunner([["A", "A", "B", "B", "B"]], "A1 B1 C1 D1"),
-  ])("can swap to the right when enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.length).toBeGreaterThan(0);
+    [[["A", "B", "B"]], "A1 B1 C1", [["B", "B", "A"]]],
+    [[["A", "B", "B", "B"]], "A1 B1 C1 D1", [["B", "B", "B", "A"]]],
+    [[["A", "A", "B", "B"]], "A1 B1 C1", [["B", "B", "A", "A"]]],
+    [[["A", "A", "B", "B", "B"]], "A1 B1 C1 D1", [["B", "B", "B", "A", "A"]]],
+  ])("can swap to the right when enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 
   test.each([
@@ -74,25 +74,27 @@ describe("swap right", () => {
 
 describe("swap left", () => {
   test.each([
-    createMoveRunner([["A", "A", "B"]], "C1 B1"),
-    createMoveRunner([["A", "A", "A", "B"]], "D1 C1"),
-    createMoveRunner([["A", "A", "A", "B"]], "D1 C1 B1"),
-    createMoveRunner([["A", "A", "B", "B"]], "C1 B1"),
-    createMoveRunner([["A", "A", "A", "B", "B"]], "D1 C1"),
-    createMoveRunner([["A", "A", "A", "B", "B"]], "D1 C1 B1"),
-  ])("can't swap to the left when not enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.filter((move) => move.itemId === "A")).toHaveLength(0);
+    [[["A", "A", "B"]], "C1 B1", [["A", "A/B", " "]]],
+    [[["A", "A", "A", "B"]], "D1 C1", [["A", "A", "A/B", " "]]],
+    [[["A", "A", "A", "B"]], "D1 C1 B1", [["A", "A/B", "A", " "]]],
+    [[["A", "A", "B", "B"]], "C1 B1", [["A", "A/B", "B", " "]]],
+    [[["A", "A", "A", "B", "B"]], "D1 C1", [["A", "A", "A/B", "B", " "]]],
+    [[["A", "A", "A", "B", "B"]], "D1 C1 B1", [["A", "A/B", "A/B", " ", " "]]],
+  ])("can't swap to the left when not enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 
   test.each([
-    createMoveRunner([["A", "A", "B"]], "C1 B1 A1"),
-    createMoveRunner([["A", "A", "A", "B"]], "D1 C1 B1 A1"),
-    createMoveRunner([["A", "A", "B", "B"]], "C1 B1 A1"),
-    createMoveRunner([["A", "A", "A", "B", "B"]], "D1 C1 B1 A1"),
-  ])("can swap to the left when enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.length).toBeGreaterThan(0);
+    [[["A", "A", "B"]], "C1 B1 A1", [["B", "A", "A"]]],
+    [[["A", "A", "A", "B"]], "D1 C1 B1 A1", [["B", "A", "A", "A"]]],
+    [[["A", "A", "B", "B"]], "C1 B1 A1", [["B", "B", "A", "A"]]],
+    [[["A", "A", "A", "B", "B"]], "D1 C1 B1 A1", [["B", "B", "A", "A", "A"]]],
+  ])("can swap to the left when enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    const { transition, result } = run();
+    console.log(transition.moves);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -116,25 +118,25 @@ describe("swap left", () => {
 
 describe("swap bottom", () => {
   test.each([
-    createMoveRunner([["A"], ["B"], ["B"]], "A1 A2"),
-    createMoveRunner([["A"], ["B"], ["B"], ["B"]], "A1 A2"),
-    createMoveRunner([["A"], ["B"], ["B"], ["B"]], "A1 A2 A3"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"]], "A1 A2"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3"),
-  ])("can't swap to the bottom when not enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.filter((move) => move.itemId === "B")).toHaveLength(0);
+    [[["A"], ["B"], ["B"]], "A1 A2", [[" "], ["A/B"], ["B"]]],
+    [[["A"], ["B"], ["B"], ["B"]], "A1 A2", [[" "], ["A/B"], ["B"], ["B"]]],
+    [[["A"], ["B"], ["B"], ["B"]], "A1 A2 A3", [[" "], ["B"], ["A/B"], ["B"]]],
+    [[["A"], ["A"], ["B"], ["B"]], "A1 A2", [[" "], ["A"], ["A/B"], ["B"]]],
+    [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2", [[" "], ["A"], ["A/B"], ["B"], ["B"]]],
+    [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3", [[" "], [" "], ["A/B"], ["A/B"], ["B"]]],
+  ])("can't swap to the bottom when not enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 
   test.each([
-    createMoveRunner([["A"], ["B"], ["B"]], "A1 A2 A3"),
-    createMoveRunner([["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"]], "A1 A2 A3"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4"),
-  ])("can swap to the bottom when enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.length).toBeGreaterThan(0);
+    [[["A"], ["B"], ["B"]], "A1 A2 A3", [["B"], ["B"], ["A"]]],
+    [[["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4", [["B"], ["B"], ["B"], ["A"]]],
+    [[["A"], ["A"], ["B"], ["B"]], "A1 A2 A3", [["B"], ["B"], ["A"], ["A"]]],
+    [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4", [["B"], ["B"], ["B"], ["A"], ["A"]]],
+  ])("can swap to the bottom when enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 
   test.each([
@@ -162,25 +164,25 @@ describe("swap bottom", () => {
 
 describe("swap top", () => {
   test.each([
-    createMoveRunner([["A"], ["A"], ["B"]], "A3 A2"),
-    createMoveRunner([["A"], ["A"], ["A"], ["B"]], "A4 A3"),
-    createMoveRunner([["A"], ["A"], ["A"], ["B"]], "A4 A3 A2"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"]], "A3 A2"),
-    createMoveRunner([["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3"),
-    createMoveRunner([["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2"),
-  ])("can't swap to the top when not enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.filter((move) => move.itemId === "A")).toHaveLength(0);
+    [[["A"], ["A"], ["B"]], "A3 A2", [["A"], ["A/B"]]],
+    [[["A"], ["A"], ["A"], ["B"]], "A4 A3", [["A"], ["A"], ["A/B"]]],
+    [[["A"], ["A"], ["A"], ["B"]], "A4 A3 A2", [["A"], ["A/B"], ["A"]]],
+    [[["A"], ["A"], ["B"], ["B"]], "A3 A2", [["A"], ["A/B"], ["B"]]],
+    [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3", [["A"], ["A"], ["A/B"], ["B"]]],
+    [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2", [["A"], ["A/B"], ["A/B"]]],
+  ])("can't swap to the top when not enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 
   test.each([
-    createMoveRunner([["A"], ["A"], ["B"]], "A3 A2 A1"),
-    createMoveRunner([["A"], ["A"], ["A"], ["B"]], "A4 A3 A2 A1"),
-    createMoveRunner([["A"], ["A"], ["B"], ["B"]], "A3 A2 A1"),
-    createMoveRunner([["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2 A1"),
-  ])("can swap to the top when enough overlap", (run) => {
-    const transition = run();
-    expect(transition.moves.length).toBeGreaterThan(0);
+    [[["A"], ["A"], ["B"]], "A3 A2 A1", [["B"], ["A"], ["A"]]],
+    [[["A"], ["A"], ["A"], ["B"]], "A4 A3 A2 A1", [["B"], ["A"], ["A"], ["A"]]],
+    [[["A"], ["A"], ["B"], ["B"]], "A3 A2 A1", [["B"], ["B"], ["A"], ["A"]]],
+    [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2 A1", [["B"], ["B"], ["A"], ["A"], ["A"]]],
+  ])("can swap to the top when enough overlap", (...inputs) => {
+    const { run, expectation } = createMoveTestSuite(...inputs);
+    expect(run().result).toBe(expectation);
   });
 
   test.each([
