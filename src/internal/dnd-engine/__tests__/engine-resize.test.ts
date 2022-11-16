@@ -3,18 +3,15 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { applyResize } from "../engine";
 import { generateGrid, generateResize } from "./generators";
-import { createResizeTestSuite, createTextGrid, stringifyTextGrid } from "./helpers";
+import { runResizeAndRefloat } from "./helpers";
 
-test("decrease in element size never issues other element movements", () => {
+test("decrease in element size never creates conflicts", () => {
   range(0, 10).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, 0, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1);
-
-    const transition = applyResize(grid, resize);
-
-    expect(transition.moves).toHaveLength(0);
+    const { transition } = runResizeAndRefloat(grid, resize);
+    expect(transition.moves.filter((move) => move.type !== "FLOAT")).toHaveLength(0);
   });
 });
 
@@ -22,11 +19,8 @@ test("elements resize never leave grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1, 0);
-
-    const transition = applyResize(grid, resize);
-    const textGrid = createTextGrid(transition.end);
-
-    expect(stringifyTextGrid(textGrid)).not.toContain("/");
+    const { transition } = runResizeAndRefloat(grid, resize);
+    expect(transition.blocks).toHaveLength(0);
   });
 });
 
@@ -64,7 +58,7 @@ describe("resize scenarios", () => {
       ],
     ],
   ])("%s", (_, ...inputs) => {
-    const { run, expectation } = createResizeTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runResizeAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });

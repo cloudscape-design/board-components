@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { createMoveTestSuite } from "./helpers";
+import { runMoveAndRefloat } from "./helpers";
 
 describe("swap adjacent items", () => {
   test.each([
@@ -63,8 +63,8 @@ describe("swap adjacent items", () => {
       ],
     ],
   ])("%s", (_, ...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -183,8 +183,8 @@ describe("replace closest diagonal items", () => {
       ],
     ],
   ])("%s", (_, ...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -247,8 +247,8 @@ describe("swap distant items", () => {
       ],
     ],
   ])("%s", (_, ...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -311,8 +311,8 @@ describe("replace distant diagonal items", () => {
       ],
     ],
   ])("%s", (_, ...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -347,7 +347,7 @@ describe("replace arbitrary items", () => {
       ],
     ],
   ])("%s", (_, ...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });

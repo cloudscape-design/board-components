@@ -1,25 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { range } from "lodash";
 import { expect, test } from "vitest";
-import { applyMove, refloatGrid } from "../engine";
 import { Item } from "../interfaces";
 import { generateGrid, generateMovePath } from "./generators";
-import { createTextGrid, parseTextGrid } from "./helpers";
+import { createTextGrid, forEachTimes, runMoveAndRefloat } from "./helpers";
 
 test("all items float to the top after move", () => {
-  range(0, 100).forEach(() => {
-    const grid = generateGrid();
+  forEachTimes(33, [generateGrid(4, 10), generateGrid(5, 15), generateGrid(6, 20)], (grid) => {
     const movePath = generateMovePath(grid, "any");
-    const moveTransition = applyMove(grid, movePath);
+    const { transition } = runMoveAndRefloat(grid, movePath);
 
-    if (moveTransition.blocks.length === 0) {
-      const floatTransition = refloatGrid(moveTransition.end);
-      const textGrid = createTextGrid(floatTransition.end);
+    if (transition.blocks.length === 0) {
+      const textGrid = createTextGrid(transition.end);
 
       let invalid: null | Item = null;
-      for (const item of floatTransition.end.items) {
+      for (const item of transition.end.items) {
         invalid = item;
 
         for (let x = item.x; x < item.x + item.width; x++) {
@@ -40,23 +36,16 @@ test("all items float to the top after move", () => {
 });
 
 test("float creates addition moves", () => {
-  const grid = parseTextGrid([
-    ["A", "B", "C", "D"],
-    [" ", " ", "E", "E"],
-    [" ", " ", "F", "G"],
-    [" ", " ", "H", " "],
-  ]);
-  const movePath = {
-    itemId: "E",
-    path: [
-      { y: 1, x: 1 },
-      { y: 1, x: 0 },
+  const { transition } = runMoveAndRefloat(
+    [
+      ["A", "B", "C", "D"],
+      [" ", " ", "E", "E"],
+      [" ", " ", "F", "G"],
+      [" ", " ", "H", " "],
     ],
-  };
-  const applyTransition = applyMove(grid, movePath);
-  const refloatTransition = refloatGrid(applyTransition.end);
-  const moves = [...applyTransition.moves, ...refloatTransition.moves];
-  expect(moves).toEqual([
+    "C2 B2 A2"
+  );
+  expect(transition.moves).toEqual([
     { itemId: "E", y: 1, x: 1, type: "USER" },
     { itemId: "E", y: 1, x: 0, type: "USER" },
     { itemId: "F", y: 1, x: 2, type: "FLOAT" },

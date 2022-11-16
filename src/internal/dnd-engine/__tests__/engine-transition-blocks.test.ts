@@ -4,7 +4,7 @@
 import { describe, expect, test } from "vitest";
 import { applyMove } from "../engine";
 import { generateGrid, generateMovePath } from "./generators";
-import { createMoveTestSuite, forEachTimes } from "./helpers";
+import { forEachTimes, runMoveAndRefloat } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {
   forEachTimes(33, [generateGrid(4, 10, 1, 1), generateGrid(5, 15, 1, 1), generateGrid(6, 20, 1, 1)], (grid) => {
@@ -39,8 +39,8 @@ describe("swap right", () => {
     [[["A", "A", "B", "B", "B"]], "A1 B1", [[" ", "A", "A/B", "B", "B"]]],
     [[["A", "A", "B", "B", "B"]], "A1 B1 C1", [[" ", " ", "A/B", "A/B", "B"]]],
   ])("can't swap to the right when not enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -49,8 +49,8 @@ describe("swap right", () => {
     [[["A", "A", "B", "B"]], "A1 B1 C1", [["B", "B", "A", "A"]]],
     [[["A", "A", "B", "B", "B"]], "A1 B1 C1 D1", [["B", "B", "B", "A", "A"]]],
   ])("can swap to the right when enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -67,8 +67,8 @@ describe("swap right", () => {
       ],
     ],
   ])("can make partial swap to the right", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -81,8 +81,8 @@ describe("swap left", () => {
     [[["A", "A", "A", "B", "B"]], "D1 C1", [["A", "A", "A/B", "B", " "]]],
     [[["A", "A", "A", "B", "B"]], "D1 C1 B1", [["A", "A/B", "A/B", " ", " "]]],
   ])("can't swap to the left when not enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -91,9 +91,7 @@ describe("swap left", () => {
     [[["A", "A", "B", "B"]], "C1 B1 A1", [["B", "B", "A", "A"]]],
     [[["A", "A", "A", "B", "B"]], "D1 C1 B1 A1", [["B", "B", "A", "A", "A"]]],
   ])("can swap to the left when enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    const { transition, result } = run();
-    console.log(transition.moves);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
     expect(result).toBe(expectation);
   });
 
@@ -111,8 +109,8 @@ describe("swap left", () => {
       ],
     ],
   ])("can make partial swap to the left", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -125,8 +123,8 @@ describe("swap bottom", () => {
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2", [[" "], ["A"], ["A/B"], ["B"], ["B"]]],
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3", [[" "], [" "], ["A/B"], ["A/B"], ["B"]]],
   ])("can't swap to the bottom when not enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -135,8 +133,8 @@ describe("swap bottom", () => {
     [[["A"], ["A"], ["B"], ["B"]], "A1 A2 A3", [["B"], ["B"], ["A"], ["A"]]],
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4", [["B"], ["B"], ["B"], ["A"], ["A"]]],
   ])("can swap to the bottom when enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -157,8 +155,8 @@ describe("swap bottom", () => {
       ],
     ],
   ])("can make partial swap to the bottom", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
 
@@ -171,8 +169,8 @@ describe("swap top", () => {
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3", [["A"], ["A"], ["A/B"], ["B"]]],
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2", [["A"], ["A/B"], ["A/B"]]],
   ])("can't swap to the top when not enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -181,8 +179,8 @@ describe("swap top", () => {
     [[["A"], ["A"], ["B"], ["B"]], "A3 A2 A1", [["B"], ["B"], ["A"], ["A"]]],
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2 A1", [["B"], ["B"], ["A"], ["A"], ["A"]]],
   ])("can swap to the top when enough overlap", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 
   test.each([
@@ -203,7 +201,7 @@ describe("swap top", () => {
       ],
     ],
   ])("can make partial swap to the top", (...inputs) => {
-    const { run, expectation } = createMoveTestSuite(...inputs);
-    expect(run().result).toBe(expectation);
+    const { result, expectation } = runMoveAndRefloat(...inputs);
+    expect(result).toBe(expectation);
   });
 });
