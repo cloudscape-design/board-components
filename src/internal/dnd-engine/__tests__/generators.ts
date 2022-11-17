@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction } from "../dnd-grid";
-import { GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../interfaces";
+import { Direction, GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../interfaces";
 import { LETTER_INDICES, createTextGrid } from "./helpers";
 
 type GenerateMoveType = "horizontal-or-vertical" | "vertical" | "horizontal" | "any";
@@ -235,6 +234,22 @@ export function generateResize(
   const heightDelta = Math.sign(maxHeightDelta) * getRandomInt(0, Math.abs(maxHeightDelta) + 1);
 
   return { itemId: resizeTarget.id, width: resizeTarget.width + widthDelta, height: resizeTarget.height + heightDelta };
+}
+
+export function generateInsert(
+  grid: GridDefinition,
+  insertId = "X",
+  maxWidth = grid.width,
+  maxHeight = Math.floor(grid.items.length / 2) + 1
+): Item {
+  const textGrid = createTextGrid(grid);
+
+  const y = getRandomIndex(textGrid);
+  const x = getRandomIndex(textGrid[y]);
+  const width = getRandomInt(1, maxWidth + 1 - x);
+  const height = getRandomInt(1, maxHeight + 1);
+
+  return { id: insertId, x, y, width, height };
 }
 
 function createRandomPath(from: Position, to: Position): Position[] {

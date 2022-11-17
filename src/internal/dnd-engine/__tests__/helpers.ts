@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { range } from "lodash";
-import { applyMove, applyResize, refloatGrid } from "../engine";
-import { GridDefinition, GridTransition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../interfaces";
+import { DndEngine } from "../engine";
+import { GridDefinition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../interfaces";
 
 export const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -30,9 +30,6 @@ function createMovePath(grid: GridDefinition, path: Position[]): MoveCommand {
   return { itemId: moveTarget.id, path: rest.map(({ y, x }) => ({ y: y - yOffset, x: x - xOffset })) };
 }
 
-/**
- * Creates test definition for applyMove featuring simple text-based input definition and results comparison.
- */
 export function runMoveAndRefloat(
   start: GridDefinition | string[][],
   path: string | MoveCommand,
@@ -40,32 +37,57 @@ export function runMoveAndRefloat(
 ) {
   const grid = Array.isArray(start) ? parseTextGrid(start) : start;
   const movePath = typeof path === "string" ? createMovePath(grid, parseTextPath(path)) : path;
-  const moveTransition = applyMove(grid, movePath);
-  const refloatTransition = refloatGrid(moveTransition.end);
+
+  const engine = new DndEngine(grid);
+  engine.move(movePath);
+  const transition = engine.commit();
+
   return {
-    transition: mergeTransitions(moveTransition, refloatTransition),
-    result: stringifyTextGrid(createTextGrid(refloatTransition.end)),
+    transition,
+    result: stringifyTextGrid(createTextGrid(transition.end)),
     expectation: stringifyTextGrid(end),
   };
 }
 
 export function runResizeAndRefloat(start: GridDefinition | string[][], resize: ResizeCommand, end: string[][] = []) {
   const grid = Array.isArray(start) ? parseTextGrid(start) : start;
-  const resizeTransition = applyResize(grid, resize);
-  const refloatTransition = refloatGrid(resizeTransition.end);
+
+  const engine = new DndEngine(grid);
+  engine.resize(resize);
+  const transition = engine.commit();
+
   return {
-    transition: mergeTransitions(resizeTransition, refloatTransition),
-    result: stringifyTextGrid(createTextGrid(refloatTransition.end)),
+    transition,
+    result: stringifyTextGrid(createTextGrid(transition.end)),
     expectation: stringifyTextGrid(end),
   };
 }
 
-export function mergeTransitions(transition1: GridTransition, transition2: GridTransition): GridTransition {
+export function runInsertAndRefloat(start: GridDefinition | string[][], item: Item, end: string[][] = []) {
+  const grid = Array.isArray(start) ? parseTextGrid(start) : start;
+
+  const engine = new DndEngine(grid);
+  engine.insert(item);
+  const transition = engine.commit();
+
   return {
-    start: transition1.start,
-    end: transition2.end,
-    moves: [...transition1.moves, ...transition2.moves],
-    blocks: [...transition1.blocks, ...transition2.blocks],
+    transition,
+    result: stringifyTextGrid(createTextGrid(transition.end)),
+    expectation: stringifyTextGrid(end),
+  };
+}
+
+export function runRemoveAndRefloat(start: GridDefinition | string[][], itemId: ItemId, end: string[][] = []) {
+  const grid = Array.isArray(start) ? parseTextGrid(start) : start;
+
+  const engine = new DndEngine(grid);
+  engine.remove(itemId);
+  const transition = engine.commit();
+
+  return {
+    transition,
+    result: stringifyTextGrid(createTextGrid(transition.end)),
+    expectation: stringifyTextGrid(end),
   };
 }
 
