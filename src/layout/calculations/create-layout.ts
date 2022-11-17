@@ -15,7 +15,7 @@ function createGridItems(
 ): readonly GridLayoutItem[] {
   const result: GridLayoutItem[] = [];
 
-  let currentRowIndex = 1;
+  let currentRowIndex = 0;
 
   for (let index = 0; index < items.length; index++) {
     const { id, columnSpan, rowSpan, columnOffset } = items[index];
@@ -41,8 +41,8 @@ function createGridItems(
 function createGridPlaceholders(rows: number, columns: number): readonly GridLayoutItem[] {
   const result: GridLayoutItem[] = [];
 
-  for (let x = 1; x <= columns; x++) {
-    for (let y = 1; y <= rows; y++) {
+  for (let x = 0; x < columns; x++) {
+    for (let y = 0; y < rows; y++) {
       result.push({ id: `placeholder-${x}-${y}`, x, y, width: 1, height: 1 });
     }
   }
@@ -56,7 +56,7 @@ export function createLayout(
   extraRow: boolean
 ): GridLayout {
   const content = createGridItems(items, columns);
-  let rows = content.reduce((acc, item) => Math.max(acc, item.y + item.height - 1), 1);
+  let rows = content.reduce((acc, item) => Math.max(acc, item.y + item.height), 1);
   if (extraRow) {
     rows += 1;
   }

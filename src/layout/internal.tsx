@@ -18,7 +18,6 @@ import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
-  // const bubbleUp = (rest as any).bubbleUp;
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
@@ -37,7 +36,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const nextGrid = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-      content.find((item) => item.id === activeId)!
+      content.find((item) => item.id === activeId)!,
+      columns
     );
     setTransforms(createTransforms(nextGrid, content, active.getBoundingClientRect()));
   });
@@ -46,7 +46,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const nextGrid = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-      content.find((item) => item.id === activeId)!
+      content.find((item) => item.id === activeId)!,
+      columns
     );
     if (nextGrid) {
       onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));

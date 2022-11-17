@@ -39,7 +39,7 @@ export default function DashboardItem({
         disableHeaderPaddings={true}
         header={
           <WidgetContainerHeader
-            handle={<DragHandle listeners={{ onMouseDown: onStart }} ariaLabel={i18nStrings.dragHandleLabel} />}
+            handle={<DragHandle onMouseDown={onStart} ariaLabel={i18nStrings.dragHandleLabel} />}
             settings={settings}
           >
             {header}

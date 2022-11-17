@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import Grid from "@cloudscape-design/components/grid";
 import Header from "@cloudscape-design/components/header";
-import Toggle from "@cloudscape-design/components/toggle";
 import { useState } from "react";
 import { DashboardItem, DashboardItemProps, DashboardLayout, DashboardPalette } from "../../lib/components";
 import PageLayout from "../app/page-layout";
@@ -16,26 +15,11 @@ const itemStrings: DashboardItemProps["i18nStrings"] = {
 export default function () {
   const [items, setItems] = useState(initialLayoutItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
-  const [bubbleUp, setBubbleUp] = useState(false);
 
   return (
-    <PageLayout
-      header={
-        <Header
-          variant="h1"
-          actions={
-            <Toggle checked={bubbleUp} onChange={(event) => setBubbleUp(event.detail.checked)}>
-              Bubble up drag shadow
-            </Toggle>
-          }
-        >
-          Configurable dashboard demo
-        </Header>
-      }
-    >
+    <PageLayout header={<Header variant="h1">Configurable dashboard demo</Header>}>
       <Grid gridDefinition={[{ colspan: 9 }, { colspan: 3 }]}>
         <DashboardLayout
-          {...{ bubbleUp }}
           items={items}
           renderItem={(item) => {
             return (

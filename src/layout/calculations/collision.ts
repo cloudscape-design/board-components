@@ -1,11 +1,17 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { isInsideRect } from "./utils";
+import { Rect } from "./interfaces";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
   const currentDistance = Math.abs(current - collision);
   return currentDistance < minDistance ? current : min;
+}
+
+function isInsideRect(rect: Rect, bounds: Rect) {
+  return (
+    rect.top <= bounds.top && rect.left >= bounds.left && rect.right <= bounds.right && rect.bottom >= bounds.bottom
+  );
 }
 
 /**
@@ -44,21 +50,6 @@ export const getCollisions = (
   if (bounds.right - bounds.left < width) {
     bounds.left = bounds.right - width;
   }
-  // make sure collision sticks to the bottom of the current layout
-  // TODO: decide on this feature
-  // if (bubbleUp) {
-  //   const nodes: DndContextDescriptor["draggableNodes"] = active.data.current!.draggableNodes;
-  //   const maxBottom =
-  //     [...nodes.values()]
-  //       .filter((node) => node && node!.id !== active.id)
-  //       .map((node) => node!.node.current!.getBoundingClientRect())
-  //       .filter((rect) => rect.right > bounds.left && rect.left < bounds.right)
-  //       .reduce((maxBottom, rect) => Math.max(maxBottom, rect.bottom), 0) + 16;
-  //   if (bounds.bottom > maxBottom + height) {
-  //     bounds.top = maxBottom;
-  //     bounds.bottom = maxBottom + height;
-  //   }
-  // }
 
   // return all rects inside adjusted collision box
   return [...droppables]

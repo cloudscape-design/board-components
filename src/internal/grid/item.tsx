@@ -17,14 +17,14 @@ const GridItem = (props: GridItemProps) => {
   const data = {
     "data-column-span": item.width,
     "data-row-span": item.height,
-    "data-column-offset": item.x,
-    "data-row-offset": item.y,
+    "data-column-offset": item.x + 1,
+    "data-row-offset": item.y + 1,
   };
 
   // Grid row start can not be set as part of a CSS class names,
   // since we have a potential infinite height grid.
   return (
-    <div {...data} className={className} style={{ gridRowStart: item.y }}>
+    <div {...data} className={className} style={{ gridRowStart: item.y + 1 }}>
       {children}
     </div>
   );

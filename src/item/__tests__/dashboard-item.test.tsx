@@ -15,7 +15,9 @@ export const i18nStrings: DashboardItemProps["i18nStrings"] = {
 function render(jsx: ReactElement) {
   return libRender(jsx, {
     wrapper: function ItemContextWrapper({ children }) {
-      return <ItemContextProvider value={{ id: "1", transform: null }}>{children}</ItemContextProvider>;
+      return (
+        <ItemContextProvider value={{ id: "1", transform: null, resizable: true }}>{children}</ItemContextProvider>
+      );
     },
   });
 }

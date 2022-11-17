@@ -7,7 +7,7 @@ import PageLayout from "../app/page-layout";
 import * as i18nStrings from "../shared/i18n";
 
 const fullWidthItem = {
-  columnOffset: 1,
+  columnOffset: 0,
   columnSpan: 4,
   rowSpan: 1,
   definition: {

@@ -37,16 +37,16 @@ export const allWidgets: Record<string, { data: ItemData; definition?: PalettePr
   };
 
 export const storedPositions = [
-  { id: "demo", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
-  { id: "2", columnOffset: 2, rowSpan: 1, columnSpan: 2 },
-  { id: "3", columnOffset: 4, rowSpan: 1, columnSpan: 1 },
-  { id: "4", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
-  { id: "5", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
-  { id: "6", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
-  { id: "7", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
-  { id: "8", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
-  { id: "9", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
-  { id: "10", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
+  { id: "demo", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
+  { id: "2", columnOffset: 1, rowSpan: 1, columnSpan: 2 },
+  { id: "3", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
+  { id: "4", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
+  { id: "5", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
+  { id: "6", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
+  { id: "7", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
+  { id: "8", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
+  { id: "9", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
+  { id: "10", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
 ];
 
 export const initialLayoutItems: ReadonlyArray<DashboardLayoutProps.Item<ItemData>> = storedPositions.map((pos) => {
