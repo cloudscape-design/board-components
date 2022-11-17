@@ -3,7 +3,7 @@
 
 import { range } from "lodash";
 import { applyMove, applyResize, refloatGrid } from "../engine";
-import { GridDefinition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../interfaces";
+import { GridDefinition, GridTransition, Item, ItemId, MoveCommand, Position, ResizeCommand } from "../interfaces";
 
 export const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -38,38 +38,35 @@ export function runMoveAndRefloat(
   path: string | MoveCommand,
   end: string[][] = []
 ) {
-  const expectation = stringifyTextGrid(end);
   const grid = Array.isArray(start) ? parseTextGrid(start) : start;
   const movePath = typeof path === "string" ? createMovePath(grid, parseTextPath(path)) : path;
-  let transition = applyMove(grid, movePath);
-  if (transition.blocks.length === 0) {
-    const refloatTransition = refloatGrid(transition.end);
-    transition = {
-      start: transition.start,
-      end: refloatTransition.end,
-      moves: [...transition.moves, ...refloatTransition.moves],
-      blocks: [],
-    };
-  }
-  const result = stringifyTextGrid(createTextGrid(transition.end));
-  return { transition, result, expectation };
+  const moveTransition = applyMove(grid, movePath);
+  const refloatTransition = refloatGrid(moveTransition.end);
+  return {
+    transition: mergeTransitions(moveTransition, refloatTransition),
+    result: stringifyTextGrid(createTextGrid(refloatTransition.end)),
+    expectation: stringifyTextGrid(end),
+  };
 }
 
 export function runResizeAndRefloat(start: GridDefinition | string[][], resize: ResizeCommand, end: string[][] = []) {
-  const expectation = stringifyTextGrid(end);
   const grid = Array.isArray(start) ? parseTextGrid(start) : start;
-  let transition = applyResize(grid, resize);
-  if (transition.blocks.length === 0) {
-    const refloatTransition = refloatGrid(transition.end);
-    transition = {
-      start: transition.start,
-      end: refloatTransition.end,
-      moves: [...transition.moves, ...refloatTransition.moves],
-      blocks: [],
-    };
-  }
-  const result = stringifyTextGrid(createTextGrid(transition.end));
-  return { transition, result, expectation };
+  const resizeTransition = applyResize(grid, resize);
+  const refloatTransition = refloatGrid(resizeTransition.end);
+  return {
+    transition: mergeTransitions(resizeTransition, refloatTransition),
+    result: stringifyTextGrid(createTextGrid(refloatTransition.end)),
+    expectation: stringifyTextGrid(end),
+  };
+}
+
+export function mergeTransitions(transition1: GridTransition, transition2: GridTransition): GridTransition {
+  return {
+    start: transition1.start,
+    end: transition2.end,
+    moves: [...transition1.moves, ...transition2.moves],
+    blocks: [...transition1.blocks, ...transition2.blocks],
+  };
 }
 
 export function parseTextGrid(textGrid: string[][]): GridDefinition {

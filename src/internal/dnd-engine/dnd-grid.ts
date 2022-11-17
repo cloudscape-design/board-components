@@ -19,9 +19,12 @@ export interface Rect {
 export type Direction = "top" | "right" | "bottom" | "left";
 
 export class DndGrid {
+  // Initial state.
   width: number;
   items: readonly Item[];
+  committed = true;
 
+  // Transitory state.
   dndItems = new Map<ItemId, DndItem>();
   layout: Set<ItemId>[][] = [];
   moves: CommittedMove[] = [];
@@ -41,6 +44,10 @@ export class DndGrid {
         ...getItemRect(item),
       });
 
+      if (item.x < 0 || item.y < 0 || item.x + item.width > this.width) {
+        throw new Error("Invalid grid: found items outside the boundaries.");
+      }
+
       for (let y = item.y; y < item.y + item.height; y++) {
         while (this.layout.length <= y) {
           this.layout.push([...Array(this.width)].map(() => new Set()));
@@ -48,6 +55,10 @@ export class DndGrid {
 
         for (let x = item.x; x < item.x + item.width; x++) {
           this.layout[y][x].add(item.id);
+
+          if (this.layout[y][x].size > 1) {
+            this.committed = false;
+          }
         }
       }
     }

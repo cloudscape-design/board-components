@@ -15,8 +15,11 @@ import { CommittedMove, GridDefinition, GridTransition, Item, ItemId, MoveComman
 export function applyMove(gridDefinition: GridDefinition, { itemId, path }: MoveCommand): GridTransition {
   const grid = new DndGrid(gridDefinition, itemId);
 
-  // TODO: validate path to be of single steps
-  // TODO: validate path to not include repetitive steps
+  if (!grid.committed) {
+    throw new Error("Invalid grid: move requires grid to be in committed state.");
+  }
+
+  validateMoveCommand(grid, { itemId, path });
 
   for (const step of path) {
     const move: CommittedMove = { itemId, x: step.x, y: step.y, type: "USER" };
@@ -39,6 +42,12 @@ export function applyMove(gridDefinition: GridDefinition, { itemId, path }: Move
 export function applyResize(gridDefinition: GridDefinition, resize: ResizeCommand): GridTransition {
   const grid = new DndGrid(gridDefinition, resize.itemId);
 
+  if (!grid.committed) {
+    throw new Error("Invalid grid: move requires grid to be in committed state.");
+  }
+
+  validateResizeCommand(grid, resize);
+
   commitResize(grid, resize);
 
   resolveConflicts(grid);
@@ -53,7 +62,9 @@ export function applyResize(gridDefinition: GridDefinition, resize: ResizeComman
 export function refloatGrid(gridDefinition: GridDefinition): GridTransition {
   const grid = new DndGrid(gridDefinition);
 
-  refloatDndGrid(grid);
+  if (grid.committed) {
+    refloatDndGrid(grid);
+  }
 
   return createGridTransition(gridDefinition, grid);
 }
@@ -452,5 +463,41 @@ function refloatDndGrid(grid: DndGrid): void {
       const item = grid.getItem(id);
       commitMove(grid, { itemId: id, y: item.y - affordance, x: item.x, type: "FLOAT" });
     }
+  }
+}
+
+function validateMoveCommand(grid: DndGrid, { itemId, path }: MoveCommand): void {
+  const moveTarget = grid.getItem(itemId);
+  const steps = new Set<string>();
+
+  let prevX = moveTarget.x;
+  let prevY = moveTarget.y;
+  for (const step of path) {
+    const diffVertical = step.y - prevY;
+    const diffHorizontal = step.x - prevX;
+    if (Math.abs(diffVertical) + Math.abs(diffHorizontal) !== 1) {
+      throw new Error("Invalid move: must move one step at a time.");
+    }
+
+    const stepKey = `${step.x}:${step.y}`;
+    if (steps.has(stepKey)) {
+      throw new Error("Invalid move: path steps must not repeat.");
+    }
+    steps.add(stepKey);
+
+    if (step.x < 0 || step.y < 0 || step.x + moveTarget.width > grid.width) {
+      throw new Error("Invalid move: outside grid.");
+    }
+
+    prevX = step.x;
+    prevY = step.y;
+  }
+}
+
+function validateResizeCommand(grid: DndGrid, { itemId, width, height }: ResizeCommand): void {
+  const resizeTarget = grid.getItem(itemId);
+
+  if (width < 1 || height < 1 || resizeTarget.x + width > grid.width) {
+    throw new Error("Invalid resize: outside grid.");
   }
 }
