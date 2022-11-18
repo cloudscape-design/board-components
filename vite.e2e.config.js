@@ -9,8 +9,8 @@ export default defineConfig({
   root: "./",
   test: {
     environment: "node",
-    dir: "./test",
     testTimeout: 60000,
+    include: ["./test/**/*.test.ts"],
     setupFiles: ["./test/test-setup.ts"],
     globalSetup: ["./test/global-setup.ts"],
   },

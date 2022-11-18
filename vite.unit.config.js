@@ -6,8 +6,9 @@ import base from "./vite.config.js";
 // https://vitejs.dev/config/
 export default defineConfig({
   ...base,
+  root: "./",
   test: {
+    include: ["./src/**/__tests__/**/*.test.{ts,tsx}"],
     environment: "jsdom",
-    dir: "./src",
   },
 });
