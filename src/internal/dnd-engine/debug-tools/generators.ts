@@ -59,7 +59,7 @@ export function generateGrid(options?: GenerateGridOptions): GridDefinition {
     const index = getRandomIndex(items);
 
     if (selectedAllowance === "horizontal") {
-      items[index].width++;
+      items[index].width = Math.min(width - items[index].x, items[index].width + 1);
       for (let i = 0; i < items[index].height; i++) {
         allowance.horizontal--;
       }
