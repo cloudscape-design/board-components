@@ -1,19 +1,38 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { toMatrix } from "../debug-tools";
 import { Direction, GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../interfaces";
+import { toMatrix } from ".";
 
-type GenerateMoveType = "horizontal-or-vertical" | "vertical" | "horizontal" | "any";
+export type GenerateMoveType = "any" | "vertical" | "horizontal";
+
+export interface GenerateGridOptions {
+  width?: number;
+  totalItems?: number;
+  averageItemWidth?: number;
+  averageItemHeight?: number;
+}
+
+export interface GenerateGridResizeOptions {
+  maxWidthIncrement?: number;
+  maxWidthDecrement?: number;
+  maxHeightIncrement?: number;
+  maxHeightDecrement?: number;
+}
+
+export interface GenerateGridInsertOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+}
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-export function generateGrid(
-  width = 6,
-  totalItems = 20,
-  averageItemWidth = 1.44,
-  averageItemHeight = 1.44
-): GridDefinition {
+export function generateGrid(options?: GenerateGridOptions): GridDefinition {
+  const width = options?.width ?? 6;
+  const totalItems = options?.totalItems ?? 20;
+  const averageItemWidth = options?.averageItemWidth ?? 1.44;
+  const averageItemHeight = options?.averageItemHeight ?? 1.44;
+
   const allowance = {
     horizontal: Math.floor(totalItems * (averageItemWidth - 1)),
     vertical: Math.floor(totalItems * (averageItemHeight - 1)),
@@ -82,7 +101,7 @@ export function generateGrid(
   return { items, width };
 }
 
-export function generateMovePath(grid: GridDefinition, type: GenerateMoveType = "any"): MoveCommand {
+export function generateMove(grid: GridDefinition, type: GenerateMoveType = "any"): MoveCommand {
   const textGrid = toMatrix(grid);
   const moveTarget = grid.items[getRandomIndex(grid.items)];
 
@@ -172,8 +191,6 @@ export function generateMovePath(grid: GridDefinition, type: GenerateMoveType = 
         repeatCounter++;
 
         switch (type) {
-          case "horizontal-or-vertical":
-            return swap("any");
           case "vertical":
             return swap("vertical");
           case "horizontal":
@@ -194,13 +211,12 @@ export function generateMovePath(grid: GridDefinition, type: GenerateMoveType = 
   return { itemId: moveTarget.id, path };
 }
 
-export function generateResize(
-  grid: GridDefinition,
-  maxWidthIncrement = grid.width - 1,
-  maxWidthDecrement = grid.width - 1,
-  maxHeightIncrement = Math.floor((grid.items.length - 1) % 2) + 1,
-  maxHeightDecrement = Math.floor((grid.items.length - 1) % 2) + 1
-): ResizeCommand {
+export function generateResize(grid: GridDefinition, options?: GenerateGridResizeOptions): ResizeCommand {
+  const maxWidthIncrement = options?.maxHeightIncrement ?? grid.width - 1;
+  const maxWidthDecrement = options?.maxHeightDecrement ?? grid.width - 1;
+  const maxHeightIncrement = options?.maxHeightIncrement ?? Math.floor((grid.items.length - 1) % 2) + 1;
+  const maxHeightDecrement = options?.maxHeightDecrement ?? Math.floor((grid.items.length - 1) % 2) + 1;
+
   const resizeTarget = grid.items[getRandomIndex(grid.items)];
 
   let maxWidthDelta = getRandomDirection();
@@ -238,12 +254,10 @@ export function generateResize(
   return { itemId: resizeTarget.id, width: resizeTarget.width + widthDelta, height: resizeTarget.height + heightDelta };
 }
 
-export function generateInsert(
-  grid: GridDefinition,
-  insertId = "X",
-  maxWidth = grid.width,
-  maxHeight = Math.floor(grid.items.length / 2) + 1
-): Item {
+export function generateInsert(grid: GridDefinition, insertId = "X", options?: GenerateGridInsertOptions): Item {
+  const maxWidth = options?.maxWidth ?? grid.width;
+  const maxHeight = options?.maxHeight ?? Math.floor(grid.items.length / 2) + 1;
+
   const textGrid = toMatrix(grid);
 
   const y = getRandomIndex(textGrid);

@@ -3,14 +3,13 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { fromMatrix, toString } from "../debug-tools";
-import { generateGrid, generateResize } from "./generators";
+import { fromMatrix, generateGrid, generateResize, toString } from "../debug-tools";
 import { withCommit } from "./helpers";
 
 test("decrease in element size never creates conflicts", () => {
   range(0, 10).forEach(() => {
     const grid = generateGrid();
-    const resize = generateResize(grid, 0, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1);
+    const resize = generateResize(grid, { maxWidthIncrement: 0, maxHeightIncrement: 0 });
     const transition = withCommit(grid, (engine) => engine.resize(resize));
     expect(transition.moves.filter((move) => move.type !== "FLOAT")).toHaveLength(0);
   });
@@ -19,7 +18,7 @@ test("decrease in element size never creates conflicts", () => {
 test("elements resize never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
-    const resize = generateResize(grid, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1, 0);
+    const resize = generateResize(grid, { maxWidthDecrement: 0, maxHeightDecrement: 0 });
     const transition = withCommit(grid, (engine) => engine.resize(resize));
     expect(transition.blocks).toHaveLength(0);
   });

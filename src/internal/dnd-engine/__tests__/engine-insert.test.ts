@@ -3,8 +3,7 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { fromMatrix, toString } from "../debug-tools";
-import { generateGrid, generateInsert } from "./generators";
+import { fromMatrix, generateGrid, generateInsert, toString } from "../debug-tools";
 import { withCommit } from "./helpers";
 
 test("element insertion never leaves grid with unresolved conflicts", () => {

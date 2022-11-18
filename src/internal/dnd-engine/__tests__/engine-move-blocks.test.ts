@@ -2,33 +2,59 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toString } from "../debug-tools";
+import { fromMatrix, fromTextPath, generateGrid, generateMove, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMovePath } from "./generators";
 import { forEachTimes, withCommit } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {
-  forEachTimes(33, [generateGrid(4, 10, 1, 1), generateGrid(5, 15, 1, 1), generateGrid(6, 20, 1, 1)], (grid) => {
-    const movePath = generateMovePath(grid, "any");
-    const transition = new DndEngine(grid).move(movePath);
-    expect(transition.blocks.length).toBe(0);
-  });
+  forEachTimes(
+    33,
+    [
+      [4, 10, 1, 1],
+      [5, 15, 1, 1],
+      [6, 20, 1, 1],
+    ],
+    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
+      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
+      const movePath = generateMove(grid, "any");
+      const transition = new DndEngine(grid).move(movePath);
+      expect(transition.blocks.length).toBe(0);
+    }
+  );
 });
 
 test("all vertical moves are resolved if all items have height=1", () => {
-  forEachTimes(33, [generateGrid(4, 10, 1.5, 1), generateGrid(5, 15, 1.5, 1), generateGrid(6, 20, 1.5, 1)], (grid) => {
-    const movePath = generateMovePath(grid, "vertical");
-    const transition = new DndEngine(grid).move(movePath);
-    expect(transition.blocks.length).toBe(0);
-  });
+  forEachTimes(
+    33,
+    [
+      [4, 10, 1.5, 1],
+      [5, 15, 1.5, 1],
+      [6, 20, 1.5, 1],
+    ],
+    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
+      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
+      const movePath = generateMove(grid, "vertical");
+      const transition = new DndEngine(grid).move(movePath);
+      expect(transition.blocks.length).toBe(0);
+    }
+  );
 });
 
 test("all vertical moves are resolved if all items have width=1", () => {
-  forEachTimes(33, [generateGrid(4, 10, 1, 1.5), generateGrid(5, 15, 1, 1.5), generateGrid(6, 20, 1, 1.5)], (grid) => {
-    const movePath = generateMovePath(grid, "horizontal");
-    const transition = new DndEngine(grid).move(movePath);
-    expect(transition.blocks.length).toBe(0);
-  });
+  forEachTimes(
+    33,
+    [
+      [4, 10, 1, 1.5],
+      [5, 15, 1, 1.5],
+      [6, 20, 1, 1.5],
+    ],
+    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
+      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
+      const movePath = generateMove(grid, "horizontal");
+      const transition = new DndEngine(grid).move(movePath);
+      expect(transition.blocks.length).toBe(0);
+    }
+  );
 });
 
 describe("swap right", () => {

@@ -3,8 +3,7 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { fromMatrix, toString } from "../debug-tools";
-import { generateGrid } from "./generators";
+import { fromMatrix, generateGrid, toString } from "../debug-tools";
 import { withCommit } from "./helpers";
 
 test("element removal never leaves grid with unresolved conflicts", () => {
