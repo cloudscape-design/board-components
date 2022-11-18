@@ -93,7 +93,7 @@ export class DndEngine {
 
   getTransition(): GridTransition {
     const end = {
-      items: this.grid.items.sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y)),
+      items: this.grid.items.map((item) => ({ ...item })).sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y)),
       width: this.grid.width,
     };
     return { start: this.lastCommit, end, moves: [...this.moves], blocks: [...this.blocks] };

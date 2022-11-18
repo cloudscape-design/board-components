@@ -5,6 +5,7 @@ import { Transform } from "@dnd-kit/utilities";
 import { Ref, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd";
+import { createTextGrid, stringifyTextGrid } from "../internal/dnd-engine/__tests__/helpers";
 import Grid from "../internal/grid";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
@@ -33,28 +34,49 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   useDragSubscription("move", ({ active, activeId, droppableIds, droppables }) => {
     const collisionsIds = getCollisions(active, droppables, droppableIds);
     setCollisionIds(collisionsIds);
-    const nextGrid = calculateShifts(
+    const layoutShift = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
       content.find((item) => item.id === activeId)!,
       columns
     );
-    setTransforms(createTransforms(nextGrid, content, active.getBoundingClientRect()));
+    setTransforms(createTransforms(layoutShift.current.items, content, active.getBoundingClientRect()));
   });
   useDragSubscription("drop", ({ active, activeId, droppableIds, droppables }) => {
     const collisionsIds = getCollisions(active, droppables, droppableIds);
-    const nextGrid = calculateShifts(
+    const layoutShift = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
       content.find((item) => item.id === activeId)!,
       columns
     );
-    if (nextGrid) {
-      onItemsChange(createCustomEvent({ items: exportLayout(nextGrid, items) }));
+
+    // Logs for dnd-engine debugging.
+    console.log("Current grid:");
+    console.log(stringifyTextGrid(createTextGrid({ items: layoutShift.current.items, width: 4 })));
+
+    console.log("Committed grid:");
+    console.log(stringifyTextGrid(createTextGrid({ items: layoutShift.committed.items, width: 4 })));
+
+    console.log("Layout shift:");
+    console.log(layoutShift);
+
+    // Create extra transforms for "float" moves.
+    if (!layoutShift.hasConflicts) {
+      setTransforms(createTransforms(layoutShift.committed.items, content, active.getBoundingClientRect()));
+    } else {
+      setTransforms({});
     }
     setActiveDragGhost(false);
-    setTransforms({});
     setCollisionIds(null);
+
+    // Commit new layout.
+    if (!layoutShift.hasConflicts) {
+      setTimeout(() => {
+        onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.committed.items, items) }));
+        setTransforms({});
+      }, 250);
+    }
   });
 
   return (
