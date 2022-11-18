@@ -21,7 +21,7 @@ const createDefaultWidget = (id: string) => ({
 
 export const allWidgets: Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined> =
   {
-    demo: {
+    D: {
       definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
       data: { title: "Demo widget", description: "Most minimal widget", content: <>Hello world!</> },
     },
@@ -37,7 +37,7 @@ export const allWidgets: Record<string, { data: ItemData; definition?: PalettePr
   };
 
 export const storedPositions = [
-  { id: "demo", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
+  { id: "D", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
   { id: "2", columnOffset: 1, rowSpan: 1, columnSpan: 2 },
   { id: "3", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
   { id: "4", columnOffset: 0, rowSpan: 1, columnSpan: 1 },

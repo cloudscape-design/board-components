@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { GridLayoutItem } from "../../internal/base-types";
-import { applyMove } from "../../internal/dnd-engine/engine";
-import { Position } from "../../internal/dnd-engine/interfaces";
+import { DndEngine } from "../../internal/dnd-engine/engine";
+import { CommittedMove, Position } from "../../internal/dnd-engine/interfaces";
 import { Rect } from "./interfaces";
 
 const GAP = 16;
@@ -48,19 +48,41 @@ export function createTransforms(
   );
 }
 
+export interface LayoutShift {
+  hasConflicts: boolean;
+  current: {
+    moves: CommittedMove[];
+    items: readonly GridLayoutItem[];
+  };
+  committed: {
+    moves: CommittedMove[];
+    items: readonly GridLayoutItem[];
+  };
+}
+
 export function calculateShifts(
   grid: readonly GridLayoutItem[],
   collisions: Array<GridLayoutItem>,
   activeItem: GridLayoutItem,
   columnns: number
-): null | readonly GridLayoutItem[] {
+): LayoutShift {
   const collisionRect = collisionsToRect(collisions);
+
+  // TODO: take the actual movement path.
   const path = generatePath(activeItem, collisionRect);
   if (path.length === 0) {
-    return null;
+    return { hasConflicts: false, current: { moves: [], items: grid }, committed: { moves: [], items: grid } };
   }
-  const { end } = applyMove({ items: grid, width: columnns }, { itemId: activeItem.id, path });
-  return end.items;
+
+  const engine = new DndEngine({ items: grid, width: columnns });
+  const moveTransition = engine.move({ itemId: activeItem.id, path });
+  const commitTransition = engine.commit();
+
+  return {
+    hasConflicts: moveTransition.blocks.length > 0,
+    current: { moves: moveTransition.moves, items: moveTransition.end.items },
+    committed: { moves: commitTransition.moves, items: commitTransition.end.items },
+  };
 }
 
 function generatePath(activeItem: GridLayoutItem, collisionRect: Rect) {
