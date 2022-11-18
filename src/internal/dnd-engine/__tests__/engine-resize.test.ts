@@ -15,7 +15,7 @@ test("decrease in element size never creates conflicts", () => {
   });
 });
 
-test("elements resize never leave grid with unresolved conflicts", () => {
+test("elements resize never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1, 0);

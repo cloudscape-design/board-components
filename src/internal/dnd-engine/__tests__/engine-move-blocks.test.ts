@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { applyMove } from "../engine";
+import { DndEngine } from "../engine";
 import { generateGrid, generateMovePath } from "./generators";
 import { forEachTimes, runMoveAndRefloat } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {
   forEachTimes(33, [generateGrid(4, 10, 1, 1), generateGrid(5, 15, 1, 1), generateGrid(6, 20, 1, 1)], (grid) => {
     const movePath = generateMovePath(grid, "any");
-    const transition = applyMove(grid, movePath);
+    const transition = new DndEngine(grid).move(movePath);
     expect(transition.blocks.length).toBe(0);
   });
 });
@@ -17,7 +17,7 @@ test("any move on a grid with 1x1 items only is resolved", () => {
 test("all vertical moves are resolved if all items have height=1", () => {
   forEachTimes(33, [generateGrid(4, 10, 1.5, 1), generateGrid(5, 15, 1.5, 1), generateGrid(6, 20, 1.5, 1)], (grid) => {
     const movePath = generateMovePath(grid, "vertical");
-    const transition = applyMove(grid, movePath);
+    const transition = new DndEngine(grid).move(movePath);
     expect(transition.blocks.length).toBe(0);
   });
 });
@@ -25,7 +25,7 @@ test("all vertical moves are resolved if all items have height=1", () => {
 test("all vertical moves are resolved if all items have width=1", () => {
   forEachTimes(33, [generateGrid(4, 10, 1, 1.5), generateGrid(5, 15, 1, 1.5), generateGrid(6, 20, 1, 1.5)], (grid) => {
     const movePath = generateMovePath(grid, "horizontal");
-    const transition = applyMove(grid, movePath);
+    const transition = new DndEngine(grid).move(movePath);
     expect(transition.blocks.length).toBe(0);
   });
 });

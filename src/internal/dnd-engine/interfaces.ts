@@ -45,3 +45,5 @@ export interface GridTransition {
   moves: CommittedMove[];
   blocks: ItemId[];
 }
+
+export type Direction = "top" | "right" | "bottom" | "left";
