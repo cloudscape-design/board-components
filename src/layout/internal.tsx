@@ -5,7 +5,7 @@ import { Transform } from "@dnd-kit/utilities";
 import { Ref, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd";
-import { createTextGrid, stringifyTextGrid } from "../internal/dnd-engine/__tests__/helpers";
+import { toString as engineToString } from "../internal/dnd-engine/debug-tools";
 import Grid from "../internal/grid";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
@@ -53,10 +53,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     // Logs for dnd-engine debugging.
     console.log("Current grid:");
-    console.log(stringifyTextGrid(createTextGrid({ items: layoutShift.current.items, width: 4 })));
+    console.log(engineToString({ items: layoutShift.current.items, width: 4 }));
 
     console.log("Committed grid:");
-    console.log(stringifyTextGrid(createTextGrid({ items: layoutShift.committed.items, width: 4 })));
+    console.log(engineToString({ items: layoutShift.committed.items, width: 4 }));
 
     console.log("Layout shift:");
     console.log(layoutShift);
