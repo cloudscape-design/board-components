@@ -1,7 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { GridLayoutItem } from "../../internal/base-types";
-import { isInsideRect, itemToRect } from "./utils";
+import { DndEngine } from "../../internal/dnd-engine/engine";
+import { CommittedMove, Position } from "../../internal/dnd-engine/interfaces";
+import { Rect } from "./interfaces";
 
 const GAP = 16;
 
@@ -28,59 +30,85 @@ export function createTransforms(
   activeRect: { width: number; height: number }
 ) {
   if (!newGrid || !prevGrid) {
-    return null;
+    return {};
   }
-  return newGrid.map((item, index) => ({
-    id: item.id,
-    transform: {
-      x: (item.x - prevGrid[index].x) * (activeRect.width + GAP),
-      y: (item.y - prevGrid[index].y) * (activeRect.height + GAP),
-      scaleX: 1,
-      scaleY: 1,
-    },
-  }));
+  return Object.fromEntries(
+    newGrid.map((item) => {
+      const oldItem = prevGrid.find((prev) => prev.id === item.id)!;
+      return [
+        item.id,
+        {
+          x: (item.x - oldItem.x) * (activeRect.width + GAP),
+          y: (item.y - oldItem.y) * (activeRect.height + GAP),
+          scaleX: 1,
+          scaleY: 1,
+        },
+      ];
+    })
+  );
+}
+
+export interface LayoutShift {
+  hasConflicts: boolean;
+  current: {
+    moves: CommittedMove[];
+    items: readonly GridLayoutItem[];
+  };
+  committed: {
+    moves: CommittedMove[];
+    items: readonly GridLayoutItem[];
+  };
 }
 
 export function calculateShifts(
   grid: readonly GridLayoutItem[],
   collisions: Array<GridLayoutItem>,
-  activeItem: GridLayoutItem
-): null | readonly GridLayoutItem[] {
+  activeItem: GridLayoutItem,
+  columnns: number
+): LayoutShift {
   const collisionRect = collisionsToRect(collisions);
-  if (
-    collisionRect.left === activeItem.x &&
-    collisionRect.top === activeItem.y &&
-    collisionRect.right === activeItem.x + activeItem.width &&
-    collisionRect.bottom === activeItem.y + activeItem.height
-  ) {
-    return null;
+
+  // TODO: take the actual movement path.
+  const path = generatePath(activeItem, collisionRect);
+  if (path.length === 0) {
+    return { hasConflicts: false, current: { moves: [], items: grid }, committed: { moves: [], items: grid } };
   }
-  const newGrid = grid.map((item) => ({ ...item }));
-  const overItems = grid.filter((item) => isInsideRect(itemToRect(item), collisionRect));
-  for (const overItem of overItems) {
-    const vy = Math.sign(activeItem.y - overItem.y); // +1 up, -1 down
-    const vx = Math.sign(activeItem.x - overItem.x); // +1 left, -1 right
-    for (const item of newGrid) {
-      if (
-        item.y === activeItem.y && // TODO: support variable heights
-        item.x * vx >= overItem.x * vx &&
-        item.x * vx < activeItem.x * vx
-      ) {
-        item.x += vx;
-      } else if (
-        item.x >= overItem.x &&
-        item.x + item.width <= overItem.x + overItem.width &&
-        item.y * vy < activeItem.y * vy &&
-        item.y * vy >= overItem.y * vy
-      ) {
-        item.y += vy;
-      }
+
+  const engine = new DndEngine({ items: grid, width: columnns });
+  const moveTransition = engine.move({ itemId: activeItem.id, path });
+  const commitTransition = engine.commit();
+
+  return {
+    hasConflicts: moveTransition.blocks.length > 0,
+    current: { moves: moveTransition.moves, items: moveTransition.end.items },
+    committed: { moves: commitTransition.moves, items: commitTransition.end.items },
+  };
+}
+
+function generatePath(activeItem: GridLayoutItem, collisionRect: Rect) {
+  let safetyCounter = 0;
+  const path: Array<Position> = [];
+
+  const vx = Math.sign(collisionRect.left - activeItem.x);
+  const vy = Math.sign(collisionRect.top - activeItem.y);
+
+  let x = activeItem.x;
+  let y = activeItem.y;
+
+  while (x !== collisionRect.left || y !== collisionRect.top) {
+    safetyCounter++;
+    if (safetyCounter > 100) {
+      throw new Error("infinite loop?");
+    }
+    if (x !== collisionRect.left) {
+      x += vx;
+      path.push({ x, y });
+    }
+    if (y !== collisionRect.top) {
+      y += vy;
+      path.push({ x, y });
     }
   }
-  // activeItem always fits the collision area
-  const newActiveItem = newGrid.find((item) => item.id === activeItem.id)!;
-  newActiveItem.x = collisionRect.left;
-  newActiveItem.y = collisionRect.top;
 
-  return newGrid;
+  return path;
 }

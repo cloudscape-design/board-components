@@ -11,7 +11,7 @@ export default function KeyboardPage() {
         items={[
           {
             id: "1",
-            columnOffset: 1,
+            columnOffset: 0,
             columnSpan: 4,
             rowSpan: 1,
             definition: {

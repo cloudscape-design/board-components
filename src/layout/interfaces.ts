@@ -34,6 +34,7 @@ export namespace DashboardLayoutProps {
 
   export interface ItemsChangeDetail<D = DataFallbackType> {
     items: ReadonlyArray<Item<D>>;
+    addedItem?: Item<D>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface

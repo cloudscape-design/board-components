@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import Box from "@cloudscape-design/components/box";
+import Grid from "@cloudscape-design/components/grid";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import { DashboardItem, DashboardItemProps, DashboardLayout } from "../../lib/components";
-import { Item, initialItems } from "./items";
+import { DashboardItem, DashboardItemProps, DashboardLayout, DashboardPalette } from "../../lib/components";
+import PageLayout from "../app/page-layout";
+import { allWidgets, initialLayoutItems, initialPaletteItems } from "./items";
 
 const itemStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag me",
@@ -12,21 +13,45 @@ const itemStrings: DashboardItemProps["i18nStrings"] = {
 };
 
 export default function () {
-  const [items, setItems] = useState<ReadonlyArray<Item>>(initialItems);
+  const [items, setItems] = useState(initialLayoutItems);
+  const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
-    <main>
-      <Box padding="m">
+    <PageLayout header={<Header variant="h1">Configurable dashboard demo</Header>}>
+      <Grid gridDefinition={[{ colspan: 9 }, { colspan: 3 }]}>
         <DashboardLayout
           items={items}
-          renderItem={(item) => (
-            <DashboardItem header={<Header>Widget #{item.id}</Header>} i18nStrings={itemStrings}>
-              <div>Dummy content</div>
-            </DashboardItem>
-          )}
-          onItemsChange={(event) => setItems(event.detail.items)}
+          renderItem={(item) => {
+            return (
+              <DashboardItem header={<Header>{item.data.title}</Header>} i18nStrings={itemStrings}>
+                {item.data.content}
+              </DashboardItem>
+            );
+          }}
+          onItemsChange={(event) => {
+            setItems(event.detail.items);
+            if (event.detail.addedItem) {
+              const addedItemId = event.detail.addedItem.id;
+              setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItemId));
+            }
+          }}
         />
-      </Box>
-    </main>
+        <div>
+          <Header>Add widgets</Header>
+          <DashboardPalette
+            items={paletteItems}
+            renderItem={(item) => {
+              const widgetConfig = allWidgets[item.id]!.data;
+              return (
+                <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={itemStrings}>
+                  {widgetConfig.description}
+                </DashboardItem>
+              );
+            }}
+            i18nStrings={{}}
+          />
+        </div>
+      </Grid>
+    </PageLayout>
   );
 }

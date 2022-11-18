@@ -20,7 +20,7 @@ export default function GridWithWidgetContainerPage() {
           items={[
             {
               id: "1",
-              columnOffset: 1,
+              columnOffset: 0,
               columnSpan: 2,
               rowSpan: 1,
               definition: {
@@ -31,7 +31,7 @@ export default function GridWithWidgetContainerPage() {
             },
             {
               id: "2",
-              columnOffset: 3,
+              columnOffset: 2,
               columnSpan: 1,
               rowSpan: 1,
               definition: {
@@ -45,7 +45,7 @@ export default function GridWithWidgetContainerPage() {
             },
             {
               id: "3",
-              columnOffset: 4,
+              columnOffset: 3,
               columnSpan: 1,
               rowSpan: 1,
               definition: {
@@ -56,7 +56,7 @@ export default function GridWithWidgetContainerPage() {
             },
             {
               id: "4",
-              columnOffset: 1,
+              columnOffset: 0,
               columnSpan: 1,
               rowSpan: 1,
               definition: {
@@ -67,7 +67,7 @@ export default function GridWithWidgetContainerPage() {
             },
             {
               id: "5",
-              columnOffset: 3,
+              columnOffset: 2,
               columnSpan: 2,
               rowSpan: 2,
               definition: {

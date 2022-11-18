@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { CollisionDetection } from "@dnd-kit/core";
-import { isInsideRect } from "./utils";
+import { Rect } from "./interfaces";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -9,21 +8,23 @@ function getMinDistance(min: number, current: number, collision: number) {
   return currentDistance < minDistance ? current : min;
 }
 
+function isInsideRect(rect: Rect, bounds: Rect) {
+  return (
+    rect.top <= bounds.top && rect.left >= bounds.left && rect.right <= bounds.right && rect.bottom >= bounds.bottom
+  );
+}
+
 /**
  * Finds all containers covered by the current draggable item. Built-in algorithms from dnd-kit do not support irregular
  * sizes of containers, where a container may fully cover multiple droppable spots.
  * More details on dnd-kit API: https://docs.dndkit.com/api-documentation/context-provider/collision-detection-algorithms
  */
-export const irregularRectIntersection: CollisionDetection = ({
-  droppableRects,
-  droppableContainers,
-  collisionRect,
-  active,
-}) => {
-  const activeRect = active.rect.current.initial;
-  if (!activeRect) {
-    return [];
-  }
+export const getCollisions = (
+  active: HTMLElement,
+  droppables: Set<HTMLElement>,
+  droppableIds: WeakMap<HTMLElement, string>
+) => {
+  const collisionRect = active.getBoundingClientRect();
   let bounds = {
     top: Number.POSITIVE_INFINITY,
     left: Number.POSITIVE_INFINITY,
@@ -32,7 +33,8 @@ export const irregularRectIntersection: CollisionDetection = ({
   };
 
   // snap current collision to rects grid
-  for (const rect of droppableRects.values()) {
+  for (const droppable of droppables.values()) {
+    const rect = droppable.getBoundingClientRect();
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
       left: getMinDistance(bounds.left, rect.left, collisionRect.left),
@@ -41,7 +43,7 @@ export const irregularRectIntersection: CollisionDetection = ({
     };
   }
   // make sure collision always fits into the grid
-  const { width, height } = activeRect;
+  const { width, height } = collisionRect;
   if (bounds.bottom - bounds.top < height) {
     bounds.top = bounds.bottom - height;
   }
@@ -50,7 +52,7 @@ export const irregularRectIntersection: CollisionDetection = ({
   }
 
   // return all rects inside adjusted collision box
-  return droppableContainers
-    .filter((container) => isInsideRect(droppableRects.get(container.id)!, bounds))
-    .map((container) => ({ id: container.id, data: { id: container.id, value: 1, droppableContainer: container } }));
+  return [...droppables]
+    .filter((droppable) => isInsideRect(droppable.getBoundingClientRect(), bounds))
+    .map((droppable) => droppableIds.get(droppable)!);
 };

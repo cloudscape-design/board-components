@@ -12,7 +12,7 @@ const singleItem: DashboardLayoutProps.Item<any>[] = [
     columnSpan: 1,
     rowSpan: 1,
     definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
-    columnOffset: 1,
+    columnOffset: 0,
     data: {},
   },
 ];
@@ -23,7 +23,7 @@ const spacedOutItems: DashboardLayoutProps.Item<any>[] = [
     columnSpan: 1,
     rowSpan: 1,
     definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
-    columnOffset: 1,
+    columnOffset: 0,
     data: {},
   },
   {
@@ -31,7 +31,7 @@ const spacedOutItems: DashboardLayoutProps.Item<any>[] = [
     columnSpan: 1,
     rowSpan: 1,
     definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
-    columnOffset: 4,
+    columnOffset: 3,
     data: {},
   },
 ];
@@ -42,7 +42,7 @@ const nextRowItems: DashboardLayoutProps.Item<any>[] = [
     columnSpan: 2,
     rowSpan: 1,
     definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
-    columnOffset: 1,
+    columnOffset: 0,
     data: {},
   },
   {
@@ -50,7 +50,7 @@ const nextRowItems: DashboardLayoutProps.Item<any>[] = [
     columnSpan: 1,
     rowSpan: 1,
     definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
-    columnOffset: 1,
+    columnOffset: 0,
     data: {},
   },
 ];

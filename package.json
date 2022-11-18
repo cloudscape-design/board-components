@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
-    "@dnd-kit/core": "^6.0.5",
     "@dnd-kit/utilities": "^3.2.0",
     "clsx": "^1.2.1"
   },
