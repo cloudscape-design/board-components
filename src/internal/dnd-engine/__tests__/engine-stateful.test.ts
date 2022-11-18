@@ -15,7 +15,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
 
   engine.insert({ id: "X", x: 1, y: 1, width: 1, height: 1 });
   engine.commit();
-  expect(getResult(engine)).toBe(
+  expect(printResult(engine)).toBe(
     stringifyTextGrid([
       ["A", "B", "C"],
       ["D", "X", "F"],
@@ -31,7 +31,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
     ],
   });
   engine.commit();
-  expect(getResult(engine)).toBe(
+  expect(printResult(engine)).toBe(
     stringifyTextGrid([
       ["A", "B", "C"],
       ["D", " ", "F"],
@@ -42,7 +42,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
 
   engine.resize({ itemId: "X", width: 2, height: 1 });
   engine.commit();
-  expect(getResult(engine)).toBe(
+  expect(printResult(engine)).toBe(
     stringifyTextGrid([
       ["A", "B", "C"],
       ["D", " ", "F"],
@@ -53,7 +53,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
 
   engine.remove("F");
   engine.commit();
-  expect(getResult(engine)).toBe(
+  expect(printResult(engine)).toBe(
     stringifyTextGrid([
       ["A", "B", "C"],
       ["D", "E", "E"],
@@ -79,7 +79,7 @@ test("engine commands start from the last committed state", () => {
   // The last command only is reflected in the transition.
   engine.move({ itemId: "A", path: [{ x: 1, y: 0 }] });
 
-  expect(getResult(engine)).toBe(
+  expect(printResult(engine)).toBe(
     stringifyTextGrid([
       ["B", "A", "C"],
       ["D", " ", "F"],
@@ -104,7 +104,7 @@ test("commit does not happen when grid has unresolved conflicts", () => {
   engine.move({ itemId: "A", path: [{ x: 1, y: 0 }] });
   engine.commit();
 
-  expect(getResult(engine)).toBe(
+  expect(printResult(engine)).toBe(
     stringifyTextGrid([
       ["B", "A", "C"],
       ["D", " ", "F"],
@@ -131,6 +131,6 @@ test("commit triggers refloat", () => {
   ]);
 });
 
-function getResult(engine: DndEngine): string {
+function printResult(engine: DndEngine): string {
   return stringifyTextGrid(createTextGrid(engine.getTransition().end));
 }

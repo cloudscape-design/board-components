@@ -10,15 +10,16 @@ import {
   Item,
   ItemId,
   MoveCommand,
+  Position,
   ResizeCommand,
 } from "./interfaces";
-import { SeqSet } from "./seq-set";
+import { StackSet } from "./stack-set";
 
 export class DndEngine {
   private lastCommit: GridDefinition;
   private grid: DndGrid;
   private moves: CommittedMove[] = [];
-  private conflicts = new SeqSet<ItemId>();
+  private conflicts = new StackSet<ItemId>();
   private blocks = new Set<ItemId>();
 
   constructor(gridDefinition: GridDefinition) {
@@ -26,17 +27,17 @@ export class DndEngine {
     this.grid = new DndGrid(gridDefinition);
   }
 
-  move({ itemId, path }: MoveCommand): GridTransition {
+  move(moveCommand: MoveCommand): GridTransition {
     this.cleanup();
 
-    this.validateMoveCommand({ itemId, path });
+    const { itemId, path } = this.validateMoveCommand(moveCommand);
 
     for (const step of path) {
       const move: CommittedMove = { itemId, x: step.x, y: step.y, type: "USER" };
 
       this.findBlocks(move);
 
-      this.grid.move(move.itemId, move.x, move.y, (conflictId) => this.conflicts.add(conflictId));
+      this.grid.move(move.itemId, move.x, move.y, (conflictId) => this.conflicts.push(conflictId));
       this.moves.push(move);
 
       this.resolveConflicts(itemId);
@@ -48,9 +49,9 @@ export class DndEngine {
   resize(resize: ResizeCommand): GridTransition {
     this.cleanup();
 
-    this.validateResizeCommand(resize);
+    resize = this.validateResizeCommand(resize);
 
-    this.grid.resize(resize.itemId, resize.width, resize.height, (conflictId) => this.conflicts.add(conflictId));
+    this.grid.resize(resize.itemId, resize.width, resize.height, (conflictId) => this.conflicts.push(conflictId));
 
     this.resolveConflicts(resize.itemId);
 
@@ -60,7 +61,7 @@ export class DndEngine {
   insert(item: Item): GridTransition {
     this.cleanup();
 
-    this.grid.insert(item, (conflictId) => this.conflicts.add(conflictId));
+    this.grid.insert(item, (conflictId) => this.conflicts.push(conflictId));
 
     this.resolveConflicts(item.id);
 
@@ -101,7 +102,7 @@ export class DndEngine {
   private cleanup(): void {
     this.grid = new DndGrid(this.lastCommit);
     this.moves = [];
-    this.conflicts = new SeqSet();
+    this.conflicts = new StackSet();
     this.blocks = new Set();
   }
 
@@ -119,7 +120,7 @@ export class DndEngine {
 
       const nextMove = this.tryFindVacantMove(conflict);
       if (nextMove) {
-        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, (conflictId) => this.conflicts.add(conflictId));
+        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, (conflictId) => this.conflicts.push(conflictId));
         this.moves.push(nextMove);
       } else {
         tier2Conflicts.push(conflict);
@@ -128,7 +129,7 @@ export class DndEngine {
     }
 
     // Try resolving conflicts by moving against items that have the same or lower priority.
-    this.conflicts = new SeqSet(tier2Conflicts);
+    this.conflicts = new StackSet(tier2Conflicts);
     conflict = this.conflicts.pop();
     while (conflict) {
       // Ignoring blocked items - those must stay in place.
@@ -139,7 +140,7 @@ export class DndEngine {
 
       const nextMove = this.tryFindPriorityMove(conflict, interactiveId);
       if (nextMove) {
-        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, (conflictId) => this.conflicts.add(conflictId));
+        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, (conflictId) => this.conflicts.push(conflictId));
         this.moves.push(nextMove);
       } else {
         // There is no good way to resolve conflicts at this point.
@@ -334,7 +335,7 @@ export class DndEngine {
         break;
       }
       default:
-        throw new Error("Invalid move: only possible to move item one cell at a time.");
+        throw new Error(`Invariant violation: unexpected direction ${direction}.`);
     }
   }
 
@@ -452,9 +453,8 @@ export class DndEngine {
     }
   }
 
-  private validateMoveCommand({ itemId, path }: MoveCommand): void {
+  private validateMoveCommand({ itemId, path }: MoveCommand): MoveCommand {
     const moveTarget = this.grid.getItem(itemId);
-    const steps = new Set<string>();
 
     let prevX = moveTarget.x;
     let prevY = moveTarget.y;
@@ -465,12 +465,6 @@ export class DndEngine {
         throw new Error("Invalid move: must move one step at a time.");
       }
 
-      const stepKey = `${step.x}:${step.y}`;
-      if (steps.has(stepKey)) {
-        throw new Error("Invalid move: path steps must not repeat.");
-      }
-      steps.add(stepKey);
-
       if (step.x < 0 || step.y < 0 || step.x + moveTarget.width > this.grid.width) {
         throw new Error("Invalid move: outside grid.");
       }
@@ -478,13 +472,30 @@ export class DndEngine {
       prevX = step.x;
       prevY = step.y;
     }
+
+    return { itemId, path: this.normalizePath({ x: moveTarget.x, y: moveTarget.y }, path) };
   }
 
-  private validateResizeCommand({ itemId, width, height }: ResizeCommand): void {
-    const resizeTarget = this.grid.getItem(itemId);
+  private normalizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+    const originKey = `${origin.x}:${origin.y}`;
+    const steps = new Map([[originKey, 0]]);
 
-    if (width < 1 || height < 1 || resizeTarget.x + width > this.grid.width) {
-      throw new Error("Invalid resize: outside grid.");
+    for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
+      const stepKey = `${path[stepIndex].x}:${path[stepIndex].y}`;
+      const sliceIndex = steps.get(stepKey);
+      if (sliceIndex !== undefined) {
+        return path.slice(0, sliceIndex);
+      }
+      steps.set(stepKey, stepIndex + 1);
     }
+
+    return path;
+  }
+
+  private validateResizeCommand({ itemId, width, height }: ResizeCommand): ResizeCommand {
+    const resizeTarget = this.grid.getItem(itemId);
+    const normalizedWidth = Math.min(Math.max(1, width), this.grid.width - resizeTarget.x);
+    const normalizedHeight = Math.max(1, height);
+    return { itemId, width: normalizedWidth, height: normalizedHeight };
   }
 }

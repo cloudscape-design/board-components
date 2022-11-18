@@ -97,32 +97,35 @@ export function parseTextGrid(textGrid: string[][]): GridDefinition {
 
   for (let y = 0; y < textGrid.length; y++) {
     for (let x = 0; x < textGrid[y].length; x++) {
-      const id = textGrid[y][x];
-      if (id.trim().length === 0) {
-        continue;
-      }
+      const ids = textGrid[y][x].split("/");
 
-      if (!added.has(id)) {
-        const item = { id, y, x, width: 1, height: 1 };
-
-        for (let itemX = x + 1; itemX < textGrid[y].length; itemX++) {
-          if (textGrid[y][itemX] === id) {
-            item.width++;
-          } else {
-            break;
-          }
+      for (const id of ids) {
+        if (id.trim().length === 0) {
+          continue;
         }
 
-        for (let itemY = y + 1; itemY < textGrid.length; itemY++) {
-          if (textGrid[itemY][x] === id) {
-            item.height++;
-          } else {
-            break;
-          }
-        }
+        if (!added.has(id)) {
+          const item = { id, y, x, width: 1, height: 1 };
 
-        items.push(item);
-        added.add(id);
+          for (let itemX = x + 1; itemX < textGrid[y].length; itemX++) {
+            if (textGrid[y][itemX] === id) {
+              item.width++;
+            } else {
+              break;
+            }
+          }
+
+          for (let itemY = y + 1; itemY < textGrid.length; itemY++) {
+            if (textGrid[itemY][x] === id) {
+              item.height++;
+            } else {
+              break;
+            }
+          }
+
+          items.push(item);
+          added.add(id);
+        }
       }
     }
   }

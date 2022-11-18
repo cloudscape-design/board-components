@@ -29,7 +29,10 @@ export class DndGrid {
       this._items.set(item.id, { ...item, originalY: item.y, originalX: item.x, ...getItemRect(item) });
 
       if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
-        throw new Error("Invalid grid: found items outside the boundaries.");
+        throw new Error("Invalid grid: items outside the boundaries.");
+      }
+      if (item.width < 1 || item.height < 1) {
+        throw new Error("Invalid grid: items of invalid size.");
       }
 
       for (let y = item.y; y < item.y + item.height; y++) {
@@ -40,7 +43,7 @@ export class DndGrid {
           this.layout[y][x].add(item.id);
 
           if (this.layout[y][x].size > 1) {
-            throw new Error("Invalid grid: found items that overlap.");
+            throw new Error("Invalid grid: items overlap.");
           }
         }
       }
@@ -111,10 +114,10 @@ export class DndGrid {
     this._items.set(item.id, { ...item, originalY: item.y, originalX: item.x, ...getItemRect(item) });
 
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
-      throw new Error("Invalid grid: found items outside the boundaries.");
+      throw new Error("Inserting item is outside the boundaries.");
     }
     if (item.width < 1 || item.height < 1) {
-      throw new Error("Invalid grid: found items with invalid size.");
+      throw new Error("Inserting item has invalid size.");
     }
 
     for (let y = item.y; y < item.y + item.height; y++) {

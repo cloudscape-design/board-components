@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-export class SeqSet<T> {
+export class StackSet<T> {
   private list: T[];
   private set: Set<T>;
 
@@ -10,7 +10,7 @@ export class SeqSet<T> {
     this.set = new Set(list);
   }
 
-  add(value: T): void {
+  push(value: T): void {
     if (!this.set.has(value)) {
       this.list.push(value);
       this.set.add(value);
