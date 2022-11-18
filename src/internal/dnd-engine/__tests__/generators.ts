@@ -1,10 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { toMatrix } from "../debug-tools";
 import { Direction, GridDefinition, Item, MoveCommand, Position, ResizeCommand } from "../interfaces";
-import { LETTER_INDICES, createTextGrid } from "./helpers";
 
 type GenerateMoveType = "horizontal-or-vertical" | "vertical" | "horizontal" | "any";
+
+const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 export function generateGrid(
   width = 6,
@@ -81,7 +83,7 @@ export function generateGrid(
 }
 
 export function generateMovePath(grid: GridDefinition, type: GenerateMoveType = "any"): MoveCommand {
-  const textGrid = createTextGrid(grid);
+  const textGrid = toMatrix(grid);
   const moveTarget = grid.items[getRandomIndex(grid.items)];
 
   const affordance: [Direction, number][] = [];
@@ -242,7 +244,7 @@ export function generateInsert(
   maxWidth = grid.width,
   maxHeight = Math.floor(grid.items.length / 2) + 1
 ): Item {
-  const textGrid = createTextGrid(grid);
+  const textGrid = toMatrix(grid);
 
   const y = getRandomIndex(textGrid);
   const x = getRandomIndex(textGrid[y]);

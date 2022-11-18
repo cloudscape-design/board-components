@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
+import { fromMatrix, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { createTextGrid, parseTextGrid, stringifyTextGrid } from "./helpers";
 
 test("engine keeps its state allowing for command+commit operations", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -16,7 +16,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
   engine.insert({ id: "X", x: 1, y: 1, width: 1, height: 1 });
   engine.commit();
   expect(printResult(engine)).toBe(
-    stringifyTextGrid([
+    toString([
       ["A", "B", "C"],
       ["D", "X", "F"],
       ["G", "E", "E"],
@@ -32,7 +32,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
   });
   engine.commit();
   expect(printResult(engine)).toBe(
-    stringifyTextGrid([
+    toString([
       ["A", "B", "C"],
       ["D", " ", "F"],
       ["G", "E", "E"],
@@ -43,7 +43,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
   engine.resize({ itemId: "X", width: 2, height: 1 });
   engine.commit();
   expect(printResult(engine)).toBe(
-    stringifyTextGrid([
+    toString([
       ["A", "B", "C"],
       ["D", " ", "F"],
       ["G", "E", "E"],
@@ -54,7 +54,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
   engine.remove("F");
   engine.commit();
   expect(printResult(engine)).toBe(
-    stringifyTextGrid([
+    toString([
       ["A", "B", "C"],
       ["D", "E", "E"],
       ["G", "X", "X"],
@@ -63,7 +63,7 @@ test("engine keeps its state allowing for command+commit operations", () => {
 });
 
 test("engine commands start from the last committed state", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -80,7 +80,7 @@ test("engine commands start from the last committed state", () => {
   engine.move({ itemId: "A", path: [{ x: 1, y: 0 }] });
 
   expect(printResult(engine)).toBe(
-    stringifyTextGrid([
+    toString([
       ["B", "A", "C"],
       ["D", " ", "F"],
       ["G", "E", "E"],
@@ -89,7 +89,7 @@ test("engine commands start from the last committed state", () => {
 });
 
 test("commit does not happen when grid has unresolved conflicts", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -105,7 +105,7 @@ test("commit does not happen when grid has unresolved conflicts", () => {
   engine.commit();
 
   expect(printResult(engine)).toBe(
-    stringifyTextGrid([
+    toString([
       ["B", "A", "C"],
       ["D", " ", "F"],
       ["G", "E", "E"],
@@ -114,7 +114,7 @@ test("commit does not happen when grid has unresolved conflicts", () => {
 });
 
 test("commit triggers refloat", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", " ", "E"],
@@ -132,5 +132,5 @@ test("commit triggers refloat", () => {
 });
 
 function printResult(engine: DndEngine): string {
-  return stringifyTextGrid(createTextGrid(engine.getTransition().end));
+  return toString(engine.getTransition().end);
 }

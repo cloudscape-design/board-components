@@ -3,14 +3,15 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
+import { fromMatrix, toString } from "../debug-tools";
 import { generateGrid, generateInsert } from "./generators";
-import { runInsertAndRefloat } from "./helpers";
+import { withCommit } from "./helpers";
 
 test("element insertion never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const item = generateInsert(grid);
-    const { transition } = runInsertAndRefloat(grid, item);
+    const transition = withCommit(grid, (engine) => engine.insert(item));
     expect(transition.blocks).toHaveLength(0);
   });
 });
@@ -48,8 +49,8 @@ describe("insert scenarios", () => {
         ["A", "A", " "],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runInsertAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, grid, item, expectation) => {
+    const transition = withCommit(fromMatrix(grid), (engine) => engine.insert(item));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

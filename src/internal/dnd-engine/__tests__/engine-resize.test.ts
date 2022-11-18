@@ -3,14 +3,15 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
+import { fromMatrix, toString } from "../debug-tools";
 import { generateGrid, generateResize } from "./generators";
-import { runResizeAndRefloat } from "./helpers";
+import { withCommit } from "./helpers";
 
 test("decrease in element size never creates conflicts", () => {
   range(0, 10).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, 0, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1);
-    const { transition } = runResizeAndRefloat(grid, resize);
+    const transition = withCommit(grid, (engine) => engine.resize(resize));
     expect(transition.moves.filter((move) => move.type !== "FLOAT")).toHaveLength(0);
   });
 });
@@ -19,7 +20,7 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, grid.width - 1, 0, Math.floor((grid.items.length - 1) % 2) + 1, 0);
-    const { transition } = runResizeAndRefloat(grid, resize);
+    const transition = withCommit(grid, (engine) => engine.resize(resize));
     expect(transition.blocks).toHaveLength(0);
   });
 });
@@ -57,8 +58,9 @@ describe("resize scenarios", () => {
         [" ", " ", "E"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runResizeAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, resize, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.resize(resize));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
+import { fromMatrix, fromTextPath, toMatrix } from "../debug-tools";
 import { generateGrid, generateMovePath } from "./generators";
-import { createTextGrid, forEachTimes, runMoveAndRefloat } from "./helpers";
+import { forEachTimes, withCommit } from "./helpers";
 
-test("all items float to the top after move", () => {
+test("all items float to the top after move+commit", () => {
   forEachTimes(33, [generateGrid(4, 10), generateGrid(5, 15), generateGrid(6, 20)], (grid) => {
     const movePath = generateMovePath(grid, "any");
-    const { transition } = runMoveAndRefloat(grid, movePath);
+    const transition = withCommit(grid, (engine) => engine.move(movePath));
 
     if (transition.blocks.length === 0) {
-      const textGrid = createTextGrid(transition.end);
+      const textGrid = toMatrix(transition.end);
 
       let invalidItem: null | string = null;
       for (const item of transition.end.items) {
@@ -35,15 +36,14 @@ test("all items float to the top after move", () => {
 });
 
 test("float creates addition moves", () => {
-  const { transition } = runMoveAndRefloat(
-    [
-      ["A", "B", "C", "D"],
-      [" ", " ", "E", "E"],
-      [" ", " ", "F", "G"],
-      [" ", " ", "H", " "],
-    ],
-    "C2 B2 A2"
-  );
+  const grid = fromMatrix([
+    ["A", "B", "C", "D"],
+    [" ", " ", "E", "E"],
+    [" ", " ", "F", "G"],
+    [" ", " ", "H", " "],
+  ]);
+  const transition = withCommit(grid, (engine) => engine.move(fromTextPath("C2 B2 A2", grid)));
+
   expect(transition.moves).toEqual([
     { itemId: "E", y: 1, x: 1, type: "USER" },
     { itemId: "E", y: 1, x: 0, type: "USER" },

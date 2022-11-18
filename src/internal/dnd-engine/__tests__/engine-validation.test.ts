@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
+import { fromMatrix, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { GridTransition } from "../interfaces";
-import { createTextGrid, parseTextGrid, stringifyTextGrid } from "./helpers";
 
 test("throws if grid definition is not valid", () => {
-  let grid = parseTextGrid([
+  let grid = fromMatrix([
     ["A", "B", "C", " "],
     ["D", " ", "F", "X"],
     ["G", "E", "E", " "],
@@ -15,14 +14,14 @@ test("throws if grid definition is not valid", () => {
   grid.width = 3;
   expect(() => new DndEngine(grid)).toThrowError("Invalid grid: items outside the boundaries.");
 
-  grid = parseTextGrid([
+  grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F/X"],
     ["G", "E", "E"],
   ]);
   expect(() => new DndEngine(grid)).toThrowError("Invalid grid: items overlap.");
 
-  grid = parseTextGrid([
+  grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -32,7 +31,7 @@ test("throws if grid definition is not valid", () => {
 });
 
 test("throws if move command is not valid", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -50,7 +49,7 @@ test("throws if move command is not valid", () => {
 });
 
 test("throws if resize command is not valid", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -62,7 +61,7 @@ test("throws if resize command is not valid", () => {
 });
 
 test("throws if insert command is not valid", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", " ", " "],
@@ -77,7 +76,7 @@ test("throws if insert command is not valid", () => {
 });
 
 test("throws if remove command is not valid", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", "B", "C"],
     ["D", " ", "F"],
     ["G", "E", "E"],
@@ -87,7 +86,7 @@ test("throws if remove command is not valid", () => {
 });
 
 test("normalizes move path when returning to start location", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", " ", " "],
     [" ", " ", " "],
     [" ", " ", " "],
@@ -105,7 +104,7 @@ test("normalizes move path when returning to start location", () => {
 });
 
 test("normalizes move path when returning to previously visited item", () => {
-  const grid = parseTextGrid([
+  const grid = fromMatrix([
     ["A", " ", " "],
     [" ", " ", " "],
     [" ", " ", " "],
@@ -125,37 +124,33 @@ test("normalizes move path when returning to previously visited item", () => {
 
 test("normalizes resize dimensions when below 1", () => {
   expect(
-    printResult(
+    toString(
       new DndEngine(
-        parseTextGrid([
+        fromMatrix([
           ["A", "A"],
           ["A", "A"],
         ])
-      ).resize({ itemId: "A", width: 0, height: -1 })
+      ).resize({ itemId: "A", width: 0, height: -1 }).end
     )
-  ).toBe(stringifyTextGrid([["A", " "]]));
+  ).toBe(toString([["A", " "]]));
 });
 
 test("normalizes resize dimensions when outside grid", () => {
   expect(
-    printResult(
+    toString(
       new DndEngine(
-        parseTextGrid([
+        fromMatrix([
           [" ", "A", " "],
           [" ", "A", " "],
           [" ", " ", " "],
         ])
-      ).resize({ itemId: "A", width: 3, height: 3 })
+      ).resize({ itemId: "A", width: 3, height: 3 }).end
     )
   ).toBe(
-    stringifyTextGrid([
+    toString([
       [" ", "A", "A"],
       [" ", "A", "A"],
       [" ", "A", "A"],
     ])
   );
 });
-
-function printResult(transition: GridTransition): string {
-  return stringifyTextGrid(createTextGrid(transition.end));
-}
