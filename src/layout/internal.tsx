@@ -64,17 +64,19 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     // Create extra transforms for "float" moves.
     if (!layoutShift.hasConflicts) {
       setTransforms(createTransforms(layoutShift.committed.items, content, active.getBoundingClientRect()));
+    } else {
+      setTransforms({});
     }
     setActiveDragGhost(false);
     setCollisionIds(null);
 
     // Commit new layout.
-    setTimeout(() => {
-      if (!layoutShift.hasConflicts) {
+    if (!layoutShift.hasConflicts) {
+      setTimeout(() => {
         onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.committed.items, items) }));
-      }
-      setTransforms({});
-    }, 250);
+        setTransforms({});
+      }, 250);
+    }
   });
 
   return (
