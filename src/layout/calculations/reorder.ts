@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { GridLayoutItem } from "../../internal/base-types";
 import { DndEngine } from "../../internal/dnd-engine/engine";
-import { CommittedMove, Position } from "../../internal/dnd-engine/interfaces";
+import { CommittedMove, ItemId, Position } from "../../internal/dnd-engine/interfaces";
 import { Rect } from "./interfaces";
 
 const GAP = 16;
@@ -49,6 +49,7 @@ export function createTransforms(
 }
 
 export interface LayoutShift {
+  path: Position[];
   hasConflicts: boolean;
   current: {
     moves: CommittedMove[];
@@ -63,37 +64,44 @@ export interface LayoutShift {
 export function calculateShifts(
   grid: readonly GridLayoutItem[],
   collisions: Array<GridLayoutItem>,
-  activeItem: GridLayoutItem,
-  columnns: number
+  activeId: ItemId,
+  prevPath: Position[],
+  columns: number
 ): LayoutShift {
   const collisionRect = collisionsToRect(collisions);
 
-  // TODO: take the actual movement path.
-  const path = generatePath(activeItem, collisionRect);
-  if (path.length === 0) {
-    return { hasConflicts: false, current: { moves: [], items: grid }, committed: { moves: [], items: grid } };
+  const newPath = generatePath(prevPath, collisionRect);
+
+  if (newPath.length === 0) {
+    return {
+      path: newPath,
+      hasConflicts: false,
+      current: { moves: [], items: grid },
+      committed: { moves: [], items: grid },
+    };
   }
 
-  const engine = new DndEngine({ items: grid, width: columnns });
-  const moveTransition = engine.move({ itemId: activeItem.id, path });
+  const engine = new DndEngine({ items: grid, width: columns });
+  const moveTransition = engine.move({ itemId: activeId, path: newPath.slice(1) });
   const commitTransition = engine.commit();
 
   return {
+    path: newPath,
     hasConflicts: moveTransition.blocks.length > 0,
     current: { moves: moveTransition.moves, items: moveTransition.end.items },
     committed: { moves: commitTransition.moves, items: commitTransition.end.items },
   };
 }
 
-function generatePath(activeItem: GridLayoutItem, collisionRect: Rect) {
+function generatePath(prevPath: Position[], collisionRect: Rect): Position[] {
   let safetyCounter = 0;
-  const path: Array<Position> = [];
+  const path: Array<Position> = [...prevPath];
+  const lastPosition = prevPath[prevPath.length - 1];
 
-  const vx = Math.sign(collisionRect.left - activeItem.x);
-  const vy = Math.sign(collisionRect.top - activeItem.y);
+  const vx = Math.sign(collisionRect.left - lastPosition.x);
+  const vy = Math.sign(collisionRect.top - lastPosition.y);
 
-  let x = activeItem.x;
-  let y = activeItem.y;
+  let { x, y } = lastPosition;
 
   while (x !== collisionRect.left || y !== collisionRect.top) {
     safetyCounter++;

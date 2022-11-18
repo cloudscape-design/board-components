@@ -122,6 +122,25 @@ test("normalizes move path when returning to previously visited item", () => {
   expect(transition.moves).toHaveLength(1);
 });
 
+test("normalizes move path and continues when from the repeating position", () => {
+  const grid = fromMatrix([[" ", "A", " "]]);
+  const transition = new DndEngine(grid).move({
+    itemId: "A",
+    path: [
+      { x: 1, y: 1 },
+      { x: 1, y: 2 },
+      { x: 1, y: 1 },
+      { x: 1, y: 2 },
+      { x: 1, y: 3 },
+    ],
+  });
+  expect(transition.moves).toEqual([
+    { itemId: "A", x: 1, y: 1, type: "USER" },
+    { itemId: "A", x: 1, y: 2, type: "USER" },
+    { itemId: "A", x: 1, y: 3, type: "USER" },
+  ]);
+});
+
 test("normalizes resize dimensions when below 1", () => {
   expect(
     toString(
