@@ -3,12 +3,12 @@
 
 import { cloneDeep } from "lodash";
 import { expect, test } from "vitest";
+import { generateGrid, generateMove, generateResize } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMovePath, generateResize } from "./generators";
 
 test("input arguments stay unchanged when using engine", () => {
   const grid = generateGrid();
-  const movePath = generateMovePath(grid, "any");
+  const movePath = generateMove(grid, "any");
   const resize = generateResize(grid);
 
   const gridClone = cloneDeep(grid);

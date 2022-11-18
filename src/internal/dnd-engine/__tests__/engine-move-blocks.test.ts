@@ -2,32 +2,59 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
+import { fromMatrix, fromTextPath, generateGrid, generateMove, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMovePath } from "./generators";
-import { forEachTimes, runMoveAndRefloat } from "./helpers";
+import { forEachTimes, withCommit } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {
-  forEachTimes(33, [generateGrid(4, 10, 1, 1), generateGrid(5, 15, 1, 1), generateGrid(6, 20, 1, 1)], (grid) => {
-    const movePath = generateMovePath(grid, "any");
-    const transition = new DndEngine(grid).move(movePath);
-    expect(transition.blocks.length).toBe(0);
-  });
+  forEachTimes(
+    33,
+    [
+      [4, 10, 1, 1],
+      [5, 15, 1, 1],
+      [6, 20, 1, 1],
+    ],
+    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
+      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
+      const movePath = generateMove(grid, "any");
+      const transition = new DndEngine(grid).move(movePath);
+      expect(transition.blocks.length).toBe(0);
+    }
+  );
 });
 
 test("all vertical moves are resolved if all items have height=1", () => {
-  forEachTimes(33, [generateGrid(4, 10, 1.5, 1), generateGrid(5, 15, 1.5, 1), generateGrid(6, 20, 1.5, 1)], (grid) => {
-    const movePath = generateMovePath(grid, "vertical");
-    const transition = new DndEngine(grid).move(movePath);
-    expect(transition.blocks.length).toBe(0);
-  });
+  forEachTimes(
+    33,
+    [
+      [4, 10, 1.5, 1],
+      [5, 15, 1.5, 1],
+      [6, 20, 1.5, 1],
+    ],
+    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
+      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
+      const movePath = generateMove(grid, "vertical");
+      const transition = new DndEngine(grid).move(movePath);
+      expect(transition.blocks.length).toBe(0);
+    }
+  );
 });
 
 test("all vertical moves are resolved if all items have width=1", () => {
-  forEachTimes(33, [generateGrid(4, 10, 1, 1.5), generateGrid(5, 15, 1, 1.5), generateGrid(6, 20, 1, 1.5)], (grid) => {
-    const movePath = generateMovePath(grid, "horizontal");
-    const transition = new DndEngine(grid).move(movePath);
-    expect(transition.blocks.length).toBe(0);
-  });
+  forEachTimes(
+    33,
+    [
+      [4, 10, 1, 1.5],
+      [5, 15, 1, 1.5],
+      [6, 20, 1, 1.5],
+    ],
+    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
+      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
+      const movePath = generateMove(grid, "horizontal");
+      const transition = new DndEngine(grid).move(movePath);
+      expect(transition.blocks.length).toBe(0);
+    }
+  );
 });
 
 describe("swap right", () => {
@@ -38,9 +65,10 @@ describe("swap right", () => {
     [[["A", "A", "B", "B"]], "A1 B1", [[" ", "A", "A/B", "B"]]],
     [[["A", "A", "B", "B", "B"]], "A1 B1", [[" ", "A", "A/B", "B", "B"]]],
     [[["A", "A", "B", "B", "B"]], "A1 B1 C1", [[" ", " ", "A/B", "A/B", "B"]]],
-  ])("can't swap to the right when not enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can't swap to the right when not enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -48,9 +76,10 @@ describe("swap right", () => {
     [[["A", "B", "B", "B"]], "A1 B1 C1 D1", [["B", "B", "B", "A"]]],
     [[["A", "A", "B", "B"]], "A1 B1 C1", [["B", "B", "A", "A"]]],
     [[["A", "A", "B", "B", "B"]], "A1 B1 C1 D1", [["B", "B", "B", "A", "A"]]],
-  ])("can swap to the right when enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can swap to the right when enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -66,9 +95,10 @@ describe("swap right", () => {
         ["E", " ", "A/D", "D"],
       ],
     ],
-  ])("can make partial swap to the right", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can make partial swap to the right", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -80,9 +110,10 @@ describe("swap left", () => {
     [[["A", "A", "B", "B"]], "C1 B1", [["A", "A/B", "B", " "]]],
     [[["A", "A", "A", "B", "B"]], "D1 C1", [["A", "A", "A/B", "B", " "]]],
     [[["A", "A", "A", "B", "B"]], "D1 C1 B1", [["A", "A/B", "A/B", " ", " "]]],
-  ])("can't swap to the left when not enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can't swap to the left when not enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -90,9 +121,10 @@ describe("swap left", () => {
     [[["A", "A", "A", "B"]], "D1 C1 B1 A1", [["B", "A", "A", "A"]]],
     [[["A", "A", "B", "B"]], "C1 B1 A1", [["B", "B", "A", "A"]]],
     [[["A", "A", "A", "B", "B"]], "D1 C1 B1 A1", [["B", "B", "A", "A", "A"]]],
-  ])("can swap to the left when enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can swap to the left when enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -108,9 +140,10 @@ describe("swap left", () => {
         [" ", "A", " ", "E"],
       ],
     ],
-  ])("can make partial swap to the left", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can make partial swap to the left", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -122,9 +155,10 @@ describe("swap bottom", () => {
     [[["A"], ["A"], ["B"], ["B"]], "A1 A2", [[" "], ["A"], ["A/B"], ["B"]]],
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2", [[" "], ["A"], ["A/B"], ["B"], ["B"]]],
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3", [[" "], [" "], ["A/B"], ["A/B"], ["B"]]],
-  ])("can't swap to the bottom when not enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can't swap to the bottom when not enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -132,9 +166,10 @@ describe("swap bottom", () => {
     [[["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4", [["B"], ["B"], ["B"], ["A"]]],
     [[["A"], ["A"], ["B"], ["B"]], "A1 A2 A3", [["B"], ["B"], ["A"], ["A"]]],
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4", [["B"], ["B"], ["B"], ["A"], ["A"]]],
-  ])("can swap to the bottom when enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can swap to the bottom when enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -154,9 +189,10 @@ describe("swap bottom", () => {
         [" ", "C"],
       ],
     ],
-  ])("can make partial swap to the bottom", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can make partial swap to the bottom", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -168,9 +204,10 @@ describe("swap top", () => {
     [[["A"], ["A"], ["B"], ["B"]], "A3 A2", [["A"], ["A/B"], ["B"]]],
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3", [["A"], ["A"], ["A/B"], ["B"]]],
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2", [["A"], ["A/B"], ["A/B"]]],
-  ])("can't swap to the top when not enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can't swap to the top when not enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -178,9 +215,10 @@ describe("swap top", () => {
     [[["A"], ["A"], ["A"], ["B"]], "A4 A3 A2 A1", [["B"], ["A"], ["A"], ["A"]]],
     [[["A"], ["A"], ["B"], ["B"]], "A3 A2 A1", [["B"], ["B"], ["A"], ["A"]]],
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2 A1", [["B"], ["B"], ["A"], ["A"], ["A"]]],
-  ])("can swap to the top when enough overlap", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can swap to the top when enough overlap", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 
   test.each([
@@ -200,8 +238,9 @@ describe("swap top", () => {
         ["B", "E"],
       ],
     ],
-  ])("can make partial swap to the top", (...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("can make partial swap to the top", (gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

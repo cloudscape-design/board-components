@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { runMoveAndRefloat } from "./helpers";
+import { fromMatrix, fromTextPath, toString } from "../debug-tools";
+import { withCommit } from "./helpers";
 
 describe("swap adjacent items", () => {
   test.each([
@@ -62,9 +63,10 @@ describe("swap adjacent items", () => {
         ["G", "H", "I"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -182,9 +184,10 @@ describe("replace closest diagonal items", () => {
         ["G", "H", "E"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -246,9 +249,10 @@ describe("swap distant items", () => {
         ["G", "H", "I"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -310,9 +314,10 @@ describe("replace distant diagonal items", () => {
         ["C", "H", "I"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -346,8 +351,9 @@ describe("replace arbitrary items", () => {
         ["G", "H", "B"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

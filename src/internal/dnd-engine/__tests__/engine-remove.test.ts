@@ -3,13 +3,13 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { generateGrid } from "./generators";
-import { runRemoveAndRefloat } from "./helpers";
+import { fromMatrix, generateGrid, toString } from "../debug-tools";
+import { withCommit } from "./helpers";
 
 test("element removal never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
-    const { transition } = runRemoveAndRefloat(grid, "A");
+    const transition = withCommit(grid, (engine) => engine.remove("A"));
     expect(transition.blocks).toHaveLength(0);
   });
 });
@@ -29,8 +29,9 @@ describe("remove scenarios", () => {
         ["E", "D", "D"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runRemoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, itemId, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.remove(itemId));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

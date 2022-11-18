@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { runMoveAndRefloat } from "./helpers";
+import { fromMatrix, fromTextPath, toString } from "../debug-tools";
+import { withCommit } from "./helpers";
 
 describe("vertical swaps of larger items", () => {
   test.each([
@@ -93,9 +94,10 @@ describe("vertical swaps of larger items", () => {
         ["A", "A", "A"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -144,9 +146,10 @@ describe("horizontal swaps of larger items", () => {
         [" ", "E", "F", "G", "K"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -184,9 +187,10 @@ describe("diagonal swaps of larger items", () => {
         ["D", "D", "A", "A"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -226,9 +230,10 @@ describe("replacement moves of larger items", () => {
         ["C", "C", "A", "A"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -252,9 +257,10 @@ describe("long path moves", () => {
         ["A", "C", "C", "S"],
       ],
     ],
-  ])("%s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -321,9 +327,10 @@ describe("empty spaces are prioritized over disturbing other items", () => {
         ["E", "F", "F"],
       ],
     ],
-  ])("$s", (_, ...inputs) => {
-    const { result, expectation } = runMoveAndRefloat(...inputs);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
 
@@ -347,9 +354,10 @@ describe("escape moves", () => {
       ],
       { itemId: "B", x: 2, y: 4, type: "ESCAPE" },
     ],
-  ])("%s", (_, start, move, end, escapeMove) => {
-    const { result, expectation, transition } = runMoveAndRefloat(start, move, end);
-    expect(result).toBe(expectation);
+  ])("%s", (_, gridMatrix, path, expectation, escapeMove) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
     expect(transition.moves.find((move) => move.itemId === "B")).toEqual(escapeMove);
   });
 });
