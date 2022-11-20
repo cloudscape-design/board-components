@@ -1,21 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ForwardedRef, forwardRef } from "react";
-
+import { MouseEvent } from "react";
 import Handle from "../handle";
 import { ResizeHandleIcon } from "./icon";
 import styles from "./styles.css.js";
 
 export interface ResizeHandleProps {
-  ariaLabel?: string;
+  ariaLabel: string | undefined;
+  onResize: (event: MouseEvent) => void;
 }
 
-function ResizeHandle({ ariaLabel }: ResizeHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
+export default function ResizeHandle({ ariaLabel, onResize }: ResizeHandleProps) {
   return (
-    <Handle className={styles.handle} aria-label={ariaLabel} ref={ref}>
+    <Handle className={styles.handle} aria-label={ariaLabel} onMouseDown={onResize}>
       <ResizeHandleIcon />
     </Handle>
   );
 }
-
-export default forwardRef(ResizeHandle);

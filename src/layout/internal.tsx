@@ -5,16 +5,19 @@ import { Transform } from "@dnd-kit/utilities";
 import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd";
-import { toString as engineToString } from "../internal/dnd-engine/debug-tools";
 import { Position } from "../internal/dnd-engine/interfaces";
 import Grid from "../internal/grid";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
-
-import { getCollisions } from "./calculations/collision";
+import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
 import { createLayout } from "./calculations/create-layout";
 import { exportLayout } from "./calculations/export-layout";
-import { calculateShifts, createTransforms } from "./calculations/reorder";
+import {
+  calculateReorderShifts,
+  calculateResizeShifts,
+  createTransforms,
+  printLayoutDebug,
+} from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
@@ -26,54 +29,42 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   );
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
-  const [activeDragGhost, setActiveDragGhost] = useState<boolean>(false);
+  const [isDragActive, setIsDragActive] = useState<boolean>(false);
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = createLayout(items, columns, activeDragGhost);
+  const { content, placeholders, rows } = createLayout(items, columns, isDragActive);
 
-  useDragSubscription("start", ({ activeId }) => {
-    setActiveDragGhost(true);
-
-    const { x, y } = content.find((item) => item.id === activeId)!;
-    pathRef.current = [{ x, y }];
+  useDragSubscription("start", ({ id, resize }) => {
+    setIsDragActive(true);
+    if (!resize) {
+      const { x, y } = content.find((item) => item.id === id)!;
+      pathRef.current = [{ x, y }];
+    }
   });
-  useDragSubscription("move", ({ active, activeId, droppables }) => {
-    const collisionsIds = getCollisions(active, droppables);
-    setCollisionIds(collisionsIds);
-    const layoutShift = calculateShifts(
-      content,
-      collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-      activeId,
-      pathRef.current,
-      columns
-    );
+
+  useDragSubscription("move", (detail) => {
+    const collisionIds = getHoveredDroppables(detail);
+    const collisionRect = getHoveredRect(collisionIds, placeholders);
+    const layoutShift = detail.resize
+      ? calculateResizeShifts(content, collisionRect, detail.id, columns)
+      : calculateReorderShifts(content, collisionRect, detail.id, pathRef.current, columns);
+
     pathRef.current = layoutShift.path;
-    const cellRect = droppables[0][1].getBoundingClientRect();
+    const cellRect = detail.droppables[0][1].getBoundingClientRect();
+    setCollisionIds(collisionIds);
     setTransforms(createTransforms(content, layoutShift.moves, cellRect));
   });
-  useDragSubscription("drop", ({ active, activeId, droppables }) => {
-    const collisionsIds = getCollisions(active, droppables);
-    const layoutShift = calculateShifts(
-      content,
-      collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-      activeId,
-      pathRef.current,
-      columns
-    );
 
-    // Logs for dnd-engine debugging.
-    console.log("Grid before move:");
-    console.log(engineToString({ items: content, width: columns }));
-
-    console.log("Grid after move:");
-    console.log(engineToString({ items: layoutShift.items, width: columns }));
-
-    console.log("Layout shift:");
-    console.log(layoutShift);
+  useDragSubscription("drop", (detail) => {
+    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholders);
+    const layoutShift = detail.resize
+      ? calculateResizeShifts(content, collisionRect, detail.id, columns)
+      : calculateReorderShifts(content, collisionRect, detail.id, pathRef.current, columns);
+    printLayoutDebug(content, columns, layoutShift);
 
     setTransforms({});
-    setActiveDragGhost(false);
+    setIsDragActive(false);
     setCollisionIds(null);
     pathRef.current = [];
 
@@ -90,7 +81,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
-            state={activeDragGhost ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            state={isDragActive ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
           />
         ))}
         {items.map((item) => {
