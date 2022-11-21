@@ -3,7 +3,8 @@
 
 import { expect, test } from "vitest";
 import { fromMatrix, fromTextPath, generateGrid, generateMove, toMatrix } from "../debug-tools";
-import { forEachTimes, withCommit } from "./helpers";
+import { DndEngine } from "../engine";
+import { forEachTimes } from "./helpers";
 
 test("all items float to the top after move+commit", () => {
   forEachTimes(
@@ -16,7 +17,7 @@ test("all items float to the top after move+commit", () => {
     ([width, totalItems]) => {
       const grid = generateGrid({ width, totalItems });
       const movePath = generateMove(grid, "any");
-      const transition = withCommit(grid, (engine) => engine.move(movePath));
+      const transition = new DndEngine(grid).move(movePath);
 
       if (transition.blocks.length === 0) {
         const textGrid = toMatrix(transition.end);
@@ -50,8 +51,7 @@ test("float creates addition moves", () => {
     [" ", " ", "F", "G"],
     [" ", " ", "H", " "],
   ]);
-  const transition = withCommit(grid, (engine) => engine.move(fromTextPath("C2 B2 A2", grid)));
-
+  const transition = new DndEngine(grid).move(fromTextPath("C2 B2 A2", grid));
   expect(transition.moves).toEqual([
     { itemId: "E", y: 1, x: 1, type: "USER" },
     { itemId: "E", y: 1, x: 0, type: "USER" },

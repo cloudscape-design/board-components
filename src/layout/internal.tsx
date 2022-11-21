@@ -50,7 +50,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     );
     pathRef.current = layoutShift.path;
     const cellRect = droppables[0][1].getBoundingClientRect();
-    setTransforms(createTransforms(content, layoutShift.current.moves, cellRect));
+    setTransforms(createTransforms(content, layoutShift.moves, cellRect));
   });
   useDragSubscription("drop", ({ active, activeId, droppables }) => {
     const collisionsIds = getCollisions(active, droppables);
@@ -63,32 +63,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     );
 
     // Logs for dnd-engine debugging.
-    console.log("Current grid:");
-    console.log(engineToString({ items: layoutShift.current.items, width: columns }));
+    console.log("Grid before move:");
+    console.log(engineToString({ items: content, width: columns }));
 
-    console.log("Committed grid:");
-    console.log(engineToString({ items: layoutShift.committed.items, width: columns }));
+    console.log("Grid after move:");
+    console.log(engineToString({ items: layoutShift.items, width: columns }));
 
     console.log("Layout shift:");
     console.log(layoutShift);
 
-    // Create extra transforms for "float" moves.
-    if (!layoutShift.hasConflicts) {
-      const cellRect = droppables[0][1].getBoundingClientRect();
-      setTransforms(createTransforms(content, layoutShift.committed.moves, cellRect));
-    } else {
-      setTransforms({});
-    }
+    setTransforms({});
     setActiveDragGhost(false);
     setCollisionIds(null);
     pathRef.current = [];
 
     // Commit new layout.
     if (!layoutShift.hasConflicts) {
-      setTimeout(() => {
-        onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.committed.items, items) }));
-        setTransforms({});
-      }, 250);
+      onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.items, items) }));
     }
   });
 
