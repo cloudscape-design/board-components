@@ -20,7 +20,6 @@ interface DragAndDropEvents {
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<string, HTMLElement>();
-  private droppablesEntries = new Array<[string, HTMLElement]>();
   private activeElement: HTMLElement | null = null;
   private activeId: string | null = null;
   private activeUpdater: Updater | null = null;
@@ -30,7 +29,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("move", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppablesEntries,
+      droppables: [...this.droppables.entries()],
     });
   };
 
@@ -38,7 +37,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("drop", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppablesEntries,
+      droppables: [...this.droppables.entries()],
     });
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("mouseup", this.onMouseUp);
@@ -49,12 +48,10 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 
   public addDroppable(element: HTMLElement, id: string) {
     this.droppables.set(id, element);
-    this.droppablesEntries = [...this.droppables.entries()];
   }
 
   public removeDroppable(id: string) {
     this.droppables.delete(id);
-    this.droppablesEntries = [...this.droppables.entries()];
   }
 
   public activateDrag(activeElement: HTMLElement, activeId: string, updater: (event: MouseEvent) => void) {
@@ -64,7 +61,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("start", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppablesEntries,
+      droppables: [...this.droppables.entries()],
     });
     document.addEventListener("mousemove", this.onMouseMove);
     document.addEventListener("mouseup", this.onMouseUp);
