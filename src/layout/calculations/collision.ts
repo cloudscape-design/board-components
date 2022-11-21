@@ -34,6 +34,7 @@ export const getCollisions = (
 
   // snap current collision to rects grid
   for (const droppable of droppables.values()) {
+    // TODO: should we cache droppable rects?
     const rect = droppable.getBoundingClientRect();
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
