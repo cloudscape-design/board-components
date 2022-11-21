@@ -20,7 +20,7 @@ export class DndEngine {
   private lastCommit: GridDefinition;
   private grid: DndGrid;
   private moves: CommittedMove[] = [];
-  private conflicts = new StackSet<ItemId>();
+  private overlaps = new StackSet<ItemId>();
   private blocks = new Set<ItemId>();
 
   constructor(gridDefinition: GridDefinition) {
@@ -38,10 +38,10 @@ export class DndEngine {
 
       this.findBlocks(move);
 
-      this.grid.move(move.itemId, move.x, move.y, this.addConflict.bind(this));
+      this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
       this.moves.push(move);
 
-      this.resolveConflicts(itemId);
+      this.resolveOverlaps(itemId);
     }
 
     if (this.blocks.size === 0) {
@@ -56,9 +56,9 @@ export class DndEngine {
 
     resize = this.validateResizeCommand(resize);
 
-    this.grid.resize(resize.itemId, resize.width, resize.height, this.addConflict.bind(this));
+    this.grid.resize(resize.itemId, resize.width, resize.height, this.addOverlap.bind(this));
 
-    this.resolveConflicts(resize.itemId);
+    this.resolveOverlaps(resize.itemId);
 
     if (this.blocks.size === 0) {
       this.refloatGrid();
@@ -70,9 +70,9 @@ export class DndEngine {
   insert(item: Item): GridTransition {
     this.cleanup();
 
-    this.grid.insert(item, this.addConflict.bind(this));
+    this.grid.insert(item, this.addOverlap.bind(this));
 
-    this.resolveConflicts(item.id);
+    this.resolveOverlaps(item.id);
 
     if (this.blocks.size === 0) {
       this.refloatGrid();
@@ -113,50 +113,50 @@ export class DndEngine {
   private cleanup(): void {
     this.grid = new DndGrid(this.lastCommit);
     this.moves = [];
-    this.conflicts = new StackSet();
+    this.overlaps = new StackSet();
     this.blocks = new Set();
   }
 
-  private addConflict(conflictId: ItemId): void {
-    if (!this.blocks.has(conflictId)) {
-      this.conflicts.push(conflictId);
+  private addOverlap(itemId: ItemId): void {
+    if (!this.blocks.has(itemId)) {
+      this.overlaps.push(itemId);
     }
   }
 
-  private resolveConflicts(interactiveId: ItemId): void {
-    const tier2Conflicts = new StackSet<ItemId>();
+  private resolveOverlaps(interactiveId: ItemId): void {
+    const tier2Overlaps = new StackSet<ItemId>();
 
-    // Try resolving conflicts by finding the vacant space considering the move directions.
-    let conflict = this.conflicts.pop();
-    while (conflict) {
-      const nextMove = this.tryFindVacantMove(conflict);
+    // Try resolving overlaps by finding the vacant space considering the move directions.
+    let overlap = this.overlaps.pop();
+    while (overlap) {
+      const nextMove = this.tryFindVacantMove(overlap);
       if (nextMove) {
-        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, this.addConflict.bind(this));
+        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, this.addOverlap.bind(this));
         this.moves.push(nextMove);
       } else {
-        tier2Conflicts.push(conflict);
+        tier2Overlaps.push(overlap);
       }
-      conflict = this.conflicts.pop();
+      overlap = this.overlaps.pop();
     }
 
-    this.conflicts = tier2Conflicts;
+    this.overlaps = tier2Overlaps;
 
-    // Try resolving conflicts by moving against items that have the same or lower priority.
-    conflict = this.conflicts.pop();
-    while (conflict) {
-      const nextMove = this.tryFindPriorityMove(conflict, interactiveId);
+    // Try resolving overlaps by moving against items that have the same or lower priority.
+    overlap = this.overlaps.pop();
+    while (overlap) {
+      const nextMove = this.tryFindPriorityMove(overlap, interactiveId);
       if (nextMove) {
-        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, this.addConflict.bind(this));
+        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, this.addOverlap.bind(this));
         this.moves.push(nextMove);
       } else {
-        // Can't resolve this conflict because of the blocked items.
-        // That is expected - such conflicts can be resolved once the blocks are gone.
+        // Can't resolve this overlap because of the blocked items.
+        // That is expected - such overlaps can be resolved once the blocks are gone.
       }
-      conflict = this.conflicts.pop();
+      overlap = this.overlaps.pop();
     }
   }
 
-  // Get priority move directions by comparing conflicting items positions.
+  // Get priority move directions by comparing overlapping items positions.
   private getMoveDirections(origin: DndItem): Direction[] {
     const originMoves = this.moves.filter((m) => m.itemId === origin.id);
 
@@ -179,13 +179,13 @@ export class DndEngine {
     return directions;
   }
 
-  private tryFindVacantMove(conflict: ItemId): null | CommittedMove {
-    const conflictItem = this.grid.getItem(conflict);
-    const conflictWith = this.getConflictWith(conflictItem);
-    const directions = this.getMoveDirections(conflictWith);
+  private tryFindVacantMove(overlap: ItemId): null | CommittedMove {
+    const overlapItem = this.grid.getItem(overlap);
+    const overlapWith = this.getOverlapWith(overlapItem);
+    const directions = this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
-      for (const move of this.getMovesForDirection(conflictItem, conflictWith, direction, "VACANT")) {
+      for (const move of this.getMovesForDirection(overlapItem, overlapWith, direction, "VACANT")) {
         if (this.validateVacantMove(move)) {
           return move;
         }
@@ -195,13 +195,13 @@ export class DndEngine {
     return null;
   }
 
-  private tryFindPriorityMove(conflict: ItemId, interactiveId: ItemId): null | CommittedMove {
-    const conflictItem = this.grid.getItem(conflict);
-    const conflictWith = this.getConflictWith(conflictItem);
-    const directions = this.getMoveDirections(conflictWith);
+  private tryFindPriorityMove(overlap: ItemId, interactiveId: ItemId): null | CommittedMove {
+    const overlapItem = this.grid.getItem(overlap);
+    const overlapWith = this.getOverlapWith(overlapItem);
+    const directions = this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
-      for (const move of this.getMovesForDirection(conflictItem, conflictWith, direction, "PRIORITY")) {
+      for (const move of this.getMovesForDirection(overlapItem, overlapWith, direction, "PRIORITY")) {
         if (this.validatePriorityMove(move, interactiveId) === "ok") {
           return move;
         }
@@ -209,7 +209,7 @@ export class DndEngine {
     }
 
     // If can't find a good move - "teleport" item to the bottom.
-    const move: CommittedMove = { itemId: conflictItem.id, y: conflictItem.y + 1, x: conflictItem.x, type: "ESCAPE" };
+    const move: CommittedMove = { itemId: overlapItem.id, y: overlapItem.y + 1, x: overlapItem.x, type: "ESCAPE" };
     let canMove = this.validatePriorityMove(move, interactiveId);
     while (canMove !== "ok") {
       move.y++;
@@ -223,16 +223,16 @@ export class DndEngine {
     return move;
   }
 
-  private getConflictWith(targetItem: DndItem): DndItem {
+  private getOverlapWith(targetItem: DndItem): DndItem {
     for (let y = targetItem.y; y < targetItem.y + targetItem.height; y++) {
       for (let x = targetItem.x; x < targetItem.x + targetItem.width; x++) {
-        const conflict = this.grid.getCellOverlay(x, y, targetItem.id);
-        if (conflict) {
-          return conflict;
+        const overlap = this.grid.getCellOverlay(x, y, targetItem.id);
+        if (overlap) {
+          return overlap;
         }
       }
     }
-    throw new Error("Invariant violation - no conflicts found.");
+    throw new Error("Invariant violation - no overlaps found.");
   }
 
   private validateVacantMove(moveAttempt: CommittedMove): boolean {
@@ -249,8 +249,8 @@ export class DndEngine {
         }
 
         // The probed destination cell is occupied.
-        const conflict = this.grid.getCellOverlay(newX, newY, moveAttempt.itemId);
-        if (conflict) {
+        const overlap = this.grid.getCellOverlay(newX, newY, moveAttempt.itemId);
+        if (overlap) {
           return false;
         }
       }
@@ -273,12 +273,12 @@ export class DndEngine {
         }
 
         for (const item of this.grid.getCell(newX, newY)) {
-          // Can't conflict with the interactive item.
+          // Can't overlap with the interactive item.
           if (item.id === interactiveId) {
             return "priority";
           }
 
-          // The conflicting item has already been displaced.
+          // The overlaping item has already been displaced.
           if (item.x !== item.originalX || item.y !== item.originalY) {
             return "priority";
           }
@@ -349,15 +349,15 @@ export class DndEngine {
   // Retrieve all possible moves for the given direction (same direction but different length).
   private getMovesForDirection(
     moveTarget: DndItem,
-    conflict: DndItem,
+    overlap: DndItem,
     direction: Direction,
     moveType: CommittedMove["type"]
   ): CommittedMove[] {
     switch (direction) {
       case "top": {
-        const from = conflict.top - (moveTarget.height - 1);
-        const coveredDistance = Math.max(0, conflict.top - moveTarget.top);
-        const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY) - coveredDistance);
+        const from = overlap.top - (moveTarget.height - 1);
+        const coveredDistance = Math.max(0, overlap.top - moveTarget.top);
+        const distance = Math.max(1, Math.abs(overlap.y - overlap.originalY) - coveredDistance);
         const moves: CommittedMove[] = [];
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: from - i, x: moveTarget.x, type: moveType });
@@ -367,9 +367,9 @@ export class DndEngine {
       }
 
       case "bottom": {
-        const from = conflict.bottom;
-        const coveredDistance = Math.max(0, moveTarget.bottom - conflict.bottom);
-        const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY) - coveredDistance);
+        const from = overlap.bottom;
+        const coveredDistance = Math.max(0, moveTarget.bottom - overlap.bottom);
+        const distance = Math.max(1, Math.abs(overlap.y - overlap.originalY) - coveredDistance);
         const moves: CommittedMove[] = [];
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: from + i, x: moveTarget.x, type: moveType });
@@ -379,9 +379,9 @@ export class DndEngine {
       }
 
       case "left": {
-        const from = conflict.left - (moveTarget.width - 1);
-        const coveredDistance = Math.max(0, conflict.left - moveTarget.left);
-        const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX) - coveredDistance);
+        const from = overlap.left - (moveTarget.width - 1);
+        const coveredDistance = Math.max(0, overlap.left - moveTarget.left);
+        const distance = Math.max(1, Math.abs(overlap.x - overlap.originalX) - coveredDistance);
         const moves: CommittedMove[] = [];
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from - i, type: moveType });
@@ -391,9 +391,9 @@ export class DndEngine {
       }
 
       case "right": {
-        const from = conflict.right;
-        const coveredDistance = Math.max(0, moveTarget.right - conflict.right);
-        const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX) - coveredDistance);
+        const from = overlap.right;
+        const coveredDistance = Math.max(0, moveTarget.right - overlap.right);
+        const distance = Math.max(1, Math.abs(overlap.x - overlap.originalX) - coveredDistance);
         const moves: CommittedMove[] = [];
 
         for (let i = distance; i >= 0; i--) {
