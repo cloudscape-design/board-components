@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Transform } from "@dnd-kit/utilities";
 import { GridLayoutItem } from "../../internal/base-types";
 import { DndEngine } from "../../internal/dnd-engine/engine";
 import { CommittedMove, ItemId, Position } from "../../internal/dnd-engine/interfaces";
@@ -25,27 +26,23 @@ function collisionsToRect(collisions: Array<GridLayoutItem>) {
 }
 
 export function createTransforms(
-  newGrid: null | readonly GridLayoutItem[],
-  prevGrid: null | readonly GridLayoutItem[],
-  activeRect: { width: number; height: number }
+  grid: readonly GridLayoutItem[],
+  moves: readonly CommittedMove[],
+  cell: { width: number; height: number }
 ) {
-  if (!newGrid || !prevGrid) {
-    return {};
+  const transforms: Record<ItemId, Transform> = {};
+
+  for (const move of moves) {
+    const item = grid.find((prev) => prev.id === move.itemId)!;
+    transforms[item.id] = {
+      x: (move.x - item.x) * (cell.width + GAP),
+      y: (move.y - item.y) * (cell.height + GAP),
+      scaleX: 1,
+      scaleY: 1,
+    };
   }
-  return Object.fromEntries(
-    newGrid.map((item) => {
-      const oldItem = prevGrid.find((prev) => prev.id === item.id)!;
-      return [
-        item.id,
-        {
-          x: (item.x - oldItem.x) * (activeRect.width + GAP),
-          y: (item.y - oldItem.y) * (activeRect.height + GAP),
-          scaleX: 1,
-          scaleY: 1,
-        },
-      ];
-    })
-  );
+
+  return transforms;
 }
 
 export interface LayoutShift {
