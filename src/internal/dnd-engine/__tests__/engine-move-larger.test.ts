@@ -94,6 +94,30 @@ describe("vertical swaps of larger items", () => {
         ["A", "A", "A"],
       ],
     ],
+    [
+      "swap S with D (left)",
+      [
+        ["A", "A", "B", "B"],
+        ["D", "D", "S", " "],
+      ],
+      "C2 B2 A2",
+      [
+        ["A", "A", "B", "B"],
+        ["S", "D", "D", " "],
+      ],
+    ],
+    [
+      "swap S with D (right)",
+      [
+        ["A", "A", "B", "B"],
+        [" ", "S", "D", "D"],
+      ],
+      "B2 C2 D2",
+      [
+        ["A", "A", "B", "B"],
+        [" ", "D", "D", "S"],
+      ],
+    ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
