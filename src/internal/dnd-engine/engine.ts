@@ -209,7 +209,7 @@ export class DndEngine {
         }
 
         // The probed destination is occupied.
-        if (this.grid.getCellOverlay(newX, newY, move.itemId)) {
+        if (this.grid.getCellOverlap(newX, newY, move.itemId)) {
           return "occupied";
         }
       }
@@ -289,7 +289,7 @@ export class DndEngine {
   private getOverlapWith(targetItem: DndItem): DndItem {
     for (let y = targetItem.y; y < targetItem.y + targetItem.height; y++) {
       for (let x = targetItem.x; x < targetItem.x + targetItem.width; x++) {
-        const overlap = this.grid.getCellOverlay(x, y, targetItem.id);
+        const overlap = this.grid.getCellOverlap(x, y, targetItem.id);
         if (overlap) {
           return overlap;
         }
@@ -298,6 +298,7 @@ export class DndEngine {
     throw new Error("Invariant violation - no overlaps found.");
   }
 
+  // Find items that the active item cannot be moved over with the current move.
   private findConflicts(move: CommittedMove): void {
     this.conflicts = new Set<ItemId>();
 
@@ -308,7 +309,7 @@ export class DndEngine {
       case "-1:0": {
         const left = Math.max(0, moveTarget.left - 1);
         for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-          const block = this.grid.getCellOverlay(left, y, moveTarget.id);
+          const block = this.grid.getCellOverlap(left, y, moveTarget.id);
           if (block && block.x < left) {
             this.conflicts.add(block.id);
           }
@@ -318,7 +319,7 @@ export class DndEngine {
       case "1:0": {
         const right = Math.min(this.grid.width - 1, moveTarget.right + 1);
         for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-          const block = this.grid.getCellOverlay(right, y, moveTarget.id);
+          const block = this.grid.getCellOverlap(right, y, moveTarget.id);
           if (block && block.x + block.width - 1 > right) {
             this.conflicts.add(block.id);
           }
@@ -328,7 +329,7 @@ export class DndEngine {
       case "0:-1": {
         const top = Math.max(0, moveTarget.top - 1);
         for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-          const block = this.grid.getCellOverlay(x, top, moveTarget.id);
+          const block = this.grid.getCellOverlap(x, top, moveTarget.id);
           if (block && block.y < top) {
             this.conflicts.add(block.id);
           }
@@ -338,7 +339,7 @@ export class DndEngine {
       case "0:1": {
         const bottom = moveTarget.bottom + 1;
         for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-          const block = this.grid.getCellOverlay(x, bottom, moveTarget.id);
+          const block = this.grid.getCellOverlap(x, bottom, moveTarget.id);
           if (block && block.y + block.height - 1 > bottom) {
             this.conflicts.add(block.id);
           }
@@ -366,7 +367,6 @@ export class DndEngine {
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: from - i, x: moveTarget.x, type: moveType });
         }
-
         return moves;
       }
 
@@ -378,7 +378,6 @@ export class DndEngine {
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: from + i, x: moveTarget.x, type: moveType });
         }
-
         return moves;
       }
 
@@ -390,7 +389,6 @@ export class DndEngine {
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from - i, type: moveType });
         }
-
         return moves;
       }
 
@@ -399,11 +397,9 @@ export class DndEngine {
         const coveredDistance = Math.max(0, moveTarget.right - overlap.right);
         const distance = Math.max(1, Math.abs(overlap.x - overlap.originalX) - coveredDistance);
         const moves: CommittedMove[] = [];
-
         for (let i = distance; i >= 0; i--) {
           moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from + i, type: moveType });
         }
-
         return moves;
       }
     }
@@ -411,51 +407,24 @@ export class DndEngine {
 
   // Find items that can "float" to the top and apply the necessary moves.
   private refloatGrid(): void {
-    let needRefloat = true;
+    let needAnotherRefloat = false;
 
-    while (needRefloat) {
-      let floatCandidates: [id: ItemId, affordance: number][] = [];
-      const floatAffordance: number[][] = [];
-
-      for (let y = 0; y < this.grid.height; y++) {
-        floatAffordance.push(Array(this.grid.width).fill(0));
-
-        const itemFloatAfforance = new Map<ItemId, number>();
-
-        for (let x = 0; x < this.grid.width; x++) {
-          const [item] = this.grid.getCell(x, y);
-          const prevRowAffordance = floatAffordance[y - 1]?.[x] ?? 0;
-
-          if (item) {
-            floatAffordance[y][x] = 0;
-
-            const prevItemAffordance = itemFloatAfforance.get(item.id);
-            if (prevItemAffordance === undefined) {
-              itemFloatAfforance.set(item.id, prevRowAffordance);
-            } else {
-              itemFloatAfforance.set(item.id, Math.min(prevItemAffordance, prevRowAffordance));
-            }
-          } else {
-            floatAffordance[y][x] = prevRowAffordance + 1;
-          }
-        }
-
-        floatCandidates = [...itemFloatAfforance.entries()].filter(([, affordance]) => affordance > 0);
-
-        if (floatCandidates.length > 0) {
+    for (const item of this.grid.items) {
+      const move: CommittedMove = { itemId: item.id, x: item.x, y: item.y, type: "FLOAT" };
+      for (move.y; move.y >= 0; move.y--) {
+        if (this.validateVacantMove({ ...move, y: move.y - 1 }) !== "ok") {
           break;
         }
       }
-
-      needRefloat = floatCandidates.length > 0;
-
-      for (const [id, affordance] of floatCandidates) {
-        const item = this.grid.getItem(id);
-        const move: CommittedMove = { itemId: id, x: item.x, y: item.y - affordance, type: "FLOAT" };
-
+      if (item.y !== move.y) {
         this.grid.move(move.itemId, move.x, move.y);
         this.moves.push(move);
+        needAnotherRefloat = true;
       }
+    }
+
+    if (needAnotherRefloat) {
+      this.refloatGrid();
     }
   }
 

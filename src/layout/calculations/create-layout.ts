@@ -14,7 +14,7 @@ function createGridItems(
   columns: number
 ): readonly GridLayoutItem[] {
   const layoutItems: GridLayoutItem[] = [];
-  const colAffordance = [...Array(columns)].map(() => -1);
+  const colAffordance = Array(columns).fill(-1);
 
   for (const { id, columnSpan, rowSpan, columnOffset } of items) {
     let itemRow = 0;

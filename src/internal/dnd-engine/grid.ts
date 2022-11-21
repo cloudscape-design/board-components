@@ -71,7 +71,7 @@ export class DndGrid {
     return [...this.layout[y][x]].map((itemId) => this.getItem(itemId));
   }
 
-  getCellOverlay(x: number, y: number, itemId: ItemId): null | DndItem {
+  getCellOverlap(x: number, y: number, itemId: ItemId): null | DndItem {
     for (const item of this.getCell(x, y)) {
       if (item.id !== itemId) {
         return item;

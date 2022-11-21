@@ -113,19 +113,6 @@ test("commit does not happen when grid has unresolved conflicts", () => {
   );
 });
 
-test("move triggers refloat", () => {
-  const grid = fromMatrix([
-    ["A", "B", "C"],
-    ["D", " ", "F"],
-    ["G", " ", "E"],
-  ]);
-  const transition = new DndEngine(grid).move({ itemId: "F", path: [{ x: 1, y: 1 }] });
-  expect(transition.moves).toEqual([
-    { itemId: "F", x: 1, y: 1, type: "USER" },
-    { itemId: "E", x: 2, y: 1, type: "FLOAT" },
-  ]);
-});
-
 function printResult(engine: DndEngine): string {
   return toString(engine.getTransition().end);
 }
