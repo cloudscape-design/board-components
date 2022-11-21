@@ -48,7 +48,7 @@ export function createTransforms(
 export interface LayoutShift {
   path: Position[];
   hasConflicts: boolean;
-  moves: CommittedMove[];
+  moves: readonly CommittedMove[];
   items: readonly GridLayoutItem[];
 }
 
