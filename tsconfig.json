@@ -18,5 +18,5 @@
     "strict": true
   },
   "include": ["src", "types"],
-  "exclude": ["**/*.test.tsx"]
+  "exclude": ["**/__tests__/**"]
 }

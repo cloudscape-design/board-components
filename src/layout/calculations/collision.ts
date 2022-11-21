@@ -30,6 +30,7 @@ export const getCollisions = (active: HTMLElement, droppables: readonly [string,
 
   // snap current collision to rects grid
   for (const [, droppableElement] of droppables) {
+    // TODO: should we cache getBoundingClientRect() somewhewre?
     const rect = droppableElement.getBoundingClientRect();
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
