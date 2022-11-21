@@ -60,7 +60,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       pathRef.current,
       columns
     );
-    pathRef.current = layoutShift.path;
 
     // Logs for dnd-engine debugging.
     console.log("Current grid:");
