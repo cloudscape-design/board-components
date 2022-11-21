@@ -3,6 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { fromMatrix, fromTextPath, toString } from "../debug-tools";
+import { DndEngine } from "../engine";
 import { withCommit } from "./helpers";
 
 describe("vertical swaps of larger items", () => {
@@ -149,6 +150,71 @@ describe("horizontal swaps of larger items", () => {
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    expect(toString(transition.end)).toBe(toString(expectation));
+  });
+});
+
+describe("swaps with overlay", () => {
+  test.each([
+    [
+      "swap S with D (overlay on the left)",
+      [
+        ["A", "A", "B", "B"],
+        [" ", "S", "D", "D"],
+      ],
+      "B2 C2 D2",
+      [
+        ["A", "A", "B", "B"],
+        [" ", "D", "D", "S"],
+      ],
+    ],
+    [
+      "swap S with D (overlay on the right)",
+      [
+        ["A", "A", "B", "B"],
+        ["D", "D", "S", " "],
+      ],
+      "C2 B2 A2",
+      [
+        ["A", "A", "B", "B"],
+        ["S", "D", "D", " "],
+      ],
+    ],
+    [
+      "swap S with D (overlay on the top)",
+      [
+        ["D", "A"],
+        ["D", "A"],
+        ["S", "B"],
+        [" ", "B"],
+      ],
+      "A3 A2 A1",
+      [
+        ["S", "A"],
+        ["D", "A"],
+        ["D", "B"],
+        [" ", "B"],
+      ],
+    ],
+    [
+      "swap S with D (overlay on the bottom)",
+      [
+        [" ", "A"],
+        ["S", "A"],
+        ["D", "B"],
+        ["D", "B"],
+      ],
+      "A2 A3 A4",
+      [
+        [" ", "A"],
+        ["D", "A"],
+        ["D", "B"],
+        ["S", "B"],
+      ],
+    ],
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

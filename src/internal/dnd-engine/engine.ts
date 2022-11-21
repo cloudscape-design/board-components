@@ -341,61 +341,56 @@ export class DndEngine {
 
   // Retrieve all possible moves for the given direction (same direction but different length).
   private getMovesForDirection(
-    moveTarget: Item,
+    moveTarget: DndItem,
     conflict: DndItem,
     direction: Direction,
     moveType: CommittedMove["type"]
   ): CommittedMove[] {
     switch (direction) {
       case "top": {
-        const conflictTop = conflict.y;
-        const targetBottom = conflictTop;
-        const targetTop = targetBottom - (moveTarget.height - 1);
-
-        const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY));
+        const from = conflict.top - (moveTarget.height - 1);
+        const coveredDistance = Math.max(0, conflict.top - moveTarget.top);
+        const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY) - coveredDistance);
         const moves: CommittedMove[] = [];
         for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: targetTop - i, x: moveTarget.x, type: moveType });
+          moves.push({ itemId: moveTarget.id, y: from - i, x: moveTarget.x, type: moveType });
         }
 
         return moves;
       }
 
       case "bottom": {
-        const conflictBottom = conflict.y + conflict.height - 1;
-        const targetBottom = conflictBottom;
-
-        const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY));
+        const from = conflict.bottom;
+        const coveredDistance = Math.max(0, moveTarget.bottom - conflict.bottom);
+        const distance = Math.max(1, Math.abs(conflict.y - conflict.originalY) - coveredDistance);
         const moves: CommittedMove[] = [];
         for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: targetBottom + i, x: moveTarget.x, type: moveType });
+          moves.push({ itemId: moveTarget.id, y: from + i, x: moveTarget.x, type: moveType });
         }
 
         return moves;
       }
 
       case "left": {
-        const conflictLeft = conflict.x;
-        const targetRight = conflictLeft;
-        const targetLeft = targetRight - (moveTarget.width - 1);
-
-        const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX));
+        const from = conflict.left - (moveTarget.width - 1);
+        const coveredDistance = Math.max(0, conflict.left - moveTarget.left);
+        const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX) - coveredDistance);
         const moves: CommittedMove[] = [];
         for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: targetLeft - i, type: moveType });
+          moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from - i, type: moveType });
         }
 
         return moves;
       }
 
       case "right": {
-        const conflictRight = conflict.x + conflict.width - 1;
-        const targetLeft = conflictRight;
-
-        const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX));
+        const from = conflict.right;
+        const coveredDistance = Math.max(0, moveTarget.right - conflict.right);
+        const distance = Math.max(1, Math.abs(conflict.x - conflict.originalX) - coveredDistance);
         const moves: CommittedMove[] = [];
+
         for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: targetLeft + i, type: moveType });
+          moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from + i, type: moveType });
         }
 
         return moves;
