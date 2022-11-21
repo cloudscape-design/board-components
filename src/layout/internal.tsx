@@ -49,7 +49,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       columns
     );
     pathRef.current = layoutShift.path;
-    const cellRect = [...droppables.values()][0].getBoundingClientRect();
+    const cellRect = droppables[0][1].getBoundingClientRect();
     setTransforms(createTransforms(content, layoutShift.current.moves, cellRect));
   });
   useDragSubscription("drop", ({ active, activeId, droppables }) => {
@@ -74,7 +74,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     // Create extra transforms for "float" moves.
     if (!layoutShift.hasConflicts) {
-      const cellRect = [...droppables.values()][0].getBoundingClientRect();
+      const cellRect = droppables[0][1].getBoundingClientRect();
       setTransforms(createTransforms(content, layoutShift.committed.moves, cellRect));
     } else {
       setTransforms({});
