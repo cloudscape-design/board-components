@@ -11,10 +11,9 @@ import {
   Item,
   ItemId,
   MoveCommand,
-  Position,
   ResizeCommand,
 } from "./interfaces";
-import { sortGridItems } from "./utils";
+import { normalizePath, sortGridItems } from "./utils";
 
 export class DndEngine {
   private lastCommit: GridDefinition;
@@ -249,6 +248,8 @@ export class DndEngine {
           return move;
       }
     }
+
+    return null;
   }
 
   private validatePriorityMove(move: CommittedMove, activeId: ItemId): "ok" | "blocked" | "priority" {
@@ -436,6 +437,7 @@ export class DndEngine {
     for (const step of path) {
       const diffVertical = step.y - prevY;
       const diffHorizontal = step.x - prevX;
+
       if (Math.abs(diffVertical) + Math.abs(diffHorizontal) !== 1) {
         throw new Error("Invalid move: must move one step at a time.");
       }
@@ -448,29 +450,7 @@ export class DndEngine {
       prevY = step.y;
     }
 
-    return { itemId, path: this.normalizePath({ x: moveTarget.x, y: moveTarget.y }, path) };
-  }
-
-  private normalizePath(origin: Position, path: readonly Position[]): readonly Position[] {
-    const mutablePath = [origin, ...path];
-    const originKey = `${origin.x}:${origin.y}`;
-    const steps = new Map([[originKey, 0]]);
-
-    for (let stepIndex = 1; stepIndex < mutablePath.length; stepIndex++) {
-      const stepKey = `${mutablePath[stepIndex].x}:${mutablePath[stepIndex].y}`;
-      const removeFrom = steps.get(stepKey);
-
-      if (removeFrom !== undefined) {
-        for (let removeStepIndex = stepIndex - 1; removeStepIndex >= removeFrom; removeStepIndex--) {
-          const removeStepKey = `${mutablePath[removeStepIndex].x}:${mutablePath[removeStepIndex].y}`;
-          steps.delete(removeStepKey);
-          mutablePath.splice(removeStepIndex, 1);
-        }
-      }
-      steps.set(stepKey, stepIndex);
-    }
-
-    return mutablePath.slice(1);
+    return { itemId, path: normalizePath({ x: moveTarget.x, y: moveTarget.y }, path) };
   }
 
   private validateResizeCommand({ itemId, width, height }: ResizeCommand): ResizeCommand {

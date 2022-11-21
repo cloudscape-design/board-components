@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { fromMatrix, toString } from "../debug-tools";
+import { fromMatrix, fromTextPath, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
 
 test("throws if grid definition is not valid", () => {
@@ -91,15 +91,7 @@ test("normalizes move path when returning to start location", () => {
     [" ", " ", " "],
     [" ", " ", " "],
   ]);
-  const transition = new DndEngine(grid).move({
-    itemId: "A",
-    path: [
-      { x: 1, y: 0 },
-      { x: 1, y: 1 },
-      { x: 0, y: 1 },
-      { x: 0, y: 0 },
-    ],
-  });
+  const transition = new DndEngine(grid).move(fromTextPath("A1 B1 B2 A2 A1", grid));
   expect(transition.moves).toHaveLength(0);
 });
 
@@ -109,31 +101,13 @@ test("normalizes move path when returning to previously visited item", () => {
     [" ", " ", " "],
     [" ", " ", " "],
   ]);
-  const transition = new DndEngine(grid).move({
-    itemId: "A",
-    path: [
-      { x: 1, y: 0 },
-      { x: 1, y: 1 },
-      { x: 2, y: 1 },
-      { x: 2, y: 0 },
-      { x: 1, y: 0 },
-    ],
-  });
+  const transition = new DndEngine(grid).move(fromTextPath("A1 B1 B2 C2 C1 B1", grid));
   expect(transition.moves).toHaveLength(1);
 });
 
 test("normalizes move path and continues when from the repeating position", () => {
   const grid = fromMatrix([[" ", "A", " "]]);
-  const transition = new DndEngine(grid).move({
-    itemId: "A",
-    path: [
-      { x: 1, y: 1 },
-      { x: 1, y: 2 },
-      { x: 1, y: 1 },
-      { x: 1, y: 2 },
-      { x: 1, y: 3 },
-    ],
-  });
+  const transition = new DndEngine(grid).move(fromTextPath("B1 B2 B3 B2 B3 B4", grid));
   expect(transition.moves).toEqual([
     { itemId: "A", x: 1, y: 1, type: "USER" },
     { itemId: "A", x: 1, y: 2, type: "USER" },
