@@ -38,7 +38,7 @@ export class DndEngine {
 
       this.findBlocks(move);
 
-      this.grid.move(move.itemId, move.x, move.y, (conflictId) => this.conflicts.push(conflictId));
+      this.grid.move(move.itemId, move.x, move.y, this.addConflict.bind(this));
       this.moves.push(move);
 
       this.resolveConflicts(itemId);
@@ -56,7 +56,7 @@ export class DndEngine {
 
     resize = this.validateResizeCommand(resize);
 
-    this.grid.resize(resize.itemId, resize.width, resize.height, (conflictId) => this.conflicts.push(conflictId));
+    this.grid.resize(resize.itemId, resize.width, resize.height, this.addConflict.bind(this));
 
     this.resolveConflicts(resize.itemId);
 
@@ -70,7 +70,7 @@ export class DndEngine {
   insert(item: Item): GridTransition {
     this.cleanup();
 
-    this.grid.insert(item, (conflictId) => this.conflicts.push(conflictId));
+    this.grid.insert(item, this.addConflict.bind(this));
 
     this.resolveConflicts(item.id);
 
@@ -117,21 +117,21 @@ export class DndEngine {
     this.blocks = new Set();
   }
 
+  private addConflict(conflictId: ItemId): void {
+    if (!this.blocks.has(conflictId)) {
+      this.conflicts.push(conflictId);
+    }
+  }
+
   private resolveConflicts(interactiveId: ItemId): void {
-    const tier2Conflicts: ItemId[] = [];
+    const tier2Conflicts = new StackSet<ItemId>();
 
     // Try resolving conflicts by finding the vacant space considering the move directions.
     let conflict = this.conflicts.pop();
     while (conflict) {
-      // Ignoring blocked items - those must stay in place.
-      if (this.blocks.has(conflict)) {
-        conflict = this.conflicts.pop();
-        continue;
-      }
-
       const nextMove = this.tryFindVacantMove(conflict);
       if (nextMove) {
-        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, (conflictId) => this.conflicts.push(conflictId));
+        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, this.addConflict.bind(this));
         this.moves.push(nextMove);
       } else {
         tier2Conflicts.push(conflict);
@@ -139,22 +139,18 @@ export class DndEngine {
       conflict = this.conflicts.pop();
     }
 
+    this.conflicts = tier2Conflicts;
+
     // Try resolving conflicts by moving against items that have the same or lower priority.
-    this.conflicts = new StackSet(tier2Conflicts);
     conflict = this.conflicts.pop();
     while (conflict) {
-      // Ignoring blocked items - those must stay in place.
-      if (this.blocks.has(conflict)) {
-        conflict = this.conflicts.pop();
-        continue;
-      }
-
       const nextMove = this.tryFindPriorityMove(conflict, interactiveId);
       if (nextMove) {
-        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, (conflictId) => this.conflicts.push(conflictId));
+        this.grid.move(nextMove.itemId, nextMove.x, nextMove.y, this.addConflict.bind(this));
         this.moves.push(nextMove);
       } else {
-        // There is no good way to resolve conflicts at this point.
+        // Can't resolve this conflict because of the blocked items.
+        // That is expected - such conflicts can be resolved once the blocks are gone.
       }
       conflict = this.conflicts.pop();
     }
