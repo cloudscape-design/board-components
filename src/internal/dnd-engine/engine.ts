@@ -21,7 +21,7 @@ export class DndEngine {
   private grid: DndGrid;
   private moves: CommittedMove[] = [];
   private overlaps = new StackSet<ItemId>();
-  private blocks = new Set<ItemId>();
+  private conflicts = new Set<ItemId>();
 
   constructor(gridDefinition: GridDefinition) {
     this.lastCommit = gridDefinition;
@@ -36,7 +36,7 @@ export class DndEngine {
     for (const step of path) {
       const move: CommittedMove = { itemId, x: step.x, y: step.y, type: "USER" };
 
-      this.findBlocks(move);
+      this.findConflicts(move);
 
       this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
       this.moves.push(move);
@@ -44,7 +44,7 @@ export class DndEngine {
       this.resolveOverlaps(itemId);
     }
 
-    if (this.blocks.size === 0) {
+    if (this.conflicts.size === 0) {
       this.refloatGrid();
     }
 
@@ -60,7 +60,7 @@ export class DndEngine {
 
     this.resolveOverlaps(resize.itemId);
 
-    if (this.blocks.size === 0) {
+    if (this.conflicts.size === 0) {
       this.refloatGrid();
     }
 
@@ -74,7 +74,7 @@ export class DndEngine {
 
     this.resolveOverlaps(item.id);
 
-    if (this.blocks.size === 0) {
+    if (this.conflicts.size === 0) {
       this.refloatGrid();
     }
 
@@ -86,7 +86,7 @@ export class DndEngine {
 
     this.grid.remove(itemId);
 
-    if (this.blocks.size === 0) {
+    if (this.conflicts.size === 0) {
       this.refloatGrid();
     }
 
@@ -96,7 +96,7 @@ export class DndEngine {
   commit(): GridTransition {
     const transition = this.getTransition();
 
-    if (this.blocks.size === 0) {
+    if (this.conflicts.size === 0) {
       this.lastCommit = transition.end;
     }
 
@@ -107,18 +107,18 @@ export class DndEngine {
 
   getTransition(): GridTransition {
     const end = { items: sortGridItems(this.grid.items.map((item) => ({ ...item }))), width: this.grid.width };
-    return { start: this.lastCommit, end, moves: [...this.moves], blocks: [...this.blocks] };
+    return { start: this.lastCommit, end, moves: [...this.moves], conflicts: [...this.conflicts] };
   }
 
   private cleanup(): void {
     this.grid = new DndGrid(this.lastCommit);
     this.moves = [];
     this.overlaps = new StackSet();
-    this.blocks = new Set();
+    this.conflicts = new Set();
   }
 
   private addOverlap(itemId: ItemId): void {
-    if (!this.blocks.has(itemId)) {
+    if (!this.conflicts.has(itemId)) {
       this.overlaps.push(itemId);
     }
   }
@@ -150,7 +150,7 @@ export class DndEngine {
         this.moves.push(nextMove);
       } else {
         // Can't resolve this overlap because of the blocked items.
-        // That is expected - such overlaps can be resolved once the blocks are gone.
+        // That is expected - such overlaps can be resolved once the conflicts are gone.
       }
       overlap = this.overlaps.pop();
     }
@@ -284,7 +284,7 @@ export class DndEngine {
           }
 
           // The probed destination i currently blocked.
-          if (this.blocks.has(item.id)) {
+          if (this.conflicts.has(item.id)) {
             return "blocked";
           }
         }
@@ -294,8 +294,8 @@ export class DndEngine {
     return "ok";
   }
 
-  private findBlocks(move: CommittedMove): void {
-    this.blocks = new Set<ItemId>();
+  private findConflicts(move: CommittedMove): void {
+    this.conflicts = new Set<ItemId>();
 
     const moveTarget = this.grid.getItem(move.itemId);
     const direction = `${move.x - moveTarget.x}:${move.y - moveTarget.y}`;
@@ -306,7 +306,7 @@ export class DndEngine {
         for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
           const block = this.grid.getCellOverlay(left, y, moveTarget.id);
           if (block && block.x < left) {
-            this.blocks.add(block.id);
+            this.conflicts.add(block.id);
           }
         }
         break;
@@ -316,7 +316,7 @@ export class DndEngine {
         for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
           const block = this.grid.getCellOverlay(right, y, moveTarget.id);
           if (block && block.x + block.width - 1 > right) {
-            this.blocks.add(block.id);
+            this.conflicts.add(block.id);
           }
         }
         break;
@@ -326,7 +326,7 @@ export class DndEngine {
         for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
           const block = this.grid.getCellOverlay(x, top, moveTarget.id);
           if (block && block.y < top) {
-            this.blocks.add(block.id);
+            this.conflicts.add(block.id);
           }
         }
         break;
@@ -336,7 +336,7 @@ export class DndEngine {
         for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
           const block = this.grid.getCellOverlay(x, bottom, moveTarget.id);
           if (block && block.y + block.height - 1 > bottom) {
-            this.blocks.add(block.id);
+            this.conflicts.add(block.id);
           }
         }
         break;

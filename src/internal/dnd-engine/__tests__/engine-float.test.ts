@@ -19,7 +19,7 @@ test("all items float to the top after move+commit", () => {
       const movePath = generateMove(grid, "any");
       const transition = new DndEngine(grid).move(movePath);
 
-      if (transition.blocks.length === 0) {
+      if (transition.conflicts.length === 0) {
         const textGrid = toMatrix(transition.end);
 
         let invalidItem: null | string = null;

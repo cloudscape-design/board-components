@@ -10,7 +10,7 @@ test("element removal never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const transition = new DndEngine(grid).remove("A");
-    expect(transition.blocks).toHaveLength(0);
+    expect(transition.conflicts).toHaveLength(0);
   });
 });
 

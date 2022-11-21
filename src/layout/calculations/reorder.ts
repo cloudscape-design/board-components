@@ -78,7 +78,7 @@ export function calculateShifts(
 
   return {
     path: newPath,
-    hasConflicts: transition.blocks.length > 0,
+    hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
     items: transition.end.items,
   };

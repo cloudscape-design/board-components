@@ -43,7 +43,7 @@ export interface GridTransition {
   start: GridDefinition;
   end: GridDefinition;
   moves: readonly CommittedMove[];
-  blocks: readonly ItemId[];
+  conflicts: readonly ItemId[];
 }
 
 export type Direction = "top" | "right" | "bottom" | "left";
