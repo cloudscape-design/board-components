@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { StackSet } from "../utils/stack-set";
 import { DndGrid, DndItem } from "./grid";
 import {
   CommittedMove,
@@ -13,7 +14,6 @@ import {
   Position,
   ResizeCommand,
 } from "./interfaces";
-import { StackSet } from "./stack-set";
 
 export class DndEngine {
   private lastCommit: GridDefinition;

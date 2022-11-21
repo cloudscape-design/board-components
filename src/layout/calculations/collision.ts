@@ -19,11 +19,7 @@ function isInsideRect(rect: Rect, bounds: Rect) {
  * sizes of containers, where a container may fully cover multiple droppable spots.
  * More details on dnd-kit API: https://docs.dndkit.com/api-documentation/context-provider/collision-detection-algorithms
  */
-export const getCollisions = (
-  active: HTMLElement,
-  droppables: Set<HTMLElement>,
-  droppableIds: WeakMap<HTMLElement, string>
-) => {
+export const getCollisions = (active: HTMLElement, droppables: readonly [string, HTMLElement][]) => {
   const collisionRect = active.getBoundingClientRect();
   let bounds = {
     top: Number.POSITIVE_INFINITY,
@@ -33,8 +29,8 @@ export const getCollisions = (
   };
 
   // snap current collision to rects grid
-  for (const droppable of droppables.values()) {
-    const rect = droppable.getBoundingClientRect();
+  for (const [, droppableElement] of droppables) {
+    const rect = droppableElement.getBoundingClientRect();
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
       left: getMinDistance(bounds.left, rect.left, collisionRect.left),
@@ -52,7 +48,7 @@ export const getCollisions = (
   }
 
   // return all rects inside adjusted collision box
-  return [...droppables]
-    .filter((droppable) => isInsideRect(droppable.getBoundingClientRect(), bounds))
-    .map((droppable) => droppableIds.get(droppable)!);
+  return droppables
+    .filter(([, droppableElement]) => isInsideRect(droppableElement.getBoundingClientRect(), bounds))
+    .map(([droppableId]) => droppableId);
 };

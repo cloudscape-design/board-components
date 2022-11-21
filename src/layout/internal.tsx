@@ -31,8 +31,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const { content, placeholders, rows } = createLayout(items, columns, activeDragGhost);
 
   useDragSubscription("start", () => setActiveDragGhost(true));
-  useDragSubscription("move", ({ active, activeId, droppableIds, droppables }) => {
-    const collisionsIds = getCollisions(active, droppables, droppableIds);
+  useDragSubscription("move", ({ active, activeId, droppables }) => {
+    const collisionsIds = getCollisions(active, droppables);
     setCollisionIds(collisionsIds);
     const layoutShift = calculateShifts(
       content,
@@ -42,8 +42,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     );
     setTransforms(createTransforms(layoutShift.current.items, content, active.getBoundingClientRect()));
   });
-  useDragSubscription("drop", ({ active, activeId, droppableIds, droppables }) => {
-    const collisionsIds = getCollisions(active, droppables, droppableIds);
+  useDragSubscription("drop", ({ active, activeId, droppables }) => {
+    const collisionsIds = getCollisions(active, droppables);
     const layoutShift = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
