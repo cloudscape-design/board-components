@@ -38,8 +38,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const { x, y } = content.find((item) => item.id === activeId)!;
     pathRef.current = [{ x, y }];
   });
-  useDragSubscription("move", ({ active, activeId, droppableIds, droppables }) => {
-    const collisionsIds = getCollisions(active, droppables, droppableIds);
+  useDragSubscription("move", ({ active, activeId, droppables }) => {
+    const collisionsIds = getCollisions(active, droppables);
     setCollisionIds(collisionsIds);
     const layoutShift = calculateShifts(
       content,
@@ -52,8 +52,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const cellRect = [...droppables.values()][0].getBoundingClientRect();
     setTransforms(createTransforms(content, layoutShift.current.moves, cellRect));
   });
-  useDragSubscription("drop", ({ active, activeId, droppableIds, droppables }) => {
-    const collisionsIds = getCollisions(active, droppables, droppableIds);
+  useDragSubscription("drop", ({ active, activeId, droppables }) => {
+    const collisionsIds = getCollisions(active, droppables);
     const layoutShift = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
 import { MouseEvent as ReactMouseEvent, Ref, useEffect, useRef, useState } from "react";
+import { ListMap } from "../utils/list-map";
 import { EventEmitter } from "./emitter";
 
 type Updater = (event: MouseEvent) => void;
@@ -9,8 +10,7 @@ type Updater = (event: MouseEvent) => void;
 interface DragAndDropData {
   active: HTMLElement;
   activeId: string;
-  droppables: Set<HTMLElement>;
-  droppableIds: WeakMap<HTMLElement, string>;
+  droppables: readonly [string, HTMLElement][];
 }
 
 interface DragAndDropEvents {
@@ -20,8 +20,7 @@ interface DragAndDropEvents {
 }
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
-  private droppables = new Set<HTMLElement>();
-  private droppableIds = new WeakMap<HTMLElement, string>();
+  private droppables = new ListMap<string, HTMLElement>();
   private activeElement: HTMLElement | null = null;
   private activeId: string | null = null;
   private activeUpdater: Updater | null = null;
@@ -31,8 +30,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("move", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppables,
-      droppableIds: this.droppableIds,
+      droppables: this.droppables.entries(),
     });
   };
 
@@ -40,8 +38,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("drop", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppables,
-      droppableIds: this.droppableIds,
+      droppables: this.droppables.entries(),
     });
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("mouseup", this.onMouseUp);
@@ -51,13 +48,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   };
 
   public addDroppable(element: HTMLElement, id: string) {
-    this.droppables.add(element);
-    this.droppableIds.set(element, id);
+    this.droppables.set(id, element);
   }
 
-  public removeDroppable(element: HTMLElement) {
-    this.droppables.delete(element);
-    this.droppableIds.delete(element);
+  public removeDroppable(id: string) {
+    this.droppables.delete(id);
   }
 
   public activateDrag(activeElement: HTMLElement, activeId: string, updater: (event: MouseEvent) => void) {
@@ -67,8 +62,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("start", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppables,
-      droppableIds: this.droppableIds,
+      droppables: this.droppables.entries(),
     });
     document.addEventListener("mousemove", this.onMouseMove);
     document.addEventListener("mouseup", this.onMouseUp);
@@ -120,7 +114,7 @@ export function useDroppable(id: string) {
     const el = ref.current;
     if (el) {
       controller.addDroppable(el, id);
-      return () => controller.removeDroppable(el);
+      return () => controller.removeDroppable(id);
     }
   }, [id]);
 
