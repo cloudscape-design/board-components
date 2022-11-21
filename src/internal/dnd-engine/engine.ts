@@ -14,6 +14,7 @@ import {
   Position,
   ResizeCommand,
 } from "./interfaces";
+import { sortGridItems } from "./utils";
 
 export class DndEngine {
   private lastCommit: GridDefinition;
@@ -97,17 +98,15 @@ export class DndEngine {
 
     if (this.blocks.size === 0) {
       this.lastCommit = transition.end;
-      this.cleanup();
     }
+
+    this.cleanup();
 
     return transition;
   }
 
   getTransition(): GridTransition {
-    const end = {
-      items: this.grid.items.map((item) => ({ ...item })).sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y)),
-      width: this.grid.width,
-    };
+    const end = { items: sortGridItems(this.grid.items.map((item) => ({ ...item }))), width: this.grid.width };
     return { start: this.lastCommit, end, moves: [...this.moves], blocks: [...this.blocks] };
   }
 
