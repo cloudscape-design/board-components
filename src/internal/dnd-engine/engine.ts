@@ -477,19 +477,25 @@ export class DndEngine {
   }
 
   private normalizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+    const mutablePath = [origin, ...path];
     const originKey = `${origin.x}:${origin.y}`;
     const steps = new Map([[originKey, 0]]);
 
-    for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
-      const stepKey = `${path[stepIndex].x}:${path[stepIndex].y}`;
-      const sliceIndex = steps.get(stepKey);
-      if (sliceIndex !== undefined) {
-        return path.slice(0, sliceIndex);
+    for (let stepIndex = 1; stepIndex < mutablePath.length; stepIndex++) {
+      const stepKey = `${mutablePath[stepIndex].x}:${mutablePath[stepIndex].y}`;
+      const removeFrom = steps.get(stepKey);
+
+      if (removeFrom !== undefined) {
+        for (let removeStepIndex = stepIndex - 1; removeStepIndex >= removeFrom; removeStepIndex--) {
+          const removeStepKey = `${mutablePath[removeStepIndex].x}:${mutablePath[removeStepIndex].y}`;
+          steps.delete(removeStepKey);
+          mutablePath.splice(removeStepIndex, 1);
+        }
       }
-      steps.set(stepKey, stepIndex + 1);
+      steps.set(stepKey, stepIndex);
     }
 
-    return path;
+    return mutablePath.slice(1);
   }
 
   private validateResizeCommand({ itemId, width, height }: ResizeCommand): ResizeCommand {

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
-import { Ref, useState } from "react";
+import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd";
 import { toString as engineToString } from "../internal/dnd-engine/debug-tools";
+import { Position } from "../internal/dnd-engine/interfaces";
 import Grid from "../internal/grid";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
@@ -26,20 +27,28 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
   const [activeDragGhost, setActiveDragGhost] = useState<boolean>(false);
+  const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const { content, placeholders, rows } = createLayout(items, columns, activeDragGhost);
 
-  useDragSubscription("start", () => setActiveDragGhost(true));
+  useDragSubscription("start", ({ activeId }) => {
+    setActiveDragGhost(true);
+
+    const { x, y } = content.find((item) => item.id === activeId)!;
+    pathRef.current = [{ x, y }];
+  });
   useDragSubscription("move", ({ active, activeId, droppableIds, droppables }) => {
     const collisionsIds = getCollisions(active, droppables, droppableIds);
     setCollisionIds(collisionsIds);
     const layoutShift = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-      content.find((item) => item.id === activeId)!,
+      activeId,
+      pathRef.current,
       columns
     );
+    pathRef.current = layoutShift.path;
     setTransforms(createTransforms(layoutShift.current.items, content, active.getBoundingClientRect()));
   });
   useDragSubscription("drop", ({ active, activeId, droppableIds, droppables }) => {
@@ -47,16 +56,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const layoutShift = calculateShifts(
       content,
       collisionsIds.map((id) => placeholders.find((p) => p.id === id)!),
-      content.find((item) => item.id === activeId)!,
+      activeId,
+      pathRef.current,
       columns
     );
 
     // Logs for dnd-engine debugging.
     console.log("Current grid:");
-    console.log(engineToString({ items: layoutShift.current.items, width: 4 }));
+    console.log(engineToString({ items: layoutShift.current.items, width: columns }));
 
     console.log("Committed grid:");
-    console.log(engineToString({ items: layoutShift.committed.items, width: 4 }));
+    console.log(engineToString({ items: layoutShift.committed.items, width: columns }));
 
     console.log("Layout shift:");
     console.log(layoutShift);
@@ -69,6 +79,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     }
     setActiveDragGhost(false);
     setCollisionIds(null);
+    pathRef.current = [];
 
     // Commit new layout.
     if (!layoutShift.hasConflicts) {
