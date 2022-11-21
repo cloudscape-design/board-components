@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
 import { MouseEvent as ReactMouseEvent, Ref, useEffect, useRef, useState } from "react";
-import { ListMap } from "../utils/list-map";
 import { EventEmitter } from "./emitter";
 
 type Updater = (event: MouseEvent) => void;
@@ -20,7 +19,8 @@ interface DragAndDropEvents {
 }
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
-  private droppables = new ListMap<string, HTMLElement>();
+  private droppables = new Map<string, HTMLElement>();
+  private droppablesEntries = new Array<[string, HTMLElement]>();
   private activeElement: HTMLElement | null = null;
   private activeId: string | null = null;
   private activeUpdater: Updater | null = null;
@@ -30,7 +30,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("move", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppables.entries(),
+      droppables: this.droppablesEntries,
     });
   };
 
@@ -38,7 +38,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("drop", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppables.entries(),
+      droppables: this.droppablesEntries,
     });
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("mouseup", this.onMouseUp);
@@ -49,10 +49,12 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 
   public addDroppable(element: HTMLElement, id: string) {
     this.droppables.set(id, element);
+    this.droppablesEntries = [...this.droppables.entries()];
   }
 
   public removeDroppable(id: string) {
     this.droppables.delete(id);
+    this.droppablesEntries = [...this.droppables.entries()];
   }
 
   public activateDrag(activeElement: HTMLElement, activeId: string, updater: (event: MouseEvent) => void) {
@@ -62,7 +64,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("start", {
       active: this.activeElement!,
       activeId: this.activeId!,
-      droppables: this.droppables.entries(),
+      droppables: this.droppablesEntries,
     });
     document.addEventListener("mousemove", this.onMouseMove);
     document.addEventListener("mouseup", this.onMouseUp);
