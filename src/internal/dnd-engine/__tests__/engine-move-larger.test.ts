@@ -4,7 +4,6 @@
 import { describe, expect, test } from "vitest";
 import { fromMatrix, fromTextPath, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { withCommit } from "./helpers";
 
 describe("vertical swaps of larger items", () => {
   test.each([
@@ -97,7 +96,7 @@ describe("vertical swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -149,7 +148,7 @@ describe("horizontal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -199,17 +198,17 @@ describe("swaps with overlay", () => {
     [
       "swap S with D (overlay on the bottom)",
       [
-        [" ", "A"],
         ["S", "A"],
-        ["D", "B"],
-        ["D", "B"],
-      ],
-      "A2 A3 A4",
-      [
-        [" ", "A"],
         ["D", "A"],
         ["D", "B"],
+        [" ", "B"],
+      ],
+      "A1 A2 A3",
+      [
+        ["D", "A"],
+        ["D", "A"],
         ["S", "B"],
+        [" ", "B"],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
@@ -255,7 +254,7 @@ describe("diagonal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -298,7 +297,7 @@ describe("replacement moves of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -325,7 +324,7 @@ describe("long path moves", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -395,7 +394,7 @@ describe("empty spaces are prioritized over disturbing other items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -422,7 +421,7 @@ describe("escape moves", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation, escapeMove) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
     expect(transition.moves.find((move) => move.itemId === "B")).toEqual(escapeMove);
   });

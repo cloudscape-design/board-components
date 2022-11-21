@@ -48,14 +48,8 @@ export function createTransforms(
 export interface LayoutShift {
   path: Position[];
   hasConflicts: boolean;
-  current: {
-    moves: CommittedMove[];
-    items: readonly GridLayoutItem[];
-  };
-  committed: {
-    moves: CommittedMove[];
-    items: readonly GridLayoutItem[];
-  };
+  moves: CommittedMove[];
+  items: readonly GridLayoutItem[];
 }
 
 export function calculateShifts(
@@ -73,20 +67,20 @@ export function calculateShifts(
     return {
       path: newPath,
       hasConflicts: false,
-      current: { moves: [], items: grid },
-      committed: { moves: [], items: grid },
+      moves: [],
+      items: grid,
     };
   }
 
   const engine = new DndEngine({ items: grid, width: columns });
-  const moveTransition = engine.move({ itemId: activeId, path: newPath.slice(1) });
-  const commitTransition = engine.commit();
+  engine.move({ itemId: activeId, path: newPath.slice(1) });
+  const transition = engine.commit();
 
   return {
     path: newPath,
-    hasConflicts: moveTransition.blocks.length > 0,
-    current: { moves: moveTransition.moves, items: moveTransition.end.items },
-    committed: { moves: commitTransition.moves, items: commitTransition.end.items },
+    hasConflicts: transition.blocks.length > 0,
+    moves: transition.moves,
+    items: transition.end.items,
   };
 }
 

@@ -43,6 +43,10 @@ export class DndEngine {
       this.resolveConflicts(itemId);
     }
 
+    if (this.blocks.size === 0) {
+      this.refloatGrid();
+    }
+
     return this.getTransition();
   }
 
@@ -55,6 +59,10 @@ export class DndEngine {
 
     this.resolveConflicts(resize.itemId);
 
+    if (this.blocks.size === 0) {
+      this.refloatGrid();
+    }
+
     return this.getTransition();
   }
 
@@ -65,6 +73,10 @@ export class DndEngine {
 
     this.resolveConflicts(item.id);
 
+    if (this.blocks.size === 0) {
+      this.refloatGrid();
+    }
+
     return this.getTransition();
   }
 
@@ -73,22 +85,22 @@ export class DndEngine {
 
     this.grid.remove(itemId);
 
-    return this.getTransition();
-  }
-
-  commit(): GridTransition {
     if (this.blocks.size === 0) {
       this.refloatGrid();
     }
 
-    const transitionWithRefloat = this.getTransition();
+    return this.getTransition();
+  }
+
+  commit(): GridTransition {
+    const transition = this.getTransition();
 
     if (this.blocks.size === 0) {
-      this.lastCommit = transitionWithRefloat.end;
+      this.lastCommit = transition.end;
       this.cleanup();
     }
 
-    return transitionWithRefloat;
+    return transition;
   }
 
   getTransition(): GridTransition {

@@ -4,7 +4,7 @@
 import { describe, expect, test } from "vitest";
 import { fromMatrix, fromTextPath, generateGrid, generateMove, toString } from "../debug-tools";
 import { DndEngine } from "../engine";
-import { forEachTimes, withCommit } from "./helpers";
+import { forEachTimes } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {
   forEachTimes(
@@ -67,7 +67,7 @@ describe("swap right", () => {
     [[["A", "A", "B", "B", "B"]], "A1 B1 C1", [[" ", " ", "A/B", "A/B", "B"]]],
   ])("can't swap to the right when not enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -78,7 +78,7 @@ describe("swap right", () => {
     [[["A", "A", "B", "B", "B"]], "A1 B1 C1 D1", [["B", "B", "B", "A", "A"]]],
   ])("can swap to the right when enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -97,7 +97,7 @@ describe("swap right", () => {
     ],
   ])("can make partial swap to the right", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -112,7 +112,7 @@ describe("swap left", () => {
     [[["A", "A", "A", "B", "B"]], "D1 C1 B1", [["A", "A/B", "A/B", " ", " "]]],
   ])("can't swap to the left when not enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -123,7 +123,7 @@ describe("swap left", () => {
     [[["A", "A", "A", "B", "B"]], "D1 C1 B1 A1", [["B", "B", "A", "A", "A"]]],
   ])("can swap to the left when enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -142,7 +142,7 @@ describe("swap left", () => {
     ],
   ])("can make partial swap to the left", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -157,7 +157,7 @@ describe("swap bottom", () => {
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3", [[" "], [" "], ["A/B"], ["A/B"], ["B"]]],
   ])("can't swap to the bottom when not enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -168,7 +168,7 @@ describe("swap bottom", () => {
     [[["A"], ["A"], ["B"], ["B"], ["B"]], "A1 A2 A3 A4", [["B"], ["B"], ["B"], ["A"], ["A"]]],
   ])("can swap to the bottom when enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -191,7 +191,7 @@ describe("swap bottom", () => {
     ],
   ])("can make partial swap to the bottom", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -206,7 +206,7 @@ describe("swap top", () => {
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2", [["A"], ["A/B"], ["A/B"]]],
   ])("can't swap to the top when not enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -217,7 +217,7 @@ describe("swap top", () => {
     [[["A"], ["A"], ["A"], ["B"], ["B"]], "A4 A3 A2 A1", [["B"], ["B"], ["A"], ["A"], ["A"]]],
   ])("can swap to the top when enough overlap", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 
@@ -240,7 +240,7 @@ describe("swap top", () => {
     ],
   ])("can make partial swap to the top", (gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

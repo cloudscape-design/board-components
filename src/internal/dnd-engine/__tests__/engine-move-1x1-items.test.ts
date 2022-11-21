@@ -3,7 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { fromMatrix, fromTextPath, toString } from "../debug-tools";
-import { withCommit } from "./helpers";
+import { DndEngine } from "../engine";
 
 describe("swap adjacent items", () => {
   test.each([
@@ -65,7 +65,7 @@ describe("swap adjacent items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -186,7 +186,7 @@ describe("replace closest diagonal items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -251,7 +251,7 @@ describe("swap distant items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -316,7 +316,7 @@ describe("replace distant diagonal items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
@@ -353,7 +353,7 @@ describe("replace arbitrary items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = withCommit(grid, (engine) => engine.move(fromTextPath(path, grid)));
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });

@@ -138,6 +138,7 @@ test("normalizes move path and continues when from the repeating position", () =
     { itemId: "A", x: 1, y: 1, type: "USER" },
     { itemId: "A", x: 1, y: 2, type: "USER" },
     { itemId: "A", x: 1, y: 3, type: "USER" },
+    { itemId: "A", x: 1, y: 0, type: "FLOAT" },
   ]);
 });
 

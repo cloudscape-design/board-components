@@ -4,13 +4,13 @@
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
 import { fromMatrix, generateGrid, generateInsert, toString } from "../debug-tools";
-import { withCommit } from "./helpers";
+import { DndEngine } from "../engine";
 
 test("element insertion never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const item = generateInsert(grid);
-    const transition = withCommit(grid, (engine) => engine.insert(item));
+    const transition = new DndEngine(grid).insert(item);
     expect(transition.blocks).toHaveLength(0);
   });
 });
@@ -49,7 +49,7 @@ describe("insert scenarios", () => {
       ],
     ],
   ])("%s", (_, grid, item, expectation) => {
-    const transition = withCommit(fromMatrix(grid), (engine) => engine.insert(item));
+    const transition = new DndEngine(fromMatrix(grid)).insert(item);
     expect(toString(transition.end)).toBe(toString(expectation));
   });
 });
