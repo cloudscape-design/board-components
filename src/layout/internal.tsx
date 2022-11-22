@@ -6,12 +6,13 @@ import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { GridLayoutItem, Position } from "../internal/interfaces";
+import { DashboardItemBase, Position, Rect } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
 import {
+  calculateInsertShifts,
   calculateReorderShifts,
   calculateResizeShifts,
   createTransforms,
@@ -28,32 +29,43 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   );
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
-  const [activeDragItem, setActiveDragItem] = useState<null | GridLayoutItem>(null);
+  const [activeDragItem, setActiveDragItem] = useState<null | DashboardItemBase<unknown>>(null);
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
 
   const itemsLayout = createItemsLayout(items, columns);
-  const rows = !activeDragItem ? itemsLayout.rows : itemsLayout.rows + activeDragItem.height;
+  const matchedLayoutItem = itemsLayout.items.find((item) => item.id === activeDragItem?.id);
+  const extraRows = matchedLayoutItem?.height ?? activeDragItem?.definition.defaultRowSpan ?? 0;
+  const rows = itemsLayout.rows + extraRows;
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  useDragSubscription("start", (detail) => {
-    const activeDragItem = itemsLayout.items.find((item) => item.id === detail.item.id)!;
+  function getLayoutShift(resize: boolean, collisionRect: Rect) {
+    if (!activeDragItem) {
+      throw new Error("Invariant violation: no matched item.");
+    }
+    if (resize) {
+      return calculateResizeShifts(itemsLayout, collisionRect, activeDragItem.id);
+    }
+    return matchedLayoutItem
+      ? calculateReorderShifts(itemsLayout, collisionRect, activeDragItem.id, pathRef.current)
+      : calculateInsertShifts(itemsLayout, collisionRect, activeDragItem);
+  }
 
-    setActiveDragItem(activeDragItem);
+  useDragSubscription("start", (detail) => {
+    setActiveDragItem(detail.item);
 
     if (!detail.resize) {
-      pathRef.current = [{ x: activeDragItem.x, y: activeDragItem.y }];
+      const matchedItem = itemsLayout.items.find((item) => item.id === detail.item.id);
+      pathRef.current = [{ x: matchedItem?.x ?? -1, y: matchedItem?.y ?? -1 }];
     }
   });
 
   useDragSubscription("move", (detail) => {
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const layoutShift = detail.resize
-      ? calculateResizeShifts(itemsLayout, collisionRect, detail.item.id)
-      : calculateReorderShifts(itemsLayout, collisionRect, detail.item.id, pathRef.current);
+    const layoutShift = getLayoutShift(detail.resize, collisionRect);
 
     pathRef.current = layoutShift.path;
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
@@ -63,9 +75,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   useDragSubscription("drop", (detail) => {
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
-    const layoutShift = detail.resize
-      ? calculateResizeShifts(itemsLayout, collisionRect, detail.item.id)
-      : calculateReorderShifts(itemsLayout, collisionRect, detail.item.id, pathRef.current);
+    const layoutShift = getLayoutShift(detail.resize, collisionRect);
+
     printLayoutDebug(itemsLayout, layoutShift);
 
     setTransforms({});
@@ -73,8 +84,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     setCollisionIds(null);
     pathRef.current = [];
 
-    // Commit new layout.
-    if (!layoutShift.hasConflicts) {
+    // Commit new layout for insert case.
+    if (!layoutShift.hasConflicts && !matchedLayoutItem) {
+      // TODO: resolve "any" here.
+      // It is not quite clear yet how to ensure the addedItem matches generic D type.
+      const newLayout = exportItemsLayout(layoutShift.next, [...items, activeDragItem!] as any);
+      const addedItem = newLayout.find((item) => item.id === activeDragItem?.id)!;
+      onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+    }
+    // Commit new layout for reorder/resize case.
+    else if (!layoutShift.hasConflicts) {
       onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
     }
   });

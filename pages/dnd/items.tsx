@@ -62,6 +62,7 @@ export const initialPaletteItems: ReadonlyArray<PaletteProps.Item<ItemData>> = O
   .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
   .map(([key, widget]) => ({
     id: key,
-    definition: widget?.definition ?? defaultDefinition,
+    definition:
+      widget?.definition ?? key === "counter" ? { defaultRowSpan: 2, defaultColumnSpan: 2 } : defaultDefinition,
     data: widget?.data ?? createDefaultWidget(key),
   }));

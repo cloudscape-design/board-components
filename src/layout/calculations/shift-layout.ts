@@ -4,7 +4,7 @@ import { Transform } from "@dnd-kit/utilities";
 import { toString as engineToString } from "../../internal/debug-tools";
 import { DndEngine } from "../../internal/dnd-engine/engine";
 import { CommittedMove } from "../../internal/dnd-engine/interfaces";
-import { GridLayout, ItemId } from "../../internal/interfaces";
+import { DashboardItemBase, GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
@@ -29,13 +29,17 @@ export function createTransforms(
   const transforms: Record<ItemId, Transform> = {};
 
   for (const move of moves) {
-    const item = grid.items.find((prev) => prev.id === move.itemId)!;
-    transforms[item.id] = {
-      x: (move.x - item.x) * (cell.width + GAP),
-      y: (move.y - item.y) * (cell.height + GAP),
-      scaleX: 1,
-      scaleY: 1,
-    };
+    const item = grid.items.find((prev) => prev.id === move.itemId);
+
+    // Item can be missing if inserting.
+    if (item) {
+      transforms[item.id] = {
+        x: (move.x - item.x) * (cell.width + GAP),
+        y: (move.y - item.y) * (cell.height + GAP),
+        scaleX: 1,
+        scaleY: 1,
+      };
+    }
   }
 
   return transforms;
@@ -70,6 +74,29 @@ export function calculateReorderShifts(
 
   return {
     path: newPath,
+    hasConflicts: transition.conflicts.length > 0,
+    moves: transition.moves,
+    next: transition.end,
+  };
+}
+
+export function calculateInsertShifts(
+  grid: GridLayout,
+  collisionRect: Rect,
+  item: DashboardItemBase<unknown>
+): LayoutShift {
+  const width = item.definition.defaultColumnSpan;
+  const height = item.definition.defaultRowSpan;
+  const x = Math.min(grid.columns - width, collisionRect.left);
+  const y = collisionRect.top;
+  const layoutItem = { id: item.id, x, y, width, height };
+
+  const engine = new DndEngine(grid);
+  engine.insert(layoutItem);
+  const transition = engine.commit();
+
+  return {
+    path: [],
     hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
     next: transition.end,
