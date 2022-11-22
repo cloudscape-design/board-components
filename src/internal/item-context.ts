@@ -6,6 +6,7 @@ import { DashboardItemBase } from "./interfaces";
 
 export interface ItemContext {
   item: DashboardItemBase<unknown>;
+  itemSize: { width: number; height: number };
   resizable: boolean;
   transform: Transform | null;
 }

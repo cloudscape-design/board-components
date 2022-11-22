@@ -35,7 +35,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
 
   const itemsLayout = createItemsLayout(items, columns);
-  const matchedLayoutItem = itemsLayout.items.find((item) => item.id === activeDragItem?.id);
+  const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
+  const matchedLayoutItem = activeDragItem && layoutItemById.get(activeDragItem.id);
   const extraRows = matchedLayoutItem?.height ?? activeDragItem?.definition.defaultRowSpan ?? 0;
   const rows = itemsLayout.rows + extraRows;
 
@@ -57,7 +58,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     setActiveDragItem(detail.item);
 
     if (!detail.resize) {
-      const matchedItem = itemsLayout.items.find((item) => item.id === detail.item.id);
+      const matchedItem = layoutItemById.get(detail.item.id);
       pathRef.current = [{ x: matchedItem?.x ?? -1, y: matchedItem?.y ?? -1 }];
     }
   });
@@ -113,6 +114,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
             key={item.id}
             value={{
               item,
+              itemSize: layoutItemById.get(item.id) ?? {
+                width: item.definition.defaultColumnSpan,
+                height: item.definition.defaultRowSpan,
+              },
               resizable: true,
               transform: transforms[item.id] ?? null,
             }}

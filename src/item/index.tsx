@@ -27,7 +27,7 @@ export default function DashboardItem({
   i18nStrings,
   ...containerProps
 }: DashboardItemProps) {
-  const { item, transform, resizable } = useItemContext();
+  const { item, itemSize, transform, resizable } = useItemContext();
   const [dragTransform, setDragTransform] = useState<Transform | null>(null);
   const [sizeOverride, setSizeOverride] = useState<{ width: number; height: number } | null>(null);
   const [activeItem, setActiveItem] = useState<null | DashboardItemBase<unknown>>(null);
@@ -46,7 +46,7 @@ export default function DashboardItem({
       };
     }
   });
-  useDragSubscription("move", ({ item: activeItem, resize, coordinates }) => {
+  useDragSubscription("move", ({ item: activeItem, resize, coordinates, droppables }) => {
     const origin = dragOriginRef.current!;
     if (activeItem.id === item.id) {
       if (resize) {
@@ -55,6 +55,8 @@ export default function DashboardItem({
           height: origin.rect.height + (coordinates.pageY - origin.cursor.pageY),
         });
       } else {
+        const cellRect = droppables[0][1].getBoundingClientRect();
+        setSizeOverride({ width: cellRect.width * itemSize.width, height: cellRect.height * itemSize.height });
         setDragTransform({
           x: coordinates.pageX - origin.cursor.pageX,
           y: coordinates.pageY - origin.cursor.pageY,
