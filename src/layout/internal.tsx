@@ -10,7 +10,7 @@ import { Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
-import { createLayout } from "./calculations/create-layout";
+import { createItemsLayout, createPlaceholdersLayout } from "./calculations/create-layout";
 import { exportLayout } from "./calculations/export-layout";
 import {
   calculateReorderShifts,
@@ -33,35 +33,37 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = createLayout(items, columns, isDragActive);
+
+  const itemsLayout = createItemsLayout(items, columns, isDragActive);
+  const placeholdersLayout = createPlaceholdersLayout(itemsLayout.rows, itemsLayout.columns);
 
   useDragSubscription("start", ({ id, resize }) => {
     setIsDragActive(true);
     if (!resize) {
-      const { x, y } = content.find((item) => item.id === id)!;
+      const { x, y } = itemsLayout.items.find((item) => item.id === id)!;
       pathRef.current = [{ x, y }];
     }
   });
 
   useDragSubscription("move", (detail) => {
     const collisionIds = getHoveredDroppables(detail);
-    const collisionRect = getHoveredRect(collisionIds, placeholders);
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(content, collisionRect, detail.id, columns)
-      : calculateReorderShifts(content, collisionRect, detail.id, pathRef.current, columns);
+      ? calculateResizeShifts(itemsLayout.items, collisionRect, detail.id, columns)
+      : calculateReorderShifts(itemsLayout.items, collisionRect, detail.id, pathRef.current, columns);
 
     pathRef.current = layoutShift.path;
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     setCollisionIds(collisionIds);
-    setTransforms(createTransforms(content, layoutShift.moves, cellRect));
+    setTransforms(createTransforms(itemsLayout.items, layoutShift.moves, cellRect));
   });
 
   useDragSubscription("drop", (detail) => {
-    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholders);
+    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(content, collisionRect, detail.id, columns)
-      : calculateReorderShifts(content, collisionRect, detail.id, pathRef.current, columns);
-    printLayoutDebug(content, columns, layoutShift);
+      ? calculateResizeShifts(itemsLayout.items, collisionRect, detail.id, columns)
+      : calculateReorderShifts(itemsLayout.items, collisionRect, detail.id, pathRef.current, columns);
+    printLayoutDebug(itemsLayout.items, columns, layoutShift);
 
     setTransforms({});
     setIsDragActive(false);
@@ -76,28 +78,26 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   return (
     <div ref={containerQueryRef as Ref<HTMLDivElement>}>
-      <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
-        {placeholders.map((placeholder) => (
+      <Grid columns={columns} rows={itemsLayout.rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+        {placeholdersLayout.items.map((placeholder) => (
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
             state={isDragActive ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
           />
         ))}
-        {items.map((item) => {
-          return (
-            <ItemContextProvider
-              key={item.id}
-              value={{
-                id: item.id,
-                resizable: true,
-                transform: transforms[item.id] ?? null,
-              }}
-            >
-              {renderItem(item)}
-            </ItemContextProvider>
-          );
-        })}
+        {items.map((item) => (
+          <ItemContextProvider
+            key={item.id}
+            value={{
+              id: item.id,
+              resizable: true,
+              transform: transforms[item.id] ?? null,
+            }}
+          >
+            {renderItem(item)}
+          </ItemContextProvider>
+        ))}
       </Grid>
     </div>
   );

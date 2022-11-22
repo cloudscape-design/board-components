@@ -1,13 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { GridLayoutItem } from "../../internal/interfaces";
+import { GridLayout, GridLayoutItem } from "../../internal/interfaces";
 import { DashboardLayoutProps } from "../interfaces";
-
-interface GridLayout {
-  content: readonly GridLayoutItem[];
-  placeholders: readonly GridLayoutItem[];
-  rows: number;
-}
 
 function createGridItems(
   items: readonly DashboardLayoutProps.Item<unknown>[],
@@ -42,16 +36,20 @@ function createGridPlaceholders(rows: number, columns: number): readonly GridLay
   return result;
 }
 
-export function createLayout(
-  items: ReadonlyArray<DashboardLayoutProps.Item<unknown>>,
+export function createItemsLayout(
+  data: ReadonlyArray<DashboardLayoutProps.Item<unknown>>,
   columns: number,
   extraRow: boolean
 ): GridLayout {
-  const content = createGridItems(items, columns);
-  let rows = content.reduce((acc, item) => Math.max(acc, item.y + item.height), 1);
+  const items = createGridItems(data, columns);
+  let rows = items.reduce((acc, item) => Math.max(acc, item.y + item.height), 1);
   if (extraRow) {
     rows += 1;
   }
-  const placeholders = createGridPlaceholders(rows, columns);
-  return { content, placeholders, rows };
+  return { items, columns, rows };
+}
+
+export function createPlaceholdersLayout(rows: number, columns: number): GridLayout {
+  const items = createGridPlaceholders(rows, columns);
+  return { items, columns, rows };
 }
