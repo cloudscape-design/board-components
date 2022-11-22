@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { DashboardItem, DataFallbackType } from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, DataFallbackType } from "../internal/interfaces";
 
 export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
@@ -23,6 +23,12 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
    * Fired when a user interaction changes size or position of dashboard items.
    */
   onItemsChange: (event: CustomEvent<DashboardLayoutProps.ItemsChangeDetail<D>>) => void;
+
+  /**
+   * Fired when attempting to add a new item to the board.
+   * If returns null, the item is not allowed to be added.
+   */
+  resolveNewItem?: (itemId: string) => null | DashboardItemBase<D>;
 }
 
 export namespace DashboardLayoutProps {

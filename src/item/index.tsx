@@ -45,6 +45,7 @@ export default function DashboardItem({
         cursor: coordinates,
       };
     }
+    return true;
   });
   useDragSubscription("move", ({ id: activeId, resize, coordinates }) => {
     const origin = dragOriginRef.current!;

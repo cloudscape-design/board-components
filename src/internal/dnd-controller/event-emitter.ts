@@ -23,8 +23,11 @@ export class EventEmitter<Events extends Listeners<Events>> {
   }
 
   protected emit<Event extends keyof Events>(event: Event, ...data: Parameters<Events[Event]>) {
+    let result = true;
     for (const handler of this.listeners.get(event) ?? []) {
-      handler(...data);
+      const handlerResult = handler(...data);
+      result = result && handlerResult;
     }
+    return result;
   }
 }

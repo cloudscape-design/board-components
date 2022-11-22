@@ -16,7 +16,7 @@ interface DragDetail {
 }
 
 interface DragAndDropEvents {
-  start: (data: DragAndDropData) => void;
+  start: (data: DragAndDropData) => boolean;
   move: (data: DragAndDropData) => void;
   drop: (data: DragAndDropData) => void;
 }
@@ -27,9 +27,15 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 
   public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
     this.activeDragDetail = dragDetail;
-    this.emit("start", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
-    document.addEventListener("mousemove", this.onMouseMove);
-    document.addEventListener("mouseup", this.onMouseUp);
+    const success = this.emit("start", {
+      ...this.activeDragDetail,
+      coordinates,
+      droppables: [...this.droppables.entries()],
+    });
+    if (success) {
+      document.addEventListener("mousemove", this.onMouseMove);
+      document.addEventListener("mouseup", this.onMouseUp);
+    }
   }
 
   public addDroppable(element: HTMLElement, id: string) {

@@ -4,7 +4,7 @@ import { Transform } from "@dnd-kit/utilities";
 import { toString as engineToString } from "../../internal/debug-tools";
 import { DndEngine } from "../../internal/dnd-engine/engine";
 import { CommittedMove } from "../../internal/dnd-engine/interfaces";
-import { GridLayout, ItemId } from "../../internal/interfaces";
+import { GridLayout, GridLayoutItem, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
@@ -70,6 +70,29 @@ export function calculateReorderShifts(
 
   return {
     path: newPath,
+    hasConflicts: transition.conflicts.length > 0,
+    moves: transition.moves,
+    next: transition.end,
+  };
+}
+
+export function calculateInsertShifts(grid: GridLayout, collisionRect: Rect, item: GridLayoutItem): LayoutShift {
+  const position = { x: collisionRect.left, y: collisionRect.top };
+  if (!isFinite(position.x) || !isFinite(position.y)) {
+    return {
+      path: [],
+      hasConflicts: false,
+      moves: [],
+      next: grid,
+    };
+  }
+
+  const engine = new DndEngine(grid);
+  engine.insert({ ...item, ...position });
+  const transition = engine.commit();
+
+  return {
+    path: [],
     hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
     next: transition.end,

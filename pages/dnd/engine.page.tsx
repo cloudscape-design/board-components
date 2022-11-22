@@ -5,6 +5,7 @@ import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
 import { DashboardItem, DashboardItemProps, DashboardLayout, DashboardPalette } from "../../lib/components";
 import PageLayout from "../app/page-layout";
+import classnames from "./engine.module.css";
 import { allWidgets, initialLayoutItems, initialPaletteItems } from "./items";
 
 const itemStrings: DashboardItemProps["i18nStrings"] = {
@@ -35,8 +36,9 @@ export default function () {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItemId));
             }
           }}
+          resolveNewItem={(id) => paletteItems.find((item) => item.id === id) ?? null}
         />
-        <div>
+        <div className={classnames.palette}>
           <Header>Add widgets</Header>
           <DashboardPalette
             items={paletteItems}

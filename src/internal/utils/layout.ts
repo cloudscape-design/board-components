@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { DashboardItemBase } from "../interfaces";
 import { DashboardItem, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly DashboardItem<unknown>[], columns: number): GridLayout {
@@ -37,7 +38,7 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 
 export function exportItemsLayout<D>(
   grid: GridLayout,
-  sourceItems: readonly DashboardItem<D>[]
+  sourceItems: readonly DashboardItemBase<D>[]
 ): readonly DashboardItem<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
