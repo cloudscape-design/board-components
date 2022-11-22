@@ -49,21 +49,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(itemsLayout.items, collisionRect, detail.id, columns)
-      : calculateReorderShifts(itemsLayout.items, collisionRect, detail.id, pathRef.current, columns);
+      ? calculateResizeShifts(itemsLayout, collisionRect, detail.id)
+      : calculateReorderShifts(itemsLayout, collisionRect, detail.id, pathRef.current);
 
     pathRef.current = layoutShift.path;
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     setCollisionIds(collisionIds);
-    setTransforms(createTransforms(itemsLayout.items, layoutShift.moves, cellRect));
+    setTransforms(createTransforms(itemsLayout, layoutShift.moves, cellRect));
   });
 
   useDragSubscription("drop", (detail) => {
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(itemsLayout.items, collisionRect, detail.id, columns)
-      : calculateReorderShifts(itemsLayout.items, collisionRect, detail.id, pathRef.current, columns);
-    printLayoutDebug(itemsLayout.items, columns, layoutShift);
+      ? calculateResizeShifts(itemsLayout, collisionRect, detail.id)
+      : calculateReorderShifts(itemsLayout, collisionRect, detail.id, pathRef.current);
+    printLayoutDebug(itemsLayout, layoutShift);
 
     setTransforms({});
     setIsDragActive(false);
@@ -72,7 +72,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     // Commit new layout.
     if (!layoutShift.hasConflicts) {
-      onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.items, items) }));
+      onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.next, items) }));
     }
   });
 

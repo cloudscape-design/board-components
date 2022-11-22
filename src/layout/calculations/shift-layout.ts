@@ -4,32 +4,32 @@ import { Transform } from "@dnd-kit/utilities";
 import { toString as engineToString } from "../../internal/dnd-engine/debug-tools";
 import { DndEngine } from "../../internal/dnd-engine/engine";
 import { CommittedMove } from "../../internal/dnd-engine/interfaces";
-import { GridLayoutItem, ItemId } from "../../internal/interfaces";
+import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
 
-export function printLayoutDebug(content: readonly GridLayoutItem[], columns: number, layoutShift: LayoutShift) {
+export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   // Logs for dnd-engine debugging.
   console.log("Grid before move:");
-  console.log(engineToString({ items: content, columns }));
+  console.log(engineToString(grid));
 
   console.log("Grid after move:");
-  console.log(engineToString({ items: layoutShift.items, columns }));
+  console.log(engineToString(layoutShift.next));
 
   console.log("Layout shift:");
   console.log(layoutShift);
 }
 
 export function createTransforms(
-  grid: readonly GridLayoutItem[],
+  grid: GridLayout,
   moves: readonly CommittedMove[],
   cell: { width: number; height: number }
 ) {
   const transforms: Record<ItemId, Transform> = {};
 
   for (const move of moves) {
-    const item = grid.find((prev) => prev.id === move.itemId)!;
+    const item = grid.items.find((prev) => prev.id === move.itemId)!;
     transforms[item.id] = {
       x: (move.x - item.x) * (cell.width + GAP),
       y: (move.y - item.y) * (cell.height + GAP),
@@ -45,15 +45,14 @@ interface LayoutShift {
   path: Position[];
   hasConflicts: boolean;
   moves: readonly CommittedMove[];
-  items: readonly GridLayoutItem[];
+  next: GridLayout;
 }
 
 export function calculateReorderShifts(
-  grid: readonly GridLayoutItem[],
+  grid: GridLayout,
   collisionRect: Rect,
   activeId: ItemId,
-  prevPath: Position[],
-  columns: number
+  prevPath: Position[]
 ): LayoutShift {
   const newPath = generatePath(prevPath, collisionRect);
   if (newPath.length === 0) {
@@ -61,11 +60,11 @@ export function calculateReorderShifts(
       path: newPath,
       hasConflicts: false,
       moves: [],
-      items: grid,
+      next: grid,
     };
   }
 
-  const engine = new DndEngine({ items: grid, columns });
+  const engine = new DndEngine(grid);
   engine.move({ itemId: activeId, path: newPath.slice(1) });
   const transition = engine.commit();
 
@@ -73,17 +72,12 @@ export function calculateReorderShifts(
     path: newPath,
     hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
-    items: transition.end.items,
+    next: transition.end,
   };
 }
 
-export function calculateResizeShifts(
-  grid: readonly GridLayoutItem[],
-  collisionRect: Rect,
-  activeId: ItemId,
-  columns: number
-): LayoutShift {
-  const engine = new DndEngine({ items: grid, columns });
+export function calculateResizeShifts(grid: GridLayout, collisionRect: Rect, activeId: ItemId): LayoutShift {
+  const engine = new DndEngine(grid);
   engine.resize({
     itemId: activeId,
     height: collisionRect.bottom - collisionRect.top,
@@ -95,7 +89,7 @@ export function calculateResizeShifts(
     path: [],
     hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
-    items: transition.end.items,
+    next: transition.end,
   };
 }
 
