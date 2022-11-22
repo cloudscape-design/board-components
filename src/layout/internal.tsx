@@ -38,12 +38,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  useDragSubscription("start", ({ id, resize }) => {
-    const activeDragItem = itemsLayout.items.find((item) => item.id === id)!;
+  useDragSubscription("start", (detail) => {
+    const activeDragItem = itemsLayout.items.find((item) => item.id === detail.item.id)!;
 
     setActiveDragItem(activeDragItem);
 
-    if (!resize) {
+    if (!detail.resize) {
       pathRef.current = [{ x: activeDragItem.x, y: activeDragItem.y }];
     }
   });
@@ -52,8 +52,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(itemsLayout, collisionRect, detail.id)
-      : calculateReorderShifts(itemsLayout, collisionRect, detail.id, pathRef.current);
+      ? calculateResizeShifts(itemsLayout, collisionRect, detail.item.id)
+      : calculateReorderShifts(itemsLayout, collisionRect, detail.item.id, pathRef.current);
 
     pathRef.current = layoutShift.path;
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
@@ -64,8 +64,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   useDragSubscription("drop", (detail) => {
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(itemsLayout, collisionRect, detail.id)
-      : calculateReorderShifts(itemsLayout, collisionRect, detail.id, pathRef.current);
+      ? calculateResizeShifts(itemsLayout, collisionRect, detail.item.id)
+      : calculateReorderShifts(itemsLayout, collisionRect, detail.item.id, pathRef.current);
     printLayoutDebug(itemsLayout, layoutShift);
 
     setTransforms({});
@@ -93,7 +93,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           <ItemContextProvider
             key={item.id}
             value={{
-              id: item.id,
+              item,
               resizable: true,
               transform: transforms[item.id] ?? null,
             }}

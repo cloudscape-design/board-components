@@ -8,7 +8,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
   return (
     <SpaceBetween size="l">
       {items.map((item) => (
-        <ItemContextProvider key={item.id} value={{ id: item.id, transform: null, resizable: false }}>
+        <ItemContextProvider key={item.id} value={{ item, transform: null, resizable: false }}>
           {renderItem(item)}
         </ItemContextProvider>
       ))}

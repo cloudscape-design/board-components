@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
 import { useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
-import { Coordinates } from "../internal/interfaces";
+import { Coordinates, DashboardItemBase } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
 import WidgetContainerHeader from "./header";
@@ -27,28 +27,28 @@ export default function DashboardItem({
   i18nStrings,
   ...containerProps
 }: DashboardItemProps) {
-  const { id, transform, resizable } = useItemContext();
+  const { item, transform, resizable } = useItemContext();
   const [dragTransform, setDragTransform] = useState<Transform | null>(null);
   const [sizeOverride, setSizeOverride] = useState<{ width: number; height: number } | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const dragOriginRef = useRef<DragOrigin | null>(null);
+  const [activeItem, setActiveItem] = useState<null | DashboardItemBase<unknown>>(null);
+  const dragOriginRef = useRef<null | DragOrigin>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragApi = useDraggable({ id, containerRef, resize: false });
-  const resizeApi = useDraggable({ id, containerRef, resize: true });
-  const currentIsDragging = activeDragId === id;
+  const dragApi = useDraggable({ item, containerRef, resize: false });
+  const resizeApi = useDraggable({ item, containerRef, resize: true });
+  const currentIsDragging = activeItem?.id === item.id;
 
-  useDragSubscription("start", ({ id: activeId, containerRef, coordinates }) => {
-    setActiveDragId(activeId);
-    if (activeId === id) {
+  useDragSubscription("start", ({ item: activeItem, containerRef, coordinates }) => {
+    setActiveItem(activeItem);
+    if (activeItem.id === item.id) {
       dragOriginRef.current = {
         rect: containerRef.current!.getBoundingClientRect(),
         cursor: coordinates,
       };
     }
   });
-  useDragSubscription("move", ({ id: activeId, resize, coordinates }) => {
+  useDragSubscription("move", ({ item: activeItem, resize, coordinates }) => {
     const origin = dragOriginRef.current!;
-    if (activeId === id) {
+    if (activeItem.id === item.id) {
       if (resize) {
         setSizeOverride({
           width: origin.rect.width + (coordinates.pageX - origin.cursor.pageX),
@@ -65,7 +65,7 @@ export default function DashboardItem({
     }
   });
   useDragSubscription("drop", () => {
-    setActiveDragId(null);
+    setActiveItem(null);
     setSizeOverride(null);
     setDragTransform(null);
     dragOriginRef.current = null;
@@ -77,7 +77,7 @@ export default function DashboardItem({
     width: sizeOverride?.width,
     height: sizeOverride?.height,
     transition:
-      activeDragId && !currentIsDragging
+      activeItem && !currentIsDragging
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
   };

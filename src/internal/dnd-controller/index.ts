@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Ref, RefObject, useEffect, useRef } from "react";
-import { Coordinates } from "../interfaces";
+import { Coordinates, DashboardItemBase } from "../interfaces";
 import { EventEmitter } from "./event-emitter";
 
 export interface DragAndDropData extends DragDetail {
@@ -10,7 +10,7 @@ export interface DragAndDropData extends DragDetail {
 }
 
 interface DragDetail {
-  id: string;
+  item: DashboardItemBase<unknown>;
   containerRef: RefObject<HTMLElement>;
   resize: boolean;
 }
