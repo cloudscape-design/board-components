@@ -1,9 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { GridLayoutItem, ItemId } from "../base-types";
+import { Position } from "../interfaces";
+
 export interface GridDefinition {
-  items: readonly Item[];
-  width: number;
+  items: readonly GridLayoutItem[];
+  columns: number;
 }
 
 export interface MoveCommand {
@@ -13,21 +16,6 @@ export interface MoveCommand {
 
 export interface ResizeCommand {
   itemId: ItemId;
-  width: number;
-  height: number;
-}
-
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export type ItemId = string;
-
-export interface Item {
-  id: ItemId;
-  x: number;
-  y: number;
   width: number;
   height: number;
 }

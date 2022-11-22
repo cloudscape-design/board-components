@@ -4,13 +4,13 @@
 import { GridDefinition } from "../interfaces";
 import { GridMatrix } from "./interfaces";
 
-export function toMatrix({ items, width }: GridDefinition): GridMatrix {
+export function toMatrix({ items, columns }: GridDefinition): GridMatrix {
   const matrix: GridMatrix = [];
 
   for (const item of items) {
     for (let y = item.y; y < item.y + item.height; y++) {
       while (matrix.length <= y) {
-        matrix.push([...Array(width)].map(() => " "));
+        matrix.push([...Array(columns)].map(() => " "));
       }
 
       for (let x = item.x; x < item.x + item.width; x++) {

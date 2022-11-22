@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { GridLayoutItem } from "../../internal/base-types";
-import { DragAndDropData } from "../../internal/dnd";
-import { Rect } from "./interfaces";
+import { DragAndDropData } from "../../internal/dnd-controller";
+import { Rect } from "../../internal/interfaces";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -73,8 +73,8 @@ export function getHoveredDroppables({ containerRef, coordinates, droppables, re
     ? {
         top: activeRect.top,
         left: activeRect.left,
-        right: coordinates.x,
-        bottom: coordinates.y,
+        right: coordinates.pageX,
+        bottom: coordinates.pageY,
       }
     : activeRect;
   return getCollisions(collisionRect, droppables);

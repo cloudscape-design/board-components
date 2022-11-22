@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Item, Position } from "./interfaces";
+import { GridLayoutItem } from "../base-types";
+import { Position } from "../interfaces";
 
 export interface Rect {
   left: number;
@@ -10,11 +11,11 @@ export interface Rect {
   bottom: number;
 }
 
-export function sortGridItems(items: readonly Item[]): readonly Item[] {
+export function sortGridItems(items: readonly GridLayoutItem[]): readonly GridLayoutItem[] {
   return [...items].sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 }
 
-export function getItemRect(item: Item): Rect {
+export function getItemRect(item: GridLayoutItem): Rect {
   return {
     left: item.x,
     right: item.x + item.width - 1,

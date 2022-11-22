@@ -1,21 +1,22 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
+import { ItemId } from "../../internal/base-types";
 import { GridLayoutItem } from "../../internal/base-types";
 import { toString as engineToString } from "../../internal/dnd-engine/debug-tools";
 import { DndEngine } from "../../internal/dnd-engine/engine";
-import { CommittedMove, ItemId, Position } from "../../internal/dnd-engine/interfaces";
-import { Rect } from "./interfaces";
+import { CommittedMove } from "../../internal/dnd-engine/interfaces";
+import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
 
 export function printLayoutDebug(content: readonly GridLayoutItem[], columns: number, layoutShift: LayoutShift) {
   // Logs for dnd-engine debugging.
   console.log("Grid before move:");
-  console.log(engineToString({ items: content, width: columns }));
+  console.log(engineToString({ items: content, columns }));
 
   console.log("Grid after move:");
-  console.log(engineToString({ items: layoutShift.items, width: columns }));
+  console.log(engineToString({ items: layoutShift.items, columns }));
 
   console.log("Layout shift:");
   console.log(layoutShift);
@@ -65,7 +66,7 @@ export function calculateReorderShifts(
     };
   }
 
-  const engine = new DndEngine({ items: grid, width: columns });
+  const engine = new DndEngine({ items: grid, columns });
   engine.move({ itemId: activeId, path: newPath.slice(1) });
   const transition = engine.commit();
 
@@ -83,7 +84,7 @@ export function calculateResizeShifts(
   activeId: ItemId,
   columns: number
 ): LayoutShift {
-  const engine = new DndEngine({ items: grid, width: columns });
+  const engine = new DndEngine({ items: grid, columns });
   engine.resize({
     itemId: activeId,
     height: collisionRect.bottom - collisionRect.top,

@@ -4,8 +4,9 @@ import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
-import { useDragSubscription, useDraggable } from "../internal/dnd";
+import { useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
+import { Coordinates } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
 import WidgetContainerHeader from "./header";
@@ -16,7 +17,7 @@ export type { DashboardItemProps };
 
 interface DragOrigin {
   rect: DOMRect;
-  cursor: { x: number; y: number };
+  cursor: Coordinates;
 }
 
 export default function DashboardItem({
@@ -32,8 +33,8 @@ export default function DashboardItem({
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const dragOriginRef = useRef<DragOrigin | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const onDragStart = useDraggable({ id, containerRef, resize: false });
-  const onResizeStart = useDraggable({ id, containerRef, resize: true });
+  const dragApi = useDraggable({ id, containerRef, resize: false });
+  const resizeApi = useDraggable({ id, containerRef, resize: true });
   const currentIsDragging = activeDragId === id;
 
   useDragSubscription("start", ({ id: activeId, containerRef, coordinates }) => {
@@ -50,13 +51,13 @@ export default function DashboardItem({
     if (activeId === id) {
       if (resize) {
         setSizeOverride({
-          width: origin.rect.width + (coordinates.x - origin.cursor.x),
-          height: origin.rect.height + (coordinates.y - origin.cursor.y),
+          width: origin.rect.width + (coordinates.pageX - origin.cursor.pageX),
+          height: origin.rect.height + (coordinates.pageY - origin.cursor.pageY),
         });
       } else {
         setDragTransform({
-          x: coordinates.x - origin.cursor.x,
-          y: coordinates.y - origin.cursor.y,
+          x: coordinates.pageX - origin.cursor.pageX,
+          y: coordinates.pageY - origin.cursor.pageY,
           scaleX: 1,
           scaleY: 1,
         });
@@ -87,7 +88,12 @@ export default function DashboardItem({
         disableHeaderPaddings={true}
         header={
           <WidgetContainerHeader
-            handle={<DragHandle onMouseDown={onDragStart} ariaLabel={i18nStrings.dragHandleLabel} />}
+            handle={
+              <DragHandle
+                onMouseDown={(event) => dragApi.onStart({ pageX: event.pageX, pageY: event.pageY })}
+                ariaLabel={i18nStrings.dragHandleLabel}
+              />
+            }
             settings={settings}
           >
             {header}
@@ -98,7 +104,10 @@ export default function DashboardItem({
       </Container>
       {resizable && (
         <div className={styles.resizer}>
-          <ResizeHandle ariaLabel={i18nStrings.resizeLabel} onResize={onResizeStart} />
+          <ResizeHandle
+            ariaLabel={i18nStrings.resizeLabel}
+            onResize={(event) => resizeApi.onStart({ pageX: event.pageX, pageY: event.pageY })}
+          />
         </div>
       )}
     </div>

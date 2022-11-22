@@ -1,14 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Item, ItemId } from "../interfaces";
+import { GridLayoutItem, ItemId } from "../../base-types";
 import { GridDefinition } from "../interfaces";
 import { GridMatrix } from "./interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 export function fromMatrix(matrix: GridMatrix): GridDefinition {
-  const items: Item[] = [];
+  const items: GridLayoutItem[] = [];
   const added = new Set<ItemId>();
 
   for (let y = 0; y < matrix.length; y++) {
@@ -47,7 +47,7 @@ export function fromMatrix(matrix: GridMatrix): GridDefinition {
     }
   }
 
-  return { items, width: matrix[0].length };
+  return { items, columns: matrix[0].length };
 }
 
 // Path is defined like "A1 A2 B2 C2" where A-C is a column index (A-based) and 1-2 is a row index (1-based).

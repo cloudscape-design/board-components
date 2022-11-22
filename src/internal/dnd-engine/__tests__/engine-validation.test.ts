@@ -11,7 +11,7 @@ test("throws if grid definition is not valid", () => {
     ["D", " ", "F", "X"],
     ["G", "E", "E", " "],
   ]);
-  grid.width = 3;
+  grid.columns = 3;
   expect(() => new DndEngine(grid)).toThrowError("Invalid grid: items outside the boundaries.");
 
   grid = fromMatrix([
