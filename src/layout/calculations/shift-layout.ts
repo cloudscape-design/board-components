@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
-import { toString as engineToString } from "../../internal/dnd-engine/debug-tools";
+import { toString as engineToString } from "../../internal/debug-tools";
 import { DndEngine } from "../../internal/dnd-engine/engine";
 import { CommittedMove } from "../../internal/dnd-engine/interfaces";
 import { GridLayout, ItemId } from "../../internal/interfaces";

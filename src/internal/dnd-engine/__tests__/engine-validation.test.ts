@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toString } from "../debug-tools";
+import { fromMatrix, fromTextPath, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
 
 test("throws if grid definition is not valid", () => {

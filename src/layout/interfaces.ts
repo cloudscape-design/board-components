@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { DataFallbackType, ItemBase } from "../internal/interfaces";
+import { DashboardItem, DataFallbackType } from "../internal/interfaces";
 
 export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
@@ -26,11 +26,7 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
 }
 
 export namespace DashboardLayoutProps {
-  export interface Item<D = DataFallbackType> extends ItemBase<D> {
-    columnOffset: number;
-    rowSpan: number;
-    columnSpan: number;
-  }
+  export type Item<D = DataFallbackType> = DashboardItem<D>;
 
   export interface ItemsChangeDetail<D = DataFallbackType> {
     items: ReadonlyArray<Item<D>>;

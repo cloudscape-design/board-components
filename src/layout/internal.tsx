@@ -9,9 +9,8 @@ import Grid from "../internal/grid";
 import { GridLayoutItem, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
+import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
-import { createItemsLayout, createPlaceholdersLayout } from "./calculations/create-layout";
-import { exportLayout } from "./calculations/export-layout";
 import {
   calculateReorderShifts,
   calculateResizeShifts,
@@ -76,7 +75,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     // Commit new layout.
     if (!layoutShift.hasConflicts) {
-      onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.next, items) }));
+      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
     }
   });
 

@@ -6,17 +6,23 @@ export type ItemId = string;
 
 export type DataFallbackType = Record<string, unknown>;
 
-export interface ItemBase<D = DataFallbackType> {
+export interface DashboardItemBase<D = DataFallbackType> {
   id: ItemId;
-  definition: ItemDefinition;
+  definition: DashboardItemDefinition;
   data: D;
 }
 
-export interface ItemDefinition {
+export interface DashboardItemDefinition {
   minRowSpan?: number;
   minColumnSpan?: number;
   defaultRowSpan: number;
   defaultColumnSpan: number;
+}
+
+export interface DashboardItem<D = DataFallbackType> extends DashboardItemBase<D> {
+  columnOffset: number;
+  rowSpan: number;
+  columnSpan: number;
 }
 
 // Internal grid item representation used for position calculations.

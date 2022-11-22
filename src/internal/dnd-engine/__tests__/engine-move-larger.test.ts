@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toString } from "../debug-tools";
+import { fromMatrix, fromTextPath, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
 
 describe("vertical swaps of larger items", () => {
