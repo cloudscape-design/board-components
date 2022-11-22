@@ -46,7 +46,12 @@ export function exportLayout<D>(
 
   const canvasItems: DashboardLayoutProps.Item<D>[] = [];
   for (const layoutItem of sortedLayout) {
-    const matchedCanvasItem = { ...sourceById.get(layoutItem.id)!, columnOffset: layoutItem.x };
+    const matchedCanvasItem = {
+      ...sourceById.get(layoutItem.id)!,
+      columnOffset: layoutItem.x,
+      columnSpan: layoutItem.width,
+      rowSpan: layoutItem.height,
+    };
     canvasItems.push(matchedCanvasItem);
   }
 
