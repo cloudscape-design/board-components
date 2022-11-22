@@ -29,16 +29,22 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private activeDragDetail: DragDetail | null = null;
 
   private onMouseMove = (event: MouseEvent) => {
+    if (!this.activeDragDetail) {
+      throw new Error("Invariant violation: drag move happened before drag start.");
+    }
     this.emit("move", {
-      ...this.activeDragDetail!,
+      ...this.activeDragDetail,
       coordinates: getCoordinates(event),
       droppables: [...this.droppables.entries()],
     });
   };
 
   private onMouseUp = (event: MouseEvent) => {
+    if (!this.activeDragDetail) {
+      throw new Error("Invariant violation: drag end happened before drag start.");
+    }
     this.emit("drop", {
-      ...this.activeDragDetail!,
+      ...this.activeDragDetail,
       coordinates: getCoordinates(event),
       droppables: [...this.droppables.entries()],
     });
@@ -58,7 +64,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   public activateDrag(dragDetail: DragDetail, event: ReactMouseEvent) {
     this.activeDragDetail = dragDetail;
     this.emit("start", {
-      ...this.activeDragDetail!,
+      ...this.activeDragDetail,
       coordinates: getCoordinates(event),
       droppables: [...this.droppables.entries()],
     });
