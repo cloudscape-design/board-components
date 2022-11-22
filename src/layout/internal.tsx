@@ -6,12 +6,11 @@ import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { Position } from "../internal/interfaces";
+import { GridLayoutItem, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
+import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
-import { createItemsLayout, createPlaceholdersLayout } from "./calculations/create-layout";
-import { exportLayout } from "./calculations/export-layout";
 import {
   calculateReorderShifts,
   calculateResizeShifts,
@@ -29,19 +28,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   );
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
-  const [isDragActive, setIsDragActive] = useState<boolean>(false);
+  const [activeDragItem, setActiveDragItem] = useState<null | GridLayoutItem>(null);
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
 
-  const itemsLayout = createItemsLayout(items, columns, isDragActive);
-  const placeholdersLayout = createPlaceholdersLayout(itemsLayout.rows, itemsLayout.columns);
+  const itemsLayout = createItemsLayout(items, columns);
+  const rows = !activeDragItem ? itemsLayout.rows : itemsLayout.rows + activeDragItem.height;
+
+  const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   useDragSubscription("start", ({ id, resize }) => {
-    setIsDragActive(true);
+    const activeDragItem = itemsLayout.items.find((item) => item.id === id)!;
+
+    setActiveDragItem(activeDragItem);
+
     if (!resize) {
-      const { x, y } = itemsLayout.items.find((item) => item.id === id)!;
-      pathRef.current = [{ x, y }];
+      pathRef.current = [{ x: activeDragItem.x, y: activeDragItem.y }];
     }
   });
 
@@ -66,24 +69,24 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     printLayoutDebug(itemsLayout, layoutShift);
 
     setTransforms({});
-    setIsDragActive(false);
+    setActiveDragItem(null);
     setCollisionIds(null);
     pathRef.current = [];
 
     // Commit new layout.
     if (!layoutShift.hasConflicts) {
-      onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.next, items) }));
+      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
     }
   });
 
   return (
     <div ref={containerQueryRef as Ref<HTMLDivElement>}>
-      <Grid columns={columns} rows={itemsLayout.rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+      <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
         {placeholdersLayout.items.map((placeholder) => (
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
-            state={isDragActive ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            state={activeDragItem ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
           />
         ))}
         {items.map((item) => (
