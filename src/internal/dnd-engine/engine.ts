@@ -184,10 +184,9 @@ export class DndEngine {
     const directions = this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
-      for (const move of this.getMovesForDirection(overlapItem, overlapWith, direction, "VACANT")) {
-        if (this.validateVacantMove(move) === "ok") {
-          return move;
-        }
+      const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "VACANT");
+      if (this.validateVacantMove(move) === "ok") {
+        return move;
       }
     }
 
@@ -224,10 +223,9 @@ export class DndEngine {
     const directions = this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
-      for (const move of this.getMovesForDirection(overlapItem, overlapWith, direction, "PRIORITY")) {
-        if (this.validatePriorityMove(move, activeId) === "ok") {
-          return move;
-        }
+      const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "PRIORITY");
+      if (this.validatePriorityMove(move, activeId) === "ok") {
+        return move;
       }
     }
 
@@ -352,56 +350,28 @@ export class DndEngine {
     }
   }
 
-  // Retrieve all possible moves for the given direction (same direction but different length).
-  private getMovesForDirection(
+  // Retrieve first possible move for the given direction to resolve the overlap.
+  private getMoveForDirection(
     moveTarget: DndItem,
     overlap: DndItem,
     direction: Direction,
     moveType: CommittedMove["type"]
-  ): CommittedMove[] {
+  ): CommittedMove {
     switch (direction) {
       case "top": {
-        const from = overlap.top - (moveTarget.height - 1);
-        const coveredDistance = Math.max(0, overlap.top - moveTarget.top);
-        const distance = Math.max(1, Math.abs(overlap.y - overlap.originalY) - coveredDistance);
-        const moves: CommittedMove[] = [];
-        for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: from - i, x: moveTarget.x, type: moveType });
-        }
-        return moves;
+        return { itemId: moveTarget.id, y: overlap.top - moveTarget.height, x: moveTarget.x, type: moveType };
       }
 
       case "bottom": {
-        const from = overlap.bottom;
-        const coveredDistance = Math.max(0, moveTarget.bottom - overlap.bottom);
-        const distance = Math.max(1, Math.abs(overlap.y - overlap.originalY) - coveredDistance);
-        const moves: CommittedMove[] = [];
-        for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: from + i, x: moveTarget.x, type: moveType });
-        }
-        return moves;
+        return { itemId: moveTarget.id, y: overlap.bottom + 1, x: moveTarget.x, type: moveType };
       }
 
       case "left": {
-        const from = overlap.left - (moveTarget.width - 1);
-        const coveredDistance = Math.max(0, overlap.left - moveTarget.left);
-        const distance = Math.max(1, Math.abs(overlap.x - overlap.originalX) - coveredDistance);
-        const moves: CommittedMove[] = [];
-        for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from - i, type: moveType });
-        }
-        return moves;
+        return { itemId: moveTarget.id, y: moveTarget.y, x: overlap.left - moveTarget.width, type: moveType };
       }
 
       case "right": {
-        const from = overlap.right;
-        const coveredDistance = Math.max(0, moveTarget.right - overlap.right);
-        const distance = Math.max(1, Math.abs(overlap.x - overlap.originalX) - coveredDistance);
-        const moves: CommittedMove[] = [];
-        for (let i = distance; i >= 0; i--) {
-          moves.push({ itemId: moveTarget.id, y: moveTarget.y, x: from + i, type: moveType });
-        }
-        return moves;
+        return { itemId: moveTarget.id, y: moveTarget.y, x: overlap.right + 1, type: moveType };
       }
     }
   }
