@@ -34,8 +34,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
 
-  const itemsLayout = createItemsLayout(items, columns, activeDragItem);
-  const placeholdersLayout = createPlaceholdersLayout(itemsLayout.rows, itemsLayout.columns);
+  const itemsLayout = createItemsLayout(items, columns);
+  const rows = !activeDragItem ? itemsLayout.rows : itemsLayout.rows + activeDragItem.height;
+
+  const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   useDragSubscription("start", ({ id, resize }) => {
     const activeDragItem = itemsLayout.items.find((item) => item.id === id)!;
@@ -80,7 +82,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   return (
     <div ref={containerQueryRef as Ref<HTMLDivElement>}>
-      <Grid columns={columns} rows={itemsLayout.rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+      <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
         {placeholdersLayout.items.map((placeholder) => (
           <Placeholder
             key={placeholder.id}
