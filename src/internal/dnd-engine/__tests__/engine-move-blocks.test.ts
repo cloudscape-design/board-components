@@ -18,7 +18,7 @@ test("any move on a grid with 1x1 items only is resolved", () => {
       const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
       const movePath = generateMove(grid, "any");
       const transition = new DndEngine(grid).move(movePath);
-      expect(transition.blocks.length).toBe(0);
+      expect(transition.conflicts.length).toBe(0);
     }
   );
 });
@@ -35,7 +35,7 @@ test("all vertical moves are resolved if all items have height=1", () => {
       const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
       const movePath = generateMove(grid, "vertical");
       const transition = new DndEngine(grid).move(movePath);
-      expect(transition.blocks.length).toBe(0);
+      expect(transition.conflicts.length).toBe(0);
     }
   );
 });
@@ -52,7 +52,7 @@ test("all vertical moves are resolved if all items have width=1", () => {
       const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
       const movePath = generateMove(grid, "horizontal");
       const transition = new DndEngine(grid).move(movePath);
-      expect(transition.blocks.length).toBe(0);
+      expect(transition.conflicts.length).toBe(0);
     }
   );
 });

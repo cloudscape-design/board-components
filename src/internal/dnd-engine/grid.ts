@@ -2,17 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { GridDefinition, Item, ItemId } from "./interfaces";
+import { Rect, getItemRect } from "./utils";
 
 export interface DndItem extends Item, Rect {
   originalX: number;
   originalY: number;
-}
-
-export interface Rect {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
 }
 
 export class DndGrid {
@@ -77,7 +71,7 @@ export class DndGrid {
     return [...this.layout[y][x]].map((itemId) => this.getItem(itemId));
   }
 
-  getCellOverlay(x: number, y: number, itemId: ItemId): null | DndItem {
+  getCellOverlap(x: number, y: number, itemId: ItemId): null | DndItem {
     for (const item of this.getCell(x, y)) {
       if (item.id !== itemId) {
         return item;
@@ -165,13 +159,4 @@ export class DndGrid {
     this.layout.push([...Array(this._width)].map(() => new Set()));
     this._height = this.layout.length;
   }
-}
-
-function getItemRect(item: Item): Rect {
-  return {
-    left: item.x,
-    right: item.x + item.width - 1,
-    top: item.y,
-    bottom: item.y + item.height - 1,
-  };
 }

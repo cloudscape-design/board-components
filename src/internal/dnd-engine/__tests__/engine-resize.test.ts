@@ -20,7 +20,7 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
     const grid = generateGrid();
     const resize = generateResize(grid, { maxWidthDecrement: 0, maxHeightDecrement: 0 });
     const transition = new DndEngine(grid).resize(resize);
-    expect(transition.blocks).toHaveLength(0);
+    expect(transition.conflicts).toHaveLength(0);
   });
 });
 

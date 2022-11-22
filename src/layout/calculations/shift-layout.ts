@@ -44,7 +44,7 @@ export function createTransforms(
 interface LayoutShift {
   path: Position[];
   hasConflicts: boolean;
-  moves: CommittedMove[];
+  moves: readonly CommittedMove[];
   items: readonly GridLayoutItem[];
 }
 
@@ -71,7 +71,7 @@ export function calculateReorderShifts(
 
   return {
     path: newPath,
-    hasConflicts: transition.blocks.length > 0,
+    hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
     items: transition.end.items,
   };
@@ -93,7 +93,7 @@ export function calculateResizeShifts(
 
   return {
     path: [],
-    hasConflicts: transition.blocks.length > 0,
+    hasConflicts: transition.conflicts.length > 0,
     moves: transition.moves,
     items: transition.end.items,
   };

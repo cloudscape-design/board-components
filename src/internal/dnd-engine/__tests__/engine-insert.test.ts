@@ -11,7 +11,7 @@ test("element insertion never leaves grid with unresolved conflicts", () => {
     const grid = generateGrid();
     const item = generateInsert(grid);
     const transition = new DndEngine(grid).insert(item);
-    expect(transition.blocks).toHaveLength(0);
+    expect(transition.conflicts).toHaveLength(0);
   });
 });
 

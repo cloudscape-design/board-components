@@ -218,6 +218,31 @@ describe("swaps with overlay", () => {
   });
 });
 
+describe("distant swaps", () => {
+  test.each([
+    [
+      "swap E with F",
+      [
+        ["A", "A", "A", " "],
+        ["B", "B", "B", " "],
+        ["C", "D", "E", "E"],
+        ["F", " ", " ", " "],
+      ],
+      "C3 B3 B4 A4",
+      [
+        ["A", "A", "A", "D"],
+        ["B", "B", "B", " "],
+        ["C", " ", "F", " "],
+        ["E", "E", " ", " "],
+      ],
+    ],
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
+    expect(toString(transition.end)).toBe(toString(expectation));
+  });
+});
+
 describe("diagonal swaps of larger items", () => {
   test.each([
     [
