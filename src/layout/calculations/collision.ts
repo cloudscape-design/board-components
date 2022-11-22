@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { GridLayoutItem } from "../../internal/base-types";
 import { DragAndDropData } from "../../internal/dnd-controller";
+import { GridLayoutItem } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
 
 function getMinDistance(min: number, current: number, collision: number) {

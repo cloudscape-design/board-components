@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { GridLayoutItem } from "../../internal/base-types";
+import { GridLayoutItem } from "../../internal/interfaces";
 import { DashboardLayoutProps } from "../interfaces";
 
 interface GridLayout {

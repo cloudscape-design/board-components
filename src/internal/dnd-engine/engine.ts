@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem, ItemId } from "../base-types";
+import { GridLayoutItem, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { DndGrid, DndItem } from "./grid";
 import { CommittedMove, Direction, GridDefinition, GridTransition, MoveCommand, ResizeCommand } from "./interfaces";

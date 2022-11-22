@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
-import { ItemId } from "../../internal/base-types";
-import { GridLayoutItem } from "../../internal/base-types";
 import { toString as engineToString } from "../../internal/dnd-engine/debug-tools";
 import { DndEngine } from "../../internal/dnd-engine/engine";
 import { CommittedMove } from "../../internal/dnd-engine/interfaces";
+import { GridLayoutItem, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
