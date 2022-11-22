@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { DataFallbackType, ItemBase } from "../internal/base-types";
+import { DashboardItemBase, DataFallbackType } from "../internal/interfaces";
 
 export interface DashboardPaletteProps<D = DataFallbackType> {
   /**
@@ -21,7 +21,7 @@ export interface DashboardPaletteProps<D = DataFallbackType> {
 }
 
 export namespace PaletteProps {
-  export type Item<D = DataFallbackType> = ItemBase<D>;
+  export type Item<D = DataFallbackType> = DashboardItemBase<D>;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface I18nStrings {}

@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridDefinition, Item, ItemId } from "./interfaces";
+import { GridLayoutItem, ItemId } from "../interfaces";
 import { Rect, getItemRect } from "./utils";
 
-export interface DndItem extends Item, Rect {
+export interface DndItem extends GridLayoutItem, Rect {
   originalX: number;
   originalY: number;
 }
@@ -15,11 +15,11 @@ export class DndGrid {
   private _items = new Map<ItemId, DndItem>();
   private layout: Set<ItemId>[][] = [];
 
-  constructor(gridDefinition: GridDefinition) {
-    this._width = gridDefinition.width;
+  constructor(items: readonly GridLayoutItem[], columns: number) {
+    this._width = columns;
     this._height = 0;
 
-    for (const item of gridDefinition.items) {
+    for (const item of items) {
       this._items.set(item.id, { ...item, originalY: item.y, originalX: item.x, ...getItemRect(item) });
 
       if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
@@ -104,7 +104,7 @@ export class DndGrid {
     this.insertLayoutItem(resizeTarget, onOverlap);
   }
 
-  insert(item: Item, onOverlap: (overlapId: ItemId) => void): void {
+  insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId) => void): void {
     this._items.set(item.id, { ...item, originalY: item.y, originalX: item.x, ...getItemRect(item) });
 
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
@@ -133,7 +133,7 @@ export class DndGrid {
     this.removeLayoutItem(removeTarget);
   }
 
-  private removeLayoutItem(item: Item): void {
+  private removeLayoutItem(item: GridLayoutItem): void {
     for (let y = item.y; y < item.y + item.height; y++) {
       for (let x = item.x; x < item.x + item.width; x++) {
         this.layout[y][x].delete(item.id);
@@ -141,7 +141,7 @@ export class DndGrid {
     }
   }
 
-  private insertLayoutItem(item: Item, onOverlap?: (overlapId: ItemId) => void): void {
+  private insertLayoutItem(item: GridLayoutItem, onOverlap?: (overlapId: ItemId) => void): void {
     for (let y = item.y; y < item.y + item.height; y++) {
       for (let x = item.x; x < item.x + item.width; x++) {
         while (!this.layout[y]) {
