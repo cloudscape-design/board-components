@@ -6,7 +6,7 @@ import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { Position } from "../internal/interfaces";
+import { GridLayoutItem, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
@@ -29,19 +29,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   );
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
-  const [isDragActive, setIsDragActive] = useState<boolean>(false);
+  const [activeDragItem, setActiveDragItem] = useState<null | GridLayoutItem>(null);
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
 
-  const itemsLayout = createItemsLayout(items, columns, isDragActive);
+  const itemsLayout = createItemsLayout(items, columns, activeDragItem);
   const placeholdersLayout = createPlaceholdersLayout(itemsLayout.rows, itemsLayout.columns);
 
   useDragSubscription("start", ({ id, resize }) => {
-    setIsDragActive(true);
+    const activeDragItem = itemsLayout.items.find((item) => item.id === id)!;
+
+    setActiveDragItem(activeDragItem);
+
     if (!resize) {
-      const { x, y } = itemsLayout.items.find((item) => item.id === id)!;
-      pathRef.current = [{ x, y }];
+      pathRef.current = [{ x: activeDragItem.x, y: activeDragItem.y }];
     }
   });
 
@@ -66,7 +68,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     printLayoutDebug(itemsLayout, layoutShift);
 
     setTransforms({});
-    setIsDragActive(false);
+    setActiveDragItem(null);
     setCollisionIds(null);
     pathRef.current = [];
 
@@ -83,7 +85,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
-            state={isDragActive ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            state={activeDragItem ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
           />
         ))}
         {items.map((item) => (

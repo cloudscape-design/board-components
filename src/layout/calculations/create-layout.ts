@@ -39,12 +39,12 @@ function createGridPlaceholders(rows: number, columns: number): readonly GridLay
 export function createItemsLayout(
   data: ReadonlyArray<DashboardLayoutProps.Item<unknown>>,
   columns: number,
-  extraRow: boolean
+  activeDragItem: null | GridLayoutItem
 ): GridLayout {
   const items = createGridItems(data, columns);
   let rows = items.reduce((acc, item) => Math.max(acc, item.y + item.height), 1);
-  if (extraRow) {
-    rows += 1;
+  if (activeDragItem) {
+    rows += activeDragItem.height;
   }
   return { items, columns, rows };
 }
