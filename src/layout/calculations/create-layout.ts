@@ -23,7 +23,7 @@ function createGridItems(
     }
     layoutItems.push({ id, width: columnSpan, height: rowSpan, x: columnOffset, y: itemRow });
     for (let col = columnOffset; col < columnOffset + columnSpan; col++) {
-      colAffordance[col] = itemRow;
+      colAffordance[col] = itemRow + rowSpan - 1;
     }
   }
 
