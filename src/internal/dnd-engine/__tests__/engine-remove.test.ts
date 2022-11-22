@@ -3,8 +3,9 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { fromMatrix, generateGrid, toString } from "../debug-tools";
+import { fromMatrix, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
+import { generateGrid } from "./generators";
 
 test("element removal never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {

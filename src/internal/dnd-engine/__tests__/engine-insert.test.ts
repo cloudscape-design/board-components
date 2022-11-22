@@ -3,8 +3,9 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { fromMatrix, generateGrid, generateInsert, toString } from "../debug-tools";
+import { fromMatrix, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
+import { generateGrid, generateInsert } from "./generators";
 
 test("element insertion never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {

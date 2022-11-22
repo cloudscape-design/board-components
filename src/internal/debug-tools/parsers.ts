@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayout } from "../../interfaces";
-import { GridLayoutItem, ItemId } from "../../interfaces";
+import { GridLayout } from "../interfaces";
+import { GridLayoutItem, ItemId } from "../interfaces";
 import { GridMatrix } from "./interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

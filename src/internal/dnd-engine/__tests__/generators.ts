@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { toMatrix } from "../../debug-tools";
 import { GridLayout, GridLayoutItem } from "../../interfaces";
 import { Position } from "../../interfaces";
 import { Direction, MoveCommand, ResizeCommand } from "../interfaces";
-import { toMatrix } from "./converters";
 
 export type GenerateMoveType = "any" | "vertical" | "horizontal";
 
