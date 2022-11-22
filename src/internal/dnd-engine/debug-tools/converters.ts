@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridDefinition } from "../interfaces";
+import { GridLayout } from "../../interfaces";
 import { GridMatrix } from "./interfaces";
 
-export function toMatrix({ items, columns }: GridDefinition): GridMatrix {
+export function toMatrix({ items, columns }: GridLayout): GridMatrix {
   const matrix: GridMatrix = [];
 
   for (const item of items) {
@@ -23,7 +23,7 @@ export function toMatrix({ items, columns }: GridDefinition): GridMatrix {
   return matrix;
 }
 
-export function toString(input: GridDefinition | GridMatrix): string {
+export function toString(input: GridLayout | GridMatrix): string {
   const matrix = Array.isArray(input) ? input : toMatrix(input);
   return matrix.map((row) => row.join("\t")).join("\n");
 }

@@ -20,6 +20,12 @@ export interface ItemDefinition {
 }
 
 // Internal grid item representation used for position calculations.
+export interface GridLayout {
+  items: readonly GridLayoutItem[];
+  columns: number;
+  rows: number;
+}
+
 export interface GridLayoutItem {
   id: ItemId;
   width: number;

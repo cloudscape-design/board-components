@@ -1,13 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem, ItemId } from "../interfaces";
-import { Position } from "../interfaces";
-
-export interface GridDefinition {
-  items: readonly GridLayoutItem[];
-  columns: number;
-}
+import { GridLayout, ItemId, Position } from "../interfaces";
 
 export interface MoveCommand {
   itemId: ItemId;
@@ -28,8 +22,8 @@ export interface CommittedMove {
 }
 
 export interface GridTransition {
-  start: GridDefinition;
-  end: GridDefinition;
+  start: GridLayout;
+  end: GridLayout;
   moves: readonly CommittedMove[];
   conflicts: readonly ItemId[];
 }

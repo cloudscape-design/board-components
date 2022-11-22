@@ -1,21 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem, ItemId } from "../interfaces";
+import { GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { DndGrid, DndItem } from "./grid";
-import { CommittedMove, Direction, GridDefinition, GridTransition, MoveCommand, ResizeCommand } from "./interfaces";
+import { CommittedMove, Direction, GridTransition, MoveCommand, ResizeCommand } from "./interfaces";
 import { normalizePath, sortGridItems } from "./utils";
 
 export class DndEngine {
-  private lastCommit: GridDefinition;
+  private lastCommit: GridLayout;
   private grid: DndGrid;
   private moves: CommittedMove[] = [];
   private overlaps = new StackSet<ItemId>();
   private conflicts = new Set<ItemId>();
 
-  constructor({ items, columns }: GridDefinition) {
-    this.lastCommit = { items, columns };
+  constructor({ items, columns, rows }: GridLayout) {
+    this.lastCommit = { items, columns, rows };
     this.grid = new DndGrid(items, columns);
   }
 
@@ -97,8 +97,16 @@ export class DndEngine {
   }
 
   getTransition(): GridTransition {
-    const end = { items: sortGridItems(this.grid.items.map((item) => ({ ...item }))), columns: this.grid.width };
-    return { start: this.lastCommit, end, moves: [...this.moves], conflicts: [...this.conflicts] };
+    return {
+      start: this.lastCommit,
+      end: {
+        items: sortGridItems(this.grid.items.map((item) => ({ ...item }))),
+        columns: this.grid.width,
+        rows: this.grid.height,
+      },
+      moves: [...this.moves],
+      conflicts: [...this.conflicts],
+    };
   }
 
   private cleanup(): void {

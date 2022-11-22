@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem } from "../../interfaces";
+import { GridLayout, GridLayoutItem } from "../../interfaces";
 import { Position } from "../../interfaces";
-import { Direction, GridDefinition, MoveCommand, ResizeCommand } from "../interfaces";
+import { Direction, MoveCommand, ResizeCommand } from "../interfaces";
 import { toMatrix } from "./converters";
 
 export type GenerateMoveType = "any" | "vertical" | "horizontal";
@@ -29,7 +29,7 @@ export interface GenerateGridInsertOptions {
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-export function generateGrid(options?: GenerateGridOptions): GridDefinition {
+export function generateGrid(options?: GenerateGridOptions): GridLayout {
   const width = options?.width ?? 6;
   const totalItems = options?.totalItems ?? 20;
   const averageItemWidth = options?.averageItemWidth ?? 1.44;
@@ -100,10 +100,10 @@ export function generateGrid(options?: GenerateGridOptions): GridDefinition {
 
   items.sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 
-  return { items, columns: width };
+  return { items, columns: width, rows: grid.length };
 }
 
-export function generateMove(grid: GridDefinition, type: GenerateMoveType = "any"): MoveCommand {
+export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): MoveCommand {
   const textGrid = toMatrix(grid);
   const moveTarget = grid.items[getRandomIndex(grid.items)];
 
@@ -213,7 +213,7 @@ export function generateMove(grid: GridDefinition, type: GenerateMoveType = "any
   return { itemId: moveTarget.id, path };
 }
 
-export function generateResize(grid: GridDefinition, options?: GenerateGridResizeOptions): ResizeCommand {
+export function generateResize(grid: GridLayout, options?: GenerateGridResizeOptions): ResizeCommand {
   const maxWidthIncrement = options?.maxHeightIncrement ?? grid.columns - 1;
   const maxWidthDecrement = options?.maxHeightDecrement ?? grid.columns - 1;
   const maxHeightIncrement = options?.maxHeightIncrement ?? Math.floor((grid.items.length - 1) % 2) + 1;
@@ -256,11 +256,7 @@ export function generateResize(grid: GridDefinition, options?: GenerateGridResiz
   return { itemId: resizeTarget.id, width: resizeTarget.width + widthDelta, height: resizeTarget.height + heightDelta };
 }
 
-export function generateInsert(
-  grid: GridDefinition,
-  insertId = "X",
-  options?: GenerateGridInsertOptions
-): GridLayoutItem {
+export function generateInsert(grid: GridLayout, insertId = "X", options?: GenerateGridInsertOptions): GridLayoutItem {
   const maxWidth = options?.maxWidth ?? grid.columns;
   const maxHeight = options?.maxHeight ?? Math.floor(grid.items.length / 2) + 1;
 
