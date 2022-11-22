@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Grid from "@cloudscape-design/components/grid";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
@@ -24,7 +25,25 @@ export default function () {
           items={items}
           renderItem={(item) => {
             return (
-              <DashboardItem header={<Header>{item.data.title}</Header>} i18nStrings={itemStrings}>
+              <DashboardItem
+                header={<Header>{item.data.title}</Header>}
+                i18nStrings={itemStrings}
+                settings={
+                  <ButtonDropdown
+                    items={[{ id: "remove", text: "Remove widget" }]}
+                    ariaLabel="Widget settings"
+                    variant="icon"
+                    onItemClick={(event) => {
+                      if (event.detail.id === "remove") {
+                        setItems((prev) => prev.filter((prevItem) => prevItem.id !== item.id));
+                        if (initialPaletteItems.some((paletteItem) => paletteItem.id === item.id)) {
+                          setPaletteItems((prev) => [...prev, item]);
+                        }
+                      }
+                    }}
+                  />
+                }
+              >
                 {item.data.content}
               </DashboardItem>
             );
