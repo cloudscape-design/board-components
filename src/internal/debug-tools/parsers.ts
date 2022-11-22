@@ -1,13 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem, ItemId } from "../../base-types";
-import { GridDefinition } from "../interfaces";
+import { GridLayout } from "../interfaces";
+import { GridLayoutItem, ItemId } from "../interfaces";
 import { GridMatrix } from "./interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-export function fromMatrix(matrix: GridMatrix): GridDefinition {
+export function fromMatrix(matrix: GridMatrix): GridLayout {
   const items: GridLayoutItem[] = [];
   const added = new Set<ItemId>();
 
@@ -47,11 +47,11 @@ export function fromMatrix(matrix: GridMatrix): GridDefinition {
     }
   }
 
-  return { items, columns: matrix[0].length };
+  return { items, columns: matrix[0].length, rows: matrix.length };
 }
 
 // Path is defined like "A1 A2 B2 C2" where A-C is a column index (A-based) and 1-2 is a row index (1-based).
-export function fromTextPath(textPath: string, gridArg: GridDefinition | GridMatrix) {
+export function fromTextPath(textPath: string, gridArg: GridLayout | GridMatrix) {
   // Parse path.
   const positions = textPath.split(" ").filter(Boolean);
   const [start, ...rest] = positions.map((pos) => {

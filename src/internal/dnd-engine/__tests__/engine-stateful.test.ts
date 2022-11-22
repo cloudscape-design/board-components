@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { fromMatrix, toString } from "../debug-tools";
+import { fromMatrix, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
 
 test("engine keeps its state allowing for command+commit operations", () => {

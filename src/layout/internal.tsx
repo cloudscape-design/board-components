@@ -6,12 +6,11 @@ import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { Position } from "../internal/interfaces";
+import { GridLayoutItem, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
+import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
-import { createLayout } from "./calculations/create-layout";
-import { exportLayout } from "./calculations/export-layout";
 import {
   calculateReorderShifts,
   calculateResizeShifts,
@@ -29,75 +28,79 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   );
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
-  const [isDragActive, setIsDragActive] = useState<boolean>(false);
+  const [activeDragItem, setActiveDragItem] = useState<null | GridLayoutItem>(null);
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const { content, placeholders, rows } = createLayout(items, columns, isDragActive);
+
+  const itemsLayout = createItemsLayout(items, columns);
+  const rows = !activeDragItem ? itemsLayout.rows : itemsLayout.rows + activeDragItem.height;
+
+  const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   useDragSubscription("start", ({ id, resize }) => {
-    setIsDragActive(true);
+    const activeDragItem = itemsLayout.items.find((item) => item.id === id)!;
+
+    setActiveDragItem(activeDragItem);
+
     if (!resize) {
-      const { x, y } = content.find((item) => item.id === id)!;
-      pathRef.current = [{ x, y }];
+      pathRef.current = [{ x: activeDragItem.x, y: activeDragItem.y }];
     }
   });
 
   useDragSubscription("move", (detail) => {
     const collisionIds = getHoveredDroppables(detail);
-    const collisionRect = getHoveredRect(collisionIds, placeholders);
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(content, collisionRect, detail.id, columns)
-      : calculateReorderShifts(content, collisionRect, detail.id, pathRef.current, columns);
+      ? calculateResizeShifts(itemsLayout, collisionRect, detail.id)
+      : calculateReorderShifts(itemsLayout, collisionRect, detail.id, pathRef.current);
 
     pathRef.current = layoutShift.path;
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     setCollisionIds(collisionIds);
-    setTransforms(createTransforms(content, layoutShift.moves, cellRect));
+    setTransforms(createTransforms(itemsLayout, layoutShift.moves, cellRect));
   });
 
   useDragSubscription("drop", (detail) => {
-    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholders);
+    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const layoutShift = detail.resize
-      ? calculateResizeShifts(content, collisionRect, detail.id, columns)
-      : calculateReorderShifts(content, collisionRect, detail.id, pathRef.current, columns);
-    printLayoutDebug(content, columns, layoutShift);
+      ? calculateResizeShifts(itemsLayout, collisionRect, detail.id)
+      : calculateReorderShifts(itemsLayout, collisionRect, detail.id, pathRef.current);
+    printLayoutDebug(itemsLayout, layoutShift);
 
     setTransforms({});
-    setIsDragActive(false);
+    setActiveDragItem(null);
     setCollisionIds(null);
     pathRef.current = [];
 
     // Commit new layout.
     if (!layoutShift.hasConflicts) {
-      onItemsChange(createCustomEvent({ items: exportLayout(layoutShift.items, items) }));
+      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
     }
   });
 
   return (
     <div ref={containerQueryRef as Ref<HTMLDivElement>}>
-      <Grid columns={columns} rows={rows} layout={[...placeholders, ...content]}>
-        {placeholders.map((placeholder) => (
+      <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+        {placeholdersLayout.items.map((placeholder) => (
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
-            state={isDragActive ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            state={activeDragItem ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
           />
         ))}
-        {items.map((item) => {
-          return (
-            <ItemContextProvider
-              key={item.id}
-              value={{
-                id: item.id,
-                resizable: true,
-                transform: transforms[item.id] ?? null,
-              }}
-            >
-              {renderItem(item)}
-            </ItemContextProvider>
-          );
-        })}
+        {items.map((item) => (
+          <ItemContextProvider
+            key={item.id}
+            value={{
+              id: item.id,
+              resizable: true,
+              transform: transforms[item.id] ?? null,
+            }}
+          >
+            {renderItem(item)}
+          </ItemContextProvider>
+        ))}
       </Grid>
     </div>
   );

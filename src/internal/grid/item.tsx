@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode, memo } from "react";
-import { GridLayoutItem } from "../base-types";
+import { GridLayoutItem } from "../interfaces";
 import styles from "./styles.css.js";
 
 export interface GridItemProps {
