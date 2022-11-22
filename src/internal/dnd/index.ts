@@ -1,15 +1,17 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Transform } from "@dnd-kit/utilities";
-import { MouseEvent as ReactMouseEvent, Ref, useEffect, useRef, useState } from "react";
+import { MouseEvent as ReactMouseEvent, Ref, RefObject, useEffect, useRef } from "react";
 import { EventEmitter } from "./emitter";
 
-type Updater = (event: MouseEvent) => void;
+interface DragDetail {
+  id: string;
+  containerRef: RefObject<HTMLElement>;
+  resize: boolean;
+}
 
-interface DragAndDropData {
-  active: HTMLElement;
-  activeId: string;
+export interface DragAndDropData extends DragDetail {
   droppables: readonly [string, HTMLElement][];
+  coordinates: { x: number; y: number };
 }
 
 interface DragAndDropEvents {
@@ -18,32 +20,31 @@ interface DragAndDropEvents {
   drop: (data: DragAndDropData) => void;
 }
 
+function getCoordinates(event: ReactMouseEvent | MouseEvent) {
+  return { x: event.pageX, y: event.pageY };
+}
+
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<string, HTMLElement>();
-  private activeElement: HTMLElement | null = null;
-  private activeId: string | null = null;
-  private activeUpdater: Updater | null = null;
+  private activeDragDetail: DragDetail | null = null;
 
   private onMouseMove = (event: MouseEvent) => {
-    this.activeUpdater!(event);
     this.emit("move", {
-      active: this.activeElement!,
-      activeId: this.activeId!,
+      ...this.activeDragDetail!,
+      coordinates: getCoordinates(event),
       droppables: [...this.droppables.entries()],
     });
   };
 
-  private onMouseUp = () => {
+  private onMouseUp = (event: MouseEvent) => {
     this.emit("drop", {
-      active: this.activeElement!,
-      activeId: this.activeId!,
+      ...this.activeDragDetail!,
+      coordinates: getCoordinates(event),
       droppables: [...this.droppables.entries()],
     });
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("mouseup", this.onMouseUp);
-    this.activeUpdater = null;
-    this.activeElement = null;
-    this.activeId = null;
+    this.activeDragDetail = null;
   };
 
   public addDroppable(element: HTMLElement, id: string) {
@@ -54,13 +55,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.droppables.delete(id);
   }
 
-  public activateDrag(activeElement: HTMLElement, activeId: string, updater: (event: MouseEvent) => void) {
-    this.activeElement = activeElement;
-    this.activeId = activeId;
-    this.activeUpdater = updater;
+  public activateDrag(dragDetail: DragDetail, event: ReactMouseEvent) {
+    this.activeDragDetail = dragDetail;
     this.emit("start", {
-      active: this.activeElement!,
-      activeId: this.activeId!,
+      ...this.activeDragDetail!,
+      coordinates: getCoordinates(event),
       droppables: [...this.droppables.entries()],
     });
     document.addEventListener("mousemove", this.onMouseMove);
@@ -70,41 +69,14 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 
 const controller = new DragAndDropController();
 
-export function useDragSubscription(
-  event: keyof DragAndDropEvents,
-  handler: DragAndDropEvents[keyof DragAndDropEvents]
-) {
+export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
   useEffect(() => controller.on(event, handler), [event, handler]);
 }
 
-export function useDraggable(id: string) {
-  const ref = useRef<HTMLElement>();
-  const [transform, setTransform] = useState<Transform | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-
-  useDragSubscription("start", ({ activeId }) => setActiveDragId(activeId));
-  useDragSubscription("drop", () => {
-    setActiveDragId(null);
-    setTransform(null);
-  });
-
-  function onStart(event: ReactMouseEvent) {
-    const el = ref.current;
-    if (el) {
-      const original = el.getBoundingClientRect();
-      const offsetLeft = original.left - event.pageX;
-      const offsetTop = original.top - event.pageY;
-      controller.activateDrag(el, id, (event) => {
-        setTransform({
-          x: event.pageX - original.left + offsetLeft,
-          y: event.pageY - original.top + offsetTop,
-          scaleX: 1,
-          scaleY: 1,
-        });
-      });
-    }
-  }
-  return { ref: ref as Ref<any>, onStart, transform, activeDragId };
+export function useDraggable(dragDetail: DragDetail) {
+  return function onStart(event: ReactMouseEvent) {
+    controller.activateDrag(dragDetail, event);
+  };
 }
 
 export function useDroppable(id: string) {
