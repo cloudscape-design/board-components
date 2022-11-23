@@ -7,6 +7,8 @@ import { DndGrid, DndItem } from "./grid";
 import { CommittedMove, Direction, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { normalizePath, sortGridItems } from "./utils";
 
+// TODO: Rename DndEngine -> LayoutEngine.
+
 export class DndEngine {
   private current: GridLayout;
   private grid: DndGrid;
