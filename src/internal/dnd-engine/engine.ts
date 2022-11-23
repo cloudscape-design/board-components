@@ -4,7 +4,7 @@
 import { GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { DndGrid, DndItem } from "./grid";
-import { CommittedMove, Direction, GridTransition, MoveCommand, ResizeCommand } from "./interfaces";
+import { CommittedMove, Direction, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { normalizePath, sortGridItems } from "./utils";
 
 export class DndEngine {
@@ -19,7 +19,7 @@ export class DndEngine {
     this.grid = new DndGrid(items, columns);
   }
 
-  move(moveCommand: MoveCommand): GridTransition {
+  move(moveCommand: MoveCommand): LayoutShift {
     this.cleanup();
 
     const { itemId, path } = this.validateMoveCommand(moveCommand);
@@ -39,10 +39,10 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getTransition();
+    return this.getLayoutShift();
   }
 
-  resize(resize: ResizeCommand): GridTransition {
+  resize(resize: ResizeCommand): LayoutShift {
     this.cleanup();
 
     resize = this.validateResizeCommand(resize);
@@ -55,10 +55,10 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getTransition();
+    return this.getLayoutShift();
   }
 
-  insert(item: GridLayoutItem): GridTransition {
+  insert(item: GridLayoutItem): LayoutShift {
     this.cleanup();
 
     this.grid.insert(item, this.addOverlap.bind(this));
@@ -69,10 +69,10 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getTransition();
+    return this.getLayoutShift();
   }
 
-  remove(itemId: ItemId): GridTransition {
+  remove(itemId: ItemId): LayoutShift {
     this.cleanup();
 
     this.grid.remove(itemId);
@@ -81,25 +81,25 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getTransition();
+    return this.getLayoutShift();
   }
 
-  commit(): GridTransition {
-    const transition = this.getTransition();
+  commit(): LayoutShift {
+    const layoutShift = this.getLayoutShift();
 
     if (this.conflicts.size === 0) {
-      this.lastCommit = transition.end;
+      this.lastCommit = layoutShift.next;
     }
 
     this.cleanup();
 
-    return transition;
+    return layoutShift;
   }
 
-  getTransition(): GridTransition {
+  getLayoutShift(): LayoutShift {
     return {
-      start: this.lastCommit,
-      end: {
+      current: this.lastCommit,
+      next: {
         items: sortGridItems(this.grid.items.map((item) => ({ ...item }))),
         columns: this.grid.width,
         rows: this.grid.height,

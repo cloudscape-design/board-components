@@ -11,8 +11,8 @@ test("element insertion never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const item = generateInsert(grid);
-    const transition = new DndEngine(grid).insert(item);
-    expect(transition.conflicts).toHaveLength(0);
+    const layoutShift = new DndEngine(grid).insert(item);
+    expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
 
@@ -50,7 +50,7 @@ describe("insert scenarios", () => {
       ],
     ],
   ])("%s", (_, grid, item, expectation) => {
-    const transition = new DndEngine(fromMatrix(grid)).insert(item);
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(fromMatrix(grid)).insert(item);
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

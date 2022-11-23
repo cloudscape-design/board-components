@@ -2,22 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
 import { toString as engineToString } from "../../internal/debug-tools";
-import { CommittedMove, GridTransition } from "../../internal/dnd-engine/interfaces";
+import { CommittedMove, LayoutShift } from "../../internal/dnd-engine/interfaces";
 import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
 
-export function printLayoutDebug(grid: GridLayout, transition: GridTransition) {
+export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   // Logs for dnd-engine debugging.
   console.log("Grid before move:");
   console.log(engineToString(grid));
 
   console.log("Grid after move:");
-  console.log(engineToString(transition.end));
+  console.log(engineToString(layoutShift.next));
 
   console.log("Grid transition:");
-  console.log(transition);
+  console.log(layoutShift);
 }
 
 export function createTransforms(

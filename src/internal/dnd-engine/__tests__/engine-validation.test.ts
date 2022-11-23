@@ -91,8 +91,8 @@ test("normalizes move path when returning to start location", () => {
     [" ", " ", " "],
     [" ", " ", " "],
   ]);
-  const transition = new DndEngine(grid).move(fromTextPath("A1 B1 B2 A2 A1", grid));
-  expect(transition.moves).toHaveLength(0);
+  const layoutShift = new DndEngine(grid).move(fromTextPath("A1 B1 B2 A2 A1", grid));
+  expect(layoutShift.moves).toHaveLength(0);
 });
 
 test("normalizes move path when returning to previously visited item", () => {
@@ -101,14 +101,14 @@ test("normalizes move path when returning to previously visited item", () => {
     [" ", " ", " "],
     [" ", " ", " "],
   ]);
-  const transition = new DndEngine(grid).move(fromTextPath("A1 B1 B2 C2 C1 B1", grid));
-  expect(transition.moves).toHaveLength(1);
+  const layoutShift = new DndEngine(grid).move(fromTextPath("A1 B1 B2 C2 C1 B1", grid));
+  expect(layoutShift.moves).toHaveLength(1);
 });
 
 test("normalizes move path and continues when from the repeating position", () => {
   const grid = fromMatrix([[" ", "A", " "]]);
-  const transition = new DndEngine(grid).move(fromTextPath("B1 B2 B3 B2 B3 B4", grid));
-  expect(transition.moves).toEqual([
+  const layoutShift = new DndEngine(grid).move(fromTextPath("B1 B2 B3 B2 B3 B4", grid));
+  expect(layoutShift.moves).toEqual([
     { itemId: "A", x: 1, y: 1, type: "USER" },
     { itemId: "A", x: 1, y: 2, type: "USER" },
     { itemId: "A", x: 1, y: 3, type: "USER" },
@@ -124,7 +124,7 @@ test("normalizes resize dimensions when below 1", () => {
           ["A", "A"],
           ["A", "A"],
         ])
-      ).resize({ itemId: "A", width: 0, height: -1 }).end
+      ).resize({ itemId: "A", width: 0, height: -1 }).next
     )
   ).toBe(toString([["A", " "]]));
 });
@@ -138,7 +138,7 @@ test("normalizes resize dimensions when outside grid", () => {
           [" ", "A", " "],
           [" ", " ", " "],
         ])
-      ).resize({ itemId: "A", width: 3, height: 3 }).end
+      ).resize({ itemId: "A", width: 3, height: 3 }).next
     )
   ).toBe(
     toString([

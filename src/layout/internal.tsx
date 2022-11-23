@@ -95,7 +95,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const itemHeight = transition?.layoutItem
       ? transition.layoutItem.height
       : transition.item.definition.defaultRowSpan;
-    const rows = layoutShift.end.rows + itemHeight;
+    const rows = layoutShift.next.rows + itemHeight;
 
     setTransition({ ...transition, collisionIds, transforms, path, rows });
   });
@@ -117,13 +117,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     if (layoutShift.conflicts.length === 0 && !transition.layoutItem) {
       // TODO: resolve "any" here.
       // It is not quite clear yet how to ensure the addedItem matches generic D type.
-      const newLayout = exportItemsLayout(layoutShift.end, [...items, transition.item] as any);
+      const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.item] as any);
       const addedItem = newLayout.find((item) => item.id === transition.item.id)!;
       onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
     }
     // Commit new layout for reorder/resize case.
     else if (layoutShift.conflicts.length === 0) {
-      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.end, items) }));
+      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
     }
   });
 

@@ -76,7 +76,7 @@ test("engine commands start from the last committed state", () => {
   engine.resize({ itemId: "A", width: 2, height: 2 });
   engine.remove("A");
 
-  // The last command only is reflected in the transition.
+  // The last command only is reflected in the layoutShift.
   engine.move({ itemId: "A", path: [{ x: 1, y: 0 }] });
 
   expect(printResult(engine)).toBe(
@@ -114,5 +114,5 @@ test("commit does not happen when grid has unresolved conflicts", () => {
 });
 
 function printResult(engine: DndEngine): string {
-  return toString(engine.getTransition().end);
+  return toString(engine.getLayoutShift().next);
 }

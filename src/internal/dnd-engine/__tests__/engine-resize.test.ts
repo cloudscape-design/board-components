@@ -11,8 +11,8 @@ test("decrease in element size never creates conflicts", () => {
   range(0, 10).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, { maxWidthIncrement: 0, maxHeightIncrement: 0 });
-    const transition = new DndEngine(grid).resize(resize);
-    expect(transition.moves.filter((move) => move.type !== "FLOAT")).toHaveLength(0);
+    const layoutShift = new DndEngine(grid).resize(resize);
+    expect(layoutShift.moves.filter((move) => move.type !== "FLOAT")).toHaveLength(0);
   });
 });
 
@@ -20,8 +20,8 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
     const resize = generateResize(grid, { maxWidthDecrement: 0, maxHeightDecrement: 0 });
-    const transition = new DndEngine(grid).resize(resize);
-    expect(transition.conflicts).toHaveLength(0);
+    const layoutShift = new DndEngine(grid).resize(resize);
+    expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
 
@@ -59,7 +59,7 @@ describe("resize scenarios", () => {
       ],
     ],
   ])("%s", (_, gridMatrix, resize, expectation) => {
-    const transition = new DndEngine(fromMatrix(gridMatrix)).resize(resize);
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(fromMatrix(gridMatrix)).resize(resize);
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
