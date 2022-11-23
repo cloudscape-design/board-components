@@ -3,6 +3,7 @@
 import { DragAndDropData } from "../../internal/dnd-controller";
 import { GridLayoutItem } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
+import { GAP } from "./shift-layout";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -41,10 +42,21 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
     bottom: Number.POSITIVE_INFINITY,
   };
 
+  const { x: pageX, y: pageY, height: baseHeight, width: baseWidth } = droppables[0][1].getBoundingClientRect();
+
   // snap current collision to rects grid
-  for (const [, droppableElement] of droppables) {
-    // TODO: should we cache getBoundingClientRect() somewhewre?
-    const rect = droppableElement.getBoundingClientRect();
+  for (const [droppableId] of droppables) {
+    // TODO: do not rely on the ID format.
+    const [x, y] = droppableId
+      .slice("placeholder-".length)
+      .split("-")
+      .map((index) => parseInt(index));
+    const rect = {
+      left: pageX + x * (baseWidth + GAP),
+      right: pageX + (x + 1) * (baseWidth + GAP) - GAP,
+      top: pageY + y * (baseHeight + GAP),
+      bottom: pageY + (y + 1) * (baseHeight + GAP) - GAP,
+    };
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
       left: getMinDistance(bounds.left, rect.left, collisionRect.left),

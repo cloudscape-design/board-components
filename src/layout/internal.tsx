@@ -72,7 +72,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   }
 
   function checkCanDrop(itemEl: HTMLElement): boolean {
+    // TODO: calculate container Rect once or per rows change.
     const containerRect = containerAccessRef.current!.getBoundingClientRect();
+    // TODO: calculate item Rect once and adjust based on cursor position.
     const itemRect = itemEl.getBoundingClientRect();
     return isIntersecting(containerRect, itemRect);
   }
