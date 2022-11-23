@@ -16,7 +16,7 @@ export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   console.log("Grid after move:");
   console.log(engineToString(layoutShift.next));
 
-  console.log("Grid transition:");
+  console.log("Layout shift:");
   console.log(layoutShift);
 }
 
