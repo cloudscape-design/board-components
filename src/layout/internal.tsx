@@ -6,7 +6,7 @@ import { Ref, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { DashboardItemBase, Position, Rect } from "../internal/interfaces";
+import { DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
@@ -22,84 +22,100 @@ import {
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 
+interface TransitionState {
+  transforms: { [itemId: ItemId]: Transform };
+  collisionIds: ItemId[];
+  item: DashboardItemBase<unknown>;
+  layoutItem: null | GridLayoutItem;
+  rows: number;
+}
+
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
+  const pathRef = useRef<Position[]>([]);
+
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
   );
-  const [transforms, setTransforms] = useState<Record<string, Transform>>({});
-  const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
-  const [activeDragItem, setActiveDragItem] = useState<null | DashboardItemBase<unknown>>(null);
-  const [rowsOverride, setRowsOverride] = useState<null | number>(null);
-  const pathRef = useRef<Position[]>([]);
-
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
+
+  const [transition, setTransition] = useState<null | TransitionState>(null);
 
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
-  const matchedLayoutItem = activeDragItem && layoutItemById.get(activeDragItem.id);
-  const rows = rowsOverride ?? itemsLayout.rows;
-
+  const rows = transition?.rows ?? itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   function getLayoutShift(resize: boolean, collisionRect: Rect) {
-    if (!activeDragItem) {
-      throw new Error("Invariant violation: no matched item.");
+    if (!transition) {
+      throw new Error("Invariant violation: no transition.");
     }
+
     if (resize) {
-      return calculateResizeShifts(itemsLayout, collisionRect, activeDragItem.id);
+      return calculateResizeShifts(itemsLayout, collisionRect, transition.item.id);
     }
-    return matchedLayoutItem
-      ? calculateReorderShifts(itemsLayout, collisionRect, activeDragItem.id, pathRef.current)
-      : calculateInsertShifts(itemsLayout, collisionRect, activeDragItem);
+    return transition.layoutItem
+      ? calculateReorderShifts(itemsLayout, collisionRect, transition.item.id, pathRef.current)
+      : calculateInsertShifts(itemsLayout, collisionRect, transition.item);
   }
 
   useDragSubscription("start", (detail) => {
-    setActiveDragItem(detail.item);
+    const item = detail.item;
+    const layoutItem = layoutItemById.get(detail.item.id) ?? null;
 
-    const matchedItem = layoutItemById.get(detail.item.id);
-    if (matchedItem && !detail.resize) {
-      pathRef.current = [{ x: matchedItem.x, y: matchedItem.y }];
+    // Init move path for reorder.
+    if (layoutItem && !detail.resize) {
+      pathRef.current = [{ x: layoutItem.x, y: layoutItem.y }];
     }
 
-    const itemHeight = matchedItem ? matchedItem.height : detail.item.definition.defaultRowSpan;
-    if (!detail.resize) {
-      setRowsOverride(itemsLayout.rows + itemHeight);
-    }
+    // Override rows to plan for possible height increase.
+    const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
+    const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
+
+    setTransition({ transforms: {}, collisionIds: [], item, layoutItem, rows });
   });
 
   useDragSubscription("move", (detail) => {
+    if (!transition) {
+      throw new Error("Invariant violation: no transition.");
+    }
+
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const layoutShift = getLayoutShift(detail.resize, collisionRect);
 
     pathRef.current = layoutShift.path;
-    const cellRect = detail.droppables[0][1].getBoundingClientRect();
-    setCollisionIds(collisionIds);
-    setTransforms(createTransforms(itemsLayout, layoutShift.moves, cellRect));
 
-    const itemHeight = matchedLayoutItem ? matchedLayoutItem.height : detail.item.definition.defaultRowSpan;
-    setRowsOverride(layoutShift.next.rows + itemHeight);
+    const cellRect = detail.droppables[0][1].getBoundingClientRect();
+    const transforms = createTransforms(itemsLayout, layoutShift.moves, cellRect);
+
+    const itemHeight = transition?.layoutItem
+      ? transition.layoutItem.height
+      : transition.item.definition.defaultRowSpan;
+    const rows = layoutShift.next.rows + itemHeight;
+
+    setTransition({ ...transition, collisionIds, transforms, rows });
   });
 
   useDragSubscription("drop", (detail) => {
+    if (!transition) {
+      throw new Error("Invariant violation: no transition.");
+    }
+
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const layoutShift = getLayoutShift(detail.resize, collisionRect);
 
     printLayoutDebug(itemsLayout, layoutShift);
 
-    setTransforms({});
-    setActiveDragItem(null);
-    setCollisionIds(null);
-    setRowsOverride(null);
     pathRef.current = [];
+    setTransition(null);
 
     // Commit new layout for insert case.
-    if (!layoutShift.hasConflicts && !matchedLayoutItem) {
+    if (!layoutShift.hasConflicts && !transition.layoutItem) {
       // TODO: resolve "any" here.
       // It is not quite clear yet how to ensure the addedItem matches generic D type.
-      const newLayout = exportItemsLayout(layoutShift.next, [...items, activeDragItem!] as any);
-      const addedItem = newLayout.find((item) => item.id === activeDragItem?.id)!;
+      const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.item] as any);
+      const addedItem = newLayout.find((item) => item.id === transition.item.id)!;
       onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
     }
     // Commit new layout for reorder/resize case.
@@ -115,7 +131,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
-            state={activeDragItem ? (collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            state={
+              transition?.item ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"
+            }
           />
         ))}
         {items.map((item) => (
@@ -128,7 +146,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
                 height: item.definition.defaultRowSpan,
               },
               resizable: true,
-              transform: transforms[item.id] ?? null,
+              transform: transition?.transforms[item.id] ?? null,
             }}
           >
             {renderItem(item)}
