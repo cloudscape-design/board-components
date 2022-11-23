@@ -84,17 +84,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       throw new Error("Invariant violation: no transition.");
     }
 
+    const itemWidth = transition?.layoutItem
+      ? transition.layoutItem.width
+      : transition.item.definition.defaultColumnSpan;
+    const itemHeight = transition?.layoutItem
+      ? transition.layoutItem.height
+      : transition.item.definition.defaultRowSpan;
+
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const path = transition.path.length > 0 ? appendPath(transition.path, collisionRect) : [];
+    const path = transition.path.length > 0 ? appendPath(transition.path, collisionRect, columns, itemWidth) : [];
     const layoutShift = getLayoutShift(detail.resize, collisionRect, path);
 
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     const transforms = createTransforms(itemsLayout, layoutShift.moves, cellRect);
 
-    const itemHeight = transition?.layoutItem
-      ? transition.layoutItem.height
-      : transition.item.definition.defaultRowSpan;
     const rows = layoutShift.next.rows + itemHeight;
 
     setTransition({ ...transition, collisionIds, transforms, path, rows });
@@ -105,8 +109,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       throw new Error("Invariant violation: no transition.");
     }
 
+    const itemWidth = transition?.layoutItem
+      ? transition.layoutItem.width
+      : transition.item.definition.defaultColumnSpan;
+
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
-    const path = transition.path.length > 0 ? appendPath(transition.path, collisionRect) : [];
+    const path = transition.path.length > 0 ? appendPath(transition.path, collisionRect, columns, itemWidth) : [];
     const layoutShift = getLayoutShift(detail.resize, collisionRect, path);
 
     printLayoutDebug(itemsLayout, layoutShift);

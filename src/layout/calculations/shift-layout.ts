@@ -44,29 +44,29 @@ export function createTransforms(
   return transforms;
 }
 
-export function appendPath(prevPath: Position[], collisionRect: Rect): Position[] {
-  let safetyCounter = 0;
+export function appendPath(prevPath: Position[], collisionRect: Rect, columns: number, colspan: number): Position[] {
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
   const vx = Math.sign(collisionRect.left - lastPosition.x);
   const vy = Math.sign(collisionRect.top - lastPosition.y);
 
-  let { x, y } = lastPosition;
+  const nextX = Math.min(columns - colspan, collisionRect.left);
+  const nextY = collisionRect.top;
 
-  while (x !== collisionRect.left || y !== collisionRect.top) {
-    safetyCounter++;
-    if (safetyCounter > 100) {
-      throw new Error("infinite loop?");
+  let { x, y } = lastPosition;
+  let safetyCounter = 0;
+
+  while (x !== nextX || y !== nextY) {
+    if (++safetyCounter === 100) {
+      throw new Error("Infinite loop in appendPath.");
     }
-    if (x !== collisionRect.left) {
+    if (x !== nextX) {
       x += vx;
-      path.push({ x, y });
-    }
-    if (y !== collisionRect.top) {
+    } else {
       y += vy;
-      path.push({ x, y });
     }
+    path.push({ x, y });
   }
 
   return path;
