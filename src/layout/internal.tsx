@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
-import { Ref, useRef, useState } from "react";
+import { Ref, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
@@ -27,12 +27,11 @@ interface TransitionState {
   collisionIds: ItemId[];
   item: DashboardItemBase<unknown>;
   layoutItem: null | GridLayoutItem;
+  path: Position[];
   rows: number;
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
-  const pathRef = useRef<Position[]>([]);
-
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
@@ -55,7 +54,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       return calculateResizeShifts(itemsLayout, collisionRect, transition.item.id);
     }
     return transition.layoutItem
-      ? calculateReorderShifts(itemsLayout, collisionRect, transition.item.id, pathRef.current)
+      ? calculateReorderShifts(itemsLayout, collisionRect, transition.item.id, transition.path)
       : calculateInsertShifts(itemsLayout, collisionRect, transition.item);
   }
 
@@ -63,16 +62,14 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const item = detail.item;
     const layoutItem = layoutItemById.get(detail.item.id) ?? null;
 
-    // Init move path for reorder.
-    if (layoutItem && !detail.resize) {
-      pathRef.current = [{ x: layoutItem.x, y: layoutItem.y }];
-    }
+    // Define starting path for reorder.
+    const path = layoutItem && !detail.resize ? [{ x: layoutItem.x, y: layoutItem.y }] : [];
 
     // Override rows to plan for possible height increase.
     const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
     const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
-    setTransition({ transforms: {}, collisionIds: [], item, layoutItem, rows });
+    setTransition({ transforms: {}, collisionIds: [], item, layoutItem, path, rows });
   });
 
   useDragSubscription("move", (detail) => {
@@ -84,8 +81,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const layoutShift = getLayoutShift(detail.resize, collisionRect);
 
-    pathRef.current = layoutShift.path;
-
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     const transforms = createTransforms(itemsLayout, layoutShift.moves, cellRect);
 
@@ -94,7 +89,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       : transition.item.definition.defaultRowSpan;
     const rows = layoutShift.next.rows + itemHeight;
 
-    setTransition({ ...transition, collisionIds, transforms, rows });
+    setTransition({ ...transition, collisionIds, transforms, path: layoutShift.path, rows });
   });
 
   useDragSubscription("drop", (detail) => {
@@ -107,7 +102,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     printLayoutDebug(itemsLayout, layoutShift);
 
-    pathRef.current = [];
     setTransition(null);
 
     // Commit new layout for insert case.
