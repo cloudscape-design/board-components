@@ -18,7 +18,7 @@ test("all items float to the top after move+commit", () => {
     ([width, totalItems]) => {
       const grid = generateGrid({ width, totalItems });
       const movePath = generateMove(grid, "any");
-      const layoutShift = new DndEngine(grid).move(movePath);
+      const layoutShift = new DndEngine(grid).move(movePath).getLayoutShift();
 
       if (layoutShift.conflicts.length === 0) {
         const textGrid = toMatrix(layoutShift.next);
@@ -52,7 +52,7 @@ test("float creates addition moves", () => {
     [" ", " ", "F", "G"],
     [" ", " ", "H", " "],
   ]);
-  const layoutShift = new DndEngine(grid).move(fromTextPath("C2 B2 A2", grid));
+  const layoutShift = new DndEngine(grid).move(fromTextPath("C2 B2 A2", grid)).getLayoutShift();
   expect(layoutShift.moves).toEqual([
     { itemId: "E", y: 1, x: 1, type: "USER" },
     { itemId: "E", y: 1, x: 0, type: "USER" },

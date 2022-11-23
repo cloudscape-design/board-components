@@ -18,7 +18,6 @@ test("input arguments stay unchanged when using engine", () => {
   new DndEngine(grid).resize(resize);
   new DndEngine(grid).insert({ id: "X", x: 0, y: 0, width: 1, height: 1 });
   new DndEngine(grid).remove("A");
-  new DndEngine(grid).commit();
 
   expect(grid).toEqual(gridClone);
   expect(movePath).toEqual(moveClone);

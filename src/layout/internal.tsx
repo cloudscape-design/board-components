@@ -20,6 +20,7 @@ import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 
 interface TransitionState {
+  engine: DndEngine;
   transforms: { [itemId: ItemId]: Transform };
   collisionIds: ItemId[];
   item: DashboardItemBase<unknown>;
@@ -49,14 +50,14 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       throw new Error("Invariant violation: no transition.");
     }
 
-    // TODO: rework dnd-engine API to support the below use-cases better.
-
     if (resize) {
-      return new DndEngine(itemsLayout).resize({
-        itemId: transition.item.id,
-        height: collisionRect.bottom - collisionRect.top,
-        width: collisionRect.right - collisionRect.left,
-      });
+      return transition.engine
+        .resize({
+          itemId: transition.item.id,
+          height: collisionRect.bottom - collisionRect.top,
+          width: collisionRect.right - collisionRect.left,
+        })
+        .getLayoutShift();
     }
 
     if (!transition.layoutItem) {
@@ -64,19 +65,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       const height = transition.item.definition.defaultRowSpan;
       const [enteringPosition, ...movePath] = transition.path;
       const layoutItem = { id: transition.item.id, width, height, ...enteringPosition };
-      const engine = new DndEngine(itemsLayout);
-      engine.insert(layoutItem);
-      const insertShift = engine.commit();
-      const moveShift = engine.move({ itemId: transition.item.id, path: movePath });
-      return {
-        ...insertShift,
-        conflicts: moveShift.conflicts,
-        next: moveShift.next,
-        moves: [...insertShift.moves, ...moveShift.moves],
-      };
+      return transition.engine.insert(layoutItem).move({ itemId: transition.item.id, path: movePath }).getLayoutShift();
     }
 
-    return new DndEngine(itemsLayout).move({ itemId: transition.item.id, path: path.slice(1) });
+    return transition.engine.move({ itemId: transition.item.id, path: path.slice(1) }).getLayoutShift();
   }
 
   function checkCanDrop(itemEl: HTMLElement): boolean {
@@ -97,12 +89,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
     const canDrop = checkCanDrop(detail.containerRef.current!);
-
-    setTransition(
-      canDrop
-        ? { transforms: {}, collisionIds: [], item, layoutItem, path, rows }
-        : { transforms: {}, collisionIds: [], item, layoutItem, path, rows: itemsLayout.rows }
-    );
+    const transition = {
+      engine: new DndEngine(itemsLayout),
+      transforms: {},
+      collisionIds: [],
+      item,
+      layoutItem,
+      path,
+      rows,
+    };
+    setTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
   });
 
   useDragSubscription("move", (detail) => {

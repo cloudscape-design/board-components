@@ -8,18 +8,28 @@ import { CommittedMove, Direction, LayoutShift, MoveCommand, ResizeCommand } fro
 import { normalizePath, sortGridItems } from "./utils";
 
 export class DndEngine {
-  private lastCommit: GridLayout;
+  private current: GridLayout;
   private grid: DndGrid;
   private moves: CommittedMove[] = [];
   private overlaps = new StackSet<ItemId>();
   private conflicts = new Set<ItemId>();
+  private chained = false;
 
-  constructor({ items, columns, rows }: GridLayout) {
-    this.lastCommit = { items, columns, rows };
-    this.grid = new DndGrid(items, columns);
+  constructor(args: GridLayout | DndEngine) {
+    if (args instanceof DndEngine) {
+      this.current = args.current;
+      this.grid = args.grid;
+      this.moves = args.moves;
+      this.overlaps = args.overlaps;
+      this.conflicts = args.conflicts;
+      this.chained = true;
+    } else {
+      this.current = args;
+      this.grid = new DndGrid(args.items, args.columns);
+    }
   }
 
-  move(moveCommand: MoveCommand): LayoutShift {
+  move(moveCommand: MoveCommand): DndEngine {
     this.cleanup();
 
     const { itemId, path } = this.validateMoveCommand(moveCommand);
@@ -39,10 +49,10 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getLayoutShift();
+    return new DndEngine(this);
   }
 
-  resize(resize: ResizeCommand): LayoutShift {
+  resize(resize: ResizeCommand): DndEngine {
     this.cleanup();
 
     resize = this.validateResizeCommand(resize);
@@ -55,10 +65,10 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getLayoutShift();
+    return new DndEngine(this);
   }
 
-  insert(item: GridLayoutItem): LayoutShift {
+  insert(item: GridLayoutItem): DndEngine {
     this.cleanup();
 
     this.grid.insert(item, this.addOverlap.bind(this));
@@ -69,10 +79,10 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getLayoutShift();
+    return new DndEngine(this);
   }
 
-  remove(itemId: ItemId): LayoutShift {
+  remove(itemId: ItemId): DndEngine {
     this.cleanup();
 
     this.grid.remove(itemId);
@@ -81,24 +91,12 @@ export class DndEngine {
       this.refloatGrid();
     }
 
-    return this.getLayoutShift();
-  }
-
-  commit(): LayoutShift {
-    const layoutShift = this.getLayoutShift();
-
-    if (this.conflicts.size === 0) {
-      this.lastCommit = layoutShift.next;
-    }
-
-    this.cleanup();
-
-    return layoutShift;
+    return new DndEngine(this);
   }
 
   getLayoutShift(): LayoutShift {
     return {
-      current: this.lastCommit,
+      current: this.current,
       next: {
         items: sortGridItems(this.grid.items.map((item) => ({ ...item }))),
         columns: this.grid.width,
@@ -110,10 +108,12 @@ export class DndEngine {
   }
 
   private cleanup(): void {
-    this.grid = new DndGrid(this.lastCommit.items, this.lastCommit.columns);
-    this.moves = [];
-    this.overlaps = new StackSet();
-    this.conflicts = new Set();
+    if (!this.chained) {
+      this.grid = new DndGrid(this.current.items, this.current.columns);
+      this.moves = [];
+      this.overlaps = new StackSet();
+      this.conflicts = new Set();
+    }
   }
 
   private addOverlap(itemId: ItemId): void {

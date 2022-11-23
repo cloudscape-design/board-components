@@ -91,7 +91,7 @@ test("normalizes move path when returning to start location", () => {
     [" ", " ", " "],
     [" ", " ", " "],
   ]);
-  const layoutShift = new DndEngine(grid).move(fromTextPath("A1 B1 B2 A2 A1", grid));
+  const layoutShift = new DndEngine(grid).move(fromTextPath("A1 B1 B2 A2 A1", grid)).getLayoutShift();
   expect(layoutShift.moves).toHaveLength(0);
 });
 
@@ -101,13 +101,13 @@ test("normalizes move path when returning to previously visited item", () => {
     [" ", " ", " "],
     [" ", " ", " "],
   ]);
-  const layoutShift = new DndEngine(grid).move(fromTextPath("A1 B1 B2 C2 C1 B1", grid));
+  const layoutShift = new DndEngine(grid).move(fromTextPath("A1 B1 B2 C2 C1 B1", grid)).getLayoutShift();
   expect(layoutShift.moves).toHaveLength(1);
 });
 
 test("normalizes move path and continues when from the repeating position", () => {
   const grid = fromMatrix([[" ", "A", " "]]);
-  const layoutShift = new DndEngine(grid).move(fromTextPath("B1 B2 B3 B2 B3 B4", grid));
+  const layoutShift = new DndEngine(grid).move(fromTextPath("B1 B2 B3 B2 B3 B4", grid)).getLayoutShift();
   expect(layoutShift.moves).toEqual([
     { itemId: "A", x: 1, y: 1, type: "USER" },
     { itemId: "A", x: 1, y: 2, type: "USER" },
@@ -124,7 +124,9 @@ test("normalizes resize dimensions when below 1", () => {
           ["A", "A"],
           ["A", "A"],
         ])
-      ).resize({ itemId: "A", width: 0, height: -1 }).next
+      )
+        .resize({ itemId: "A", width: 0, height: -1 })
+        .getLayoutShift().next
     )
   ).toBe(toString([["A", " "]]));
 });
@@ -138,7 +140,9 @@ test("normalizes resize dimensions when outside grid", () => {
           [" ", "A", " "],
           [" ", " ", " "],
         ])
-      ).resize({ itemId: "A", width: 3, height: 3 }).next
+      )
+        .resize({ itemId: "A", width: 3, height: 3 })
+        .getLayoutShift().next
     )
   ).toBe(
     toString([
