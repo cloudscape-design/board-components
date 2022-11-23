@@ -1,12 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
+import { GAP } from "../../internal/constants";
 import { toString as engineToString } from "../../internal/debug-tools";
 import { CommittedMove, LayoutShift } from "../../internal/dnd-engine/interfaces";
 import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
-
-const GAP = 16;
 
 export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   // Logs for dnd-engine debugging.

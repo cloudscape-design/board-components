@@ -4,6 +4,7 @@ import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
+import { GAP } from "../internal/constants";
 import { useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { Coordinates } from "../internal/interfaces";
@@ -49,14 +50,17 @@ export default function DashboardItem({
   useDragSubscription("move", ({ item: activeItem, resize, coordinates, droppables }) => {
     const origin = dragOriginRef.current!;
     if (activeItem.id === item.id) {
+      const cellRect = droppables[0][1].getBoundingClientRect();
+      const maxWidth = cellRect.width * itemSize.width + GAP * (itemSize.width - 1);
+      const maxHeight = cellRect.height * itemSize.height + GAP * (itemSize.height - 1);
+
       if (resize) {
         setSizeOverride({
-          width: origin.rect.width + (coordinates.pageX - origin.cursor.pageX),
-          height: origin.rect.height + (coordinates.pageY - origin.cursor.pageY),
+          width: Math.min(maxWidth, origin.rect.width + (coordinates.pageX - origin.cursor.pageX)),
+          height: Math.min(maxHeight, origin.rect.height + (coordinates.pageY - origin.cursor.pageY)),
         });
       } else {
-        const cellRect = droppables[0][1].getBoundingClientRect();
-        setSizeOverride({ width: cellRect.width * itemSize.width, height: cellRect.height * itemSize.height });
+        setSizeOverride({ width: maxWidth, height: maxHeight });
         setDragTransform({
           x: coordinates.pageX - origin.cursor.pageX,
           y: coordinates.pageY - origin.cursor.pageY,
