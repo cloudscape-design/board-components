@@ -48,11 +48,15 @@ export function appendPath(prevPath: Position[], collisionRect: Rect, columns: n
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
-  const vx = Math.sign(collisionRect.left - lastPosition.x);
-  const vy = Math.sign(collisionRect.top - lastPosition.y);
-
   const nextX = Math.min(columns - colspan, collisionRect.left);
   const nextY = collisionRect.top;
+
+  if (!lastPosition) {
+    return [{ x: nextX, y: nextY }];
+  }
+
+  const vx = Math.sign(collisionRect.left - lastPosition.x);
+  const vy = Math.sign(collisionRect.top - lastPosition.y);
 
   let { x, y } = lastPosition;
   let safetyCounter = 0;
