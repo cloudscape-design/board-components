@@ -2,23 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
 import { toString as engineToString } from "../../internal/debug-tools";
-import { DndEngine } from "../../internal/dnd-engine/engine";
-import { CommittedMove } from "../../internal/dnd-engine/interfaces";
-import { DashboardItemBase, GridLayout, ItemId } from "../../internal/interfaces";
+import { CommittedMove, GridTransition } from "../../internal/dnd-engine/interfaces";
+import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
 const GAP = 16;
 
-export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
+export function printLayoutDebug(grid: GridLayout, transition: GridTransition) {
   // Logs for dnd-engine debugging.
   console.log("Grid before move:");
   console.log(engineToString(grid));
 
   console.log("Grid after move:");
-  console.log(engineToString(layoutShift.next));
+  console.log(engineToString(transition.end));
 
-  console.log("Layout shift:");
-  console.log(layoutShift);
+  console.log("Grid transition:");
+  console.log(transition);
 }
 
 export function createTransforms(
@@ -45,82 +44,7 @@ export function createTransforms(
   return transforms;
 }
 
-interface LayoutShift {
-  path: Position[];
-  hasConflicts: boolean;
-  moves: readonly CommittedMove[];
-  next: GridLayout;
-}
-
-export function calculateReorderShifts(
-  grid: GridLayout,
-  collisionRect: Rect,
-  activeId: ItemId,
-  prevPath: Position[]
-): LayoutShift {
-  const newPath = generatePath(prevPath, collisionRect);
-  if (newPath.length === 0) {
-    return {
-      path: newPath,
-      hasConflicts: false,
-      moves: [],
-      next: grid,
-    };
-  }
-
-  const engine = new DndEngine(grid);
-  engine.move({ itemId: activeId, path: newPath.slice(1) });
-  const transition = engine.commit();
-
-  return {
-    path: newPath,
-    hasConflicts: transition.conflicts.length > 0,
-    moves: transition.moves,
-    next: transition.end,
-  };
-}
-
-export function calculateInsertShifts(
-  grid: GridLayout,
-  collisionRect: Rect,
-  item: DashboardItemBase<unknown>
-): LayoutShift {
-  const width = item.definition.defaultColumnSpan;
-  const height = item.definition.defaultRowSpan;
-  const x = Math.min(grid.columns - width, collisionRect.left);
-  const y = collisionRect.top;
-  const layoutItem = { id: item.id, x, y, width, height };
-
-  const engine = new DndEngine(grid);
-  engine.insert(layoutItem);
-  const transition = engine.commit();
-
-  return {
-    path: [],
-    hasConflicts: transition.conflicts.length > 0,
-    moves: transition.moves,
-    next: transition.end,
-  };
-}
-
-export function calculateResizeShifts(grid: GridLayout, collisionRect: Rect, activeId: ItemId): LayoutShift {
-  const engine = new DndEngine(grid);
-  engine.resize({
-    itemId: activeId,
-    height: collisionRect.bottom - collisionRect.top,
-    width: collisionRect.right - collisionRect.left,
-  });
-  const transition = engine.commit();
-
-  return {
-    path: [],
-    hasConflicts: transition.conflicts.length > 0,
-    moves: transition.moves,
-    next: transition.end,
-  };
-}
-
-function generatePath(prevPath: Position[], collisionRect: Rect): Position[] {
+export function appendPath(prevPath: Position[], collisionRect: Rect): Position[] {
   let safetyCounter = 0;
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
