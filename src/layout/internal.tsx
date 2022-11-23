@@ -49,6 +49,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       throw new Error("Invariant violation: no transition.");
     }
 
+    // TODO: rework dnd-engine API to support the below use-cases better.
+
     if (resize) {
       return new DndEngine(itemsLayout).resize({
         itemId: transition.item.id,
@@ -60,9 +62,18 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     if (!transition.layoutItem) {
       const width = transition.item.definition.defaultColumnSpan;
       const height = transition.item.definition.defaultRowSpan;
-      const position = transition.path[transition.path.length - 1];
-      const layoutItem = { id: transition.item.id, width, height, ...position };
-      return new DndEngine(itemsLayout).insert(layoutItem);
+      const [enteringPosition, ...movePath] = transition.path;
+      const layoutItem = { id: transition.item.id, width, height, ...enteringPosition };
+      const engine = new DndEngine(itemsLayout);
+      engine.insert(layoutItem);
+      const insertShift = engine.commit();
+      const moveShift = engine.move({ itemId: transition.item.id, path: movePath });
+      return {
+        ...insertShift,
+        conflicts: moveShift.conflicts,
+        next: moveShift.next,
+        moves: [...insertShift.moves, ...moveShift.moves],
+      };
     }
 
     return new DndEngine(itemsLayout).move({ itemId: transition.item.id, path: path.slice(1) });
