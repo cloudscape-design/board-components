@@ -10,7 +10,7 @@ import { generateGrid } from "./generators";
 test("element removal never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
-    const layoutShift = new DndEngine(grid).remove("A").getLayoutShift();
+    const layoutShift = new DndEngine(grid).remove("A").refloat().getLayoutShift();
     expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
@@ -31,7 +31,7 @@ describe("remove scenarios", () => {
       ],
     ],
   ])("%s", (_, gridMatrix, itemId, expectation) => {
-    const layoutShift = new DndEngine(fromMatrix(gridMatrix)).remove(itemId).getLayoutShift();
+    const layoutShift = new DndEngine(fromMatrix(gridMatrix)).remove(itemId).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

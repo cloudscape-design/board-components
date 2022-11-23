@@ -47,10 +47,6 @@ export class DndEngine {
       this.tryResolveOverlaps(itemId);
     }
 
-    if (this.conflicts.size === 0) {
-      this.refloatGrid();
-    }
-
     return new DndEngine(this);
   }
 
@@ -63,10 +59,6 @@ export class DndEngine {
 
     this.tryResolveOverlaps(resize.itemId);
 
-    if (this.conflicts.size === 0) {
-      this.refloatGrid();
-    }
-
     return new DndEngine(this);
   }
 
@@ -77,10 +69,6 @@ export class DndEngine {
 
     this.tryResolveOverlaps(item.id);
 
-    if (this.conflicts.size === 0) {
-      this.refloatGrid();
-    }
-
     return new DndEngine(this);
   }
 
@@ -89,10 +77,13 @@ export class DndEngine {
 
     this.grid.remove(itemId);
 
+    return new DndEngine(this);
+  }
+
+  refloat(): DndEngine {
     if (this.conflicts.size === 0) {
       this.refloatGrid();
     }
-
     return new DndEngine(this);
   }
 

@@ -23,6 +23,7 @@ test("engine operations can be chained", () => {
     })
     .resize({ itemId: "X", width: 2, height: 1 })
     .remove("F")
+    .refloat()
     .getLayoutShift();
 
   expect(toString(layoutShift.next)).toBe(
