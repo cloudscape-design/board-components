@@ -3,7 +3,6 @@
 import { DragAndDropData } from "../../internal/dnd-controller";
 import { GridLayoutItem } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
-import { GAP } from "./shift-layout";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -42,21 +41,9 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
     bottom: Number.POSITIVE_INFINITY,
   };
 
-  const { x: pageX, y: pageY, height: baseHeight, width: baseWidth } = droppables[0][1].getBoundingClientRect();
-
   // snap current collision to rects grid
-  for (const [droppableId] of droppables) {
-    // TODO: do not rely on the ID format.
-    const [x, y] = droppableId
-      .slice("placeholder-".length)
-      .split("-")
-      .map((index) => parseInt(index));
-    const rect = {
-      left: pageX + x * (baseWidth + GAP),
-      right: pageX + (x + 1) * (baseWidth + GAP) - GAP,
-      top: pageY + y * (baseHeight + GAP),
-      bottom: pageY + (y + 1) * (baseHeight + GAP) - GAP,
-    };
+  for (const [, droppableElement] of droppables) {
+    const rect = droppableElement.getBoundingClientRect();
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
       left: getMinDistance(bounds.left, rect.left, collisionRect.left),
@@ -64,6 +51,7 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
       bottom: getMinDistance(bounds.bottom, rect.bottom, collisionRect.bottom),
     };
   }
+
   // make sure collision always fits into the grid
   const width = collisionRect.right - collisionRect.left;
   const height = collisionRect.bottom - collisionRect.top;

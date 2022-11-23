@@ -26,6 +26,7 @@ export const allWidgets: Record<string, { data: ItemData; definition?: PalettePr
       data: { title: "Demo widget", description: "Most minimal widget", content: <>Hello world!</> },
     },
     counter: {
+      definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
       data: { title: "Counter", description: "State management demo", content: <Counter /> },
     },
     docked1: {
@@ -62,7 +63,6 @@ export const initialPaletteItems: ReadonlyArray<PaletteProps.Item<ItemData>> = O
   .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
   .map(([key, widget]) => ({
     id: key,
-    definition:
-      widget?.definition ?? key === "counter" ? { defaultRowSpan: 2, defaultColumnSpan: 2 } : defaultDefinition,
+    definition: widget?.definition ?? defaultDefinition,
     data: widget?.data ?? createDefaultWidget(key),
   }));

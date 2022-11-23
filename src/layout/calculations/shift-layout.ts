@@ -6,7 +6,7 @@ import { CommittedMove, LayoutShift } from "../../internal/dnd-engine/interfaces
 import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 
-export const GAP = 16;
+const GAP = 16;
 
 export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   // Logs for dnd-engine debugging.

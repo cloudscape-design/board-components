@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
 import { useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
-import { Coordinates, DashboardItemBase } from "../internal/interfaces";
+import { Coordinates } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
 import WidgetContainerHeader from "./header";
@@ -30,15 +30,15 @@ export default function DashboardItem({
   const { item, itemSize, transform, resizable } = useItemContext();
   const [dragTransform, setDragTransform] = useState<Transform | null>(null);
   const [sizeOverride, setSizeOverride] = useState<{ width: number; height: number } | null>(null);
-  const [activeItem, setActiveItem] = useState<null | DashboardItemBase<unknown>>(null);
+  const [activeItemId, setActiveItemId] = useState<null | string>(null);
   const dragOriginRef = useRef<null | DragOrigin>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragApi = useDraggable({ item, containerRef, resize: false });
   const resizeApi = useDraggable({ item, containerRef, resize: true });
-  const currentIsDragging = activeItem?.id === item.id;
+  const currentIsDragging = activeItemId === item.id;
 
   useDragSubscription("start", ({ item: activeItem, containerRef, coordinates }) => {
-    setActiveItem(activeItem);
+    setActiveItemId(activeItem.id);
     if (activeItem.id === item.id) {
       dragOriginRef.current = {
         rect: containerRef.current!.getBoundingClientRect(),
@@ -67,7 +67,7 @@ export default function DashboardItem({
     }
   });
   useDragSubscription("drop", () => {
-    setActiveItem(null);
+    setActiveItemId(null);
     setSizeOverride(null);
     setDragTransform(null);
     dragOriginRef.current = null;
@@ -79,7 +79,7 @@ export default function DashboardItem({
     width: sizeOverride?.width,
     height: sizeOverride?.height,
     transition:
-      activeItem && !currentIsDragging
+      activeItemId && !currentIsDragging
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
   };
