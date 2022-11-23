@@ -30,6 +30,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [collisionIds, setCollisionIds] = useState<null | Array<string>>(null);
   const [activeDragItem, setActiveDragItem] = useState<null | DashboardItemBase<unknown>>(null);
+  const [rowsOverride, setRowsOverride] = useState<null | number>(null);
   const pathRef = useRef<Position[]>([]);
 
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
@@ -37,8 +38,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const matchedLayoutItem = activeDragItem && layoutItemById.get(activeDragItem.id);
-  const extraRows = matchedLayoutItem?.height ?? activeDragItem?.definition.defaultRowSpan ?? 0;
-  const rows = itemsLayout.rows + extraRows;
+  const rows = rowsOverride ?? itemsLayout.rows;
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
@@ -57,9 +57,14 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   useDragSubscription("start", (detail) => {
     setActiveDragItem(detail.item);
 
+    const matchedItem = layoutItemById.get(detail.item.id);
+    if (matchedItem && !detail.resize) {
+      pathRef.current = [{ x: matchedItem.x, y: matchedItem.y }];
+    }
+
+    const itemHeight = matchedItem ? matchedItem.height : detail.item.definition.defaultRowSpan;
     if (!detail.resize) {
-      const matchedItem = layoutItemById.get(detail.item.id);
-      pathRef.current = [{ x: matchedItem?.x ?? -1, y: matchedItem?.y ?? -1 }];
+      setRowsOverride(itemsLayout.rows + itemHeight);
     }
   });
 
@@ -72,6 +77,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     setCollisionIds(collisionIds);
     setTransforms(createTransforms(itemsLayout, layoutShift.moves, cellRect));
+
+    const itemHeight = matchedLayoutItem ? matchedLayoutItem.height : detail.item.definition.defaultRowSpan;
+    setRowsOverride(layoutShift.next.rows + itemHeight);
   });
 
   useDragSubscription("drop", (detail) => {
@@ -83,6 +91,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     setTransforms({});
     setActiveDragItem(null);
     setCollisionIds(null);
+    setRowsOverride(null);
     pathRef.current = [];
 
     // Commit new layout for insert case.
