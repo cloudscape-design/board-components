@@ -3,7 +3,7 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
 import { useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, MAX_ITEM_HEIGHT } from "../internal/constants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import { DndEngine } from "../internal/dnd-engine/engine";
 import Grid from "../internal/grid";
@@ -200,7 +200,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           if (isResizing && layoutItem) {
             itemSize = {
               width: columns - layoutItem.x,
-              height: MAX_ITEM_HEIGHT,
+              height: Number.POSITIVE_INFINITY,
             };
           }
 
