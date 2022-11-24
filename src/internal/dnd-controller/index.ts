@@ -4,6 +4,9 @@ import { Ref, RefObject, useEffect, useRef } from "react";
 import { Coordinates, DashboardItemBase } from "../interfaces";
 import { EventEmitter } from "./event-emitter";
 
+// TODO: check if D&D work in touch devices.
+// We might want to separately support mousedown+mousemove+mousedown and touchsstart+touchmove+touchend.
+
 export interface DragAndDropData extends DragDetail {
   droppables: readonly [string, HTMLElement][];
   coordinates: Coordinates;
