@@ -9,4 +9,4 @@ export const COLUMNS_FULL = 4;
 
 export const GAP = 16;
 
-export const MAX_ITEM_HEIGHT = 4;
+export const MAX_ITEM_HEIGHT = 12;
