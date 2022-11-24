@@ -424,10 +424,10 @@ describe("empty spaces are prioritized over disturbing other items", () => {
   });
 });
 
-describe("escape moves", () => {
+describe("multiple overlap resolutions", () => {
   test.each([
     [
-      "swap A with C",
+      "G resolves twice",
       [
         ["A", " ", "B", "B"],
         ["A", " ", "B", "B"],
@@ -437,17 +437,48 @@ describe("escape moves", () => {
       ],
       "C4 B4 A4",
       [
+        ["A", " ", " ", " "],
         ["A", "C", "C", "F"],
-        ["A", "D", "G", " "],
+        [" ", "D", "B", "B"],
         ["H", "D", "B", "B"],
-        ["E", " ", "B", "B"],
+        ["E", " ", "G", " "],
       ],
-      { itemId: "B", x: 2, y: 4, type: "ESCAPE" },
     ],
-  ])("%s", (_, gridMatrix, path, expectation, escapeMove) => {
+  ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const moveIds = layoutShift.moves.map((move) => move.itemId);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(layoutShift.moves.find((move) => move.itemId === "B")).toEqual(escapeMove);
+    expect(new Set(moveIds).size).toBeLessThan(moveIds.length);
+  });
+});
+
+describe("escape moves", () => {
+  test.each([
+    [
+      "A escapes",
+      [
+        ["A", "C", "B", " "],
+        ["G", "C", "D", "D"],
+        [" ", "C", "E", " "],
+        [" ", "F", "F", "F"],
+        [" ", " ", " ", "H"],
+        [" ", " ", " ", "H"],
+      ],
+      "C1 B1",
+      [
+        ["G", "B", "C", " "],
+        ["D", "D", "C", " "],
+        ["A", "E", "C", " "],
+        [" ", "F", "F", "F"],
+        [" ", " ", " ", "H"],
+        [" ", " ", " ", "H"],
+      ],
+    ],
+  ])("%s", (_, gridMatrix, path, expectation) => {
+    const grid = fromMatrix(gridMatrix);
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
+    expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBeGreaterThan(0);
   });
 });
