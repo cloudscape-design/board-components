@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toMatrix } from "../../debug-tools";
+import { fromMatrix, fromTextPath, generateGrid, generateMove, toMatrix } from "../../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMove } from "./generators";
 import { forEachTimes } from "./helpers";
 
 test("all items float to the top after move+commit", () => {

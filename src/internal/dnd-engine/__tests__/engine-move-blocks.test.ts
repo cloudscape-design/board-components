@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toString } from "../../debug-tools";
+import { fromMatrix, fromTextPath, generateGrid, generateMove, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMove } from "./generators";
 import { forEachTimes } from "./helpers";
 
 test("any move on a grid with 1x1 items only is resolved", () => {

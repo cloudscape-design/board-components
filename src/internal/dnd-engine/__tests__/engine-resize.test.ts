@@ -3,9 +3,8 @@
 
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
-import { fromMatrix, toString } from "../../debug-tools";
+import { fromMatrix, generateGrid, generateResize, toString } from "../../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateResize } from "./generators";
 
 test("decrease in element size never creates conflicts", () => {
   range(0, 10).forEach(() => {
