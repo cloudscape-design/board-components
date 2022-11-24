@@ -129,34 +129,49 @@ export class DndEngine {
   // Issue moves on overlapping items trying to resolve all of them.
   // It might not be possible to resolve overlaps if conflicts are present.
   private tryResolveOverlaps(activeId: ItemId, priority = 0): void {
-    const tier2Overlaps = new StackSet<ItemId>();
+    const priorityOverlaps = new StackSet<ItemId>();
 
-    // Try resolving overlaps by finding the vacant space considering the move directions.
-    let overlap = this.overlaps.pop();
-    while (overlap) {
-      const nextMove = this.tryFindVacantMove(overlap);
-      if (nextMove) {
-        this.makeMove(nextMove, priority);
-      } else {
-        tier2Overlaps.push(overlap);
+    const tryVacantMoves = () => {
+      // Copy priority overlaps back to main stack.
+      let priorityOverlap = priorityOverlaps.pop();
+      while (priorityOverlap) {
+        this.overlaps.push(priorityOverlap);
+        priorityOverlap = priorityOverlaps.pop();
       }
-      overlap = this.overlaps.pop();
-    }
 
-    this.overlaps = tier2Overlaps;
-
-    // Try resolving overlaps by moving against items that have the same or lower priority.
-    overlap = this.overlaps.pop();
-    while (overlap) {
-      const nextMove = this.tryFindPriorityMove(overlap, activeId, priority);
-      if (nextMove) {
-        this.makeMove(nextMove, priority);
-      } else {
-        // Can't resolve this overlap because of the blocked items.
-        // That is expected - such overlaps can be resolved once the conflicts are gone.
+      // Try vacant moves on all overlaps.
+      let overlap = this.overlaps.pop();
+      while (overlap) {
+        const nextMove = this.tryFindVacantMove(overlap);
+        if (nextMove) {
+          this.makeMove(nextMove, priority);
+        } else {
+          priorityOverlaps.push(overlap);
+        }
+        overlap = this.overlaps.pop();
       }
-      overlap = this.overlaps.pop();
-    }
+
+      tryPiorityMoves();
+    };
+
+    const tryPiorityMoves = () => {
+      // Try priority moves until first success and delegate back to vacant moves check.
+      let overlap = priorityOverlaps.pop();
+      while (overlap) {
+        const nextMove = this.tryFindPriorityMove(overlap, activeId, priority);
+        if (nextMove) {
+          this.makeMove(nextMove, priority);
+          tryVacantMoves();
+          break;
+        } else {
+          // Can't resolve this overlap because of the blocked items.
+          // That is expected - such overlaps can be resolved once the conflicts are gone.
+        }
+        overlap = priorityOverlaps.pop();
+      }
+    };
+
+    tryVacantMoves();
   }
 
   // Retrieves prioritized list of directions to look for a resolution move.
