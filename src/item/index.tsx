@@ -79,9 +79,9 @@ export default function DashboardItem({
 
   const style: CSSProperties = {
     transform: CSSUtil.Transform.toString(currentIsDragging ? dragTransform : transform),
-    position: sizeOverride ? "absolute" : undefined,
-    width: sizeOverride?.width,
-    height: sizeOverride?.height,
+    position: currentIsDragging && sizeOverride ? "absolute" : undefined,
+    width: currentIsDragging ? sizeOverride?.width : undefined,
+    height: currentIsDragging ? sizeOverride?.height : undefined,
     transition:
       activeItemId && !currentIsDragging
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
