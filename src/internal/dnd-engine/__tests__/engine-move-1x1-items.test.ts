@@ -65,8 +65,8 @@ describe("swap adjacent items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
 
@@ -186,8 +186,8 @@ describe("replace closest diagonal items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
 
@@ -251,8 +251,8 @@ describe("swap distant items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
 
@@ -316,8 +316,8 @@ describe("replace distant diagonal items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
 
@@ -353,7 +353,7 @@ describe("replace arbitrary items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const transition = new DndEngine(grid).move(fromTextPath(path, grid));
-    expect(toString(transition.end)).toBe(toString(expectation));
+    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Transform } from "@dnd-kit/utilities";
 import { createContext, useContext } from "react";
+import { DashboardItemBase } from "./interfaces";
 
 export interface ItemContext {
-  id: string;
+  item: DashboardItemBase<unknown>;
+  itemSize: { width: number; height: number };
   resizable: boolean;
   transform: Transform | null;
 }

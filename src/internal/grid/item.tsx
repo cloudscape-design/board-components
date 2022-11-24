@@ -24,7 +24,7 @@ const GridItem = (props: GridItemProps) => {
   // Grid row start can not be set as part of a CSS class names,
   // since we have a potential infinite height grid.
   return (
-    <div {...data} className={className} style={{ gridRowStart: item.y + 1 }}>
+    <div {...data} className={className} style={{ gridRowStart: item.y + 1, gridRowEnd: `span ${item.height}` }}>
       {children}
     </div>
   );

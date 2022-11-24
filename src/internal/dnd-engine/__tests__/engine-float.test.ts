@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toMatrix } from "../../debug-tools";
+import { fromMatrix, fromTextPath, generateGrid, generateMove, toMatrix } from "../../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMove } from "./generators";
 import { forEachTimes } from "./helpers";
 
 test("all items float to the top after move+commit", () => {
@@ -18,13 +17,13 @@ test("all items float to the top after move+commit", () => {
     ([width, totalItems]) => {
       const grid = generateGrid({ width, totalItems });
       const movePath = generateMove(grid, "any");
-      const transition = new DndEngine(grid).move(movePath);
+      const layoutShift = new DndEngine(grid).move(movePath).refloat().getLayoutShift();
 
-      if (transition.conflicts.length === 0) {
-        const textGrid = toMatrix(transition.end);
+      if (layoutShift.conflicts.length === 0) {
+        const textGrid = toMatrix(layoutShift.next);
 
         let invalidItem: null | string = null;
-        for (const item of transition.end.items) {
+        for (const item of layoutShift.next.items) {
           invalidItem = item.id;
 
           for (let x = item.x; x < item.x + item.width; x++) {
@@ -52,8 +51,8 @@ test("float creates addition moves", () => {
     [" ", " ", "F", "G"],
     [" ", " ", "H", " "],
   ]);
-  const transition = new DndEngine(grid).move(fromTextPath("C2 B2 A2", grid));
-  expect(transition.moves).toEqual([
+  const layoutShift = new DndEngine(grid).move(fromTextPath("C2 B2 A2", grid)).refloat().getLayoutShift();
+  expect(layoutShift.moves).toEqual([
     { itemId: "E", y: 1, x: 1, type: "USER" },
     { itemId: "E", y: 1, x: 0, type: "USER" },
     { itemId: "F", y: 1, x: 2, type: "FLOAT" },

@@ -3,8 +3,8 @@
 
 import { cloneDeep } from "lodash";
 import { expect, test } from "vitest";
+import { generateGrid, generateMove, generateResize } from "../../debug-tools";
 import { DndEngine } from "../engine";
-import { generateGrid, generateMove, generateResize } from "./generators";
 
 test("input arguments stay unchanged when using engine", () => {
   const grid = generateGrid();
@@ -18,7 +18,7 @@ test("input arguments stay unchanged when using engine", () => {
   new DndEngine(grid).resize(resize);
   new DndEngine(grid).insert({ id: "X", x: 0, y: 0, width: 1, height: 1 });
   new DndEngine(grid).remove("A");
-  new DndEngine(grid).commit();
+  new DndEngine(grid).refloat();
 
   expect(grid).toEqual(gridClone);
   expect(movePath).toEqual(moveClone);

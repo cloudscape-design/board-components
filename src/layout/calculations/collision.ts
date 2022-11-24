@@ -43,7 +43,6 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
 
   // snap current collision to rects grid
   for (const [, droppableElement] of droppables) {
-    // TODO: should we cache getBoundingClientRect() somewhewre?
     const rect = droppableElement.getBoundingClientRect();
     bounds = {
       top: getMinDistance(bounds.top, rect.top, collisionRect.top),
@@ -52,6 +51,7 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
       bottom: getMinDistance(bounds.bottom, rect.bottom, collisionRect.bottom),
     };
   }
+
   // make sure collision always fits into the grid
   const width = collisionRect.right - collisionRect.left;
   const height = collisionRect.bottom - collisionRect.top;

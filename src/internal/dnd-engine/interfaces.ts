@@ -21,9 +21,9 @@ export interface CommittedMove {
   type: "USER" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT";
 }
 
-export interface GridTransition {
-  start: GridLayout;
-  end: GridLayout;
+export interface LayoutShift {
+  current: GridLayout;
+  next: GridLayout;
   moves: readonly CommittedMove[];
   conflicts: readonly ItemId[];
 }

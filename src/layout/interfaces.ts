@@ -12,7 +12,7 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
    * Specifies a function to render a dashboard item content. The return value must include dashboard item component.
    */
-  renderItem(item: DashboardLayoutProps.Item<D>): JSX.Element;
+  renderItem(item: DashboardLayoutProps.Item<D>, actions: DashboardLayoutProps.ItemActions): JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
@@ -28,9 +28,14 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
 export namespace DashboardLayoutProps {
   export type Item<D = DataFallbackType> = DashboardItem<D>;
 
+  export interface ItemActions {
+    removeItem(): void;
+  }
+
   export interface ItemsChangeDetail<D = DataFallbackType> {
     items: ReadonlyArray<Item<D>>;
     addedItem?: Item<D>;
+    removedItem?: Item<D>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface

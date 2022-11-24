@@ -8,12 +8,17 @@ export function createItemsLayout(items: readonly DashboardItem<unknown>[], colu
   const colAffordance = Array(columns).fill(-1);
 
   for (const { id, columnSpan, rowSpan, columnOffset } of items) {
+    const startCol = Math.min(columns - 1, columnOffset);
+    const allowedColSpan = Math.min(columns - startCol, columnSpan);
+
     let itemRow = 0;
-    for (let col = columnOffset; col < columnOffset + columnSpan; col++) {
+    for (let col = startCol; col < startCol + allowedColSpan; col++) {
       itemRow = Math.max(itemRow, colAffordance[col] + 1);
     }
-    layoutItems.push({ id, width: columnSpan, height: rowSpan, x: columnOffset, y: itemRow });
-    for (let col = columnOffset; col < columnOffset + columnSpan; col++) {
+
+    layoutItems.push({ id, width: allowedColSpan, height: rowSpan, x: startCol, y: itemRow });
+
+    for (let col = startCol; col < startCol + allowedColSpan; col++) {
       colAffordance[col] = itemRow + rowSpan - 1;
     }
   }

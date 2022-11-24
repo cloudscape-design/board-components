@@ -1,8 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Ref, RefObject, useEffect, useRef } from "react";
-import { Coordinates } from "../interfaces";
+import { Coordinates, DashboardItemBase } from "../interfaces";
 import { EventEmitter } from "./event-emitter";
+
+// TODO: check if D&D work in touch devices.
+// We might want to separately support mousedown+mousemove+mousedown and touchsstart+touchmove+touchend.
 
 export interface DragAndDropData extends DragDetail {
   droppables: readonly [string, HTMLElement][];
@@ -10,7 +13,7 @@ export interface DragAndDropData extends DragDetail {
 }
 
 interface DragDetail {
-  id: string;
+  item: DashboardItemBase<unknown>;
   containerRef: RefObject<HTMLElement>;
   resize: boolean;
 }

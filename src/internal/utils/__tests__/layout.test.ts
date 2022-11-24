@@ -34,6 +34,8 @@ describe("createItemsLayout", () => {
         ["A2", "B2"],
         ["A3", "B3"],
       ],
+    ],
+    [
       [makeItem("A", 0, 2, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)],
       3,
       [
@@ -44,6 +46,7 @@ describe("createItemsLayout", () => {
         [" ", " ", "C"],
       ],
     ],
+    [[makeItem("A", 0, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 0, 2, 1)], 1, [["A"], ["B"], ["C"]]],
   ])("Transforms dashboard items to internal grid layout", (items, columns, expectation) => {
     expect(toString(createItemsLayout(items, columns))).toBe(toString(expectation));
   });

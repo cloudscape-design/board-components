@@ -38,11 +38,3 @@ $columns: 4;
     grid-column-start: $i;
   }
 }
-
-$rows: 4;
-
-@for $i from 1 through $rows {
-  .grid > .grid__item[data-row-span="#{$i}"] {
-    grid-row-end: span $i;
-  }
-}
