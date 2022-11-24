@@ -7,12 +7,29 @@ import { useState } from "react";
 import { DashboardItem, DashboardItemProps, DashboardLayout, DashboardPalette } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import classnames from "./engine.module.css";
-import { allWidgets, initialLayoutItems, initialPaletteItems } from "./items";
+import { createLetterItems, demoLayoutItems, demoPaletteItems, demoWidgets, letterWidgets } from "./items";
 
 const itemStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag me",
   resizeLabel: "Resize me",
 };
+
+/*
+  Use letter items to reproduce test scenarious.
+  
+  Example input:
+  [
+    ["A", "B", "C"],
+    ["D", "E", "C"],
+    [" ", "F", " "],
+    [" ", "F", " "],
+  ]
+*/
+const letterItems = createLetterItems(null);
+
+const widgets = !letterItems ? demoWidgets : letterWidgets;
+const initialLayoutItems = !letterItems ? demoLayoutItems : letterItems.layoutItems;
+const initialPaletteItems = !letterItems ? demoPaletteItems : letterItems.paletteItems;
 
 export default function () {
   const [items, setItems] = useState(initialLayoutItems);
@@ -36,9 +53,9 @@ export default function () {
                     onItemClick={(event) => {
                       if (event.detail.id === "remove") {
                         setItems((prev) => prev.filter((prevItem) => prevItem.id !== item.id));
-                        if (initialPaletteItems.some((paletteItem) => paletteItem.id === item.id)) {
-                          setPaletteItems((prev) => [...prev, item]);
-                        }
+                        setPaletteItems((prev) =>
+                          [...prev, item].sort((a, b) => a.data.title.localeCompare(b.data.title))
+                        );
                       }
                     }}
                   />
@@ -61,7 +78,7 @@ export default function () {
           <DashboardPalette
             items={paletteItems}
             renderItem={(item) => {
-              const widgetConfig = allWidgets[item.id]!.data;
+              const widgetConfig = widgets[item.id]!.data;
               return (
                 <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={itemStrings}>
                   {widgetConfig.description}
