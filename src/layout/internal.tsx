@@ -7,7 +7,7 @@ import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, MAX_ITEM_HEIGHT } from "
 import { useDragSubscription } from "../internal/dnd-controller";
 import { DndEngine } from "../internal/dnd-engine/engine";
 import Grid from "../internal/grid";
-import { DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { createCustomEvent } from "../internal/utils/events";
 import { isIntersecting } from "../internal/utils/geometry";
@@ -169,6 +169,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     }
   });
 
+  const removeItemAction = (removedItem: DashboardItem<D>) => {
+    const layoutShift = new DndEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
+  };
+
   return (
     <div ref={containerRef}>
       <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
@@ -209,7 +214,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
                 transform: transition?.transforms[item.id] ?? null,
               }}
             >
-              {renderItem(item)}
+              {renderItem(item, { removeItem: () => removeItemAction(item) })}
             </ItemContextProvider>
           );
         })}

@@ -40,36 +40,32 @@ export default function () {
       <Grid gridDefinition={[{ colspan: 9 }, { colspan: 3 }]}>
         <DashboardLayout
           items={items}
-          renderItem={(item) => {
-            return (
-              <DashboardItem
-                header={<Header>{item.data.title}</Header>}
-                i18nStrings={itemStrings}
-                settings={
-                  <ButtonDropdown
-                    items={[{ id: "remove", text: "Remove widget" }]}
-                    ariaLabel="Widget settings"
-                    variant="icon"
-                    onItemClick={(event) => {
-                      if (event.detail.id === "remove") {
-                        setItems((prev) => prev.filter((prevItem) => prevItem.id !== item.id));
-                        setPaletteItems((prev) =>
-                          [...prev, item].sort((a, b) => a.data.title.localeCompare(b.data.title))
-                        );
-                      }
-                    }}
-                  />
-                }
-              >
-                {item.data.content}
-              </DashboardItem>
-            );
-          }}
-          onItemsChange={(event) => {
-            setItems(event.detail.items);
-            if (event.detail.addedItem) {
-              const addedItemId = event.detail.addedItem.id;
-              setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItemId));
+          renderItem={(item, actions) => (
+            <DashboardItem
+              header={<Header>{item.data.title}</Header>}
+              i18nStrings={itemStrings}
+              settings={
+                <ButtonDropdown
+                  items={[{ id: "remove", text: "Remove widget" }]}
+                  ariaLabel="Widget settings"
+                  variant="icon"
+                  onItemClick={() => actions.removeItem()}
+                />
+              }
+            >
+              {item.data.content}
+            </DashboardItem>
+          )}
+          onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
+            setItems(items);
+            if (addedItem) {
+              setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
+            }
+            if (removedItem) {
+              setItems((prev) => prev.filter((prevItem) => prevItem.id !== removedItem.id));
+              setPaletteItems((prev) =>
+                [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title))
+              );
             }
           }}
         />
