@@ -5,7 +5,7 @@ import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
-import { GAP, ROW_HEIGHT } from "../internal/constants";
+import { GAP, ROW_SPAN_HEIGHT } from "../internal/constants";
 import { useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { Coordinates } from "../internal/interfaces";
@@ -59,7 +59,7 @@ export default function DashboardItem({
         columns,
       }));
       const dashboard = dashboardRects.find(({ rect }) => isIntersecting(rect, itemRect));
-      const baseHeight = dashboard ? ROW_HEIGHT : 0;
+      const baseHeight = dashboard ? ROW_SPAN_HEIGHT : 0;
       const baseWidth = dashboard ? (dashboard.rect.width - (dashboard.columns - 1) * GAP) / dashboard.columns : 0;
       const maxWidth = baseWidth * itemSize.width + GAP * (itemSize.width - 1);
       const maxHeight = baseHeight * itemSize.height + GAP * (itemSize.height - 1);
@@ -100,7 +100,7 @@ export default function DashboardItem({
 
   const itemHeight = currentIsDragging
     ? sizeOverride?.height ?? 0
-    : itemSize.height * ROW_HEIGHT + (itemSize.height - 1) * GAP;
+    : itemSize.height * ROW_SPAN_HEIGHT + (itemSize.height - 1) * GAP;
   const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
   const contentHeight = itemHeight - (headerHeight ?? 0);
 
@@ -125,7 +125,7 @@ export default function DashboardItem({
           </WidgetContainerHeader>
         }
       >
-        <div className={styles.content} style={{ maxHeight: contentHeight }}>
+        <div className={styles.content} style={{ maxHeight: resizable ? contentHeight : undefined }}>
           {children}
         </div>
       </Container>

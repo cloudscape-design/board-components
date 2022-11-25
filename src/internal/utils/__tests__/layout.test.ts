@@ -31,7 +31,10 @@ describe("createItemsLayout", () => {
       2,
       [
         ["A1", "B1"],
+        ["A1", "B1"],
         ["A2", "B2"],
+        ["A2", "B2"],
+        ["A3", "B3"],
         ["A3", "B3"],
       ],
     ],
@@ -42,11 +45,16 @@ describe("createItemsLayout", () => {
         ["A", "A", " "],
         ["A", "A", " "],
         [" ", "B", "B"],
+        [" ", "B", "B"],
         [" ", " ", "C"],
         [" ", " ", "C"],
       ],
     ],
-    [[makeItem("A", 0, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 0, 2, 1)], 1, [["A"], ["B"], ["C"]]],
+    [
+      [makeItem("A", 0, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 0, 2, 1)],
+      1,
+      [["A"], ["A"], ["B"], ["B"], ["C"], ["C"]],
+    ],
   ])("Transforms dashboard items to internal grid layout", (items, columns, expectation) => {
     expect(toString(createItemsLayout(items, columns))).toBe(toString(expectation));
   });

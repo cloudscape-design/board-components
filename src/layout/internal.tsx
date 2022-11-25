@@ -3,7 +3,14 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
 import { useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, GAP, ROW_HEIGHT } from "../internal/constants";
+import {
+  BREAKPOINT_SMALL,
+  COLUMNS_FULL,
+  COLUMNS_SMALL,
+  GAP,
+  MIN_ROW_SPAN,
+  ROW_SPAN_HEIGHT,
+} from "../internal/constants";
 import { useDashboard, useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
@@ -43,7 +50,7 @@ function getLayoutShift(transition: Transition, collisionRect: Rect, path: Posit
     }
     case "insert": {
       const width = transition.item.definition.defaultColumnSpan;
-      const height = transition.item.definition.defaultRowSpan;
+      const height = Math.max(MIN_ROW_SPAN, transition.item.definition.defaultRowSpan);
       const [enteringPosition, ...movePath] = transition.path;
       const layoutItem = { id: transition.item.id, width, height, ...enteringPosition };
       return transition.engine.insert(layoutItem).move({ itemId: transition.item.id, path: movePath }).getLayoutShift();
@@ -82,7 +89,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const path = layoutItem && !detail.resize ? [{ x: layoutItem.x, y: layoutItem.y }] : [];
 
     // Override rows to plan for possible height increase.
-    const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
+    const itemHeight = layoutItem ? layoutItem.height : Math.max(MIN_ROW_SPAN, item.definition.defaultRowSpan);
     const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
     const collisionIds = getHoveredDroppables(detail, dashboardId);
@@ -108,7 +115,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
       : transition.item.definition.defaultColumnSpan;
-    const itemHeight = transition.layoutItem ? transition.layoutItem.height : transition.item.definition.defaultRowSpan;
+    const itemHeight = transition.layoutItem
+      ? transition.layoutItem.height
+      : Math.max(MIN_ROW_SPAN, transition.item.definition.defaultRowSpan);
 
     const collisionIds = getHoveredDroppables(detail, dashboardId);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
@@ -118,7 +127,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const [, dashboard] = detail.dashboards.find(([id]) => id === dashboardId)!;
     const dashboardRect = dashboard.element.getBoundingClientRect();
     const baseSize = {
-      height: ROW_HEIGHT,
+      height: ROW_SPAN_HEIGHT,
       width: (dashboardRect.width - (dashboard.columns - 1) * GAP) / dashboard.columns,
     };
     const transforms = createTransforms(itemsLayout, layoutShift.moves, baseSize);
@@ -194,7 +203,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           // Take item's layout size or item's definition defaults to be used for insert and reorder.
           let itemSize = layoutItem ?? {
             width: item.definition.defaultColumnSpan,
-            height: item.definition.defaultRowSpan,
+            height: Math.max(MIN_ROW_SPAN, item.definition.defaultRowSpan),
           };
 
           // Pass item's max allowed size to use as boundaries for resizing.

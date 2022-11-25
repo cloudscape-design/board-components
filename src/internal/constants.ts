@@ -9,4 +9,6 @@ export const COLUMNS_FULL = 4;
 
 export const GAP = 16;
 
-export const ROW_HEIGHT = 220;
+export const ROW_SPAN_HEIGHT = 100;
+
+export const MIN_ROW_SPAN = 2;
