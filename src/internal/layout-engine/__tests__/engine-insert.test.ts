@@ -1,14 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { range } from "lodash";
 import { describe, expect, test } from "vitest";
 import { fromMatrix, generateGrid, generateInsert, toString } from "../../debug-tools";
 import { LayoutEngine } from "../engine";
+import { forEachTimes } from "./helpers";
 
 test("element insertion never leaves grid with unresolved conflicts", () => {
-  range(0, 25).forEach(() => {
-    const grid = generateGrid();
+  forEachTimes(25, [[]], (args) => {
+    const grid = generateGrid(...args);
     const item = generateInsert(grid);
     const layoutShift = new LayoutEngine(grid).insert(item).getLayoutShift();
     expect(layoutShift.conflicts).toHaveLength(0);
