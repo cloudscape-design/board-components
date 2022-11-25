@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
-import { useId, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, GAP, ROW_HEIGHT } from "../internal/constants";
 import { useDashboard, useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
@@ -12,6 +12,7 @@ import { LayoutEngine } from "../internal/layout-engine/engine";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
+import { useUniqueId } from "../internal/utils/use-unique-id";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
 import { appendPath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
@@ -60,7 +61,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     []
   );
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
-  const dashboardId = useId();
+  const dashboardId = useUniqueId();
   const dashboardRef = useDashboard(dashboardId, columns);
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef, dashboardRef);
 
