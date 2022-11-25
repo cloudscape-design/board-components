@@ -25,7 +25,7 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
 });
 
 test("elements resize never issues escape moves", () => {
-  forEachTimes(25, [[]], (args) => {
+  forEachTimes(9999, [[]], (args) => {
     const grid = generateGrid(...args);
     const resize = generateResize(grid);
     const layoutShift = new LayoutEngine(grid).resize(resize).refloat().getLayoutShift();
@@ -84,15 +84,34 @@ describe("resize scenarios", () => {
       ],
     ],
     [
-      "resize A to 3:2",
+      "resize B to 4:3",
       [
         ["A", "A", "A", " "],
         ["B", "B", "B", "B"],
         ["C", "D", "D", "E"],
         ["C", "F", "F", "F"],
       ],
-      { itemId: "A", width: 3, height: 2 },
+      { itemId: "B", width: 4, height: 3 },
       [
+        ["A", "A", "A", " "],
+        ["B", "B", "B", "B"],
+        ["B", "B", "B", "B"],
+        ["B", "B", "B", "B"],
+        ["C", "D", "D", "E"],
+        ["C", "F", "F", "F"],
+      ],
+    ],
+    [
+      "resize A to 3:3",
+      [
+        ["A", "A", "A", " "],
+        ["B", "B", "B", "B"],
+        ["C", "D", "D", "E"],
+        ["C", "F", "F", "F"],
+      ],
+      { itemId: "A", width: 3, height: 3 },
+      [
+        ["A", "A", "A", " "],
         ["A", "A", "A", " "],
         ["A", "A", "A", " "],
         ["B", "B", "B", "B"],
