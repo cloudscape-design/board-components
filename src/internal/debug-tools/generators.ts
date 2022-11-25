@@ -253,7 +253,12 @@ export function generateResize(grid: GridLayout, options?: GenerateGridResizeOpt
   }
   const heightDelta = Math.sign(maxHeightDelta) * getRandomInt(0, Math.abs(maxHeightDelta) + 1);
 
-  return { itemId: resizeTarget.id, width: resizeTarget.width + widthDelta, height: resizeTarget.height + heightDelta };
+  const path = createRandomPath(
+    { x: resizeTarget.x + resizeTarget.width, y: resizeTarget.y + resizeTarget.height },
+    { x: resizeTarget.x + resizeTarget.width + widthDelta, y: resizeTarget.y + resizeTarget.height + heightDelta }
+  );
+
+  return { itemId: resizeTarget.id, path };
 }
 
 export function generateInsert(grid: GridLayout, insertId = "X", options?: GenerateGridInsertOptions): GridLayoutItem {

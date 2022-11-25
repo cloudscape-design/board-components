@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { createCustomEvent } from "../internal/utils/events";
@@ -30,16 +30,10 @@ interface Transition {
   rows: number;
 }
 
-function getLayoutShift(transition: Transition, collisionRect: Rect, path: Position[]) {
+function getLayoutShift(transition: Transition, path: Position[]) {
   switch (transition.type) {
     case "resize": {
-      return transition.engine
-        .resize({
-          itemId: transition.item.id,
-          height: collisionRect.bottom - collisionRect.top,
-          width: collisionRect.right - collisionRect.left,
-        })
-        .getLayoutShift();
+      return transition.engine.resize({ itemId: transition.item.id, path: path.slice(1) }).getLayoutShift();
     }
     case "insert": {
       const width = transition.item.definition.defaultColumnSpan;
@@ -71,9 +65,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   function checkCanDrop(itemEl: HTMLElement): boolean {
-    // TODO: calculate container Rect once or per rows change.
     const containerRect = containerAccessRef.current!.getBoundingClientRect();
-    // TODO: calculate item Rect once and adjust based on cursor position.
     const itemRect = itemEl.getBoundingClientRect();
     return isIntersecting(containerRect, itemRect);
   }
@@ -120,7 +112,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.resize);
-    const layoutShift = getLayoutShift(transition, collisionRect, path);
+    const layoutShift = getLayoutShift(transition, path);
 
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
     const transforms = createTransforms(itemsLayout, layoutShift.moves, cellRect);
@@ -146,7 +138,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.resize);
-    const layoutShift = getLayoutShift(transition, collisionRect, path);
+    const layoutShift = getLayoutShift(transition, path);
     const canDrop = checkCanDrop(detail.containerRef.current!);
 
     printLayoutDebug(itemsLayout, layoutShift);

@@ -24,15 +24,6 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
   });
 });
 
-test("elements resize never issues escape moves", () => {
-  forEachTimes(9999, [[]], (args) => {
-    const grid = generateGrid(...args);
-    const resize = generateResize(grid);
-    const layoutShift = new LayoutEngine(grid).resize(resize).refloat().getLayoutShift();
-    expect(layoutShift.moves.filter((move) => move.type === "ESCAPE")).toHaveLength(0);
-  });
-});
-
 describe("resize scenarios", () => {
   test.each([
     [
@@ -42,11 +33,18 @@ describe("resize scenarios", () => {
         ["A", "A", "E"],
         ["B", "C", "D"],
       ],
-      { itemId: "A", width: 3, height: 1 },
+      {
+        itemId: "A",
+        path: [
+          { x: 3, y: 2 },
+          { x: 3, y: 1 },
+        ],
+      },
       [
         ["A", "A", "A"],
-        ["B", "E", "F"],
-        [" ", "C", "D"],
+        ["B", "C", "F"],
+        [" ", " ", "D"],
+        [" ", " ", "E"],
       ],
     ],
     [
@@ -56,14 +54,19 @@ describe("resize scenarios", () => {
         ["A", "A", "E"],
         ["B", "C", "D"],
       ],
-      { itemId: "A", width: 3, height: 3 },
+      {
+        itemId: "A",
+        path: [
+          { x: 3, y: 2 },
+          { x: 3, y: 3 },
+        ],
+      },
       [
         ["A", "A", "A"],
         ["A", "A", "A"],
         ["A", "A", "A"],
-        ["B", "C", "D"],
-        [" ", " ", "F"],
-        [" ", " ", "E"],
+        ["B", "C", "F"],
+        [" ", "E", "D"],
       ],
     ],
     [
@@ -74,7 +77,7 @@ describe("resize scenarios", () => {
         ["C", "D", "D", "E"],
         ["C", "F", "F", "F"],
       ],
-      { itemId: "B", width: 4, height: 2 },
+      { itemId: "B", path: [{ x: 4, y: 3 }] },
       [
         ["A", "A", "A", " "],
         ["B", "B", "B", "B"],
@@ -91,7 +94,13 @@ describe("resize scenarios", () => {
         ["C", "D", "D", "E"],
         ["C", "F", "F", "F"],
       ],
-      { itemId: "B", width: 4, height: 3 },
+      {
+        itemId: "B",
+        path: [
+          { x: 4, y: 3 },
+          { x: 4, y: 4 },
+        ],
+      },
       [
         ["A", "A", "A", " "],
         ["B", "B", "B", "B"],
@@ -109,7 +118,13 @@ describe("resize scenarios", () => {
         ["C", "D", "D", "E"],
         ["C", "F", "F", "F"],
       ],
-      { itemId: "A", width: 3, height: 3 },
+      {
+        itemId: "A",
+        path: [
+          { x: 3, y: 2 },
+          { x: 3, y: 3 },
+        ],
+      },
       [
         ["A", "A", "A", " "],
         ["A", "A", "A", " "],

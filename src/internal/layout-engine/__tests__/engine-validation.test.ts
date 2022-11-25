@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
-import { fromMatrix, fromTextPath, toString } from "../../debug-tools";
+import { fromMatrix, fromTextPath } from "../../debug-tools";
 import { LayoutEngine } from "../engine";
 
 test("throws if grid definition is not valid", () => {
@@ -55,9 +55,60 @@ test("throws if resize command is not valid", () => {
     ["G", "E", "E"],
   ]);
 
-  expect(() => new LayoutEngine(grid).resize({ itemId: "X", width: 1, height: 1 })).toThrowError(
+  expect(() => new LayoutEngine(grid).resize({ itemId: "X", path: [{ x: 1, y: 1 }] })).toThrowError(
     'Item with id "X" not found in the grid.'
   );
+
+  expect(() =>
+    new LayoutEngine(
+      fromMatrix([
+        ["A", "A"],
+        ["A", "A"],
+      ])
+    ).resize({
+      itemId: "A",
+      path: [{ x: 0, y: 2 }],
+    })
+  ).toThrowError("Invalid resize: must resize one step at a time.");
+
+  expect(() =>
+    new LayoutEngine(
+      fromMatrix([
+        ["A", "A"],
+        ["A", "A"],
+      ])
+    ).resize({
+      itemId: "A",
+      path: [
+        { x: 1, y: 2 },
+        { x: 0, y: 2 },
+      ],
+    })
+  ).toThrowError("Invalid resize: can't resize to 0.");
+
+  expect(() =>
+    new LayoutEngine(
+      fromMatrix([
+        ["A", "A"],
+        ["A", "A"],
+      ])
+    ).resize({
+      itemId: "A",
+      path: [
+        { x: 2, y: 1 },
+        { x: 2, y: 0 },
+      ],
+    })
+  ).toThrowError("Invalid resize: can't resize to 0.");
+
+  expect(() =>
+    new LayoutEngine(
+      fromMatrix([
+        ["A", "A"],
+        ["A", "A"],
+      ])
+    ).resize({ itemId: "A", path: [{ x: 3, y: 2 }] })
+  ).toThrowError("Invalid resize: outside grid.");
 });
 
 test("throws if insert command is not valid", () => {
@@ -113,41 +164,4 @@ test("normalizes move path and continues when from the repeating position", () =
     { itemId: "A", x: 1, y: 2, type: "USER" },
     { itemId: "A", x: 1, y: 3, type: "USER" },
   ]);
-});
-
-test("normalizes resize dimensions when below 1", () => {
-  expect(
-    toString(
-      new LayoutEngine(
-        fromMatrix([
-          ["A", "A"],
-          ["A", "A"],
-        ])
-      )
-        .resize({ itemId: "A", width: 0, height: -1 })
-        .getLayoutShift().next
-    )
-  ).toBe(toString([["A", " "]]));
-});
-
-test("normalizes resize dimensions when outside grid", () => {
-  expect(
-    toString(
-      new LayoutEngine(
-        fromMatrix([
-          [" ", "A", " "],
-          [" ", "A", " "],
-          [" ", " ", " "],
-        ])
-      )
-        .resize({ itemId: "A", width: 3, height: 3 })
-        .getLayoutShift().next
-    )
-  ).toBe(
-    toString([
-      [" ", "A", "A"],
-      [" ", "A", "A"],
-      [" ", "A", "A"],
-    ])
-  );
 });

@@ -65,7 +65,7 @@ export function appendPath(
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
-  const nextX = Math.min(columns - colspan, collisionX);
+  const nextX = resize ? collisionX : Math.min(columns - colspan, collisionX);
   const nextY = collisionY;
 
   if (!lastPosition) {

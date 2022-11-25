@@ -53,9 +53,17 @@ export class LayoutEngine {
   resize(resize: ResizeCommand): LayoutEngine {
     this.cleanup();
 
-    resize = this.validateResizeCommand(resize);
+    const { itemId, path } = this.validateResizeCommand(resize);
+    const resizeTarget = this.grid.getItem(itemId);
 
-    this.grid.resize(resize.itemId, resize.width, resize.height, this.addOverlap.bind(this));
+    for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
+      const newWidth = path[stepIndex].x - resizeTarget.x;
+      const newHeight = path[stepIndex].y - resizeTarget.y;
+
+      this.grid.resize(resize.itemId, newWidth, newHeight, this.addOverlap.bind(this));
+
+      this.tryResolveOverlaps(itemId, stepIndex);
+    }
 
     this.tryResolveOverlaps(resize.itemId);
 
@@ -432,10 +440,34 @@ export class LayoutEngine {
     return { itemId, path: normalizePath({ x: moveTarget.x, y: moveTarget.y }, path) };
   }
 
-  private validateResizeCommand({ itemId, width, height }: ResizeCommand): ResizeCommand {
+  private validateResizeCommand({ itemId, path }: ResizeCommand): ResizeCommand {
     const resizeTarget = this.grid.getItem(itemId);
-    const normalizedWidth = Math.min(Math.max(1, width), this.grid.width - resizeTarget.x);
-    const normalizedHeight = Math.max(1, height);
-    return { itemId, width: normalizedWidth, height: normalizedHeight };
+    const x = resizeTarget.x + resizeTarget.width;
+    const y = resizeTarget.y + resizeTarget.height;
+
+    let prevX = x;
+    let prevY = y;
+
+    for (const step of path) {
+      const diffVertical = step.y - prevY;
+      const diffHorizontal = step.x - prevX;
+
+      if (Math.abs(diffVertical) + Math.abs(diffHorizontal) !== 1) {
+        throw new Error("Invalid resize: must resize one step at a time.");
+      }
+
+      if (step.x < 1 || step.y < 1) {
+        throw new Error("Invalid resize: can't resize to 0.");
+      }
+
+      if (step.x > this.grid.width) {
+        throw new Error("Invalid resize: outside grid.");
+      }
+
+      prevX = step.x;
+      prevY = step.y;
+    }
+
+    return { itemId, path: normalizePath({ x, y }, path) };
   }
 }
