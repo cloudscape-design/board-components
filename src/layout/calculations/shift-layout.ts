@@ -43,19 +43,37 @@ export function createTransforms(
   return transforms;
 }
 
-export function appendPath(prevPath: Position[], collisionRect: Rect, columns: number, colspan: number): Position[] {
+export function appendPath(
+  prevPath: Position[],
+  collisionRect: Rect,
+  columns: number,
+  colspan: number,
+  resize: boolean
+): Position[] {
+  if (
+    !isFinite(collisionRect.top) ||
+    !isFinite(collisionRect.bottom) ||
+    !isFinite(collisionRect.left) ||
+    !isFinite(collisionRect.right)
+  ) {
+    return prevPath;
+  }
+
+  const collisionX = resize ? collisionRect.right : collisionRect.left;
+  const collisionY = resize ? collisionRect.bottom : collisionRect.top;
+
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
-  const nextX = Math.min(columns - colspan, collisionRect.left);
-  const nextY = collisionRect.top;
+  const nextX = Math.min(columns - colspan, collisionX);
+  const nextY = collisionY;
 
   if (!lastPosition) {
     return [{ x: nextX, y: nextY }];
   }
 
-  const vx = Math.sign(collisionRect.left - lastPosition.x);
-  const vy = Math.sign(collisionRect.top - lastPosition.y);
+  const vx = Math.sign(collisionX - lastPosition.x);
+  const vy = Math.sign(collisionY - lastPosition.y);
 
   let { x, y } = lastPosition;
   let safetyCounter = 0;

@@ -84,8 +84,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     const type: Transition["type"] = detail.resize ? "resize" : layoutItem ? "reorder" : "insert";
 
-    // Define starting path for reorder.
-    const path = layoutItem && !detail.resize ? [{ x: layoutItem.x, y: layoutItem.y }] : [];
+    // Define starting path.
+    const collisionIds = getHoveredDroppables(detail);
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+    const path = layoutItem ? appendPath([], collisionRect, columns, layoutItem.width, detail.resize) : [];
 
     // Override rows to plan for possible height increase.
     const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
@@ -117,7 +119,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     const collisionIds = getHoveredDroppables(detail);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth);
+    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.resize);
     const layoutShift = getLayoutShift(transition, collisionRect, path);
 
     const cellRect = detail.droppables[0][1].getBoundingClientRect();
@@ -143,7 +145,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       : transition.item.definition.defaultColumnSpan;
 
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth);
+    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.resize);
     const layoutShift = getLayoutShift(transition, collisionRect, path);
     const canDrop = checkCanDrop(detail.containerRef.current!);
 
