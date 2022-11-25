@@ -6,7 +6,7 @@
   justify-content: stretch;
   align-content: stretch;
   gap: cs.$space-scaled-m;
-  grid-auto-rows: minmax(150px, auto);
+  grid-auto-rows: 220px;
 }
 
 .grid[data-columns="1"] {

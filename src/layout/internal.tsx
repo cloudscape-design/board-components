@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Transform } from "@dnd-kit/utilities";
-import { useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller";
+import { useId, useRef, useState } from "react";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, GAP, ROW_HEIGHT } from "../internal/constants";
+import { useDashboard, useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
@@ -60,8 +60,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
     []
   );
-  const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
+  const dashboardId = useId();
+  const dashboardRef = useDashboard(dashboardId, columns);
+  const containerRef = useMergeRefs(containerAccessRef, containerQueryRef, dashboardRef);
 
   const [transition, setTransition] = useState<null | Transition>(null);
 
@@ -70,10 +72,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const rows = transition?.rows ?? itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function checkCanDrop(itemEl: HTMLElement): boolean {
-    // TODO: calculate container Rect once or per rows change.
-    const containerRect = containerAccessRef.current!.getBoundingClientRect();
-    // TODO: calculate item Rect once and adjust based on cursor position.
+  function checkCanDrop(dashboardEl: HTMLElement, itemEl: HTMLElement): boolean {
+    const containerRect = dashboardEl.getBoundingClientRect();
     const itemRect = itemEl.getBoundingClientRect();
     return isIntersecting(containerRect, itemRect);
   }
@@ -91,7 +91,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
     const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
-    const canDrop = checkCanDrop(detail.containerRef.current!);
+    const [, dashboard] = detail.dashboards.find(([id]) => id === dashboardId)!;
+    const canDrop = checkCanDrop(dashboard.element, detail.containerRef.current!);
     const transition = {
       type,
       engine: new LayoutEngine(itemsLayout),
@@ -120,11 +121,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const path = appendPath(transition.path, collisionRect, columns, itemWidth);
     const layoutShift = getLayoutShift(transition, collisionRect, path);
 
-    const cellRect = detail.droppables[0][1].getBoundingClientRect();
-    const transforms = createTransforms(itemsLayout, layoutShift.moves, cellRect);
+    const [, dashboard] = detail.dashboards.find(([id]) => id === dashboardId)!;
+    const dashboardRect = dashboard.element.getBoundingClientRect();
+    const baseSize = {
+      height: ROW_HEIGHT,
+      width: (dashboardRect.width - (dashboard.columns - 1) * GAP) / dashboard.columns,
+    };
+    const transforms = createTransforms(itemsLayout, layoutShift.moves, baseSize);
 
     const rows = layoutShift.next.rows + itemHeight;
-    const canDrop = checkCanDrop(detail.containerRef.current!);
+    const canDrop = checkCanDrop(dashboard.element, detail.containerRef.current!);
 
     setTransition(
       canDrop
@@ -145,7 +151,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
     const path = appendPath(transition.path, collisionRect, columns, itemWidth);
     const layoutShift = getLayoutShift(transition, collisionRect, path);
-    const canDrop = checkCanDrop(detail.containerRef.current!);
+    const [, dashboard] = detail.dashboards.find(([id]) => id === dashboardId)!;
+    const canDrop = checkCanDrop(dashboard.element, detail.containerRef.current!);
 
     printLayoutDebug(itemsLayout, layoutShift);
 
