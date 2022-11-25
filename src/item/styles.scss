@@ -19,6 +19,12 @@
   margin-left: 10px;
 }
 
+.content {
+  padding: 0 cs.$space-container-horizontal cs.$space-scaled-l cs.$space-container-horizontal;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
 .settings {
   margin-top: cs.$space-scaled-xxxs;
   margin-left: cs.$space-static-xs;

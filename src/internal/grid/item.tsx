@@ -12,7 +12,6 @@ export interface GridItemProps {
 
 const GridItem = (props: GridItemProps) => {
   const { children, item } = props;
-  const className = styles.grid__item;
 
   const data = {
     "data-column-span": item.width,
@@ -24,7 +23,11 @@ const GridItem = (props: GridItemProps) => {
   // Grid row start can not be set as part of a CSS class names,
   // since we have a potential infinite height grid.
   return (
-    <div {...data} className={className} style={{ gridRowStart: item.y + 1, gridRowEnd: `span ${item.height}` }}>
+    <div
+      {...data}
+      className={styles.grid__item}
+      style={{ gridRowStart: item.y + 1, gridRowEnd: `span ${item.height}` }}
+    >
       {children}
     </div>
   );

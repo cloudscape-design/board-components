@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
@@ -96,13 +97,22 @@ export default function DashboardItem({
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
   };
+
+  const itemHeight = currentIsDragging
+    ? sizeOverride?.height ?? 0
+    : itemSize.height * ROW_HEIGHT + (itemSize.height - 1) * GAP;
+  const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
+  const contentHeight = itemHeight - (headerHeight ?? 0);
+
   return (
     <div ref={containerRef} className={clsx(styles.wrapper, currentIsDragging && styles.wrapperDragging)} style={style}>
       <Container
         {...containerProps}
         disableHeaderPaddings={true}
+        disableContentPaddings={true}
         header={
           <WidgetContainerHeader
+            ref={headerQueryRef}
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
@@ -115,7 +125,9 @@ export default function DashboardItem({
           </WidgetContainerHeader>
         }
       >
-        {children}
+        <div className={styles.content} style={{ maxHeight: contentHeight }}>
+          {children}
+        </div>
       </Container>
       {resizable && (
         <div className={styles.resizer}>
