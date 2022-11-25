@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { fromMatrix, generateGrid, generateResize, toString } from "../../debug-tools";
+import { fromMatrix, generateGrid, generateRandomPath, generateResize, toString } from "../../debug-tools";
 import { LayoutEngine } from "../engine";
 import { forEachTimes } from "./helpers";
 
@@ -22,6 +22,27 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
     const layoutShift = new LayoutEngine(grid).resize(resize).refloat().getLayoutShift();
     expect(layoutShift.conflicts).toHaveLength(0);
   });
+});
+
+test("commits no changes if resize path returns to original or smaller", () => {
+  forEachTimes(25, [[]], (args) => {
+    const grid = generateGrid(...args);
+    const resize = generateResize(grid, { maxWidthDecrement: 0, maxHeightDecrement: 0 });
+    if (resize.path.length > 0) {
+      const lastPathItem = resize.path[resize.path.length - 1];
+      const resizeTarget = grid.items.find((it) => it.id === resize.itemId)!;
+      const originalSizePath = {
+        x: randomPathValue(resizeTarget.x + resizeTarget.width),
+        y: randomPathValue(resizeTarget.y + resizeTarget.height),
+      };
+      resize.path = [...resize.path, ...generateRandomPath(lastPathItem, originalSizePath)];
+      expect(new LayoutEngine(grid).resize(resize).getLayoutShift().moves).toHaveLength(0);
+    }
+  });
+
+  function randomPathValue(max: number) {
+    return Math.floor(Math.random() * max) + 1;
+  }
 });
 
 describe("resize scenarios", () => {

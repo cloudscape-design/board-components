@@ -24,7 +24,7 @@ export function getItemRect(item: GridLayoutItem): Rect {
   };
 }
 
-export function normalizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {
   // Remove path prefixes that return to the original location.
   for (let i = 0; i < path.length; i++) {
     if (path[i].x === origin.x && path[i].y === origin.y) {
@@ -32,6 +32,21 @@ export function normalizePath(origin: Position, path: readonly Position[]): read
     }
   }
 
+  return normalizePath(path);
+}
+
+export function normalizeResizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+  // Remove path prefixes that return to the original or smaller size.
+  for (let i = 0; i < path.length; i++) {
+    if (path[i].x <= origin.x && path[i].y <= origin.y) {
+      path = path.slice(i + 1);
+    }
+  }
+
+  return normalizePath(path);
+}
+
+function normalizePath(path: readonly Position[]): readonly Position[] {
   // Store last visited indexes per position.
   const positionToLastIndex = new Map<string, number>();
   for (let index = 0; index < path.length; index++) {

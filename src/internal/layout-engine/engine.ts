@@ -5,7 +5,7 @@ import { GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove, Direction, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
-import { normalizePath, sortGridItems } from "./utils";
+import { normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
 
 export class LayoutEngine {
   private current: GridLayout;
@@ -465,7 +465,7 @@ export class LayoutEngine {
       prevY = step.y;
     }
 
-    return { itemId, path: normalizePath({ x: moveTarget.x, y: moveTarget.y }, path) };
+    return { itemId, path: normalizeMovePath({ x: moveTarget.x, y: moveTarget.y }, path) };
   }
 
   private validateResizeCommand({ itemId, path }: ResizeCommand): ResizeCommand {
@@ -496,6 +496,6 @@ export class LayoutEngine {
       prevY = step.y;
     }
 
-    return { itemId, path: normalizePath({ x, y }, path) };
+    return { itemId, path: normalizeResizePath({ x, y }, path) };
   }
 }
