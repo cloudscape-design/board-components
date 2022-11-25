@@ -10,7 +10,6 @@ import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, Rec
 import { ItemContextProvider } from "../internal/item-context";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { createCustomEvent } from "../internal/utils/events";
-import { isIntersecting } from "../internal/utils/geometry";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
@@ -72,12 +71,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   const rows = transition?.rows ?? itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function checkCanDrop(dashboardEl: HTMLElement, itemEl: HTMLElement): boolean {
-    const containerRect = dashboardEl.getBoundingClientRect();
-    const itemRect = itemEl.getBoundingClientRect();
-    return isIntersecting(containerRect, itemRect);
-  }
-
   useDragSubscription("start", (detail) => {
     const item = detail.item;
     const layoutItem = layoutItemById.get(detail.item.id) ?? null;
@@ -91,8 +84,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
     const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
-    const [, dashboard] = detail.dashboards.find(([id]) => id === dashboardId)!;
-    const canDrop = checkCanDrop(dashboard.element, detail.containerRef.current!);
+    const collisionIds = getHoveredDroppables(detail, dashboardId);
+    const canDrop = collisionIds.length > 0;
     const transition = {
       type,
       engine: new LayoutEngine(itemsLayout),
@@ -116,7 +109,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       : transition.item.definition.defaultColumnSpan;
     const itemHeight = transition.layoutItem ? transition.layoutItem.height : transition.item.definition.defaultRowSpan;
 
-    const collisionIds = getHoveredDroppables(detail);
+    const collisionIds = getHoveredDroppables(detail, dashboardId);
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const path = appendPath(transition.path, collisionRect, columns, itemWidth);
     const layoutShift = getLayoutShift(transition, collisionRect, path);
@@ -130,7 +123,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const transforms = createTransforms(itemsLayout, layoutShift.moves, baseSize);
 
     const rows = layoutShift.next.rows + itemHeight;
-    const canDrop = checkCanDrop(dashboard.element, detail.containerRef.current!);
+    const canDrop = collisionIds.length > 0;
 
     setTransition(
       canDrop
@@ -148,11 +141,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       ? transition.layoutItem.width
       : transition.item.definition.defaultColumnSpan;
 
-    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
+    const collisionIds = getHoveredDroppables(detail, dashboardId);
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const path = appendPath(transition.path, collisionRect, columns, itemWidth);
     const layoutShift = getLayoutShift(transition, collisionRect, path);
-    const [, dashboard] = detail.dashboards.find(([id]) => id === dashboardId)!;
-    const canDrop = checkCanDrop(dashboard.element, detail.containerRef.current!);
+    const canDrop = collisionIds.length > 0;
 
     printLayoutDebug(itemsLayout, layoutShift);
 

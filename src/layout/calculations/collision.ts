@@ -3,6 +3,7 @@
 import { DragAndDropData } from "../../internal/dnd-controller";
 import { GridLayoutItem } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
+import { isIntersecting } from "../../internal/utils/geometry";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -67,8 +68,18 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
     .map(([droppableId]) => droppableId);
 };
 
-export function getHoveredDroppables({ containerRef, coordinates, droppables, resize }: DragAndDropData) {
+export function getHoveredDroppables(
+  { containerRef, coordinates, dashboards, droppables, resize }: DragAndDropData,
+  dashboardId: string
+) {
   const activeRect = containerRef.current!.getBoundingClientRect();
+  const [, dashboard] = dashboards.find(([id]) => id === dashboardId)!;
+  const dashboardRect = dashboard.element.getBoundingClientRect();
+
+  if (!isIntersecting(dashboardRect, activeRect)) {
+    return [];
+  }
+
   const collisionRect = resize
     ? {
         top: activeRect.top,

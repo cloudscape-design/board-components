@@ -44,6 +44,15 @@ export function createTransforms(
 }
 
 export function appendPath(prevPath: Position[], collisionRect: Rect, columns: number, colspan: number): Position[] {
+  if (
+    !isFinite(collisionRect.bottom) ||
+    !isFinite(collisionRect.top) ||
+    !isFinite(collisionRect.left) ||
+    !isFinite(collisionRect.right)
+  ) {
+    return prevPath;
+  }
+
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
