@@ -4,12 +4,12 @@
 import { range } from "lodash";
 import { describe, expect, test } from "vitest";
 import { fromMatrix, generateGrid, toString } from "../../debug-tools";
-import { DndEngine } from "../engine";
+import { LayoutEngine } from "../engine";
 
 test("element removal never leaves grid with unresolved conflicts", () => {
   range(0, 25).forEach(() => {
     const grid = generateGrid();
-    const layoutShift = new DndEngine(grid).remove("A").refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).remove("A").refloat().getLayoutShift();
     expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
@@ -30,7 +30,7 @@ describe("remove scenarios", () => {
       ],
     ],
   ])("%s", (_, gridMatrix, itemId, expectation) => {
-    const layoutShift = new DndEngine(fromMatrix(gridMatrix)).remove(itemId).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).remove(itemId).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

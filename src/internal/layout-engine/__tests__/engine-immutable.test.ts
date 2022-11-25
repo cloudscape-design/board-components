@@ -4,7 +4,7 @@
 import { cloneDeep } from "lodash";
 import { expect, test } from "vitest";
 import { generateGrid, generateMove, generateResize } from "../../debug-tools";
-import { DndEngine } from "../engine";
+import { LayoutEngine } from "../engine";
 
 test("input arguments stay unchanged when using engine", () => {
   const grid = generateGrid();
@@ -14,11 +14,11 @@ test("input arguments stay unchanged when using engine", () => {
   const gridClone = cloneDeep(grid);
   const moveClone = cloneDeep(movePath);
 
-  new DndEngine(grid).move(movePath);
-  new DndEngine(grid).resize(resize);
-  new DndEngine(grid).insert({ id: "X", x: 0, y: 0, width: 1, height: 1 });
-  new DndEngine(grid).remove("A");
-  new DndEngine(grid).refloat();
+  new LayoutEngine(grid).move(movePath);
+  new LayoutEngine(grid).resize(resize);
+  new LayoutEngine(grid).insert({ id: "X", x: 0, y: 0, width: 1, height: 1 });
+  new LayoutEngine(grid).remove("A");
+  new LayoutEngine(grid).refloat();
 
   expect(grid).toEqual(gridClone);
   expect(movePath).toEqual(moveClone);

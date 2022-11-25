@@ -5,10 +5,10 @@ import { Transform } from "@dnd-kit/utilities";
 import { useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
-import { DndEngine } from "../internal/dnd-engine/engine";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, Rect } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
+import { LayoutEngine } from "../internal/layout-engine/engine";
 import { createCustomEvent } from "../internal/utils/events";
 import { isIntersecting } from "../internal/utils/geometry";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
@@ -21,7 +21,7 @@ import Placeholder from "./placeholder";
 
 interface Transition {
   type: "reorder" | "resize" | "insert";
-  engine: DndEngine;
+  engine: LayoutEngine;
   transforms: { [itemId: ItemId]: Transform };
   collisionIds: ItemId[];
   item: DashboardItemBase<unknown>;
@@ -94,7 +94,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const canDrop = checkCanDrop(detail.containerRef.current!);
     const transition = {
       type,
-      engine: new DndEngine(itemsLayout),
+      engine: new LayoutEngine(itemsLayout),
       transforms: {},
       collisionIds: [],
       item,
@@ -170,7 +170,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
-    const layoutShift = new DndEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
   };
 

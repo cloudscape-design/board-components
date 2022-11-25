@@ -4,15 +4,15 @@
 import { GridLayoutItem, ItemId } from "../interfaces";
 import { Rect, getItemRect } from "./utils";
 
-export interface DndItem extends GridLayoutItem, Rect {
+export interface LayoutEngineItem extends GridLayoutItem, Rect {
   originalX: number;
   originalY: number;
 }
 
-export class DndGrid {
+export class LayoutEngineGrid {
   private _width: number;
   private _height: number;
-  private _items = new Map<ItemId, DndItem>();
+  private _items = new Map<ItemId, LayoutEngineItem>();
   private layout: Set<ItemId>[][] = [];
 
   constructor(items: readonly GridLayoutItem[], columns: number) {
@@ -52,11 +52,11 @@ export class DndGrid {
     return this._height;
   }
 
-  get items(): DndItem[] {
+  get items(): LayoutEngineItem[] {
     return [...this._items.values()];
   }
 
-  getItem(itemId: ItemId): DndItem {
+  getItem(itemId: ItemId): LayoutEngineItem {
     const item = this._items.get(itemId);
     if (!item) {
       throw new Error(`Item with id "${itemId}" not found in the grid.`);
@@ -64,14 +64,14 @@ export class DndGrid {
     return item;
   }
 
-  getCell(x: number, y: number): DndItem[] {
+  getCell(x: number, y: number): LayoutEngineItem[] {
     if (!this.layout[y] || !this.layout[y][x]) {
       return [];
     }
     return [...this.layout[y][x]].map((itemId) => this.getItem(itemId));
   }
 
-  getCellOverlap(x: number, y: number, itemId: ItemId): null | DndItem {
+  getCellOverlap(x: number, y: number, itemId: ItemId): null | LayoutEngineItem {
     for (const item of this.getCell(x, y)) {
       if (item.id !== itemId) {
         return item;

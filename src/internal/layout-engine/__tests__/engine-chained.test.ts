@@ -3,7 +3,7 @@
 
 import { expect, test } from "vitest";
 import { fromMatrix, toString } from "../../debug-tools";
-import { DndEngine } from "../engine";
+import { LayoutEngine } from "../engine";
 
 test("engine operations can be chained", () => {
   const grid = fromMatrix([
@@ -12,7 +12,7 @@ test("engine operations can be chained", () => {
     ["G", "E", "E"],
   ]);
 
-  const layoutShift = new DndEngine(grid)
+  const layoutShift = new LayoutEngine(grid)
     .insert({ id: "X", x: 1, y: 1, width: 1, height: 1 })
     .move({
       itemId: "X",
@@ -41,7 +41,7 @@ test("engine operations are not chained when executed separately", () => {
     ["D", " ", "F"],
     ["G", "E", "E"],
   ]);
-  const engine = new DndEngine(grid);
+  const engine = new LayoutEngine(grid);
 
   // These commands are ignored.
   engine.insert({ id: "X", x: 1, y: 1, width: 1, height: 1 });
