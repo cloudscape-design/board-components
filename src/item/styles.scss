@@ -35,6 +35,7 @@
 }
 
 .wrapper {
+  touch-action: none;
   position: relative;
   height: 100%;
   display: grid;
