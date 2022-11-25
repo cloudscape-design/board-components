@@ -200,7 +200,7 @@ export class LayoutEngine {
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "VACANT");
-      if (this.validateVacantMove(move) === "ok") {
+      if (this.validateVacantMove(move)) {
         return move;
       }
     }
@@ -208,7 +208,7 @@ export class LayoutEngine {
     return null;
   }
 
-  private validateVacantMove(move: CommittedMove): "ok" | "blocked" | "occupied" {
+  private validateVacantMove(move: CommittedMove): boolean {
     const moveTarget = this.grid.getItem(move.itemId);
 
     for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -218,17 +218,17 @@ export class LayoutEngine {
 
         // Outside the grid.
         if (newY < 0 || newX < 0 || newX >= this.grid.width) {
-          return "blocked";
+          return false;
         }
 
         // The probed destination is occupied.
         if (this.grid.getCellOverlap(newX, newY, move.itemId)) {
-          return "occupied";
+          return false;
         }
       }
     }
 
-    return "ok";
+    return true;
   }
 
   // Try finding a move that resovles an overlap by moving an item over another item that has not been disturbed yet.
@@ -239,33 +239,28 @@ export class LayoutEngine {
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "PRIORITY");
-      if (this.validatePriorityMove(move, activeId, priority) === "ok") {
+      if (this.validatePriorityMove(move, activeId, priority)) {
         return move;
       }
+    }
+
+    // "Escape" moves are not allowed when there are conflicts.
+    if (this.conflicts.size > 0) {
+      return null;
     }
 
     // If can't find a good move - "escape" item to the bottom.
     const move: CommittedMove = { itemId: overlapItem.id, y: overlapItem.y + 1, x: overlapItem.x, type: "ESCAPE" };
     for (move.y; move.y < 100; move.y++) {
-      switch (this.validatePriorityMove(move, activeId, priority)) {
-        // Skipping items with higher priority.
-        case "priority":
-          break;
-
-        // Can't move past blocked items.
-        case "blocked":
-          return null;
-
-        // This move works.
-        case "ok":
-          return move;
+      if (this.validatePriorityMove(move, activeId, priority)) {
+        return move;
       }
     }
 
     return null;
   }
 
-  private validatePriorityMove(move: CommittedMove, activeId: ItemId, priority: number): "ok" | "blocked" | "priority" {
+  private validatePriorityMove(move: CommittedMove, activeId: ItemId, priority: number): boolean {
     const moveTarget = this.grid.getItem(move.itemId);
 
     for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -275,29 +270,29 @@ export class LayoutEngine {
 
         // Outside the grid.
         if (newY < 0 || newX < 0 || newX >= this.grid.width) {
-          return "blocked";
+          return false;
         }
 
         for (const item of this.grid.getCell(newX, newY)) {
           // Can't overlap with the active item.
           if (item.id === activeId) {
-            return "priority";
+            return false;
           }
 
           // The overlaping item has the same priority.
           if (this.priority.get(item.id) === priority) {
-            return "priority";
+            return false;
           }
 
-          // The probed destination i currently blocked.
+          // The probed destination is currently blocked.
           if (this.conflicts.has(item.id)) {
-            return "blocked";
+            return false;
           }
         }
       }
     }
 
-    return "ok";
+    return true;
   }
 
   private getOverlapWith(targetItem: LayoutEngineItem): LayoutEngineItem {
@@ -398,7 +393,7 @@ export class LayoutEngine {
     for (const item of this.grid.items) {
       const move: CommittedMove = { itemId: item.id, x: item.x, y: item.y, type: "FLOAT" };
       for (move.y; move.y >= 0; move.y--) {
-        if (this.validateVacantMove({ ...move, y: move.y - 1 }) !== "ok") {
+        if (!this.validateVacantMove({ ...move, y: move.y - 1 })) {
           break;
         }
       }
