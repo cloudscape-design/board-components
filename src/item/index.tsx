@@ -96,8 +96,8 @@ export default function DashboardItem({
           <WidgetContainerHeader
             handle={
               <DragHandle
-                onMouseDown={(event) => dragApi.onStart({ pageX: event.pageX, pageY: event.pageY })}
                 ariaLabel={i18nStrings.dragHandleLabel}
+                onPointerDown={(coordinates) => dragApi.onStart(coordinates)}
               />
             }
             settings={settings}
@@ -112,7 +112,7 @@ export default function DashboardItem({
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabel={i18nStrings.resizeLabel}
-            onResize={(event) => resizeApi.onStart({ pageX: event.pageX, pageY: event.pageY })}
+            onPointerDown={(coordinates) => resizeApi.onStart(coordinates)}
           />
         </div>
       )}

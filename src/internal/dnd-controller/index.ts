@@ -4,9 +4,6 @@ import { Ref, RefObject, useEffect, useRef } from "react";
 import { Coordinates, DashboardItemBase } from "../interfaces";
 import { EventEmitter } from "./event-emitter";
 
-// TODO: check if D&D work in touch devices.
-// We might want to separately support mousedown+mousemove+mousedown and touchsstart+touchmove+touchend.
-
 export interface DragAndDropData extends DragDetail {
   droppables: readonly [string, HTMLElement][];
   coordinates: Coordinates;
@@ -29,10 +26,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private activeDragDetail: DragDetail | null = null;
 
   public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
+    console.log("ACTIVATE");
     this.activeDragDetail = dragDetail;
     this.emit("start", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
-    document.addEventListener("mousemove", this.onMouseMove);
-    document.addEventListener("mouseup", this.onMouseUp);
+    document.addEventListener("pointermove", this.onPointerMove);
+    document.addEventListener("pointerup", this.onPointerUp);
   }
 
   public addDroppable(element: HTMLElement, id: string) {
@@ -43,20 +41,22 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.droppables.delete(id);
   }
 
-  private onMouseMove = (coordinates: Coordinates) => {
+  private onPointerMove = (coordinates: Coordinates) => {
+    console.log("MOVE");
     if (!this.activeDragDetail) {
       throw new Error("Invariant violation: no active drag detail present for move.");
     }
     this.emit("move", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
   };
 
-  private onMouseUp = (coordinates: Coordinates) => {
+  private onPointerUp = (coordinates: Coordinates) => {
+    console.log("STOP");
     if (!this.activeDragDetail) {
       throw new Error("Invariant violation: no active drag detail present for drop.");
     }
     this.emit("drop", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
-    document.removeEventListener("mousemove", this.onMouseMove);
-    document.removeEventListener("mouseup", this.onMouseUp);
+    document.removeEventListener("pointermove", this.onPointerMove);
+    document.removeEventListener("pointerup", this.onPointerUp);
     this.activeDragDetail = null;
   };
 }
