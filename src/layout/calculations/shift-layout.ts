@@ -3,12 +3,12 @@
 import { Transform } from "@dnd-kit/utilities";
 import { GAP } from "../../internal/constants";
 import { toString as engineToString } from "../../internal/debug-tools";
-import { CommittedMove, LayoutShift } from "../../internal/dnd-engine/interfaces";
 import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
+import { CommittedMove, LayoutShift } from "../../internal/layout-engine/interfaces";
 
 export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
-  // Logs for dnd-engine debugging.
+  // Logs for layout-engine debugging.
   console.log("Grid before move:");
   console.log(engineToString(grid));
 

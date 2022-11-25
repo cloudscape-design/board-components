@@ -3,7 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { fromMatrix, fromTextPath, toString } from "../../debug-tools";
-import { DndEngine } from "../engine";
+import { LayoutEngine } from "../engine";
 
 describe("vertical swaps of larger items", () => {
   test.each([
@@ -96,7 +96,7 @@ describe("vertical swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -148,7 +148,7 @@ describe("horizontal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -213,7 +213,7 @@ describe("swaps with overlay", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -238,7 +238,7 @@ describe("distant swaps", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -279,7 +279,7 @@ describe("diagonal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -322,7 +322,7 @@ describe("replacement moves of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -349,7 +349,7 @@ describe("long path moves", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -419,7 +419,7 @@ describe("empty spaces are prioritized over disturbing other items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -448,7 +448,7 @@ describe("multiple overlap resolutions", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     const moveIds = layoutShift.moves.map((move) => move.itemId);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
     expect(new Set(moveIds).size).toBeLessThan(moveIds.length);
@@ -481,7 +481,7 @@ describe("escape moves", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new DndEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
     expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBeGreaterThan(0);
   });

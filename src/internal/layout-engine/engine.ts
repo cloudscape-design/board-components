@@ -3,23 +3,21 @@
 
 import { GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
-import { DndGrid, DndItem } from "./grid";
+import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove, Direction, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { normalizePath, sortGridItems } from "./utils";
 
-// TODO: Rename DndEngine -> LayoutEngine.
-
-export class DndEngine {
+export class LayoutEngine {
   private current: GridLayout;
-  private grid: DndGrid;
+  private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
   private priority = new Map<ItemId, number>();
   private overlaps = new StackSet<ItemId>();
   private conflicts = new Set<ItemId>();
   private chained = false;
 
-  constructor(args: GridLayout | DndEngine) {
-    if (args instanceof DndEngine) {
+  constructor(args: GridLayout | LayoutEngine) {
+    if (args instanceof LayoutEngine) {
       this.current = args.current;
       this.grid = args.grid;
       this.moves = args.moves;
@@ -29,11 +27,11 @@ export class DndEngine {
       this.chained = true;
     } else {
       this.current = args;
-      this.grid = new DndGrid(args.items, args.columns);
+      this.grid = new LayoutEngineGrid(args.items, args.columns);
     }
   }
 
-  move(moveCommand: MoveCommand): DndEngine {
+  move(moveCommand: MoveCommand): LayoutEngine {
     this.cleanup();
 
     const { itemId, path } = this.validateMoveCommand(moveCommand);
@@ -49,10 +47,10 @@ export class DndEngine {
       this.tryResolveOverlaps(itemId, stepIndex);
     }
 
-    return new DndEngine(this);
+    return new LayoutEngine(this);
   }
 
-  resize(resize: ResizeCommand): DndEngine {
+  resize(resize: ResizeCommand): LayoutEngine {
     this.cleanup();
 
     resize = this.validateResizeCommand(resize);
@@ -61,32 +59,32 @@ export class DndEngine {
 
     this.tryResolveOverlaps(resize.itemId);
 
-    return new DndEngine(this);
+    return new LayoutEngine(this);
   }
 
-  insert(item: GridLayoutItem): DndEngine {
+  insert(item: GridLayoutItem): LayoutEngine {
     this.cleanup();
 
     this.grid.insert(item, this.addOverlap.bind(this));
 
     this.tryResolveOverlaps(item.id);
 
-    return new DndEngine(this);
+    return new LayoutEngine(this);
   }
 
-  remove(itemId: ItemId): DndEngine {
+  remove(itemId: ItemId): LayoutEngine {
     this.cleanup();
 
     this.grid.remove(itemId);
 
-    return new DndEngine(this);
+    return new LayoutEngine(this);
   }
 
-  refloat(): DndEngine {
+  refloat(): LayoutEngine {
     if (this.conflicts.size === 0) {
       this.refloatGrid();
     }
-    return new DndEngine(this);
+    return new LayoutEngine(this);
   }
 
   getLayoutShift(): LayoutShift {
@@ -104,7 +102,7 @@ export class DndEngine {
 
   private cleanup(): void {
     if (!this.chained) {
-      this.grid = new DndGrid(this.current.items, this.current.columns);
+      this.grid = new LayoutEngineGrid(this.current.items, this.current.columns);
       this.moves = [];
       this.priority = new Map();
       this.overlaps = new StackSet();
@@ -175,7 +173,7 @@ export class DndEngine {
   }
 
   // Retrieves prioritized list of directions to look for a resolution move.
-  private getMoveDirections(issuer: DndItem): Direction[] {
+  private getMoveDirections(issuer: LayoutEngineItem): Direction[] {
     const issuerMoves = this.moves.filter((move) => move.itemId === issuer.id);
 
     // The move is missing when issuer resizes.
@@ -302,7 +300,7 @@ export class DndEngine {
     return "ok";
   }
 
-  private getOverlapWith(targetItem: DndItem): DndItem {
+  private getOverlapWith(targetItem: LayoutEngineItem): LayoutEngineItem {
     for (let y = targetItem.y; y < targetItem.y + targetItem.height; y++) {
       for (let x = targetItem.x; x < targetItem.x + targetItem.width; x++) {
         const overlap = this.grid.getCellOverlap(x, y, targetItem.id);
@@ -369,8 +367,8 @@ export class DndEngine {
 
   // Retrieve first possible move for the given direction to resolve the overlap.
   private getMoveForDirection(
-    moveTarget: DndItem,
-    overlap: DndItem,
+    moveTarget: LayoutEngineItem,
+    overlap: LayoutEngineItem,
     direction: Direction,
     moveType: CommittedMove["type"]
   ): CommittedMove {
