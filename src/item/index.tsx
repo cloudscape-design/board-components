@@ -56,8 +56,14 @@ export default function DashboardItem({
 
       if (resize) {
         setSizeOverride({
-          width: Math.min(maxWidth, origin.rect.width + (coordinates.pageX - origin.cursor.pageX)),
-          height: Math.min(maxHeight, origin.rect.height + (coordinates.pageY - origin.cursor.pageY)),
+          width: Math.max(
+            cellRect.width,
+            Math.min(maxWidth, origin.rect.width + (coordinates.pageX - origin.cursor.pageX))
+          ),
+          height: Math.max(
+            cellRect.height,
+            Math.min(maxHeight, origin.rect.height + (coordinates.pageY - origin.cursor.pageY))
+          ),
         });
       } else {
         setSizeOverride({ width: maxWidth, height: maxHeight });
