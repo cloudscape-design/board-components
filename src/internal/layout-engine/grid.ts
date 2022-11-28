@@ -7,6 +7,8 @@ import { Rect, getItemRect } from "./utils";
 export interface LayoutEngineItem extends GridLayoutItem, Rect {
   originalX: number;
   originalY: number;
+  originalWidth: number;
+  originalHeight: number;
 }
 
 export class LayoutEngineGrid {
@@ -20,7 +22,14 @@ export class LayoutEngineGrid {
     this._height = 0;
 
     for (const item of items) {
-      this._items.set(item.id, { ...item, originalY: item.y, originalX: item.x, ...getItemRect(item) });
+      this._items.set(item.id, {
+        ...item,
+        originalY: item.y,
+        originalX: item.x,
+        originalWidth: item.width,
+        originalHeight: item.height,
+        ...getItemRect(item),
+      });
 
       if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
         throw new Error("Invalid grid: items outside the boundaries.");
@@ -105,7 +114,14 @@ export class LayoutEngineGrid {
   }
 
   insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId) => void): void {
-    this._items.set(item.id, { ...item, originalY: item.y, originalX: item.x, ...getItemRect(item) });
+    this._items.set(item.id, {
+      ...item,
+      originalY: item.y,
+      originalX: item.x,
+      originalWidth: item.width,
+      originalHeight: item.height,
+      ...getItemRect(item),
+    });
 
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
       throw new Error("Inserting item is outside the boundaries.");

@@ -24,7 +24,7 @@ export function getItemRect(item: GridLayoutItem): Rect {
   };
 }
 
-export function normalizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {
   // Remove path prefixes that return to the original location.
   for (let i = 0; i < path.length; i++) {
     if (path[i].x === origin.x && path[i].y === origin.y) {
@@ -48,4 +48,12 @@ export function normalizePath(origin: Position, path: readonly Position[]): read
   }
 
   return normalizedPath;
+}
+
+export function normalizeResizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+  if (path.length === 0) {
+    return path;
+  }
+  const last = path[path.length - 1];
+  return path.filter((step) => step.x <= last.x && step.y <= last.y);
 }

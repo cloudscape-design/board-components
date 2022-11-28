@@ -26,7 +26,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private activeDragDetail: DragDetail | null = null;
 
   public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
-    console.log("ACTIVATE");
     this.activeDragDetail = dragDetail;
     this.emit("start", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
     document.addEventListener("pointermove", this.onPointerMove);
@@ -42,7 +41,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   }
 
   private onPointerMove = (coordinates: Coordinates) => {
-    console.log("MOVE");
     if (!this.activeDragDetail) {
       throw new Error("Invariant violation: no active drag detail present for move.");
     }
@@ -50,7 +48,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   };
 
   private onPointerUp = (coordinates: Coordinates) => {
-    console.log("STOP");
     if (!this.activeDragDetail) {
       throw new Error("Invariant violation: no active drag detail present for drop.");
     }

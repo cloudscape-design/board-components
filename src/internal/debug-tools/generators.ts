@@ -208,7 +208,7 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
     throw new Error("Move is not possible");
   })();
 
-  const path = createRandomPath({ y: moveTarget.y, x: moveTarget.x }, position);
+  const path = generateRandomPath({ y: moveTarget.y, x: moveTarget.x }, position);
 
   return { itemId: moveTarget.id, path };
 }
@@ -253,7 +253,12 @@ export function generateResize(grid: GridLayout, options?: GenerateGridResizeOpt
   }
   const heightDelta = Math.sign(maxHeightDelta) * getRandomInt(0, Math.abs(maxHeightDelta) + 1);
 
-  return { itemId: resizeTarget.id, width: resizeTarget.width + widthDelta, height: resizeTarget.height + heightDelta };
+  const path = generateRandomPath(
+    { x: resizeTarget.x + resizeTarget.width, y: resizeTarget.y + resizeTarget.height },
+    { x: resizeTarget.x + resizeTarget.width + widthDelta, y: resizeTarget.y + resizeTarget.height + heightDelta }
+  );
+
+  return { itemId: resizeTarget.id, path };
 }
 
 export function generateInsert(grid: GridLayout, insertId = "X", options?: GenerateGridInsertOptions): GridLayoutItem {
@@ -270,7 +275,7 @@ export function generateInsert(grid: GridLayout, insertId = "X", options?: Gener
   return { id: insertId, x, y, width, height };
 }
 
-function createRandomPath(from: Position, to: Position): Position[] {
+export function generateRandomPath(from: Position, to: Position): Position[] {
   const path = [];
   const directions: ["y", "x"] = ["y", "x"];
 

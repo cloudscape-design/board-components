@@ -21,7 +21,7 @@ test("engine operations can be chained", () => {
         { x: 1, y: 3 },
       ],
     })
-    .resize({ itemId: "X", width: 2, height: 1 })
+    .resize({ itemId: "X", path: [{ x: 3, y: 4 }] })
     .remove("F")
     .refloat()
     .getLayoutShift();
@@ -46,7 +46,7 @@ test("engine operations are not chained when executed separately", () => {
   // These commands are ignored.
   engine.insert({ id: "X", x: 1, y: 1, width: 1, height: 1 });
   engine.move({ itemId: "A", path: [{ x: 0, y: 1 }] });
-  engine.resize({ itemId: "A", width: 2, height: 2 });
+  engine.resize({ itemId: "A", path: [{ x: 2, y: 1 }] });
   engine.remove("A");
 
   // The last command only is reflected in the layoutShift.

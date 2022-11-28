@@ -10,8 +10,7 @@ export interface MoveCommand {
 
 export interface ResizeCommand {
   itemId: ItemId;
-  width: number;
-  height: number;
+  path: readonly Position[];
 }
 
 export interface CommittedMove {
