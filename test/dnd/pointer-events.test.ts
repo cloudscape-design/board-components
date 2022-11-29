@@ -3,8 +3,8 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import * as dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
-import * as resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
+import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
+import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
 
 console.log({ dragHandleStyles, resizeHandleStyles });
 
