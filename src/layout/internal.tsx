@@ -132,6 +132,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       throw new Error("Invariant violation: no transition.");
     }
 
+    // Discard state first so that if there is an exception in the code below it doesn't prevent state update.
+    setTransition(null);
+
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
       : transition.item.definition.defaultColumnSpan;
@@ -142,8 +145,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     const canDrop = checkCanDrop(detail.containerRef.current!);
 
     printLayoutDebug(itemsLayout, layoutShift);
-
-    setTransition(null);
 
     if (!canDrop || layoutShift.conflicts.length > 0) {
       return;
