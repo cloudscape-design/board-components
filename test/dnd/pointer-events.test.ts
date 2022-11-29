@@ -3,8 +3,8 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
-import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
+import * as dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
+import * as resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
 
 console.log({ dragHandleStyles, resizeHandleStyles });
 
@@ -23,9 +23,9 @@ test(
     await page.setWindowSize({ width: 800, height: 1000 });
     await page.windowScrollTo({ left: 0, top: 700 });
 
-    console.log("selector", `.${dragHandleStyles.handle}`);
+    console.log("selector", `.${dragHandleStyles.default.handle}`);
 
-    const handle7 = await browser.$(`[data-item-id="7"] .${dragHandleStyles.handle}`);
+    const handle7 = await browser.$(`[data-item-id="7"] .${dragHandleStyles.default.handle}`);
     const placeholder8 = await browser.$('[data-item-id="8"]');
     await handle7.dragAndDrop(placeholder8);
 
@@ -40,7 +40,7 @@ test(
     await page.setWindowSize({ width: 800, height: 1000 });
     await page.windowScrollTo({ left: 0, top: 700 });
 
-    const handle7 = await browser.$(`[data-item-id="7"] .${resizeHandleStyles.handle}`);
+    const handle7 = await browser.$(`[data-item-id="7"] .${resizeHandleStyles.default.handle}`);
     const placeholder8 = await browser.$('[data-item-id="8"]');
     await handle7.dragAndDrop(placeholder8);
 
