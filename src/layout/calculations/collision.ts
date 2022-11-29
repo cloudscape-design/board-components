@@ -73,8 +73,8 @@ export function getHoveredDroppables({ containerRef, coordinates, droppables, re
     ? {
         top: activeRect.top,
         left: activeRect.left,
-        right: coordinates.pageX,
-        bottom: coordinates.pageY,
+        right: coordinates.clientX,
+        bottom: coordinates.clientY,
       }
     : activeRect;
   return getCollisions(collisionRect, droppables);

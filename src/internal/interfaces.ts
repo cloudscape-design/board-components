@@ -49,8 +49,8 @@ export interface Rect {
 
 // Represents a point on a screen.
 export interface Coordinates {
-  pageX: number;
-  pageY: number;
+  clientX: number;
+  clientY: number;
 }
 
 // Represents a point in the grid.

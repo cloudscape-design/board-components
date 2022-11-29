@@ -18,7 +18,7 @@ function DragHandle({ ariaLabel, onPointerDown }: DragHandleProps, ref: Forwarde
       className={styles.handle}
       ref={ref}
       aria-label={ariaLabel}
-      onPointerDown={(event) => onPointerDown({ pageX: event.pageX, pageY: event.pageY })}
+      onPointerDown={(event) => onPointerDown({ clientX: event.clientX, clientY: event.clientY })}
     >
       <DragHandleIcon />
     </Handle>

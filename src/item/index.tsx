@@ -58,18 +58,18 @@ export default function DashboardItem({
         setSizeOverride({
           width: Math.max(
             cellRect.width,
-            Math.min(maxWidth, origin.rect.width + (coordinates.pageX - origin.cursor.pageX))
+            Math.min(maxWidth, origin.rect.width + (coordinates.clientX - origin.cursor.clientX))
           ),
           height: Math.max(
             cellRect.height,
-            Math.min(maxHeight, origin.rect.height + (coordinates.pageY - origin.cursor.pageY))
+            Math.min(maxHeight, origin.rect.height + (coordinates.clientY - origin.cursor.clientY))
           ),
         });
       } else {
         setSizeOverride({ width: maxWidth, height: maxHeight });
         setDragTransform({
-          x: coordinates.pageX - origin.cursor.pageX,
-          y: coordinates.pageY - origin.cursor.pageY,
+          x: coordinates.clientX - origin.cursor.clientX,
+          y: coordinates.clientY - origin.cursor.clientY,
           scaleX: 1,
           scaleY: 1,
         });

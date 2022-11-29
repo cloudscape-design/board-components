@@ -15,7 +15,7 @@ export default function ResizeHandle({ ariaLabel, onPointerDown }: ResizeHandleP
     <Handle
       className={styles.handle}
       aria-label={ariaLabel}
-      onPointerDown={(event) => onPointerDown({ pageX: event.pageX, pageY: event.pageY })}
+      onPointerDown={(event) => onPointerDown({ clientX: event.clientX, clientY: event.clientY })}
     >
       <ResizeHandleIcon />
     </Handle>
