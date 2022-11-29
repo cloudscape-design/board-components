@@ -7,6 +7,7 @@ import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { PaletteProps } from "../../src/palette/interfaces";
 import { Counter } from "./commons";
+import classnames from "./engine.module.css";
 
 interface ItemData {
   content: ReactNode;
@@ -36,7 +37,11 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
       data: { title: "Generic docked 1", description: "No description", content: "No content" },
     },
     docked2: {
-      data: { title: "Generic docked 2", description: "No description", content: "No content" },
+      data: {
+        title: "Generic docked 2",
+        description: "No description",
+        content: <div className={classnames["demo-item-large-content"]}>Large content</div>,
+      },
     },
   };
 
