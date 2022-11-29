@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Ref, RefObject, useEffect, useRef } from "react";
 import { Coordinates, DashboardItemBase } from "../interfaces";
+import { getCoordinates } from "../utils/get-coordinates";
 import { EventEmitter } from "./event-emitter";
 
 export interface DragAndDropData extends DragDetail {
@@ -40,18 +41,26 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.droppables.delete(id);
   }
 
-  private onPointerMove = (coordinates: Coordinates) => {
+  private onPointerMove = (event: PointerEvent) => {
     if (!this.activeDragDetail) {
       throw new Error("Invariant violation: no active drag detail present for move.");
     }
-    this.emit("move", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
+    this.emit("move", {
+      ...this.activeDragDetail,
+      coordinates: getCoordinates(event),
+      droppables: [...this.droppables.entries()],
+    });
   };
 
-  private onPointerUp = (coordinates: Coordinates) => {
+  private onPointerUp = (event: PointerEvent) => {
     if (!this.activeDragDetail) {
       throw new Error("Invariant violation: no active drag detail present for drop.");
     }
-    this.emit("drop", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
+    this.emit("drop", {
+      ...this.activeDragDetail,
+      coordinates: getCoordinates(event),
+      droppables: [...this.droppables.entries()],
+    });
     document.removeEventListener("pointermove", this.onPointerMove);
     document.removeEventListener("pointerup", this.onPointerUp);
     this.activeDragDetail = null;

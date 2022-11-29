@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import Handle from "../handle";
 import { Coordinates } from "../interfaces";
+import { getCoordinates } from "../utils/get-coordinates";
 import { ResizeHandleIcon } from "./icon";
 import styles from "./styles.css.js";
 
@@ -15,7 +16,7 @@ export default function ResizeHandle({ ariaLabel, onPointerDown }: ResizeHandleP
     <Handle
       className={styles.handle}
       aria-label={ariaLabel}
-      onPointerDown={(event) => onPointerDown({ clientX: event.clientX, clientY: event.clientY })}
+      onPointerDown={(event) => onPointerDown(getCoordinates(event))}
     >
       <ResizeHandleIcon />
     </Handle>
