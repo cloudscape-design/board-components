@@ -3,9 +3,9 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors";
-import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors";
-import layoutStyles from "../../lib/components/layout/styles.selectors";
+import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
+import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
+import layoutStyles from "../../lib/components/layout/styles.selectors.js";
 
 function setupTest(url: string, testFn: (page: ScreenshotPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
