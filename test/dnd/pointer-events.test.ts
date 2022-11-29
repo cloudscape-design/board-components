@@ -6,8 +6,6 @@ import { expect, test } from "vitest";
 import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
 import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
 
-console.log({ dragHandleStyles, resizeHandleStyles });
-
 function setupTest(url: string, testFn: (page: ScreenshotPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
@@ -22,8 +20,6 @@ test(
   setupTest("/index.html#/dnd/engine", async (page, browser) => {
     await page.setWindowSize({ width: 800, height: 1000 });
     await page.windowScrollTo({ left: 0, top: 700 });
-
-    console.log("selector", `.${dragHandleStyles.default.handle}`);
 
     const handle7 = await browser.$(`[data-item-id="7"] .${dragHandleStyles.default.handle}`);
     const placeholder8 = await browser.$('[data-item-id="8"]');
