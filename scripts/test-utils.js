@@ -91,7 +91,7 @@ function compileTypescript() {
 }
 
 function writeSourceFile(filepath, content) {
-  fs.ensureDirSync(filepath.replace(/\/.*\.ts/, ""));
+  fs.ensureDirSync(filepath.replace(/\/index.ts/, ""));
   fs.writeFileSync(filepath, prettify(filepath, content));
 }
 
