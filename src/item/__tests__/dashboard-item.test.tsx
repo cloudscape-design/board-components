@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { ItemContextProvider } from "../../../lib/components/internal/item-context";
 import type { DashboardItemProps } from "../../../lib/components/item";
 import DashboardItem from "../../../lib/components/item";
+import { createWrapper } from "../../../lib/components/test-utils/dom";
 
 export const i18nStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag handle",
@@ -36,7 +37,7 @@ describe("WidgetContainer", () => {
     cleanup();
   });
   test("renders slots", () => {
-    const { getByTestId } = render(
+    const { container } = render(
       <DashboardItem
         i18nStrings={i18nStrings}
         header={<span data-testid="header" />}
@@ -46,10 +47,12 @@ describe("WidgetContainer", () => {
         <span data-testid="content" />
       </DashboardItem>
     );
-    expect(getByTestId("header")).toBeDefined();
-    expect(getByTestId("content")).toBeDefined();
-    expect(getByTestId("footer")).toBeDefined();
-    expect(getByTestId("settings")).toBeDefined();
+    const itemWrapper = createWrapper(container).findDashboardItem()!;
+
+    expect(itemWrapper.find('[data-testid="header"]')).toBeDefined();
+    expect(itemWrapper.find('[data-testid="content"]')).toBeDefined();
+    expect(itemWrapper.find('[data-testid="footer"]')).toBeDefined();
+    expect(itemWrapper.find('[data-testid="settings"]')).toBeDefined();
   });
   test("renders handle aria labels", () => {
     const { getByLabelText } = render(<DashboardItem i18nStrings={i18nStrings} />);

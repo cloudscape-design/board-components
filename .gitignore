@@ -3,3 +3,5 @@ coverage
 lib
 /__image_snapshots__
 dist
+/test-utils/selectors
+/test-utils/dom/index.ts

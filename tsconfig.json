@@ -18,5 +18,5 @@
     "strict": true
   },
   "include": ["src", "types"],
-  "exclude": ["**/__tests__/**"]
+  "exclude": ["**/__tests__/**", "src/test-utils/**"]
 }

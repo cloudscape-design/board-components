@@ -98,5 +98,6 @@
         "jest": true
       }
     }
-  ]
+  ],
+  "ignorePatterns": ["src/test-utils/dom/index.ts", "src/test-utils/selectors/**"]
 }
