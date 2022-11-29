@@ -6,6 +6,8 @@ import { expect, test } from "vitest";
 import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
 import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
 
+console.log({ dragHandleStyles, resizeHandleStyles });
+
 function setupTest(url: string, testFn: (page: ScreenshotPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
