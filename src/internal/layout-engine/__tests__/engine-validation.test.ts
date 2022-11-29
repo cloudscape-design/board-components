@@ -43,9 +43,6 @@ test("throws if move command is not valid", () => {
   expect(() => new LayoutEngine(grid).move({ itemId: "F", path: [{ x: 3, y: 1 }] })).toThrowError(
     "Invalid move: outside grid."
   );
-  expect(() => new LayoutEngine(grid).move({ itemId: "D", path: [{ x: 2, y: 1 }] })).toThrowError(
-    "Invalid move: must move one step at a time."
-  );
 });
 
 test("throws if resize command is not valid", () => {
@@ -58,18 +55,6 @@ test("throws if resize command is not valid", () => {
   expect(() => new LayoutEngine(grid).resize({ itemId: "X", path: [{ x: 1, y: 1 }] })).toThrowError(
     'Item with id "X" not found in the grid.'
   );
-
-  expect(() =>
-    new LayoutEngine(
-      fromMatrix([
-        ["A", "A"],
-        ["A", "A"],
-      ])
-    ).resize({
-      itemId: "A",
-      path: [{ x: 0, y: 2 }],
-    })
-  ).toThrowError("Invalid resize: must resize one step at a time.");
 
   expect(() =>
     new LayoutEngine(
@@ -163,5 +148,18 @@ test("normalizes move path and continues when from the repeating position", () =
     { itemId: "A", x: 1, y: 1, type: "USER" },
     { itemId: "A", x: 1, y: 2, type: "USER" },
     { itemId: "A", x: 1, y: 3, type: "USER" },
+  ]);
+});
+
+test("normalizes move path when it has missing steps", () => {
+  const grid = fromMatrix([
+    ["A", " ", " "],
+    [" ", " ", " "],
+    [" ", " ", " "],
+  ]);
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("A1 B2", grid)).getLayoutShift();
+  expect(layoutShift.moves).toEqual([
+    { itemId: "A", x: 1, y: 0, type: "USER" },
+    { itemId: "A", x: 1, y: 1, type: "USER" },
   ]);
 });
