@@ -22,6 +22,12 @@ test(
     await page.setWindowSize({ width: 800, height: 1000 });
     await page.windowScrollTo({ left: 0, top: 700 });
 
+    console.log("selector", `.${dragHandleStyles.handle}`);
+
+    console.log("handles", await browser.$$(`.${dragHandleStyles.handle}`).length);
+
+    console.log("source", await browser.getPageSource());
+
     const handle7 = await browser.$$(`.${dragHandleStyles.handle}`)[6];
     const placeholder8 = await browser.$$(`.${layoutStyles.placeholder}`)[7];
     await handle7.dragAndDrop(placeholder8);
