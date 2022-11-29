@@ -447,22 +447,10 @@ export class LayoutEngine {
   private validateMoveCommand({ itemId, path }: MoveCommand): MoveCommand {
     const moveTarget = this.grid.getItem(itemId);
 
-    let prevX = moveTarget.x;
-    let prevY = moveTarget.y;
     for (const step of path) {
-      const diffVertical = step.y - prevY;
-      const diffHorizontal = step.x - prevX;
-
-      if (Math.abs(diffVertical) + Math.abs(diffHorizontal) !== 1) {
-        throw new Error("Invalid move: must move one step at a time.");
-      }
-
       if (step.x < 0 || step.y < 0 || step.x + moveTarget.width > this.grid.width) {
         throw new Error("Invalid move: outside grid.");
       }
-
-      prevX = step.x;
-      prevY = step.y;
     }
 
     return { itemId, path: normalizeMovePath({ x: moveTarget.x, y: moveTarget.y }, path) };
@@ -473,27 +461,13 @@ export class LayoutEngine {
     const x = resizeTarget.x + resizeTarget.width;
     const y = resizeTarget.y + resizeTarget.height;
 
-    let prevX = x;
-    let prevY = y;
-
     for (const step of path) {
-      const diffVertical = step.y - prevY;
-      const diffHorizontal = step.x - prevX;
-
-      if (Math.abs(diffVertical) + Math.abs(diffHorizontal) !== 1) {
-        throw new Error("Invalid resize: must resize one step at a time.");
-      }
-
       if (step.x < 1 || step.y < 1) {
         throw new Error("Invalid resize: can't resize to 0.");
       }
-
       if (step.x > this.grid.width) {
         throw new Error("Invalid resize: outside grid.");
       }
-
-      prevX = step.x;
-      prevY = step.y;
     }
 
     return { itemId, path: normalizeResizePath({ x, y }, path) };

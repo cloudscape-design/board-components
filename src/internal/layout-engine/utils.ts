@@ -47,7 +47,7 @@ export function normalizeMovePath(origin: Position, path: readonly Position[]): 
     index = lastVisitedIndex + 1;
   }
 
-  return normalizedPath;
+  return normalizePathSteps(origin, normalizedPath);
 }
 
 export function normalizeResizePath(origin: Position, path: readonly Position[]): readonly Position[] {
@@ -55,5 +55,33 @@ export function normalizeResizePath(origin: Position, path: readonly Position[])
     return path;
   }
   const last = path[path.length - 1];
-  return path.filter((step) => step.x <= last.x && step.y <= last.y);
+  const normalizedPath = path.filter((step) => step.x <= last.x && step.y <= last.y);
+  return normalizePathSteps(origin, normalizedPath);
+}
+
+// Ensures path only includes single-length steps.
+function normalizePathSteps(origin: Position, path: readonly Position[]): readonly Position[] {
+  const normalizedPath: Position[] = [];
+
+  let prevX = origin.x;
+  let prevY = origin.y;
+
+  for (const step of path) {
+    const vx = Math.sign(step.x - prevX);
+    const vy = Math.sign(step.y - prevY);
+
+    for (let x = prevX, y = prevY; x !== step.x || y !== step.y; ) {
+      if (x !== step.x) {
+        x += vx;
+      } else {
+        y += vy;
+      }
+      normalizedPath.push({ x, y });
+    }
+
+    prevX = step.x;
+    prevY = step.y;
+  }
+
+  return normalizedPath;
 }

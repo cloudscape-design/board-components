@@ -3,3 +3,11 @@
   border-radius: 4px;
   background-color: lightgray;
 }
+
+.demo-item-large-content {
+  border: dashed 2px darkgray;
+  border-radius: 4px;
+  padding: 8px;
+  width: 600px;
+  height: 400px;
+}
