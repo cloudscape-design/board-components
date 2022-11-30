@@ -33,7 +33,6 @@ function generateSelectorUtils() {
 function generateDomIndexFile() {
   const content = generateIndexFileContent({
     testUtilType: "dom",
-    defaultExport: `export function createWrapper(root: Element = document.body) { if (document && document.body && !document.body.contains(root)) { console.warn('[AwsUi] [test-utils] provided element is not part of the document body, interactions may work incorrectly')}; return new ElementWrapper(root); }`,
     buildFinderInterface: (componentName) =>
       `find${pascalCase(componentName)}(selector?: string): ${pascalCase(componentName)}Wrapper | null;`,
   });
@@ -43,14 +42,13 @@ function generateDomIndexFile() {
 function generateSelectorsIndexFile() {
   const content = generateIndexFileContent({
     testUtilType: "selectors",
-    defaultExport: `export function createWrapper(root: string = 'body') { return new ElementWrapper(root); }`,
     buildFinderInterface: (componentName) =>
       `find${pascalCase(componentName)}(selector?: string): ${pascalCase(componentName)}Wrapper;`,
   });
   writeSourceFile("./src/test-utils/selectors/index.ts", content);
 }
 
-function generateIndexFileContent({ testUtilType, defaultExport, buildFinderInterface }) {
+function generateIndexFileContent({ testUtilType, buildFinderInterface }) {
   return [
     // language=TypeScript
     `import { ElementWrapper } from '@cloudscape-design/test-utils-core/${testUtilType}';`,
@@ -81,7 +79,7 @@ function generateIndexFileContent({ testUtilType, defaultExport, buildFinderInte
           )}Wrapper);
       };`;
     }),
-    defaultExport,
+    `export { createWrapper as default } from '@cloudscape-design/test-utils-core/${testUtilType}';`,
   ].join("\n");
 }
 
