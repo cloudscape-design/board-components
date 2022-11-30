@@ -57,9 +57,9 @@ describe("createPlaceholdersLayout", () => {
     const layout = createPlaceholdersLayout(3, 2);
     expect(toString(layout)).toBe(
       toString([
-        ["placeholder-0-0", "placeholder-1-0"],
-        ["placeholder-0-1", "placeholder-1-1"],
-        ["placeholder-0-2", "placeholder-1-2"],
+        ["awsui-placeholder-0-0", "awsui-placeholder-1-0"],
+        ["awsui-placeholder-0-1", "awsui-placeholder-1-1"],
+        ["awsui-placeholder-0-2", "awsui-placeholder-1-2"],
       ])
     );
   });

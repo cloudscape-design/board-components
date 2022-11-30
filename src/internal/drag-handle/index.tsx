@@ -4,6 +4,7 @@ import { ForwardedRef, forwardRef } from "react";
 
 import Handle from "../handle";
 import { Coordinates } from "../interfaces";
+import { getCoordinates } from "../utils/get-coordinates";
 import DragHandleIcon from "./icon";
 import styles from "./styles.css.js";
 
@@ -18,7 +19,7 @@ function DragHandle({ ariaLabel, onPointerDown }: DragHandleProps, ref: Forwarde
       className={styles.handle}
       ref={ref}
       aria-label={ariaLabel}
-      onPointerDown={(event) => onPointerDown({ pageX: event.pageX, pageY: event.pageY })}
+      onPointerDown={(event) => onPointerDown(getCoordinates(event))}
     >
       <DragHandleIcon />
     </Handle>
