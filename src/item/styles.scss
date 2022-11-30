@@ -43,3 +43,9 @@
     z-index: 1;
   }
 }
+
+.content {
+  padding: 0 cs.$space-container-horizontal cs.$space-scaled-l cs.$space-container-horizontal;
+  overflow: hidden;
+  box-sizing: border-box;
+}

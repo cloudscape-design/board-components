@@ -1,12 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
 import { GAP } from "../internal/constants";
-import { useDragSubscription, useDraggable } from "../internal/dnd-controller";
+import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
+import { useGridContext } from "../internal/grid-context";
 import { Coordinates } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
@@ -21,6 +23,13 @@ interface DragOrigin {
   cursor: Coordinates;
 }
 
+interface Transition {
+  itemId: string;
+  type: "reorder" | "resize" | "insert";
+  sizeOverride: null | { width: number; height: number };
+  transform: null | Transform;
+}
+
 export default function DashboardItem({
   children,
   header,
@@ -29,77 +38,104 @@ export default function DashboardItem({
   ...containerProps
 }: DashboardItemProps) {
   const { item, itemSize, transform, resizable } = useItemContext();
-  const [dragTransform, setDragTransform] = useState<Transform | null>(null);
-  const [sizeOverride, setSizeOverride] = useState<{ width: number; height: number } | null>(null);
-  const [activeItemId, setActiveItemId] = useState<null | string>(null);
+  const [transition, setTransition] = useState<null | Transition>(null);
   const dragOriginRef = useRef<null | DragOrigin>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragApi = useDraggable({ item, containerRef, resize: false });
   const resizeApi = useDraggable({ item, containerRef, resize: true });
-  const currentIsDragging = activeItemId === item.id;
+  const currentIsDragging = transition?.itemId === item.id;
+  const gridContext = useGridContext();
 
-  useDragSubscription("start", ({ item: activeItem, containerRef, coordinates }) => {
-    setActiveItemId(activeItem.id);
-    if (activeItem.id === item.id) {
-      dragOriginRef.current = {
-        rect: containerRef.current!.getBoundingClientRect(),
-        cursor: coordinates,
-      };
-    }
-  });
-  useDragSubscription("move", ({ item: activeItem, resize, coordinates, droppables }) => {
+  function updateTransition({ item: activeItem, resize, coordinates, droppables }: DragAndDropData) {
+    const type = resize ? "resize" : gridContext ? "reorder" : "insert";
+
     const origin = dragOriginRef.current!;
     if (activeItem.id === item.id) {
+      // TODO: remove dependency on GAP from here.
       const cellRect = droppables[0][1].getBoundingClientRect();
-      const maxWidth = cellRect.width * itemSize.width + GAP * (itemSize.width - 1);
-      const maxHeight = cellRect.height * itemSize.height + GAP * (itemSize.height - 1);
+      const width = gridContext
+        ? gridContext.getWidth(itemSize.width)
+        : cellRect.width * itemSize.width + GAP * (itemSize.width - 1);
+      const height = gridContext
+        ? gridContext.getHeight(itemSize.height)
+        : cellRect.height * itemSize.height + GAP * (itemSize.height - 1);
 
       if (resize) {
-        setSizeOverride({
-          width: Math.max(
-            cellRect.width,
-            Math.min(maxWidth, origin.rect.width + (coordinates.pageX - origin.cursor.pageX))
-          ),
-          height: Math.max(
-            cellRect.height,
-            Math.min(maxHeight, origin.rect.height + (coordinates.pageY - origin.cursor.pageY))
-          ),
+        setTransition({
+          itemId: activeItem.id,
+          type,
+          sizeOverride: {
+            width: Math.max(
+              cellRect.width,
+              Math.min(width, origin.rect.width + (coordinates.pageX - origin.cursor.pageX))
+            ),
+            height: Math.max(
+              cellRect.height,
+              Math.min(height, origin.rect.height + (coordinates.pageY - origin.cursor.pageY))
+            ),
+          },
+          transform: null,
         });
       } else {
-        setSizeOverride({ width: maxWidth, height: maxHeight });
-        setDragTransform({
-          x: coordinates.pageX - origin.cursor.pageX,
-          y: coordinates.pageY - origin.cursor.pageY,
-          scaleX: 1,
-          scaleY: 1,
+        setTransition({
+          itemId: activeItem.id,
+          type,
+          sizeOverride: type === "insert" ? { width, height } : null,
+          transform: {
+            x: coordinates.pageX - origin.cursor.pageX,
+            y: coordinates.pageY - origin.cursor.pageY,
+            scaleX: 1,
+            scaleY: 1,
+          },
         });
       }
     }
+  }
+
+  useDragSubscription("start", (detail) => {
+    if (detail.item.id === item.id) {
+      dragOriginRef.current = {
+        rect: containerRef.current!.getBoundingClientRect(),
+        cursor: detail.coordinates,
+      };
+    }
+
+    updateTransition(detail);
   });
+  useDragSubscription("move", (detail) => updateTransition(detail));
   useDragSubscription("drop", () => {
-    setActiveItemId(null);
-    setSizeOverride(null);
-    setDragTransform(null);
+    setTransition(null);
     dragOriginRef.current = null;
   });
 
   const style: CSSProperties = {
-    transform: CSSUtil.Transform.toString(currentIsDragging ? dragTransform : transform),
-    position: currentIsDragging && sizeOverride ? "absolute" : undefined,
-    width: currentIsDragging ? sizeOverride?.width : undefined,
-    height: currentIsDragging ? sizeOverride?.height : undefined,
+    transform: CSSUtil.Transform.toString(currentIsDragging ? transition.transform : transform),
+    position: currentIsDragging && transition?.sizeOverride ? "absolute" : undefined,
+    width: currentIsDragging ? transition?.sizeOverride?.width : undefined,
+    height: currentIsDragging ? transition?.sizeOverride?.height : undefined,
     transition:
-      activeItemId && !currentIsDragging
+      transition && !currentIsDragging
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
   };
+
+  const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
+  let maxContentWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
+  let maxContentHeight = gridContext ? gridContext.getHeight(itemSize.height) - (headerHeight || 0) : undefined;
+  if (transition?.sizeOverride) {
+    maxContentWidth = transition.sizeOverride.width;
+    maxContentHeight = transition.sizeOverride.height - (headerHeight || 0);
+  }
+
   return (
     <div ref={containerRef} className={clsx(styles.wrapper, currentIsDragging && styles.wrapperDragging)} style={style}>
       <Container
         {...containerProps}
         disableHeaderPaddings={true}
+        disableContentPaddings={true}
         header={
           <WidgetContainerHeader
+            ref={headerQueryRef}
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
@@ -112,7 +148,9 @@ export default function DashboardItem({
           </WidgetContainerHeader>
         }
       >
-        {children}
+        <div className={styles.content} style={{ maxWidth: maxContentWidth, maxHeight: maxContentHeight }}>
+          {children}
+        </div>
       </Container>
       {resizable && (
         <div className={styles.resizer}>
