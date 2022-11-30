@@ -33,7 +33,7 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 
   for (let x = 0; x < columns; x++) {
     for (let y = 0; y < rows; y++) {
-      layoutItems.push({ id: `placeholder-${x}-${y}`, x, y, width: 1, height: 1 });
+      layoutItems.push({ id: `awsui-placeholder-${x}-${y}`, x, y, width: 1, height: 1 });
     }
   }
 
