@@ -195,7 +195,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           if (isResizing && layoutItem) {
             itemSize = {
               width: columns - layoutItem.x,
-              height: Number.POSITIVE_INFINITY,
+              height: 999,
             };
           }
 
