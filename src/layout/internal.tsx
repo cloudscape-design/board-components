@@ -205,7 +205,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
               value={{
                 item,
                 itemSize,
-                resizable: true,
                 transform: transition?.transforms[item.id] ?? null,
               }}
             >

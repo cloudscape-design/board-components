@@ -37,7 +37,7 @@ export default function DashboardItem({
   i18nStrings,
   ...containerProps
 }: DashboardItemProps) {
-  const { item, itemSize, transform, resizable } = useItemContext();
+  const { item, itemSize, transform } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const dragOriginRef = useRef<null | DragOrigin>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -146,7 +146,7 @@ export default function DashboardItem({
           {children}
         </div>
       </Container>
-      {resizable && (
+      {gridContext && (
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabel={i18nStrings.resizeLabel}
