@@ -68,6 +68,7 @@ export default function () {
               );
             }
           }}
+          empty="No items"
         />
         <div className={classnames.palette}>
           <Header>Add widgets</Header>

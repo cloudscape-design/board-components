@@ -69,6 +69,7 @@ export default function DashboardLayoutPage() {
             items={singleItem}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
+            empty="No items"
           />
         </TestBed>
         <TestBed>
@@ -76,6 +77,7 @@ export default function DashboardLayoutPage() {
             items={spacedOutItems}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
+            empty="No items"
           />
         </TestBed>
         <TestBed>
@@ -83,6 +85,7 @@ export default function DashboardLayoutPage() {
             items={nextRowItems}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
+            empty="No items"
           />
         </TestBed>
       </main>

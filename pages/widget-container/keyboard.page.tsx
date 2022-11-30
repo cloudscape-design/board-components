@@ -48,6 +48,7 @@ export default function KeyboardPage() {
         onItemsChange={() => {
           /*readonly grid*/
         }}
+        empty="No items"
       />
     </PageLayout>
   );

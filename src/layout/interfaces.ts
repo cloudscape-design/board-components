@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { ReactNode } from "react";
 import { DashboardItem, DataFallbackType } from "../internal/interfaces";
 
 export interface DashboardLayoutProps<D = DataFallbackType> {
@@ -23,6 +24,11 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
    * Fired when a user interaction changes size or position of dashboard items.
    */
   onItemsChange: (event: CustomEvent<DashboardLayoutProps.ItemsChangeDetail<D>>) => void;
+
+  /**
+   * Rendered when no items provided.
+   */
+  empty: ReactNode;
 }
 
 export namespace DashboardLayoutProps {
