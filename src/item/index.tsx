@@ -65,14 +65,8 @@ export default function DashboardItem({
           itemId: activeItem.id,
           type,
           sizeOverride: {
-            width: Math.max(
-              cellRect.width,
-              Math.min(width, origin.rect.width + (coordinates.pageX - origin.cursor.pageX))
-            ),
-            height: Math.max(
-              cellRect.height,
-              Math.min(height, origin.rect.height + (coordinates.pageY - origin.cursor.pageY))
-            ),
+            width: Math.max(cellRect.width, Math.min(width, origin.rect.width + (coordinates.x - origin.cursor.x))),
+            height: Math.max(cellRect.height, Math.min(height, origin.rect.height + (coordinates.y - origin.cursor.y))),
           },
           transform: null,
         });
@@ -82,8 +76,8 @@ export default function DashboardItem({
           type,
           sizeOverride: type === "insert" ? { width, height } : null,
           transform: {
-            x: coordinates.pageX - origin.cursor.pageX,
-            y: coordinates.pageY - origin.cursor.pageY,
+            x: coordinates.x - origin.cursor.x,
+            y: coordinates.y - origin.cursor.y,
             scaleX: 1,
             scaleY: 1,
           },

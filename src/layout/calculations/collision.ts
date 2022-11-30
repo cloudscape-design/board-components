@@ -70,12 +70,7 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
 export function getHoveredDroppables({ containerRef, coordinates, droppables, resize }: DragAndDropData) {
   const activeRect = containerRef.current!.getBoundingClientRect();
   const collisionRect = resize
-    ? {
-        top: activeRect.top,
-        left: activeRect.left,
-        right: coordinates.pageX,
-        bottom: coordinates.pageY,
-      }
+    ? { top: activeRect.top, left: activeRect.left, right: coordinates.x, bottom: coordinates.y }
     : activeRect;
   return getCollisions(collisionRect, droppables);
 }
