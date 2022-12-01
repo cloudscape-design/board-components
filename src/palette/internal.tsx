@@ -14,7 +14,6 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             item,
             itemSize: { width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan },
             transform: null,
-            resizable: false,
           }}
         >
           {renderItem(item)}

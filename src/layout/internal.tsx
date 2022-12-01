@@ -196,7 +196,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           if (isResizing && layoutItem) {
             itemSize = {
               width: columns - layoutItem.x,
-              height: Number.POSITIVE_INFINITY,
+              height: 999,
             };
           }
 
@@ -206,7 +206,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
               value={{
                 item,
                 itemSize,
-                resizable: true,
                 transform: transition?.transforms[item.id] ?? null,
               }}
             >
