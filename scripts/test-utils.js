@@ -3,10 +3,10 @@
 
 import path from "path";
 import { default as convertToSelectorUtil } from "@cloudscape-design/test-utils-converter";
-import { pascalCase } from "change-case";
 import { execaSync } from "execa";
 import fs from "fs-extra";
 import globby from "globby";
+import lodash from "lodash";
 import prettier from "prettier";
 
 const prettierOptions = prettier.resolveConfig.sync(".prettierrc");
@@ -95,4 +95,12 @@ function writeSourceFile(filepath, content) {
 
 function prettify(filepath, content) {
   return prettier.format(content, { ...prettierOptions, filepath });
+}
+
+function pascalCase(text) {
+  return capitalize(lodash.camelCase(text));
+}
+
+function capitalize(text) {
+  return text[0].toUpperCase() + text.slice(1);
 }
