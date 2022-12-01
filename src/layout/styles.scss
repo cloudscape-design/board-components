@@ -1,5 +1,9 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
+.root {
+  /* used in test-utils */
+}
+
 .placeholder {
   border-radius: cs.$border-radius-container;
   height: 100%;

@@ -18,6 +18,7 @@ import { appendPath, createTransforms, printLayoutDebug } from "./calculations/s
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
+import styles from "./styles.css.js";
 
 interface Transition {
   type: "reorder" | "resize" | "insert";
@@ -170,7 +171,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   };
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className={styles.root}>
       <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
         {placeholdersLayout.items.map((placeholder) => (
           <Placeholder

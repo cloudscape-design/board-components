@@ -91,7 +91,7 @@ export default function DashboardItem({
         : undefined,
   };
   return (
-    <div ref={containerRef} className={clsx(styles.wrapper, currentIsDragging && styles.wrapperDragging)} style={style}>
+    <div ref={containerRef} className={clsx(styles.root, currentIsDragging && styles.wrapperDragging)} style={style}>
       <Container
         {...containerProps}
         disableHeaderPaddings={true}
