@@ -3,9 +3,10 @@
 import { createContext, useContext } from "react";
 
 export interface GridContext {
-  columns: number;
   getWidth: (colspan: number) => number;
   getHeight: (rowspan: number) => number;
+  getColOffset: (x: number) => number;
+  getRowOffset: (y: number) => number;
 }
 
 const Context = createContext<GridContext | null>(null);
