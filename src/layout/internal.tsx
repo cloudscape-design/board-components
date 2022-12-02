@@ -1,17 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller";
+import { useDragSubscription, useLayout } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
+import { GridRef } from "../internal/grid/grid";
+import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position, ScaleProps } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { createCustomEvent } from "../internal/utils/events";
 import { isIntersecting } from "../internal/utils/geometry";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
+import { useUniqueId } from "../internal/utils/use-unique-id";
 import { getHoveredRect } from "./calculations/collision";
 import { appendPath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
@@ -49,12 +51,24 @@ function getLayoutShift(transition: Transition, path: Position[]) {
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
-  const [containerSize, containerQueryRef] = useContainerQuery(
-    (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
-    []
-  );
+  const [containerWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
+  const containerSize = (containerWidth || 0) < BREAKPOINT_SMALL ? "small" : "full";
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
+
+  const layoutId = useUniqueId();
+  const getElementRef = useRef(() => containerAccessRef.current!);
+  const gridRef = useRef<GridRef>(null);
+  const [scaleProps, setScaleProps] = useState<ScaleProps>({
+    size: () => ({ width: 0, height: 0 }),
+    offset: () => ({ x: 0, y: 0 }),
+  });
+  useEffect(() => {
+    if (gridRef.current) {
+      setScaleProps(gridRef.current.scaleProps);
+    }
+  }, [containerWidth]);
+  useLayout({ id: layoutId, getElement: getElementRef.current, scaleProps });
 
   const [transition, setTransition] = useState<null | Transition>(null);
 
@@ -168,7 +182,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   return (
     <div ref={containerRef} className={styles.root}>
-      <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+      <Grid
+        ref={gridRef}
+        width={containerWidth ?? 0}
+        columns={columns}
+        rows={rows}
+        layout={[...placeholdersLayout.items, ...itemsLayout.items]}
+      >
         {placeholdersLayout.items.map((placeholder) => (
           <Placeholder
             key={placeholder.id}

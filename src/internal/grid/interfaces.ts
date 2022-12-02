@@ -9,4 +9,5 @@ export interface GridProps {
   columns: number;
   rows: number;
   children?: ReactNode;
+  width: number;
 }

@@ -7,7 +7,6 @@ import clsx from "clsx";
 import { CSSProperties, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
-import { useGridContext } from "../internal/grid-context";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
 import WidgetContainerHeader from "./header";
@@ -32,15 +31,15 @@ export default function DashboardItem({
   const { item, itemSize, transform } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const itemRef = useRef<HTMLDivElement>(null);
-  const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
+  const getElementRef = useRef(() => itemRef.current!);
+  const draggableProps = useDraggable({ item, getElement: getElementRef.current });
   const currentIsDragging = transition?.itemId === item.id;
-  const gridContext = useGridContext();
 
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
     if (draggableItem.id === item.id) {
       if (operation === "resize") {
-        const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
-        const { width, height } = dropTarget!.scale(itemSize);
+        const { width: cellWidth, height: cellHeight } = dropTarget!.scale.size({ width: 1, height: 1 });
+        const { width, height } = dropTarget!.scale.size(itemSize);
 
         setTransition({
           itemId: draggableItem.id,
@@ -53,7 +52,7 @@ export default function DashboardItem({
       } else {
         setTransition({
           itemId: draggableItem.id,
-          sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
+          sizeOverride: dropTarget ? dropTarget.scale.size(itemSize) : null,
           transform: { x: cursorOffset.x, y: cursorOffset.y, scaleX: 1, scaleY: 1 },
         });
       }
@@ -65,10 +64,10 @@ export default function DashboardItem({
   useDragSubscription("drop", () => setTransition(null));
 
   const scaledTransform: null | Transform =
-    transform && gridContext
+    transform && draggableProps.layout
       ? {
-          x: gridContext.getColOffset(transform.x),
-          y: gridContext.getRowOffset(transform.y),
+          x: draggableProps.layout.scale.offset(transform).x,
+          y: draggableProps.layout.scale.offset(transform).y,
           scaleX: 1,
           scaleY: 1,
         }
@@ -86,8 +85,9 @@ export default function DashboardItem({
   };
 
   const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
-  let maxContentWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
-  let maxContentHeight = gridContext ? gridContext.getHeight(itemSize.height) - (headerHeight || 0) : undefined;
+  const scaledSize = draggableProps.layout ? draggableProps.layout.scale.size(itemSize) : undefined;
+  let maxContentWidth = scaledSize ? scaledSize.width : undefined;
+  let maxContentHeight = scaledSize ? scaledSize.height - (headerHeight || 0) : undefined;
   if (transition?.sizeOverride) {
     maxContentWidth = transition.sizeOverride.width;
     maxContentHeight = transition.sizeOverride.height - (headerHeight || 0);
@@ -105,7 +105,7 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
-                onPointerDown={(coordinates) => draggableApi.startMove(coordinates)}
+                onPointerDown={(coordinates) => draggableProps.startMove(coordinates)}
               />
             }
             settings={settings}
@@ -118,11 +118,11 @@ export default function DashboardItem({
           {children}
         </div>
       </Container>
-      {gridContext && (
+      {draggableProps.layout && (
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabel={i18nStrings.resizeLabel}
-            onPointerDown={(coordinates) => draggableApi.startResize(coordinates)}
+            onPointerDown={(coordinates) => draggableProps.startResize(coordinates)}
           />
         </div>
       )}

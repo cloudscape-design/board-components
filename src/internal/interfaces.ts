@@ -59,3 +59,8 @@ export interface Position {
   x: number;
   y: number;
 }
+
+export interface ScaleProps {
+  size(size: { width: number; height: number }): { width: number; height: number };
+  offset(position: { x: number; y: number }): { x: number; y: number };
+}
