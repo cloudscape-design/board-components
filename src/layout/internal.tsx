@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import clsx from "clsx";
 import { useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
@@ -172,7 +173,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   // TODO: make sure empty / finished states announcements are considered.
 
   return (
-    <div ref={containerRef} className={styles.root}>
+    <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
       {showGrid ? (
         <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
           {placeholdersLayout.items.map((placeholder) => (
