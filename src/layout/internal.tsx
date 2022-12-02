@@ -169,6 +169,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const showGrid = items.length > 0 || transition;
 
+  // TODO: make sure empty / finished states announcements are considered.
+
   return (
     <div ref={containerRef} className={styles.root}>
       {showGrid ? (
