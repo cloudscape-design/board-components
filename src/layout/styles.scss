@@ -14,3 +14,11 @@
 .root {
   /* used in test-utils */
 }
+
+.empty {
+  box-sizing: border-box;
+  width: 100%;
+  padding: cs.$space-scaled-m cs.$space-scaled-l cs.$space-scaled-l;
+  display: flex;
+  justify-content: center;
+}

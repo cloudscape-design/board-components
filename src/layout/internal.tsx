@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import clsx from "clsx";
 import { useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
@@ -47,7 +48,7 @@ function getLayoutShift(transition: Transition, path: Position[]) {
   return transition.engine.insert(layoutItem).move({ itemId, path: movePath }).getLayoutShift();
 }
 
-export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
+export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -60,7 +61,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
-  const rows = transition?.rows ?? itemsLayout.rows;
+  // Rows can't be 0 as it would prevent placing the first item to the layout.
+  const rows = (transition?.rows ?? itemsLayout.rows) || 1;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   function checkCanDrop(itemEl: HTMLElement): boolean {
@@ -166,48 +168,56 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
   };
 
+  const showGrid = items.length > 0 || transition;
+
+  // TODO: make sure empty / finished states announcements are considered.
+
   return (
-    <div ref={containerRef} className={styles.root}>
-      <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
-        {placeholdersLayout.items.map((placeholder) => (
-          <Placeholder
-            key={placeholder.id}
-            id={placeholder.id}
-            state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
-          />
-        ))}
-        {items.map((item) => {
-          const layoutItem = layoutItemById.get(item.id);
-          const isResizing = transition && transition.isResizing && transition.draggableItem.id === item.id;
+    <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
+      {showGrid ? (
+        <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+          {placeholdersLayout.items.map((placeholder) => (
+            <Placeholder
+              key={placeholder.id}
+              id={placeholder.id}
+              state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+            />
+          ))}
+          {items.map((item) => {
+            const layoutItem = layoutItemById.get(item.id);
+            const isResizing = transition && transition.isResizing && transition.draggableItem.id === item.id;
 
-          // Take item's layout size or item's definition defaults to be used for insert and reorder.
-          let itemSize = layoutItem ?? {
-            width: item.definition.defaultColumnSpan,
-            height: item.definition.defaultRowSpan,
-          };
-
-          // Pass item's max allowed size to use as boundaries for resizing.
-          if (isResizing && layoutItem) {
-            itemSize = {
-              width: columns - layoutItem.x,
-              height: 999,
+            // Take item's layout size or item's definition defaults to be used for insert and reorder.
+            let itemSize = layoutItem ?? {
+              width: item.definition.defaultColumnSpan,
+              height: item.definition.defaultRowSpan,
             };
-          }
 
-          return (
-            <ItemContextProvider
-              key={item.id}
-              value={{
-                item,
-                itemSize,
-                transform: transition?.transforms[item.id] ?? null,
-              }}
-            >
-              {renderItem(item, { removeItem: () => removeItemAction(item) })}
-            </ItemContextProvider>
-          );
-        })}
-      </Grid>
+            // Pass item's max allowed size to use as boundaries for resizing.
+            if (isResizing && layoutItem) {
+              itemSize = {
+                width: columns - layoutItem.x,
+                height: 999,
+              };
+            }
+
+            return (
+              <ItemContextProvider
+                key={item.id}
+                value={{
+                  item,
+                  itemSize,
+                  transform: transition?.transforms[item.id] ?? null,
+                }}
+              >
+                {renderItem(item, { removeItem: () => removeItemAction(item) })}
+              </ItemContextProvider>
+            );
+          })}
+        </Grid>
+      ) : (
+        empty
+      )}
     </div>
   );
 }

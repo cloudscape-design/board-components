@@ -156,6 +156,7 @@ export default function WidgetContainerPermutations() {
             ),
           },
         ]}
+        empty="No items"
       />
     </PageLayout>
   );

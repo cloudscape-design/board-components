@@ -88,6 +88,7 @@ export default function GridWithWidgetContainerPage() {
           onItemsChange={() => {
             /*readonly grid*/
           }}
+          empty="No items"
         ></DashboardLayout>
       </TestBed>
     </PageLayout>
