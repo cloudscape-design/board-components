@@ -86,7 +86,7 @@ export default function DashboardItem({
   const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
   let maxContentWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxContentHeight = gridContext ? gridContext.getHeight(itemSize.height) - (headerHeight || 0) : undefined;
-  if (transition?.sizeOverride) {
+  if (transition?.sizeOverride && currentIsDragging) {
     maxContentWidth = transition.sizeOverride.width;
     maxContentHeight = transition.sizeOverride.height - (headerHeight || 0);
   }
