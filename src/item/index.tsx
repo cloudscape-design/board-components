@@ -32,8 +32,7 @@ export default function DashboardItem({
   const { item, itemSize, transform } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const itemRef = useRef<HTMLDivElement>(null);
-  const dragApi = useDraggable({ operation: "move", item, getElement: () => itemRef.current! });
-  const resizeApi = useDraggable({ operation: "resize", item, getElement: () => itemRef.current! });
+  const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const currentIsDragging = transition?.itemId === item.id;
   const gridContext = useGridContext();
 
@@ -106,7 +105,7 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
-                onPointerDown={(coordinates) => dragApi.onStart(coordinates)}
+                onPointerDown={(coordinates) => draggableApi.startMove(coordinates)}
               />
             }
             settings={settings}
@@ -123,7 +122,7 @@ export default function DashboardItem({
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabel={i18nStrings.resizeLabel}
-            onPointerDown={(coordinates) => resizeApi.onStart(coordinates)}
+            onPointerDown={(coordinates) => draggableApi.startResize(coordinates)}
           />
         </div>
       )}

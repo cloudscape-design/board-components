@@ -104,15 +104,20 @@ export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K,
 
 export function useDraggable({
   item,
-  operation,
   getElement,
 }: {
   item: DashboardItemBase<unknown>;
-  operation: "move" | "resize";
   getElement: () => HTMLElement;
 }) {
   return {
-    onStart(coordinates: Coordinates) {
+    startMove(coordinates: Coordinates) {
+      const operation = "move";
+      const draggableElement = getElement();
+      const draggableSize = draggableElement.getBoundingClientRect();
+      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
+    },
+    startResize(coordinates: Coordinates) {
+      const operation = "resize";
       const draggableElement = getElement();
       const draggableSize = draggableElement.getBoundingClientRect();
       controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
