@@ -25,12 +25,7 @@ export function getItemRect(item: GridLayoutItem): Rect {
 }
 
 export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {
-  // Remove path prefixes that return to the original location.
-  for (let i = 0; i < path.length; i++) {
-    if (path[i].x === origin.x && path[i].y === origin.y) {
-      path = path.slice(i + 1);
-    }
-  }
+  path = normalizePathOrigin(origin, path);
 
   // Store last visited indexes per position.
   const positionToLastIndex = new Map<string, number>();
@@ -51,12 +46,34 @@ export function normalizeMovePath(origin: Position, path: readonly Position[]): 
 }
 
 export function normalizeResizePath(origin: Position, path: readonly Position[]): readonly Position[] {
+  path = normalizePathOrigin(origin, path);
+
   if (path.length === 0) {
-    return path;
+    return [];
   }
-  const last = path[path.length - 1];
-  const normalizedPath = path.filter((step) => step.x <= last.x && step.y <= last.y);
+
+  const normalizedPath: Position[] = [path[path.length - 1]];
+  for (let stepIndex = path.length - 2; stepIndex >= 0; stepIndex--) {
+    const prev = normalizedPath[normalizedPath.length - 1];
+    const current = path[stepIndex];
+    if (current.x < prev.x || current.y < prev.y) {
+      normalizedPath.push(current);
+    }
+  }
+  normalizedPath.reverse();
+
   return normalizePathSteps(origin, normalizedPath);
+}
+
+// Removes path prefixes that return to the original location.
+function normalizePathOrigin(origin: Position, path: readonly Position[]): readonly Position[] {
+  let lastOriginIndex = -1;
+  for (let i = 0; i < path.length; i++) {
+    if (path[i].x === origin.x && path[i].y === origin.y) {
+      lastOriginIndex = i;
+    }
+  }
+  return path.slice(lastOriginIndex + 1);
 }
 
 // Ensures path only includes single-length steps.

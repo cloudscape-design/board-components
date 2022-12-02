@@ -427,7 +427,7 @@ describe("empty spaces are prioritized over disturbing other items", () => {
 describe("multiple overlap resolutions", () => {
   test.each([
     [
-      "G forces B and C to resolve twice",
+      "G forces C to resolve twice",
       [
         ["A", "A", " ", "F"],
         ["E", "B", "B", "F"],
@@ -438,10 +438,10 @@ describe("multiple overlap resolutions", () => {
       ],
       "A3 B3 B2 C2",
       [
-        [" ", "C", " ", "F"],
+        [" ", "C", "A", "A"],
         ["E", "C", "G", "F"],
-        ["A", "A", "B", "B"],
-        ["H", " ", "B", "B"],
+        [" ", "B", "B", "F"],
+        ["H", "B", "B", " "],
         [" ", " ", " ", " "],
         [" ", " ", "D", " "],
       ],
@@ -449,7 +449,7 @@ describe("multiple overlap resolutions", () => {
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
-    const moveIds = layoutShift.moves.map((move) => move.itemId);
+    const moveIds = layoutShift.moves.filter((move) => move.type !== "USER").map((move) => move.itemId);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
     expect(new Set(moveIds).size).toBeLessThan(moveIds.length);
   });

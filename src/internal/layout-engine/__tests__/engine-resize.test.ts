@@ -11,7 +11,7 @@ test("decrease in element size never creates conflicts", () => {
     const grid = generateGrid(...args);
     const resize = generateResize(grid, { maxWidthIncrement: 0, maxHeightIncrement: 0 });
     const layoutShift = new LayoutEngine(grid).resize(resize).refloat().getLayoutShift();
-    expect(layoutShift.moves.filter((move) => move.type !== "FLOAT")).toHaveLength(0);
+    expect(layoutShift.moves.filter((move) => move.type !== "FLOAT" && move.type !== "RESIZE")).toHaveLength(0);
   });
 });
 
@@ -36,7 +36,8 @@ test("commits no changes if resize path returns to original or smaller", () => {
         y: randomPathValue(resizeTarget.y + resizeTarget.height),
       };
       resize.path = [...resize.path, ...generateRandomPath(lastPathItem, originalSizePath)];
-      expect(new LayoutEngine(grid).resize(resize).getLayoutShift().moves).toHaveLength(0);
+      const moves = new LayoutEngine(grid).resize(resize).getLayoutShift().moves;
+      expect(moves.filter((move) => move.type !== "RESIZE")).toHaveLength(0);
     }
   });
 
@@ -47,6 +48,46 @@ test("commits no changes if resize path returns to original or smaller", () => {
 
 describe("resize scenarios", () => {
   test.each([
+    [
+      "resize A 2:1 -> 2:2",
+      [
+        ["A", "B", " "],
+        ["D", "C", " "],
+        [" ", " ", " "],
+      ],
+      {
+        itemId: "A",
+        path: [
+          { x: 2, y: 1 },
+          { x: 2, y: 2 },
+        ],
+      },
+      [
+        ["A", "A", "B"],
+        ["A", "A", " "],
+        ["D", "C", " "],
+      ],
+    ],
+    [
+      "resize A 1:2 -> 2:2",
+      [
+        ["A", "B", " "],
+        ["D", "C", " "],
+        [" ", " ", " "],
+      ],
+      {
+        itemId: "A",
+        path: [
+          { x: 1, y: 2 },
+          { x: 2, y: 2 },
+        ],
+      },
+      [
+        ["A", "A", "B"],
+        ["A", "A", "C"],
+        ["D", " ", " "],
+      ],
+    ],
     [
       "resize A to 3:1",
       [
