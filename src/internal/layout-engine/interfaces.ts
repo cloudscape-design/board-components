@@ -17,7 +17,9 @@ export interface CommittedMove {
   itemId: ItemId;
   x: number;
   y: number;
-  type: "USER" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT";
+  width: number;
+  height: number;
+  type: "USER" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT" | "RESIZE";
 }
 
 export interface LayoutShift {

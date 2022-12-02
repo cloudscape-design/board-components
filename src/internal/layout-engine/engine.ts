@@ -38,7 +38,8 @@ export class LayoutEngine {
 
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
       const step = path[stepIndex];
-      const move: CommittedMove = { itemId, x: step.x, y: step.y, type: "USER" };
+      const { width, height } = this.grid.getItem(itemId);
+      const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "USER" };
 
       this.findConflicts(move);
 
@@ -57,10 +58,12 @@ export class LayoutEngine {
     const resizeTarget = this.grid.getItem(itemId);
 
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
-      const newWidth = path[stepIndex].x - resizeTarget.x;
-      const newHeight = path[stepIndex].y - resizeTarget.y;
+      const width = path[stepIndex].x - resizeTarget.x;
+      const height = path[stepIndex].y - resizeTarget.y;
 
-      this.grid.resize(resize.itemId, newWidth, newHeight, this.addOverlap.bind(this));
+      this.grid.resize(itemId, width, height, this.addOverlap.bind(this));
+
+      this.moves.push({ itemId, x: resizeTarget.x, y: resizeTarget.y, width, height, type: "RESIZE" });
 
       this.tryResolveOverlaps(itemId, stepIndex, true);
     }
@@ -180,29 +183,56 @@ export class LayoutEngine {
 
   // Retrieves prioritized list of directions to look for a resolution move.
   private getMoveDirections(issuer: LayoutEngineItem): Direction[] {
-    const issuerMoves = this.moves.filter((move) => move.itemId === issuer.id);
+    const diff = this.getLastStepDiff(issuer);
 
-    // The move is missing when issuer resizes.
-    const lastIssuerMove = issuerMoves[issuerMoves.length - 1] || { x: issuer.originalX, y: issuer.originalY };
-
-    const diffVertical = issuer.originalY - lastIssuerMove.y;
-    const firstVertical = diffVertical > 0 ? "bottom" : "top";
+    const firstVertical = diff.y > 0 ? "bottom" : "top";
     const nextVertical = firstVertical === "bottom" ? "top" : "bottom";
 
-    const diffHorizontal = issuer.originalX - lastIssuerMove.x;
-    const firstHorizontal = diffHorizontal > 0 ? "right" : "left";
+    const firstHorizontal = diff.x > 0 ? "right" : "left";
     const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
 
-    return Math.abs(diffVertical) > Math.abs(diffHorizontal)
+    return Math.abs(diff.y) > Math.abs(diff.x)
       ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
       : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
+  }
+
+  private getResizeDirections(issuer: LayoutEngineItem): Direction[] {
+    const diff = this.getLastStepDiff(issuer);
+
+    const firstVertical = diff.height > 0 ? "top" : "bottom";
+    const nextVertical = firstVertical === "bottom" ? "top" : "bottom";
+
+    const firstHorizontal = diff.width > 0 ? "left" : "right";
+    const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
+
+    return Math.abs(diff.height) > Math.abs(diff.width)
+      ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
+      : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
+  }
+
+  private getLastStepDiff(issuer: LayoutEngineItem) {
+    const issuerMoves = this.moves.filter((move) => move.itemId === issuer.id);
+    const originalParams = {
+      x: issuer.originalX,
+      y: issuer.originalY,
+      width: issuer.originalWidth,
+      height: issuer.originalHeight,
+    };
+    const prevIssuerMove = issuerMoves[issuerMoves.length - 2] ?? originalParams;
+    const lastIssuerMove = issuerMoves[issuerMoves.length - 1] ?? originalParams;
+    return {
+      x: prevIssuerMove.x - lastIssuerMove.x,
+      y: prevIssuerMove.y - lastIssuerMove.y,
+      width: prevIssuerMove.width - lastIssuerMove.width,
+      height: prevIssuerMove.height - lastIssuerMove.height,
+    };
   }
 
   // Try finding a move that resovles an overlap by moving an item to a vacant space.
   private tryFindVacantMove(overlap: ItemId, activeId?: ItemId, resize = false): null | CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
-    const directions = this.getMoveDirections(overlapWith);
+    const directions = resize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "VACANT");
@@ -250,7 +280,7 @@ export class LayoutEngine {
   ): null | CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
-    const directions = this.getMoveDirections(overlapWith);
+    const directions = resize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "PRIORITY");
@@ -265,7 +295,14 @@ export class LayoutEngine {
     }
 
     // If can't find a good move - "escape" item to the bottom.
-    const move: CommittedMove = { itemId: overlapItem.id, y: overlapItem.y + 1, x: overlapItem.x, type: "ESCAPE" };
+    const move: CommittedMove = {
+      itemId: overlapItem.id,
+      y: overlapItem.y + 1,
+      x: overlapItem.x,
+      width: overlapItem.width,
+      height: overlapItem.height,
+      type: "ESCAPE",
+    };
     for (move.y; move.y < 100; move.y++) {
       if (this.validatePriorityMove(move, activeId, priority)) {
         return move;
@@ -318,6 +355,9 @@ export class LayoutEngine {
     const resizeTarget = this.grid.getItem(activeId);
     const moveTarget = this.grid.getItem(move.itemId);
 
+    const diff = this.getLastStepDiff(resizeTarget);
+    const direction = diff.width ? "horizontal" : "vertical";
+
     const originalPlacement = {
       isNext: resizeTarget.x + resizeTarget.originalWidth - 1 < moveTarget.x,
       isBelow: resizeTarget.y + resizeTarget.originalHeight - 1 < moveTarget.y,
@@ -328,7 +368,10 @@ export class LayoutEngine {
       isBelow: resizeTarget.y + resizeTarget.height - 1 < move.y,
     };
 
-    return originalPlacement.isNext === nextPlacement.isNext && originalPlacement.isBelow === nextPlacement.isBelow;
+    return (
+      (direction === "horizontal" && originalPlacement.isNext === nextPlacement.isNext) ||
+      (direction === "vertical" && originalPlacement.isBelow === nextPlacement.isBelow)
+    );
   }
 
   private getOverlapWith(targetItem: LayoutEngineItem): LayoutEngineItem {
@@ -403,21 +446,19 @@ export class LayoutEngine {
     direction: Direction,
     moveType: CommittedMove["type"]
   ): CommittedMove {
+    const common = { itemId: moveTarget.id, width: moveTarget.width, height: moveTarget.height, type: moveType };
     switch (direction) {
       case "top": {
-        return { itemId: moveTarget.id, y: overlap.top - moveTarget.height, x: moveTarget.x, type: moveType };
+        return { ...common, y: overlap.top - moveTarget.height, x: moveTarget.x };
       }
-
       case "bottom": {
-        return { itemId: moveTarget.id, y: overlap.bottom + 1, x: moveTarget.x, type: moveType };
+        return { ...common, y: overlap.bottom + 1, x: moveTarget.x };
       }
-
       case "left": {
-        return { itemId: moveTarget.id, y: moveTarget.y, x: overlap.left - moveTarget.width, type: moveType };
+        return { ...common, y: moveTarget.y, x: overlap.left - moveTarget.width };
       }
-
       case "right": {
-        return { itemId: moveTarget.id, y: moveTarget.y, x: overlap.right + 1, type: moveType };
+        return { ...common, y: moveTarget.y, x: overlap.right + 1 };
       }
     }
   }
@@ -427,7 +468,14 @@ export class LayoutEngine {
     let needAnotherRefloat = false;
 
     for (const item of this.grid.items) {
-      const move: CommittedMove = { itemId: item.id, x: item.x, y: item.y, type: "FLOAT" };
+      const move: CommittedMove = {
+        itemId: item.id,
+        x: item.x,
+        y: item.y,
+        width: item.width,
+        height: item.height,
+        type: "FLOAT",
+      };
       for (move.y; move.y >= 0; move.y--) {
         if (!this.validateVacantMove({ ...move, y: move.y - 1 })) {
           break;
