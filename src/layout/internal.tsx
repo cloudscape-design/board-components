@@ -116,7 +116,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     const transforms = createTransforms(itemsLayout, layoutShift.moves);
 
-    const rows = layoutShift.next.rows + itemHeight;
+    const rows =
+      detail.operation === "resize"
+        ? layoutShift.next.rows + itemHeight
+        : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
     const canDrop = checkCanDrop(detail.draggableElement);
 
     setTransition(
