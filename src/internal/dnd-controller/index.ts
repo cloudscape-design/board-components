@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Ref, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Coordinates, DashboardItemBase, ItemId } from "../interfaces";
 import { getCoordinates } from "../utils/get-coordinates";
 import { getHoveredDroppables } from "./collision";
@@ -11,7 +11,7 @@ type Scale = (size: { width: number; height: number }) => { width: number; heigh
 export interface DragAndDropData extends DragDetail {
   cursorOffset: Coordinates;
   collisionIds: ItemId[];
-  dropTarget?: { scale: Scale };
+  dropTarget: null | { scale: Scale };
 }
 
 interface Droppable {
@@ -38,14 +38,14 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private startCoordinates: null | Coordinates = null;
 
   public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
-    this.activeDragDetail = { ...dragDetail, draggableSize: dragDetail.draggableElement.getBoundingClientRect() };
+    this.activeDragDetail = { ...dragDetail };
     this.startCoordinates = { ...coordinates };
     this.emit("start", this.getDragAndDropData(coordinates));
     document.addEventListener("pointermove", this.onPointerMove);
     document.addEventListener("pointerup", this.onPointerUp);
   }
 
-  public addDroppable(id: string, element: HTMLElement, scale: Scale) {
+  public addDroppable(id: string, scale: Scale, element: HTMLElement) {
     this.droppables.set(id, { element, scale });
   }
 
@@ -83,8 +83,15 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     const droppableEntries = [...this.droppables.entries()];
     const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
     const collisionIds = getHoveredDroppables(operation, draggableElement, coordinates, droppableElements);
-    const scale = droppableEntries.find(([id]) => id === collisionIds[0])?.[1].scale;
-    return { collisionIds, dropTarget: scale && { scale } };
+    if (collisionIds.length === 0) {
+      return { collisionIds, dropTarget: null };
+    }
+
+    const matchedDroppable = droppableEntries.find(([id]) => id === collisionIds[0]);
+    if (!matchedDroppable) {
+      throw new Error("Invariant violation: no droppable matches collision.");
+    }
+    return { collisionIds, dropTarget: { scale: matchedDroppable[1].scale } };
   }
 }
 
@@ -107,25 +114,23 @@ export function useDraggable({
   return {
     onStart(coordinates: Coordinates) {
       const draggableElement = getElement();
-      const draggableSize = { width: 0, height: 0 };
+      const draggableSize = draggableElement.getBoundingClientRect();
       controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
     },
   };
 }
 
-export function useDroppable(id: string, scale: Scale) {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(
-    () => {
-      if (ref.current) {
-        controller.addDroppable(id, ref.current, scale);
-        return () => controller.removeDroppable(id);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [id]
-  );
-
-  return ref as Ref<any>;
+export function useDroppable({
+  itemId,
+  scale,
+  getElement,
+}: {
+  itemId: ItemId;
+  scale: Scale;
+  getElement: () => HTMLElement;
+}) {
+  useEffect(() => {
+    controller.addDroppable(itemId, scale, getElement());
+    return () => controller.removeDroppable(itemId);
+  }, [itemId, scale, getElement]);
 }

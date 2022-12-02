@@ -31,23 +31,20 @@ interface Transition {
 }
 
 function getLayoutShift(transition: Transition, path: Position[]) {
-  const type = transition.isResizing ? "resize" : transition.layoutItem ? "reorder" : "insert";
-  switch (type) {
-    case "resize": {
-      return transition.engine.resize({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
-    }
-    case "insert": {
-      const itemId = transition.draggableItem.id;
-      const width = transition.draggableItem.definition.defaultColumnSpan;
-      const height = transition.draggableItem.definition.defaultRowSpan;
-      const [enteringPosition, ...movePath] = transition.path;
-      const layoutItem = { id: itemId, width, height, ...enteringPosition };
-      return transition.engine.insert(layoutItem).move({ itemId, path: movePath }).getLayoutShift();
-    }
-    case "reorder": {
-      return transition.engine.move({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
-    }
+  if (transition.isResizing) {
+    return transition.engine.resize({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
   }
+
+  if (transition.layoutItem) {
+    return transition.engine.move({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
+  }
+
+  const itemId = transition.draggableItem.id;
+  const width = transition.draggableItem.definition.defaultColumnSpan;
+  const height = transition.draggableItem.definition.defaultRowSpan;
+  const [enteringPosition, ...movePath] = transition.path;
+  const layoutItem = { id: itemId, width, height, ...enteringPosition };
+  return transition.engine.insert(layoutItem).move({ itemId, path: movePath }).getLayoutShift();
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
