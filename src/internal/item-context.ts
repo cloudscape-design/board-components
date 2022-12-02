@@ -1,13 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Transform } from "@dnd-kit/utilities";
 import { createContext, useContext } from "react";
-import { DashboardItemBase } from "./interfaces";
+import { DashboardItemBase, Position } from "./interfaces";
 
 export interface ItemContext {
   item: DashboardItemBase<unknown>;
   itemSize: { width: number; height: number };
-  transform: Transform | null;
+  transform: null | Position;
 }
 
 const Context = createContext<ItemContext | null>(null);

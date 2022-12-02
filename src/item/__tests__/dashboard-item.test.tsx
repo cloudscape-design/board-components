@@ -18,7 +18,9 @@ function render(jsx: ReactElement) {
   return libRender(jsx, {
     wrapper: function ItemContextWrapper({ children }) {
       return (
-        <GridContextProvider value={{ columns: 1, getWidth: () => 1, getHeight: () => 1 }}>
+        <GridContextProvider
+          value={{ getWidth: () => 1, getHeight: () => 1, getColOffset: () => 1, getRowOffset: () => 1 }}
+        >
           <ItemContextProvider
             value={{
               item: { id: "1", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: null },
@@ -50,7 +52,6 @@ describe("WidgetContainer", () => {
       </DashboardItem>
     );
     const itemWrapper = createWrapper().findDashboardItem()!;
-
     expect(itemWrapper.find('[data-testid="header"]')).toBeDefined();
     expect(itemWrapper.find('[data-testid="content"]')).toBeDefined();
     expect(itemWrapper.find('[data-testid="footer"]')).toBeDefined();

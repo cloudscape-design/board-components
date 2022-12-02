@@ -1,19 +1,29 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Ref, RefObject, useEffect, useRef } from "react";
-import { Coordinates, DashboardItemBase } from "../interfaces";
+import { useEffect } from "react";
+import { Coordinates, DashboardItemBase, ItemId } from "../interfaces";
 import { getCoordinates } from "../utils/get-coordinates";
+import { getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
+type Scale = (size: { width: number; height: number }) => { width: number; height: number };
+
 export interface DragAndDropData extends DragDetail {
-  droppables: readonly [string, HTMLElement][];
-  coordinates: Coordinates;
+  cursorOffset: Coordinates;
+  collisionIds: ItemId[];
+  dropTarget: null | { scale: Scale };
+}
+
+interface Droppable {
+  element: HTMLElement;
+  scale: Scale;
 }
 
 interface DragDetail {
-  item: DashboardItemBase<unknown>;
-  containerRef: RefObject<HTMLElement>;
-  resize: boolean;
+  operation: "move" | "resize";
+  draggableItem: DashboardItemBase<unknown>;
+  draggableElement: HTMLElement;
+  draggableSize: { width: number; height: number };
 }
 
 interface DragAndDropEvents {
@@ -23,18 +33,20 @@ interface DragAndDropEvents {
 }
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
-  private droppables = new Map<string, HTMLElement>();
-  private activeDragDetail: DragDetail | null = null;
+  private droppables = new Map<ItemId, Droppable>();
+  private activeDragDetail: null | DragDetail = null;
+  private startCoordinates: null | Coordinates = null;
 
   public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
-    this.activeDragDetail = dragDetail;
-    this.emit("start", { ...this.activeDragDetail, coordinates, droppables: [...this.droppables.entries()] });
+    this.activeDragDetail = { ...dragDetail };
+    this.startCoordinates = { ...coordinates };
+    this.emit("start", this.getDragAndDropData(coordinates));
     document.addEventListener("pointermove", this.onPointerMove);
     document.addEventListener("pointerup", this.onPointerUp);
   }
 
-  public addDroppable(element: HTMLElement, id: string) {
-    this.droppables.set(id, element);
+  public addDroppable(id: string, scale: Scale, element: HTMLElement) {
+    this.droppables.set(id, { element, scale });
   }
 
   public removeDroppable(id: string) {
@@ -42,29 +54,45 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   }
 
   private onPointerMove = (event: PointerEvent) => {
-    if (!this.activeDragDetail) {
-      throw new Error("Invariant violation: no active drag detail present for move.");
-    }
-    this.emit("move", {
-      ...this.activeDragDetail,
-      coordinates: getCoordinates(event),
-      droppables: [...this.droppables.entries()],
-    });
+    this.emit("move", this.getDragAndDropData(getCoordinates(event)));
   };
 
   private onPointerUp = (event: PointerEvent) => {
-    if (!this.activeDragDetail) {
-      throw new Error("Invariant violation: no active drag detail present for drop.");
-    }
-    this.emit("drop", {
-      ...this.activeDragDetail,
-      coordinates: getCoordinates(event),
-      droppables: [...this.droppables.entries()],
-    });
+    this.emit("drop", this.getDragAndDropData(getCoordinates(event)));
     document.removeEventListener("pointermove", this.onPointerMove);
     document.removeEventListener("pointerup", this.onPointerUp);
     this.activeDragDetail = null;
+    this.startCoordinates = null;
   };
+
+  private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
+    if (!this.activeDragDetail || !this.startCoordinates) {
+      throw new Error("Invariant violation: no active drag detail present interaction.");
+    }
+    const { operation, draggableItem, draggableElement, draggableSize } = this.activeDragDetail;
+    const cursorOffset = {
+      ...coordinates,
+      x: coordinates.x - this.startCoordinates.x,
+      y: coordinates.y - this.startCoordinates.y,
+    };
+    const { collisionIds, dropTarget } = this.getCollisions(operation, draggableElement, coordinates);
+    return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };
+  }
+
+  private getCollisions(operation: "move" | "resize", draggableElement: HTMLElement, coordinates: Coordinates) {
+    const droppableEntries = [...this.droppables.entries()];
+    const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
+    const collisionIds = getHoveredDroppables(operation, draggableElement, coordinates, droppableElements);
+    if (collisionIds.length === 0) {
+      return { collisionIds, dropTarget: null };
+    }
+
+    const matchedDroppable = droppableEntries.find(([id]) => id === collisionIds[0]);
+    if (!matchedDroppable) {
+      throw new Error("Invariant violation: no droppable matches collision.");
+    }
+    return { collisionIds, dropTarget: { scale: matchedDroppable[1].scale } };
+  }
 }
 
 // Controller is a singleton and is shared between all d&d elements.
@@ -74,23 +102,40 @@ export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K,
   useEffect(() => controller.on(event, handler), [event, handler]);
 }
 
-export function useDraggable(dragDetail: DragDetail) {
+export function useDraggable({
+  item,
+  getElement,
+}: {
+  item: DashboardItemBase<unknown>;
+  getElement: () => HTMLElement;
+}) {
   return {
-    onStart(coordinates: Coordinates) {
-      controller.activateDrag(dragDetail, coordinates);
+    startMove(coordinates: Coordinates) {
+      const operation = "move";
+      const draggableElement = getElement();
+      const draggableSize = draggableElement.getBoundingClientRect();
+      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
+    },
+    startResize(coordinates: Coordinates) {
+      const operation = "resize";
+      const draggableElement = getElement();
+      const draggableSize = draggableElement.getBoundingClientRect();
+      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
     },
   };
 }
 
-export function useDroppable(id: string) {
-  const ref = useRef<HTMLElement>(null);
-
+export function useDroppable({
+  itemId,
+  scale,
+  getElement,
+}: {
+  itemId: ItemId;
+  scale: Scale;
+  getElement: () => HTMLElement;
+}) {
   useEffect(() => {
-    if (ref.current) {
-      controller.addDroppable(ref.current, id);
-      return () => controller.removeDroppable(id);
-    }
-  }, [id]);
-
-  return ref as Ref<any>;
+    controller.addDroppable(itemId, scale, getElement());
+    return () => controller.removeDroppable(itemId);
+  }, [itemId, scale, getElement]);
 }

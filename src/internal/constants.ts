@@ -6,7 +6,3 @@ export const BREAKPOINT_SMALL = 688;
 export const COLUMNS_SMALL = 1;
 
 export const COLUMNS_FULL = 4;
-
-export const GAP = 16;
-
-export const ROWSPAN_HEIGHT = 260;

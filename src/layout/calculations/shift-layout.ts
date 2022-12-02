@@ -1,7 +1,5 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Transform } from "@dnd-kit/utilities";
-import { GAP } from "../../internal/constants";
 import { toString as engineToString } from "../../internal/debug-tools";
 import { GridLayout, ItemId } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
@@ -19,24 +17,15 @@ export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   console.log(layoutShift);
 }
 
-export function createTransforms(
-  grid: GridLayout,
-  moves: readonly CommittedMove[],
-  cell: { width: number; height: number }
-) {
-  const transforms: Record<ItemId, Transform> = {};
+export function createTransforms(grid: GridLayout, moves: readonly CommittedMove[]) {
+  const transforms: Record<ItemId, Position> = {};
 
   for (const move of moves) {
     const item = grid.items.find((prev) => prev.id === move.itemId);
 
     // Item can be missing if inserting.
     if (item) {
-      transforms[item.id] = {
-        x: (move.x - item.x) * (cell.width + GAP),
-        y: (move.y - item.y) * (cell.height + GAP),
-        scaleX: 1,
-        scaleY: 1,
-      };
+      transforms[item.id] = { x: move.x - item.x, y: move.y - item.y };
     }
   }
 

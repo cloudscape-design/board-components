@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { Transform } from "@dnd-kit/utilities";
 import { useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
@@ -13,7 +12,7 @@ import { createCustomEvent } from "../internal/utils/events";
 import { isIntersecting } from "../internal/utils/geometry";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
-import { getHoveredDroppables, getHoveredRect } from "./calculations/collision";
+import { getHoveredRect } from "./calculations/collision";
 import { appendPath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
@@ -21,32 +20,31 @@ import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 
 interface Transition {
-  type: "reorder" | "resize" | "insert";
+  isResizing: boolean;
   engine: LayoutEngine;
-  transforms: { [itemId: ItemId]: Transform };
+  transforms: { [itemId: ItemId]: Position };
   collisionIds: ItemId[];
-  item: DashboardItemBase<unknown>;
+  draggableItem: DashboardItemBase<unknown>;
   layoutItem: null | GridLayoutItem;
   path: Position[];
   rows: number;
 }
 
 function getLayoutShift(transition: Transition, path: Position[]) {
-  switch (transition.type) {
-    case "resize": {
-      return transition.engine.resize({ itemId: transition.item.id, path: path.slice(1) }).getLayoutShift();
-    }
-    case "insert": {
-      const width = transition.item.definition.defaultColumnSpan;
-      const height = transition.item.definition.defaultRowSpan;
-      const [enteringPosition, ...movePath] = transition.path;
-      const layoutItem = { id: transition.item.id, width, height, ...enteringPosition };
-      return transition.engine.insert(layoutItem).move({ itemId: transition.item.id, path: movePath }).getLayoutShift();
-    }
-    case "reorder": {
-      return transition.engine.move({ itemId: transition.item.id, path: path.slice(1) }).getLayoutShift();
-    }
+  if (transition.isResizing) {
+    return transition.engine.resize({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
   }
+
+  if (transition.layoutItem) {
+    return transition.engine.move({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
+  }
+
+  const itemId = transition.draggableItem.id;
+  const width = transition.draggableItem.definition.defaultColumnSpan;
+  const height = transition.draggableItem.definition.defaultRowSpan;
+  const [enteringPosition, ...movePath] = transition.path;
+  const layoutItem = { id: itemId, width, height, ...enteringPosition };
+  return transition.engine.insert(layoutItem).move({ itemId, path: movePath }).getLayoutShift();
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange }: DashboardLayoutProps<D>) {
@@ -72,27 +70,25 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
   }
 
   useDragSubscription("start", (detail) => {
-    const item = detail.item;
-    const layoutItem = layoutItemById.get(detail.item.id) ?? null;
-
-    const type: Transition["type"] = detail.resize ? "resize" : layoutItem ? "reorder" : "insert";
+    const layoutItem = layoutItemById.get(detail.draggableItem.id) ?? null;
 
     // Define starting path.
-    const collisionIds = getHoveredDroppables(detail);
-    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const path = layoutItem ? appendPath([], collisionRect, columns, layoutItem.width, detail.resize) : [];
+    const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
+    const path = layoutItem
+      ? appendPath([], collisionRect, columns, layoutItem.width, detail.operation === "resize")
+      : [];
 
     // Override rows to plan for possible height increase.
-    const itemHeight = layoutItem ? layoutItem.height : item.definition.defaultRowSpan;
-    const rows = detail.resize ? itemsLayout.rows : itemsLayout.rows + itemHeight;
+    const itemHeight = layoutItem ? layoutItem.height : detail.draggableItem.definition.defaultRowSpan;
+    const rows = detail.operation === "resize" ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
-    const canDrop = checkCanDrop(detail.containerRef.current!);
+    const canDrop = checkCanDrop(detail.draggableElement);
     const transition = {
-      type,
+      isResizing: detail.operation === "resize",
       engine: new LayoutEngine(itemsLayout),
       transforms: {},
       collisionIds: [],
-      item,
+      draggableItem: detail.draggableItem,
       layoutItem,
       path,
       rows,
@@ -107,23 +103,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
 
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
-      : transition.item.definition.defaultColumnSpan;
-    const itemHeight = transition.layoutItem ? transition.layoutItem.height : transition.item.definition.defaultRowSpan;
+      : transition.draggableItem.definition.defaultColumnSpan;
+    const itemHeight = transition.layoutItem
+      ? transition.layoutItem.height
+      : transition.draggableItem.definition.defaultRowSpan;
 
-    const collisionIds = getHoveredDroppables(detail);
-    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.resize);
+    const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
+    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
     const layoutShift = getLayoutShift(transition, path);
 
-    const cellRect = detail.droppables[0][1].getBoundingClientRect();
-    const transforms = createTransforms(itemsLayout, layoutShift.moves, cellRect);
+    const transforms = createTransforms(itemsLayout, layoutShift.moves);
 
     const rows = layoutShift.next.rows + itemHeight;
-    const canDrop = checkCanDrop(detail.containerRef.current!);
+    const canDrop = checkCanDrop(detail.draggableElement);
 
     setTransition(
       canDrop
-        ? { ...transition, collisionIds, transforms, path, rows }
+        ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
         : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
     );
   });
@@ -133,17 +129,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
       throw new Error("Invariant violation: no transition.");
     }
 
-    // Discard state first so that if there is an exception in the code below it doesn't prevent state update.
+    // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
     setTransition(null);
 
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
-      : transition.item.definition.defaultColumnSpan;
+      : transition.draggableItem.definition.defaultColumnSpan;
 
-    const collisionRect = getHoveredRect(getHoveredDroppables(detail), placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.resize);
+    const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
+    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
     const layoutShift = getLayoutShift(transition, path);
-    const canDrop = checkCanDrop(detail.containerRef.current!);
+    const canDrop = checkCanDrop(detail.draggableElement);
 
     printLayoutDebug(itemsLayout, layoutShift);
 
@@ -155,8 +151,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
     if (!transition.layoutItem) {
       // TODO: resolve "any" here.
       // It is not quite clear yet how to ensure the addedItem matches generic D type.
-      const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.item] as any);
-      const addedItem = newLayout.find((item) => item.id === transition.item.id)!;
+      const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.draggableItem] as any);
+      const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
     }
     // Commit new layout for reorder/resize case.
@@ -177,14 +173,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange }:
           <Placeholder
             key={placeholder.id}
             id={placeholder.id}
-            state={
-              transition?.item ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"
-            }
+            state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
           />
         ))}
         {items.map((item) => {
           const layoutItem = layoutItemById.get(item.id);
-          const isResizing = transition && transition.type === "resize" && transition.item.id === item.id;
+          const isResizing = transition && transition.isResizing && transition.draggableItem.id === item.id;
 
           // Take item's layout size or item's definition defaults to be used for insert and reorder.
           let itemSize = layoutItem ?? {
