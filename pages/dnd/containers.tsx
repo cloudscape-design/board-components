@@ -73,3 +73,12 @@ export function QueryContainer({
     </div>
   );
 }
+
+export function TwoColContainer({ left, right }: { left: ReactNode; right: ReactNode }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, height: "100%" }}>
+      <div>{left}</div>
+      <div>{right}</div>
+    </div>
+  );
+}

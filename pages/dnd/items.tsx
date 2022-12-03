@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Box, SpaceBetween } from "@cloudscape-design/components";
 import { ReactNode } from "react";
 import { DashboardLayoutProps } from "../../lib/components";
 import { fromMatrix } from "../../src/internal/debug-tools";
@@ -13,6 +14,7 @@ import {
   QueryContainer,
   ResponsiveContainer,
   ScrollableContainer,
+  TwoColContainer,
 } from "./containers";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
@@ -89,7 +91,7 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
         description: "Revenue over time chart",
         content: (
           <QueryContainer minWidth={400} minHeight={300}>
-            {({ height = 0 }) => <RevenueChart height={Math.max(200, height) - 180} />}
+            {({ height = 0 }) => <RevenueChart height={height - 200} />}
           </QueryContainer>
         ),
       },
@@ -103,17 +105,62 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
           <QueryContainer minHeight={300}>
             {({ width = 0, height = 0 }) => {
               let size: "small" | "medium" | "large" = "small";
-
               if (width > 300 && height > 300) {
                 size = "medium";
               }
-
               if (width > 450 && height > 450) {
                 size = "large";
               }
-
               return <ResourceCountChart size={size} />;
             }}
+          </QueryContainer>
+        ),
+      },
+    },
+    allMetrics: {
+      definition: { defaultColumnSpan: 2, defaultRowSpan: 2, minColumnSpan: 2, minRowSpan: 2 },
+      data: {
+        title: "All metrics",
+        description: "Revenue and resource count charts",
+        content: (
+          <QueryContainer minWidth={600} minHeight={300}>
+            {() => (
+              <TwoColContainer
+                left={
+                  <QueryContainer>
+                    {({ height = 0 }) => (
+                      <SpaceBetween size="xs">
+                        <Box fontSize="heading-s" fontWeight="bold">
+                          Revenue
+                        </Box>
+                        <RevenueChart height={height - 200} />
+                      </SpaceBetween>
+                    )}
+                  </QueryContainer>
+                }
+                right={
+                  <QueryContainer>
+                    {({ width = 0, height = 0 }) => {
+                      let size: "small" | "medium" | "large" = "small";
+                      if (width > 300 && height > 300) {
+                        size = "medium";
+                      }
+                      if (width > 450 && height > 500) {
+                        size = "large";
+                      }
+                      return (
+                        <SpaceBetween size="s">
+                          <Box fontSize="heading-s" fontWeight="bold">
+                            Resources
+                          </Box>
+                          <ResourceCountChart size={size} />
+                        </SpaceBetween>
+                      );
+                    }}
+                  </QueryContainer>
+                }
+              />
+            )}
           </QueryContainer>
         ),
       },
