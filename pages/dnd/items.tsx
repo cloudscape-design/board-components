@@ -1,16 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import clsx from "clsx";
 import { ReactNode } from "react";
-import { DashboardLayoutProps } from "../../lib/components";
+import { DashboardItemProps, DashboardLayoutProps } from "../../lib/components";
 import { fromMatrix } from "../../src/internal/debug-tools";
 import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { PaletteProps } from "../../src/palette/interfaces";
 import { Counter } from "./commons";
 import classnames from "./engine.module.css";
+import { RevenueChart } from "./revenue-chart";
 
 interface ItemData {
-  content: ReactNode;
+  content: (contentSize: DashboardItemProps.ContentSize) => ReactNode;
   title: string;
   description: string;
 }
@@ -19,7 +21,7 @@ const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
 const createDefaultWidget = (id: string) => ({
   title: `Widget ${id}`,
   description: "Dummy description",
-  content: "Dummy content",
+  content: () => "Dummy content",
   definition: defaultDefinition,
 });
 
@@ -27,20 +29,54 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
   {
     D: {
       definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
-      data: { title: "Demo widget", description: "Most minimal widget", content: <>Hello world!</> },
+      data: { title: "Demo widget", description: "Most minimal widget", content: () => <>Hello world!</> },
     },
     counter: {
       definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
-      data: { title: "Counter", description: "State management demo", content: <Counter /> },
+      data: { title: "Counter", description: "State management demo", content: () => <Counter /> },
     },
     docked1: {
-      data: { title: "Generic docked 1", description: "No description", content: "No content" },
+      data: {
+        title: "Responsive content",
+        description: "Responsive content",
+        content: () => (
+          <div className={clsx(classnames["demo-item-content"], classnames["demo-item-responsive-content"])}>
+            Responsive content
+          </div>
+        ),
+      },
     },
     docked2: {
       data: {
-        title: "Generic docked 2",
-        description: "No description",
-        content: <div className={classnames["demo-item-large-content"]}>Large content</div>,
+        title: "Large content",
+        description: "Large content",
+        content: () => (
+          <div className={clsx(classnames["demo-item-content"], classnames["demo-item-large-content"])}>
+            Large content
+          </div>
+        ),
+      },
+    },
+    docked3: {
+      data: {
+        title: "Scrollable content",
+        description: "Scrollable content",
+        content: ({ maxWidth, maxHeight }) => (
+          <div
+            className={clsx(classnames["demo-item-content"], classnames["demo-item-scrollable-content"])}
+            style={{ maxWidth, maxHeight }}
+          >
+            <div>Scrollable content</div>
+          </div>
+        ),
+      },
+    },
+    revenue: {
+      definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+      data: {
+        title: "Revenue",
+        description: "Revenue over time chart",
+        content: ({ maxHeight = 0 }) => <RevenueChart height={Math.max(200, maxHeight) - 150} />,
       },
     },
   };
@@ -86,7 +122,7 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
     data: {
       title: `Widget ${letter}`,
       description: "Empty widget",
-      content: "",
+      content: () => "",
     },
   };
   return acc;

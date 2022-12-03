@@ -140,7 +140,7 @@ export default function WidgetContainerPermutations() {
                 disableContentPaddings={true}
                 header={<Header variant="h2">Text Header</Header>}
               >
-                <Box textAlign="center">Content without paddings</Box>
+                {() => <Box textAlign="center">Content without paddings</Box>}
               </DashboardItem>
             ),
           },
@@ -152,7 +152,7 @@ export default function WidgetContainerPermutations() {
                 i18nStrings={i18nStrings.dashboardItem}
                 header={<Header variant="h2">Footer Content</Header>}
                 footer={<Box textAlign="center">More</Box>}
-              ></DashboardItem>
+              />
             ),
           },
         ]}

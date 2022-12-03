@@ -78,7 +78,7 @@ export default function () {
               const widgetConfig = widgets[item.id]!.data;
               return (
                 <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={itemStrings}>
-                  {widgetConfig.description}
+                  {() => widgetConfig.description}
                 </DashboardItem>
               );
             }}

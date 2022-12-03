@@ -4,10 +4,27 @@
   background-color: lightgray;
 }
 
-.demo-item-large-content {
+.demo-item-content {
+  box-sizing: border-box;
   border: dashed 2px darkgray;
   border-radius: 4px;
   padding: 8px;
+}
+
+.demo-item-responsive-content {
+  width: 100%;
+  height: 100%;
+}
+
+.demo-item-large-content {
+  width: 600px;
+  height: 400px;
+}
+
+.demo-item-scrollable-content {
+  overflow: auto;
+}
+.demo-item-scrollable-content > div {
   width: 600px;
   height: 400px;
 }

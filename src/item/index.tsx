@@ -10,6 +10,7 @@ import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
+import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -85,23 +86,22 @@ export default function DashboardItem({
         : undefined,
   };
 
-  const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
-  let maxContentWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
-  let maxContentHeight = gridContext ? gridContext.getHeight(itemSize.height) - (headerHeight || 0) : undefined;
+  let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
+  let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
   if (transition?.sizeOverride) {
-    maxContentWidth = transition.sizeOverride.width;
-    maxContentHeight = transition.sizeOverride.height - (headerHeight || 0);
+    maxBodyWidth = transition.sizeOverride.width;
+    maxBodyHeight = transition.sizeOverride.height;
   }
+
+  const [contentHeight, contentHeightQueryRef] = useContainerQuery((entry) => entry.contentBoxHeight);
+  const [contentWidth, contentWidthQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth);
+  const contentQueryRef = useMergeRefs(contentHeightQueryRef, contentWidthQueryRef);
 
   return (
     <div ref={itemRef} className={clsx(styles.root, currentIsDragging && styles.wrapperDragging)} style={style}>
-      <Container
-        {...containerProps}
-        disableHeaderPaddings={true}
-        disableContentPaddings={true}
-        header={
+      <Container {...containerProps} disableHeaderPaddings={true} disableContentPaddings={true}>
+        <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
           <WidgetContainerHeader
-            ref={headerQueryRef}
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
@@ -112,10 +112,12 @@ export default function DashboardItem({
           >
             {header}
           </WidgetContainerHeader>
-        }
-      >
-        <div className={styles.content} style={{ maxWidth: maxContentWidth, maxHeight: maxContentHeight }}>
-          {children}
+
+          <div className={styles["content-wrapper"]}>
+            <div ref={contentQueryRef} className={styles.content}>
+              {children?.({ maxWidth: contentWidth ?? undefined, maxHeight: contentHeight ?? undefined })}
+            </div>
+          </div>
         </div>
       </Container>
       {gridContext && (

@@ -82,7 +82,7 @@ export default function GridWithWidgetContainerPage() {
               i18nStrings={i18nStrings.dashboardItem}
               header={<Header variant="h2">{item.data.header}</Header>}
             >
-              {item.data.content}
+              {() => item.data.content}
             </DashboardItem>
           )}
           onItemsChange={() => {

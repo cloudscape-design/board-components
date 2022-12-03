@@ -44,8 +44,24 @@
   }
 }
 
-.content {
-  padding: 0 cs.$space-container-horizontal cs.$space-scaled-l cs.$space-container-horizontal;
+.body {
   overflow: hidden;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  padding: 0 cs.$space-container-horizontal cs.$space-scaled-l cs.$space-container-horizontal;
   box-sizing: border-box;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }

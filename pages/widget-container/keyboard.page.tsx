@@ -40,9 +40,11 @@ export default function KeyboardPage() {
               </span>
             }
           >
-            <span tabIndex={0} data-testid="content">
-              Content
-            </span>
+            {() => (
+              <span tabIndex={0} data-testid="content">
+                Content
+              </span>
+            )}
           </DashboardItem>
         )}
         onItemsChange={() => {
