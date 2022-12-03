@@ -1,19 +1,24 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import clsx from "clsx";
 import { ReactNode } from "react";
-import { DashboardItemProps, DashboardLayoutProps } from "../../lib/components";
+import { DashboardLayoutProps } from "../../lib/components";
 import { fromMatrix } from "../../src/internal/debug-tools";
 import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { PaletteProps } from "../../src/palette/interfaces";
 import { Counter } from "./commons";
-import classnames from "./engine.module.css";
+import {
+  DefaultContainer,
+  FixedContainer,
+  QueryContainer,
+  ResponsiveContainer,
+  ScrollableContainer,
+} from "./containers";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
 
 interface ItemData {
-  content: (contentSize: DashboardItemProps.ContentSize) => ReactNode;
+  content: ReactNode;
   title: string;
   description: string;
 }
@@ -22,7 +27,7 @@ const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
 const createDefaultWidget = (id: string) => ({
   title: `Widget ${id}`,
   description: "Dummy description",
-  content: () => "Dummy content",
+  content: <DefaultContainer>Dummy content</DefaultContainer>,
   definition: defaultDefinition,
 });
 
@@ -30,31 +35,39 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
   {
     D: {
       definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
-      data: { title: "Demo widget", description: "Most minimal widget", content: () => <>Hello world!</> },
+      data: {
+        title: "Demo widget",
+        description: "Most minimal widget",
+        content: <DefaultContainer>Hello world!</DefaultContainer>,
+      },
     },
     counter: {
       definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
-      data: { title: "Counter", description: "State management demo", content: () => <Counter /> },
+      data: {
+        title: "Counter",
+        description: "State management demo",
+        content: (
+          <DefaultContainer>
+            <Counter />
+          </DefaultContainer>
+        ),
+      },
     },
     docked1: {
       data: {
         title: "Responsive content",
         description: "Responsive content",
-        content: () => (
-          <div className={clsx(classnames["demo-item-content"], classnames["demo-item-responsive-content"])}>
-            Responsive content
-          </div>
-        ),
+        content: <ResponsiveContainer>Responsive content</ResponsiveContainer>,
       },
     },
     docked2: {
       data: {
         title: "Large content",
         description: "Large content",
-        content: () => (
-          <div className={clsx(classnames["demo-item-content"], classnames["demo-item-large-content"])}>
+        content: (
+          <FixedContainer width={600} height={400}>
             Large content
-          </div>
+          </FixedContainer>
         ),
       },
     },
@@ -62,13 +75,10 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
       data: {
         title: "Scrollable content",
         description: "Scrollable content",
-        content: ({ maxWidth, maxHeight }) => (
-          <div
-            className={clsx(classnames["demo-item-content"], classnames["demo-item-scrollable-content"])}
-            style={{ maxWidth, maxHeight }}
-          >
-            <div>Scrollable content</div>
-          </div>
+        content: (
+          <ScrollableContainer width={600} height={400}>
+            Scrollable content
+          </ScrollableContainer>
         ),
       },
     },
@@ -77,22 +87,11 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
       data: {
         title: "Revenue",
         description: "Revenue over time chart",
-        content: ({ maxWidth = 0, maxHeight = 0 }) => {
-          if (maxHeight < 200 || maxWidth < 300) {
-            return (
-              <div
-                className={clsx(classnames["demo-item-content"], classnames["demo-scrollable-revenue"])}
-                style={{ maxWidth, maxHeight }}
-              >
-                <div>
-                  <RevenueChart height={250} />
-                </div>
-              </div>
-            );
-          }
-
-          return <RevenueChart height={Math.max(200, maxHeight) - 150} />;
-        },
+        content: (
+          <QueryContainer minWidth={400} minHeight={300}>
+            {({ height = 0 }) => <RevenueChart height={Math.max(200, height) - 180} />}
+          </QueryContainer>
+        ),
       },
     },
     resourceCount: {
@@ -100,19 +99,23 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
       data: {
         title: "Resource count",
         description: "Resource count pie chart",
-        content: ({ maxWidth = 0, maxHeight = 0 }) => {
-          let size: "small" | "medium" | "large" = "small";
+        content: (
+          <QueryContainer minHeight={300}>
+            {({ width = 0, height = 0 }) => {
+              let size: "small" | "medium" | "large" = "small";
 
-          if (maxWidth > 300 && maxHeight > 300) {
-            size = "medium";
-          }
+              if (width > 300 && height > 300) {
+                size = "medium";
+              }
 
-          if (maxWidth > 450 && maxHeight > 450) {
-            size = "large";
-          }
+              if (width > 450 && height > 450) {
+                size = "large";
+              }
 
-          return <ResourceCountChart size={size} />;
-        },
+              return <ResourceCountChart size={size} />;
+            }}
+          </QueryContainer>
+        ),
       },
     },
   };
@@ -158,7 +161,7 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
     data: {
       title: `Widget ${letter}`,
       description: "Empty widget",
-      content: () => "",
+      content: "",
     },
   };
   return acc;

@@ -1,6 +1,5 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
@@ -10,7 +9,6 @@ import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
-import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -93,13 +91,9 @@ export default function DashboardItem({
     maxBodyHeight = transition.sizeOverride.height;
   }
 
-  const [contentHeight, contentHeightQueryRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [contentWidth, contentWidthQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth);
-  const contentQueryRef = useMergeRefs(contentHeightQueryRef, contentWidthQueryRef);
-
   return (
     <div ref={itemRef} className={clsx(styles.root, currentIsDragging && styles.wrapperDragging)} style={style}>
-      <Container {...containerProps} disableHeaderPaddings={true} disableContentPaddings={true}>
+      <Container {...containerProps} disableContentPaddings={true}>
         <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
           <WidgetContainerHeader
             handle={
@@ -114,12 +108,7 @@ export default function DashboardItem({
           </WidgetContainerHeader>
 
           <div className={styles["content-wrapper"]}>
-            <div ref={contentQueryRef} className={styles.content}>
-              {children?.({
-                maxWidth: contentWidth ?? undefined,
-                maxHeight: contentHeight ?? undefined,
-              })}
-            </div>
+            <div className={styles.content}>{children}</div>
           </div>
         </div>
       </Container>

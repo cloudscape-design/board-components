@@ -48,7 +48,7 @@ describe("WidgetContainer", () => {
         footer={<span data-testid="footer" />}
         settings={<span data-testid="settings"></span>}
       >
-        {() => <span data-testid="content" />}
+        <span data-testid="content" />
       </DashboardItem>
     );
     const itemWrapper = createWrapper().findDashboardItem()!;

@@ -11,7 +11,7 @@ export interface DashboardItemProps {
   /**
    * Main content of the item.
    */
-  children?: (contentSize: DashboardItemProps.ContentSize) => ReactNode;
+  children?: ReactNode;
 
   /**
    * Determines whether the main content of the item has padding. If `true`, removes the default padding
@@ -36,11 +36,4 @@ export interface DashboardItemProps {
     dragHandleLabel: string;
     resizeLabel: string;
   };
-}
-
-export namespace DashboardItemProps {
-  export interface ContentSize {
-    maxWidth?: number;
-    maxHeight?: number;
-  }
 }
