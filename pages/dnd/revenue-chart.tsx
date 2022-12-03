@@ -7,7 +7,7 @@ export function RevenueChart({ height }: { height: number }) {
     <BarChart
       height={height}
       hideFilter={true}
-      hideLegend={true}
+      hideLegend={false}
       series={[
         {
           title: "Site 1",

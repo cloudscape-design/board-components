@@ -77,7 +77,22 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
       data: {
         title: "Revenue",
         description: "Revenue over time chart",
-        content: ({ maxHeight = 0 }) => <RevenueChart height={Math.max(200, maxHeight) - 150} />,
+        content: ({ maxWidth = 0, maxHeight = 0 }) => {
+          if (maxHeight < 200 || maxWidth < 300) {
+            return (
+              <div
+                className={clsx(classnames["demo-item-content"], classnames["demo-scrollable-revenue"])}
+                style={{ maxWidth, maxHeight }}
+              >
+                <div>
+                  <RevenueChart height={250} />
+                </div>
+              </div>
+            );
+          }
+
+          return <RevenueChart height={Math.max(200, maxHeight) - 150} />;
+        },
       },
     },
     resourceCount: {

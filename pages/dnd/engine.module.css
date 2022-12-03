@@ -28,3 +28,12 @@
   width: 600px;
   height: 400px;
 }
+
+.demo-scrollable-revenue {
+  overflow: auto;
+}
+.demo-scrollable-revenue > div {
+  width: 100%;
+  min-width: 500px;
+  height: 400px;
+}
