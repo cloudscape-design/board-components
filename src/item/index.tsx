@@ -115,7 +115,10 @@ export default function DashboardItem({
 
           <div className={styles["content-wrapper"]}>
             <div ref={contentQueryRef} className={styles.content}>
-              {children?.({ maxWidth: contentWidth ?? undefined, maxHeight: contentHeight ?? undefined })}
+              {children?.({
+                maxWidth: contentWidth ?? undefined,
+                maxHeight: contentHeight ?? undefined,
+              })}
             </div>
           </div>
         </div>

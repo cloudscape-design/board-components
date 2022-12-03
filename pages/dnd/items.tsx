@@ -9,6 +9,7 @@ import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { PaletteProps } from "../../src/palette/interfaces";
 import { Counter } from "./commons";
 import classnames from "./engine.module.css";
+import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
 
 interface ItemData {
@@ -77,6 +78,26 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
         title: "Revenue",
         description: "Revenue over time chart",
         content: ({ maxHeight = 0 }) => <RevenueChart height={Math.max(200, maxHeight) - 150} />,
+      },
+    },
+    resourceCount: {
+      definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+      data: {
+        title: "Resource count",
+        description: "Resource count pie chart",
+        content: ({ maxWidth = 0, maxHeight = 0 }) => {
+          let size: "small" | "medium" | "large" = "small";
+
+          if (maxWidth > 300 && maxHeight > 300) {
+            size = "medium";
+          }
+
+          if (maxWidth > 450 && maxHeight > 450) {
+            size = "large";
+          }
+
+          return <ResourceCountChart size={size} />;
+        },
       },
     },
   };

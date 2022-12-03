@@ -6,6 +6,8 @@ export function RevenueChart({ height }: { height: number }) {
   return (
     <BarChart
       height={height}
+      hideFilter={true}
+      hideLegend={true}
       series={[
         {
           title: "Site 1",
@@ -62,8 +64,6 @@ export function RevenueChart({ height }: { height: number }) {
             : value.toFixed(2);
         },
       }}
-      hideFilter={true}
-      hideLegend={true}
       ariaLabel="Single data series bar chart"
       errorText="Error loading data."
       loadingText="Loading chart"
