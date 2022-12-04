@@ -55,14 +55,14 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
         ),
       },
     },
-    docked1: {
+    responsive: {
       data: {
         title: "Responsive content",
         description: "Responsive content",
         content: <ResponsiveContainer>Responsive content</ResponsiveContainer>,
       },
     },
-    docked2: {
+    large: {
       data: {
         title: "Large content",
         description: "Large content",
@@ -73,7 +73,7 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
         ),
       },
     },
-    docked3: {
+    scrollable: {
       data: {
         title: "Scrollable content",
         description: "Scrollable content",
