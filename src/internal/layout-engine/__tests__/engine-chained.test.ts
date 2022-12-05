@@ -13,7 +13,7 @@ test("engine operations can be chained", () => {
   ]);
 
   const layoutShift = new LayoutEngine(grid)
-    .insert({ id: "X", x: 1, y: 1, width: 1, height: 1 })
+    .insert({ itemId: "X", width: 1, height: 1, path: [{ x: 1, y: 1 }] })
     .move({
       itemId: "X",
       path: [
@@ -44,7 +44,7 @@ test("engine operations are not chained when executed separately", () => {
   const engine = new LayoutEngine(grid);
 
   // These commands are ignored.
-  engine.insert({ id: "X", x: 1, y: 1, width: 1, height: 1 });
+  engine.insert({ itemId: "X", width: 1, height: 1, path: [{ x: 1, y: 1 }] });
   engine.move({ itemId: "A", path: [{ x: 0, y: 1 }] });
   engine.resize({ itemId: "A", path: [{ x: 2, y: 1 }] });
   engine.remove("A");

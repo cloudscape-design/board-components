@@ -13,13 +13,20 @@ export interface ResizeCommand {
   path: readonly Position[];
 }
 
+export interface InsertCommand {
+  itemId: ItemId;
+  width: number;
+  height: number;
+  path: readonly Position[];
+}
+
 export interface CommittedMove {
   itemId: ItemId;
   x: number;
   y: number;
   width: number;
   height: number;
-  type: "USER" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT" | "RESIZE";
+  type: "USER" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT" | "RESIZE" | "INSERT";
 }
 
 export interface LayoutShift {

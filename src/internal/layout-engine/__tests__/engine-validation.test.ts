@@ -103,12 +103,12 @@ test("throws if insert command is not valid", () => {
     ["G", " ", " "],
   ]);
 
-  expect(() => new LayoutEngine(grid).insert({ id: "X", x: 2, y: 2, width: 2, height: 1 })).toThrowError(
-    "Inserting item is outside the boundaries."
-  );
-  expect(() => new LayoutEngine(grid).insert({ id: "X", x: 1, y: 1, width: 2, height: 0 })).toThrowError(
-    "Inserting item has invalid size."
-  );
+  expect(() =>
+    new LayoutEngine(grid).insert({ itemId: "X", width: 2, height: 1, path: [{ x: 2, y: 2 }] })
+  ).toThrowError("Inserting item is outside the boundaries.");
+  expect(() =>
+    new LayoutEngine(grid).insert({ itemId: "X", width: 2, height: 0, path: [{ x: 1, y: 1 }] })
+  ).toThrowError("Inserting item has invalid size.");
 });
 
 test("throws if remove command is not valid", () => {

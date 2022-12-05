@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayout, GridLayoutItem, ItemId } from "../interfaces";
+import { GridLayout, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
-import { CommittedMove, Direction, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
+import { CommittedMove, Direction, InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
 
 export class LayoutEngine {
@@ -71,14 +71,16 @@ export class LayoutEngine {
     return new LayoutEngine(this);
   }
 
-  insert(item: GridLayoutItem): LayoutEngine {
+  insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
     this.cleanup();
 
-    this.grid.insert(item, this.addOverlap.bind(this));
+    this.grid.insert({ id: itemId, ...position, width, height }, this.addOverlap.bind(this));
 
-    this.tryResolveOverlaps(item.id);
+    this.moves.push({ itemId, ...position, width, height, type: "INSERT" });
 
-    return new LayoutEngine(this);
+    this.tryResolveOverlaps(itemId);
+
+    return new LayoutEngine(this).move({ itemId, path });
   }
 
   remove(itemId: ItemId): LayoutEngine {

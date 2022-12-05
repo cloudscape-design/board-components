@@ -9,8 +9,8 @@ import { forEachTimes } from "./helpers";
 test("element insertion never leaves grid with unresolved conflicts", () => {
   forEachTimes(25, [[]], (args) => {
     const grid = generateGrid(...args);
-    const item = generateInsert(grid);
-    const layoutShift = new LayoutEngine(grid).insert(item).getLayoutShift();
+    const insert = generateInsert(grid);
+    const layoutShift = new LayoutEngine(grid).insert(insert).getLayoutShift();
     expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
@@ -24,7 +24,7 @@ describe("insert scenarios", () => {
         ["A", "A", "D"],
         ["E", "E", "D"],
       ],
-      { id: "X", x: 0, y: 0, width: 1, height: 1 },
+      { itemId: "X", width: 1, height: 1, path: [{ x: 0, y: 0 }] },
       [
         ["X", "B", "C"],
         ["A", "A", "D"],
@@ -38,7 +38,7 @@ describe("insert scenarios", () => {
         ["A", "A", "D"],
         ["E", "E", "D"],
       ],
-      { id: "X", x: 1, y: 1, width: 2, height: 2 },
+      { itemId: "X", width: 2, height: 2, path: [{ x: 1, y: 1 }] },
       [
         [" ", " ", "B"],
         [" ", "X", "X"],
