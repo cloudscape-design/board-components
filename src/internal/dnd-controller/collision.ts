@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Coordinates, ItemId } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
+import { isIntersecting } from "../utils/geometry";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -25,13 +26,15 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
 
   // snap current collision to rects grid
   for (const [, droppableElement] of droppables) {
-    const rect = droppableElement.getBoundingClientRect();
-    bounds = {
-      top: getMinDistance(bounds.top, rect.top, collisionRect.top),
-      left: getMinDistance(bounds.left, rect.left, collisionRect.left),
-      right: getMinDistance(bounds.right, rect.right, collisionRect.right),
-      bottom: getMinDistance(bounds.bottom, rect.bottom, collisionRect.bottom),
-    };
+    const droppableRect = droppableElement.getBoundingClientRect();
+    if (isIntersecting(droppableRect, collisionRect)) {
+      bounds = {
+        top: getMinDistance(bounds.top, droppableRect.top, collisionRect.top),
+        left: getMinDistance(bounds.left, droppableRect.left, collisionRect.left),
+        right: getMinDistance(bounds.right, droppableRect.right, collisionRect.right),
+        bottom: getMinDistance(bounds.bottom, droppableRect.bottom, collisionRect.bottom),
+      };
+    }
   }
 
   // make sure collision always fits into the grid
