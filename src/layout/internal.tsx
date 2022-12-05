@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { LayoutEngine } from "../internal/layout-engine/engine";
+import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import { isIntersecting } from "../internal/utils/geometry";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
@@ -71,6 +72,20 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     return isIntersecting(containerRect, itemRect);
   }
 
+  // The debounce makes UX smoother and ensures all state is propagated between transitions.
+  // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
+  const updateTransition = useMemo(() => {
+    const setTransitionWithDelay = debounce((nextTransition: Transition) => setTransition(nextTransition), 10);
+    return (nextTransition: null | Transition) => {
+      if (!nextTransition) {
+        setTransitionWithDelay.cancel();
+        setTransition(null);
+      } else {
+        setTransitionWithDelay(nextTransition);
+      }
+    };
+  }, []);
+
   useDragSubscription("start", (detail) => {
     const layoutItem = layoutItemById.get(detail.draggableItem.id) ?? null;
 
@@ -95,7 +110,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       path,
       rows,
     };
-    setTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
+    updateTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
   });
 
   useDragSubscription("move", (detail) => {
@@ -116,10 +131,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     const transforms = createTransforms(itemsLayout, layoutShift.moves);
 
-    const rows = layoutShift.next.rows + itemHeight;
+    const rows =
+      detail.operation === "resize"
+        ? layoutShift.next.rows + itemHeight
+        : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
     const canDrop = checkCanDrop(detail.draggableElement);
 
-    setTransition(
+    updateTransition(
       canDrop
         ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
         : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
@@ -132,7 +150,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
-    setTransition(null);
+    updateTransition(null);
 
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
