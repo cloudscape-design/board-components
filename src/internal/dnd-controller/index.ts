@@ -34,12 +34,14 @@ interface DragAndDropEvents {
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
-  private activeDragDetail: null | DragDetail = null;
-  private startCoordinates: null | Coordinates = null;
+  private transition: null | (DragDetail & { startCoordinates: Coordinates; startScroll: Coordinates }) = null;
 
   public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
-    this.activeDragDetail = { ...dragDetail };
-    this.startCoordinates = { ...coordinates };
+    this.transition = {
+      ...dragDetail,
+      startCoordinates: coordinates,
+      startScroll: { __type: "Coordinates", x: window.scrollX, y: window.scrollY },
+    };
     this.emit("start", this.getDragAndDropData(coordinates));
     document.addEventListener("pointermove", this.onPointerMove);
     document.addEventListener("pointerup", this.onPointerUp);
@@ -61,19 +63,19 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("drop", this.getDragAndDropData(getCoordinates(event)));
     document.removeEventListener("pointermove", this.onPointerMove);
     document.removeEventListener("pointerup", this.onPointerUp);
-    this.activeDragDetail = null;
-    this.startCoordinates = null;
+    this.transition = null;
   };
 
   private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
-    if (!this.activeDragDetail || !this.startCoordinates) {
-      throw new Error("Invariant violation: no active drag detail present interaction.");
+    if (!this.transition) {
+      throw new Error("Invariant violation: no transition present for interaction.");
     }
-    const { operation, draggableItem, draggableElement, draggableSize } = this.activeDragDetail;
+    const { operation, draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } =
+      this.transition;
     const cursorOffset = {
       ...coordinates,
-      x: coordinates.x - this.startCoordinates.x,
-      y: coordinates.y - this.startCoordinates.y,
+      x: coordinates.x - startCoordinates.x + (window.scrollX - startScroll.x),
+      y: coordinates.y - startCoordinates.y + (window.scrollY - startScroll.y),
     };
     const { collisionIds, dropTarget } = this.getCollisions(operation, draggableElement, coordinates);
     return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };

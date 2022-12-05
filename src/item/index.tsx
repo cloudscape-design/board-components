@@ -37,26 +37,24 @@ export default function DashboardItem({
   const gridContext = useGridContext();
 
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
-    if (draggableItem.id === item.id) {
-      if (operation === "resize") {
-        const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
-        const { width, height } = dropTarget!.scale(itemSize);
+    if (operation === "resize") {
+      const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
+      const { width, height } = dropTarget!.scale(itemSize);
 
-        setTransition({
-          itemId: draggableItem.id,
-          sizeOverride: {
-            width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
-            height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
-          },
-          transform: null,
-        });
-      } else {
-        setTransition({
-          itemId: draggableItem.id,
-          sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
-          transform: { x: cursorOffset.x, y: cursorOffset.y, scaleX: 1, scaleY: 1 },
-        });
-      }
+      setTransition({
+        itemId: draggableItem.id,
+        sizeOverride: {
+          width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
+          height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
+        },
+        transform: null,
+      });
+    } else {
+      setTransition({
+        itemId: draggableItem.id,
+        sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
+        transform: { x: cursorOffset.x, y: cursorOffset.y, scaleX: 1, scaleY: 1 },
+      });
     }
   }
 
@@ -88,7 +86,7 @@ export default function DashboardItem({
   const [headerHeight, headerQueryRef] = useContainerQuery((entry) => entry.borderBoxHeight);
   let maxContentWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxContentHeight = gridContext ? gridContext.getHeight(itemSize.height) - (headerHeight || 0) : undefined;
-  if (transition?.sizeOverride) {
+  if (transition?.sizeOverride && currentIsDragging) {
     maxContentWidth = transition.sizeOverride.width;
     maxContentHeight = transition.sizeOverride.height - (headerHeight || 0);
   }
