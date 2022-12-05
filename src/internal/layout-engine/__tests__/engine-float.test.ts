@@ -53,8 +53,8 @@ test("float creates addition moves", () => {
   ]);
   const layoutShift = new LayoutEngine(grid).move(fromTextPath("C2 B2 A2", grid)).refloat().getLayoutShift();
   expect(layoutShift.moves).toEqual([
-    { itemId: "E", y: 1, x: 1, width: 2, height: 1, type: "USER" },
-    { itemId: "E", y: 1, x: 0, width: 2, height: 1, type: "USER" },
+    { itemId: "E", y: 1, x: 1, width: 2, height: 1, type: "MOVE" },
+    { itemId: "E", y: 1, x: 0, width: 2, height: 1, type: "MOVE" },
     { itemId: "F", y: 1, x: 2, width: 1, height: 1, type: "FLOAT" },
     { itemId: "G", y: 1, x: 3, width: 1, height: 1, type: "FLOAT" },
     { itemId: "H", y: 2, x: 2, width: 1, height: 1, type: "FLOAT" },

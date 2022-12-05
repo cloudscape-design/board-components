@@ -45,12 +45,14 @@ function getLayoutShift(transition: Transition, path: Position[]) {
     return transition.engine.move({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
   }
 
-  const itemId = transition.draggableItem.id;
-  const width = transition.draggableItem.definition.defaultColumnSpan;
-  const height = transition.draggableItem.definition.defaultRowSpan;
-  const [enteringPosition, ...movePath] = path;
-  const layoutItem = { id: itemId, width, height, ...enteringPosition };
-  return transition.engine.insert(layoutItem).move({ itemId, path: movePath }).getLayoutShift();
+  return transition.engine
+    .insert({
+      itemId: transition.draggableItem.id,
+      width: transition.draggableItem.definition.defaultColumnSpan,
+      height: transition.draggableItem.definition.defaultRowSpan,
+      path,
+    })
+    .getLayoutShift();
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
@@ -78,7 +80,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   // The debounce makes UX smoother and ensures all state is propagated between transitions.
   // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
-  const updateTransition = useMemo(
+  const setTransitionDelayed = useMemo(
     () => debounce((nextTransition: Transition) => setTransition(nextTransition), 10),
     []
   );
@@ -135,7 +137,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
       const canDrop = checkCanDrop(detail.draggableElement);
 
-      updateTransition(
+      setTransitionDelayed(
         canDrop
           ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
           : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
@@ -149,7 +151,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
-    updateTransition.cancel();
+    setTransitionDelayed.cancel();
     setTransition(null);
 
     const itemWidth = transition.layoutItem
