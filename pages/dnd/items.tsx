@@ -25,6 +25,7 @@ interface ItemData {
   description: string;
   content: ReactNode;
   footer?: ReactNode;
+  disableContentPaddings?: boolean;
 }
 
 const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
@@ -173,7 +174,7 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
         title: "Events",
         description: "Service events table",
         content: (
-          <ScrollableContainer height={300}>
+          <ScrollableContainer height={300} showBorder={false}>
             <EventsTable />
           </ScrollableContainer>
         ),
@@ -182,6 +183,7 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
             <Link href="#">View all events</Link>
           </Box>
         ),
+        disableContentPaddings: true,
       },
     },
   };

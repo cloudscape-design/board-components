@@ -12,7 +12,7 @@ export function DefaultContainer({ children }: { children: ReactNode }) {
 
 export function ResponsiveContainer({ children }: { children: ReactNode }) {
   return (
-    <div className={classnames["demo-item-content"]} style={{ height: "100%", width: "100%" }}>
+    <div className={classnames["demo-item-with-border"]} style={{ height: "100%", width: "100%" }}>
       {children}
     </div>
   );
@@ -20,7 +20,7 @@ export function ResponsiveContainer({ children }: { children: ReactNode }) {
 
 export function FixedContainer({ children, height, width }: { children: ReactNode; height: number; width: number }) {
   return (
-    <div className={classnames["demo-item-content"]} style={{ height, width }}>
+    <div className={classnames["demo-item-with-border"]} style={{ height, width }}>
       {children}
     </div>
   );
@@ -30,13 +30,18 @@ export function ScrollableContainer({
   children,
   height,
   width,
+  showBorder = true,
 }: {
   children: ReactNode;
   height?: number;
   width?: number;
+  showBorder?: boolean;
 }) {
   return (
-    <div className={classnames["demo-item-content"]} style={{ height: "100%", width: "100%", overflow: "auto" }}>
+    <div
+      className={showBorder ? classnames["demo-item-with-border"] : undefined}
+      style={{ height: "100%", width: "100%", overflow: "auto" }}
+    >
       <div style={{ height: "100%", width: "100%", minHeight: height, minWidth: width }}>{children}</div>
     </div>
   );
