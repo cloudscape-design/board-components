@@ -92,13 +92,5 @@ export function EventsTable() {
       status: "success",
     },
   ];
-  return (
-    <Table
-      variant="embedded"
-      className="custom-dashboard-container"
-      resizableColumns={true}
-      items={eventsItems}
-      columnDefinitions={eventsDefinition}
-    />
-  );
+  return <Table variant="embedded" resizableColumns={true} items={eventsItems} columnDefinitions={eventsDefinition} />;
 }
