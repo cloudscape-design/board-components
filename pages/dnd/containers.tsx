@@ -3,7 +3,6 @@
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { ReactNode } from "react";
-import { useMergeRefs } from "../../lib/components/internal/utils/use-merge-refs";
 import classnames from "./engine.module.css";
 
 export function DefaultContainer({ children }: { children: ReactNode }) {
@@ -56,14 +55,15 @@ export function QueryContainer({
   minWidth?: number;
   minHeight?: number;
 }) {
-  const [height, containerQueryHeightRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [width, containerQueryWidthRef] = useContainerQuery((entry) => entry.contentBoxWidth);
-  const containerQueryRef = useMergeRefs(containerQueryHeightRef, containerQueryWidthRef);
+  const [size, containerQueryRef] = useContainerQuery((entry) => ({
+    height: entry.contentBoxHeight,
+    width: entry.contentBoxWidth,
+  }));
 
-  const normalizedWidth = Math.max(width ?? 0, minWidth);
-  const normalizedHeight = Math.max(height ?? 0, minHeight);
+  const normalizedWidth = Math.max(size?.width ?? 0, minWidth);
+  const normalizedHeight = Math.max(size?.height ?? 0, minHeight);
 
-  const useScroll = (width ?? 0) < minWidth || (height ?? 0) < minHeight;
+  const useScroll = (size?.width ?? 0) < minWidth || (size?.height ?? 0) < minHeight;
   const content = children({ width: normalizedWidth, height: normalizedHeight });
 
   return (
