@@ -4,10 +4,9 @@
   background-color: lightgray;
 }
 
-.demo-item-large-content {
+.demo-item-with-border {
+  box-sizing: border-box;
   border: dashed 2px darkgray;
   border-radius: 4px;
   padding: 8px;
-  width: 600px;
-  height: 400px;
 }

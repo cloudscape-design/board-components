@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
 import { ReactNode } from "react";
 import { DashboardLayoutProps } from "../../lib/components";
 import { fromMatrix } from "../../src/internal/debug-tools";
@@ -7,19 +8,31 @@ import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { PaletteProps } from "../../src/palette/interfaces";
 import { Counter } from "./commons";
-import classnames from "./engine.module.css";
+import {
+  DefaultContainer,
+  FixedContainer,
+  QueryContainer,
+  ResponsiveContainer,
+  ScrollableContainer,
+  TwoColContainer,
+} from "./containers";
+import { EventsTable } from "./events-table";
+import { ResourceCountChart } from "./resource-count-chart";
+import { RevenueChart } from "./revenue-chart";
 
 interface ItemData {
-  content: ReactNode;
   title: string;
   description: string;
+  content: ReactNode;
+  footer?: ReactNode;
+  disableContentPaddings?: boolean;
 }
 
 const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
 const createDefaultWidget = (id: string) => ({
   title: `Widget ${id}`,
   description: "Dummy description",
-  content: "Dummy content",
+  content: <DefaultContainer>Dummy content</DefaultContainer>,
   definition: defaultDefinition,
 });
 
@@ -27,20 +40,150 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
   {
     D: {
       definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
-      data: { title: "Demo widget", description: "Most minimal widget", content: <>Hello world!</> },
+      data: {
+        title: "Demo widget",
+        description: "Most minimal widget",
+        content: <DefaultContainer>Hello world!</DefaultContainer>,
+      },
     },
     counter: {
       definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
-      data: { title: "Counter", description: "State management demo", content: <Counter /> },
-    },
-    docked1: {
-      data: { title: "Generic docked 1", description: "No description", content: "No content" },
-    },
-    docked2: {
       data: {
-        title: "Generic docked 2",
-        description: "No description",
-        content: <div className={classnames["demo-item-large-content"]}>Large content</div>,
+        title: "Counter",
+        description: "State management demo",
+        content: (
+          <DefaultContainer>
+            <Counter />
+          </DefaultContainer>
+        ),
+      },
+    },
+    responsive: {
+      data: {
+        title: "Responsive content",
+        description: "Responsive content",
+        content: <ResponsiveContainer>Responsive content</ResponsiveContainer>,
+      },
+    },
+    large: {
+      data: {
+        title: "Large content",
+        description: "Large content",
+        content: (
+          <FixedContainer width={600} height={400}>
+            Large content
+          </FixedContainer>
+        ),
+      },
+    },
+    scrollable: {
+      data: {
+        title: "Scrollable content",
+        description: "Scrollable content",
+        content: (
+          <ScrollableContainer width={600} height={400}>
+            Scrollable content
+          </ScrollableContainer>
+        ),
+      },
+    },
+    revenue: {
+      definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+      data: {
+        title: "Revenue",
+        description: "Revenue over time chart",
+        content: (
+          <QueryContainer minWidth={400} minHeight={300}>
+            {({ height = 0 }) => <RevenueChart height={height - 200} />}
+          </QueryContainer>
+        ),
+      },
+    },
+    resourceCount: {
+      definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+      data: {
+        title: "Resource count",
+        description: "Resource count pie chart",
+        content: (
+          <QueryContainer minHeight={300}>
+            {({ width = 0, height = 0 }) => {
+              let size: "small" | "medium" | "large" = "small";
+              if (width > 300 && height > 300) {
+                size = "medium";
+              }
+              if (width > 450 && height > 450) {
+                size = "large";
+              }
+              return <ResourceCountChart size={size} />;
+            }}
+          </QueryContainer>
+        ),
+      },
+    },
+    allMetrics: {
+      definition: { defaultColumnSpan: 2, defaultRowSpan: 2, minColumnSpan: 2, minRowSpan: 2 },
+      data: {
+        title: "All metrics",
+        description: "Revenue and resource count charts",
+        content: (
+          <QueryContainer minWidth={600} minHeight={300}>
+            {() => (
+              <TwoColContainer
+                left={
+                  <QueryContainer>
+                    {({ height = 0 }) => (
+                      <SpaceBetween size="xs">
+                        <Box fontSize="heading-s" fontWeight="bold">
+                          Revenue
+                        </Box>
+                        <RevenueChart height={height - 200} />
+                      </SpaceBetween>
+                    )}
+                  </QueryContainer>
+                }
+                right={
+                  <QueryContainer>
+                    {({ width = 0, height = 0 }) => {
+                      let size: "small" | "medium" | "large" = "small";
+                      if (width > 300 && height > 300) {
+                        size = "medium";
+                      }
+                      if (width > 450 && height > 500) {
+                        size = "large";
+                      }
+                      return (
+                        <SpaceBetween size="s">
+                          <Box fontSize="heading-s" fontWeight="bold">
+                            Resources
+                          </Box>
+                          <ResourceCountChart size={size} />
+                        </SpaceBetween>
+                      );
+                    }}
+                  </QueryContainer>
+                }
+              />
+            )}
+          </QueryContainer>
+        ),
+      },
+    },
+    events: {
+      definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+      data: {
+        title: "Events",
+        description: "Service events table",
+        content: (
+          <ScrollableContainer height={300} showBorder={false}>
+            <EventsTable />
+          </ScrollableContainer>
+        ),
+        footer: (
+          <Box textAlign="center">
+            <Link href="#">View all events</Link>
+          </Box>
+        ),
+        disableContentPaddings: true,
       },
     },
   };

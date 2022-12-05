@@ -43,6 +43,8 @@ export default function () {
           renderItem={(item, actions) => (
             <DashboardItem
               header={<Header>{item.data.title}</Header>}
+              footer={item.data.footer}
+              disableContentPaddings={item.data.disableContentPaddings}
               i18nStrings={itemStrings}
               settings={
                 <ButtonDropdown

@@ -152,7 +152,7 @@ export default function WidgetContainerPermutations() {
                 i18nStrings={i18nStrings.dashboardItem}
                 header={<Header variant="h2">Footer Content</Header>}
                 footer={<Box textAlign="center">More</Box>}
-              ></DashboardItem>
+              />
             ),
           },
         ]}
