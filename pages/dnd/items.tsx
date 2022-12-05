@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Box, SpaceBetween } from "@cloudscape-design/components";
+import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
 import { ReactNode } from "react";
 import { DashboardLayoutProps } from "../../lib/components";
 import { fromMatrix } from "../../src/internal/debug-tools";
@@ -16,13 +16,15 @@ import {
   ScrollableContainer,
   TwoColContainer,
 } from "./containers";
+import { EventsTable } from "./events-table";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
 
 interface ItemData {
-  content: ReactNode;
   title: string;
   description: string;
+  content: ReactNode;
+  footer?: ReactNode;
 }
 
 const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
@@ -162,6 +164,23 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
               />
             )}
           </QueryContainer>
+        ),
+      },
+    },
+    events: {
+      definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+      data: {
+        title: "Events",
+        description: "Service events table",
+        content: (
+          <ScrollableContainer height={300}>
+            <EventsTable />
+          </ScrollableContainer>
+        ),
+        footer: (
+          <Box textAlign="center">
+            <Link href="#">View all events</Link>
+          </Box>
         ),
       },
     },

@@ -26,7 +26,8 @@ export default function DashboardItem({
   header,
   settings,
   i18nStrings,
-  ...containerProps
+  disableContentPaddings,
+  footer,
 }: DashboardItemProps) {
   const { item, itemSize, transform } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
@@ -93,7 +94,7 @@ export default function DashboardItem({
 
   return (
     <div ref={itemRef} className={clsx(styles.root, currentIsDragging && styles.wrapperDragging)} style={style}>
-      <Container {...containerProps} disableContentPaddings={true}>
+      <Container disableContentPaddings={true}>
         <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
           <WidgetContainerHeader
             handle={
@@ -107,9 +108,15 @@ export default function DashboardItem({
             {header}
           </WidgetContainerHeader>
 
-          <div className={styles["content-wrapper"]}>
+          <div
+            className={clsx(styles["content-wrapper"], {
+              [styles["content-wrapper-disable-paddings"]]: disableContentPaddings,
+            })}
+          >
             <div className={styles.content}>{children}</div>
           </div>
+
+          {footer && <div className={styles.footer}>{footer}</div>}
         </div>
       </Container>
       {gridContext && (
