@@ -41,12 +41,14 @@ function getLayoutShift(transition: Transition, path: Position[]) {
     return transition.engine.move({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
   }
 
-  const itemId = transition.draggableItem.id;
-  const width = transition.draggableItem.definition.defaultColumnSpan;
-  const height = transition.draggableItem.definition.defaultRowSpan;
-  const [enteringPosition, ...movePath] = transition.path;
-  const layoutItem = { id: itemId, width, height, ...enteringPosition };
-  return transition.engine.insert(layoutItem).move({ itemId, path: movePath }).getLayoutShift();
+  return transition.engine
+    .insert({
+      itemId: transition.draggableItem.id,
+      width: transition.draggableItem.definition.defaultColumnSpan,
+      height: transition.draggableItem.definition.defaultRowSpan,
+      path: transition.path,
+    })
+    .getLayoutShift();
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {

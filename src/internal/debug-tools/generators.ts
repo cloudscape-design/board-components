@@ -3,7 +3,7 @@
 
 import { GridLayout, GridLayoutItem } from "../interfaces";
 import { Position } from "../interfaces";
-import { Direction, MoveCommand, ResizeCommand } from "../layout-engine/interfaces";
+import { Direction, InsertCommand, MoveCommand, ResizeCommand } from "../layout-engine/interfaces";
 import { toMatrix } from ".";
 
 export type GenerateMoveType = "any" | "vertical" | "horizontal";
@@ -261,7 +261,7 @@ export function generateResize(grid: GridLayout, options?: GenerateGridResizeOpt
   return { itemId: resizeTarget.id, path };
 }
 
-export function generateInsert(grid: GridLayout, insertId = "X", options?: GenerateGridInsertOptions): GridLayoutItem {
+export function generateInsert(grid: GridLayout, insertId = "X", options?: GenerateGridInsertOptions): InsertCommand {
   const maxWidth = options?.maxWidth ?? grid.columns;
   const maxHeight = options?.maxHeight ?? Math.floor(grid.items.length / 2) + 1;
 
@@ -272,7 +272,7 @@ export function generateInsert(grid: GridLayout, insertId = "X", options?: Gener
   const width = getRandomInt(1, maxWidth + 1 - x);
   const height = getRandomInt(1, maxHeight + 1);
 
-  return { id: insertId, x, y, width, height };
+  return { itemId: insertId, width, height, path: [{ x, y }] };
 }
 
 export function generateRandomPath(from: Position, to: Position): Position[] {
