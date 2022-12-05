@@ -18,7 +18,7 @@ test("element insertion never leaves grid with unresolved conflicts", () => {
 describe("insert scenarios", () => {
   test.each([
     [
-      "Insert X to a vacant slot",
+      "Inserting X to a vacant slot",
       [
         [" ", "B", "C"],
         ["A", "A", "D"],
@@ -32,7 +32,7 @@ describe("insert scenarios", () => {
       ],
     ],
     [
-      "Insert X forcing a conflict",
+      "Inserting X forces a conflict",
       [
         ["A", "A", "B"],
         ["A", "A", "D"],

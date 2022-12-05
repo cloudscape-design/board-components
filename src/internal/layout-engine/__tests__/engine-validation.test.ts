@@ -145,9 +145,9 @@ test("normalizes move path and continues when from the repeating position", () =
   const grid = fromMatrix([[" ", "A", " "]]);
   const layoutShift = new LayoutEngine(grid).move(fromTextPath("B1 B2 B3 B2 B3 B4", grid)).getLayoutShift();
   expect(layoutShift.moves).toEqual([
-    { itemId: "A", x: 1, y: 1, width: 1, height: 1, type: "USER" },
-    { itemId: "A", x: 1, y: 2, width: 1, height: 1, type: "USER" },
-    { itemId: "A", x: 1, y: 3, width: 1, height: 1, type: "USER" },
+    { itemId: "A", x: 1, y: 1, width: 1, height: 1, type: "MOVE" },
+    { itemId: "A", x: 1, y: 2, width: 1, height: 1, type: "MOVE" },
+    { itemId: "A", x: 1, y: 3, width: 1, height: 1, type: "MOVE" },
   ]);
 });
 
@@ -159,7 +159,7 @@ test("normalizes move path when it has missing steps", () => {
   ]);
   const layoutShift = new LayoutEngine(grid).move(fromTextPath("A1 B2", grid)).getLayoutShift();
   expect(layoutShift.moves).toEqual([
-    { itemId: "A", x: 1, y: 0, width: 1, height: 1, type: "USER" },
-    { itemId: "A", x: 1, y: 1, width: 1, height: 1, type: "USER" },
+    { itemId: "A", x: 1, y: 0, width: 1, height: 1, type: "MOVE" },
+    { itemId: "A", x: 1, y: 1, width: 1, height: 1, type: "MOVE" },
   ]);
 });

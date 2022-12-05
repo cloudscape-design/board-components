@@ -449,7 +449,7 @@ describe("multiple overlap resolutions", () => {
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
-    const moveIds = layoutShift.moves.filter((move) => move.type !== "USER").map((move) => move.itemId);
+    const moveIds = layoutShift.moves.filter((move) => move.type !== "MOVE").map((move) => move.itemId);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
     expect(new Set(moveIds).size).toBeLessThan(moveIds.length);
   });

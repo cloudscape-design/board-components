@@ -39,7 +39,7 @@ export class LayoutEngine {
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
       const step = path[stepIndex];
       const { width, height } = this.grid.getItem(itemId);
-      const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "USER" };
+      const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "MOVE" };
 
       this.findConflicts(move);
 
