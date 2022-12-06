@@ -130,7 +130,7 @@ export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteP
             {() => (
               <TwoColContainer
                 left={
-                  <QueryContainer>
+                  <QueryContainer minHeight={200}>
                     {({ height = 0 }) => (
                       <SpaceBetween size="xs">
                         <Box fontSize="heading-s" fontWeight="bold">
