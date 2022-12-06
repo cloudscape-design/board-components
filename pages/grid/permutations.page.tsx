@@ -3,13 +3,14 @@
 import clsx from "clsx";
 import Grid from "../../lib/components/internal/grid";
 import { TestBed } from "../app/test-bed";
+import { ScreenshotArea } from "../screenshot-area";
 import { chess, cross, dashboard, jenga } from "./layouts";
 
 import classnames from "./permutations.module.css";
 
 export default function GridPage() {
   return (
-    <>
+    <ScreenshotArea>
       <header>
         <h1>Grid</h1>
       </header>
@@ -45,7 +46,7 @@ export default function GridPage() {
           </TestBed>
         </section>
       </main>
-    </>
+    </ScreenshotArea>
   );
 }
 

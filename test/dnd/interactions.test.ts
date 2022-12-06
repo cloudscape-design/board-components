@@ -17,7 +17,7 @@ function setupTest(url: string, testFn: (page: ScreenshotPageObject, browser: We
 
 test(
   "items reorder works when page is scrolled",
-  setupTest("/index.html#/dnd/engine-a2h", async (page, browser) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page, browser) => {
     await page.setWindowSize({ width: 800, height: 1000 });
     await page.windowScrollTo({ left: 0, top: 700 });
 
@@ -32,7 +32,7 @@ test(
 
 test(
   "items resize works when page is scrolled",
-  setupTest("/index.html#/dnd/engine-a2h", async (page, browser) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page, browser) => {
     await page.setWindowSize({ width: 800, height: 1000 });
     await page.windowScrollTo({ left: 0, top: 700 });
 
@@ -47,7 +47,7 @@ test(
 
 test(
   "highlights drop location and adjusts size when over grid",
-  setupTest("/index.html#/dnd/engine-a2p", async (page, browser) => {
+  setupTest("/index.html#/dnd/engine-a2p-test", async (page, browser) => {
     await page.setWindowSize({ width: 1200, height: 800 });
 
     const handle = await browser.$(`[data-item-id="Q"] .${dragHandleStyles.default.handle}`);

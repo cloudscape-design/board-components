@@ -11,15 +11,17 @@ function setupTest(testFn: (browser: ScreenshotPageObject["browser"]) => Promise
   });
 }
 
-const targetRoutes = routes.filter((route) => !route.includes("test-page"));
-
-test.each(targetRoutes)("matches snapshot for %s", (route) => {
+test.each(routes)("matches snapshot for %s", (route) => {
   return setupTest(async (browser) => {
     await browser.url(route);
     const page = new ScreenshotPageObject(browser);
     await page.waitForVisible("main");
 
-    const pngString = await page.fullPageScreenshot();
-    expect(pngString).toMatchImageSnapshot();
+    const hasScreenshotArea = await page.isExisting(".screenshot-area");
+
+    if (hasScreenshotArea) {
+      const pngString = await page.fullPageScreenshot();
+      expect(pngString).toMatchImageSnapshot();
+    }
   })();
 });
