@@ -33,6 +33,10 @@ interface Transition {
 }
 
 function getLayoutShift(transition: Transition, path: Position[]) {
+  if (path.length === 0) {
+    return null;
+  }
+
   if (transition.isResizing) {
     return transition.engine.resize({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
   }
@@ -46,7 +50,7 @@ function getLayoutShift(transition: Transition, path: Position[]) {
       itemId: transition.draggableItem.id,
       width: transition.draggableItem.definition.defaultColumnSpan,
       height: transition.draggableItem.definition.defaultRowSpan,
-      path: transition.path,
+      path,
     })
     .getLayoutShift();
 }
@@ -76,17 +80,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   // The debounce makes UX smoother and ensures all state is propagated between transitions.
   // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
-  const updateTransition = useMemo(() => {
-    const setTransitionWithDelay = debounce((nextTransition: Transition) => setTransition(nextTransition), 10);
-    return (nextTransition: null | Transition) => {
-      if (!nextTransition) {
-        setTransitionWithDelay.cancel();
-        setTransition(null);
-      } else {
-        setTransitionWithDelay(nextTransition);
-      }
-    };
-  }, []);
+  const setTransitionDelayed = useMemo(
+    () => debounce((nextTransition: Transition) => setTransition(nextTransition), 10),
+    []
+  );
 
   useDragSubscription("start", (detail) => {
     const layoutItem = layoutItemById.get(detail.draggableItem.id) ?? null;
@@ -112,7 +109,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       path,
       rows,
     };
-    updateTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
+    setTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
   });
 
   useDragSubscription("move", (detail) => {
@@ -131,19 +128,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
     const layoutShift = getLayoutShift(transition, path);
 
-    const transforms = createTransforms(itemsLayout, layoutShift.moves);
+    if (layoutShift) {
+      const transforms = createTransforms(itemsLayout, layoutShift.moves);
 
-    const rows =
-      detail.operation === "resize"
-        ? layoutShift.next.rows + itemHeight
-        : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
-    const canDrop = checkCanDrop(detail.draggableElement);
+      const rows =
+        detail.operation === "resize"
+          ? layoutShift.next.rows + itemHeight
+          : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
+      const canDrop = checkCanDrop(detail.draggableElement);
 
-    updateTransition(
-      canDrop
-        ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
-        : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
-    );
+      setTransitionDelayed(
+        canDrop
+          ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
+          : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
+      );
+    }
   });
 
   useDragSubscription("drop", (detail) => {
@@ -152,7 +151,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
-    updateTransition(null);
+    setTransitionDelayed.cancel();
+    setTransition(null);
 
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
@@ -163,23 +163,25 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
     const canDrop = checkCanDrop(detail.draggableElement);
 
-    printLayoutDebug(itemsLayout, layoutShift);
+    if (layoutShift) {
+      printLayoutDebug(itemsLayout, layoutShift);
 
-    if (!canDrop || layoutShift.conflicts.length > 0) {
-      return;
-    }
+      if (!canDrop || layoutShift.conflicts.length > 0) {
+        return;
+      }
 
-    // Commit new layout for insert case.
-    if (!transition.layoutItem) {
-      // TODO: resolve "any" here.
-      // It is not quite clear yet how to ensure the addedItem matches generic D type.
-      const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.draggableItem] as any);
-      const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
-    }
-    // Commit new layout for reorder/resize case.
-    else {
-      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
+      // Commit new layout for insert case.
+      if (!transition.layoutItem) {
+        // TODO: resolve "any" here.
+        // It is not quite clear yet how to ensure the addedItem matches generic D type.
+        const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.draggableItem] as any);
+        const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
+        onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+      }
+      // Commit new layout for reorder/resize case.
+      else {
+        onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
+      }
     }
   });
 
