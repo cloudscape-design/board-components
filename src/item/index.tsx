@@ -3,13 +3,12 @@
 import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
-import { CSSProperties, useMemo, useRef, useState } from "react";
+import { CSSProperties, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
-import { debounce } from "../internal/utils/debounce";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -37,13 +36,6 @@ export default function DashboardItem({
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const gridContext = useGridContext();
 
-  // The debounce makes UX smoother and ensures all state is propagated between transitions.
-  // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
-  const setTransitionDelayed = useMemo(
-    () => debounce((nextTransition: Transition) => setTransition(nextTransition), 10),
-    []
-  );
-
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
     setDragActive(true);
 
@@ -52,7 +44,7 @@ export default function DashboardItem({
         const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
         const { width, height } = dropTarget!.scale(itemSize);
 
-        setTransitionDelayed({
+        setTransition({
           itemId: draggableItem.id,
           sizeOverride: {
             width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
@@ -61,7 +53,7 @@ export default function DashboardItem({
           transform: null,
         });
       } else {
-        setTransitionDelayed({
+        setTransition({
           itemId: draggableItem.id,
           sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
           transform: { ...cursorOffset, scaleX: 1, scaleY: 1 },
@@ -73,9 +65,8 @@ export default function DashboardItem({
   useDragSubscription("start", (detail) => updateTransition(detail));
   useDragSubscription("move", (detail) => updateTransition(detail));
   useDragSubscription("drop", () => {
-    setTransitionDelayed.cancel();
-    setTransition(null);
     setDragActive(false);
+    setTransition(null);
   });
 
   const scaledTransform: null | Transform =
@@ -88,16 +79,25 @@ export default function DashboardItem({
         }
       : null;
 
-  const style: CSSProperties = {
-    transform: CSSUtil.Transform.toString(transition ? transition.transform : scaledTransform),
-    position: transition && transition?.sizeOverride ? "absolute" : undefined,
-    width: transition ? transition?.sizeOverride?.width : undefined,
-    height: transition ? transition?.sizeOverride?.height : undefined,
-    transition:
-      !transition && dragActive
+  function getDragActiveStyles(transition: Transition): CSSProperties {
+    return {
+      transform: CSSUtil.Transform.toString(transition.transform),
+      position: transition?.sizeOverride ? "absolute" : undefined,
+      width: transition?.sizeOverride?.width,
+      height: transition?.sizeOverride?.height,
+    };
+  }
+
+  function getLayoutShiftStyles(): CSSProperties {
+    return {
+      transform: CSSUtil.Transform.toString(scaledTransform),
+      transition: dragActive
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
-  };
+    };
+  }
+
+  const style = transition ? getDragActiveStyles(transition) : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
