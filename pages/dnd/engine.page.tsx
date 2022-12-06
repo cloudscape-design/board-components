@@ -4,34 +4,38 @@ import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Grid from "@cloudscape-design/components/grid";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import { DashboardItem, DashboardItemProps, DashboardLayout, DashboardPalette } from "../../lib/components";
+import {
+  DashboardItem,
+  DashboardItemProps,
+  DashboardLayout,
+  DashboardLayoutProps,
+  DashboardPalette,
+} from "../../lib/components";
+import { PaletteProps } from "../../src/palette/interfaces";
 import PageLayout from "../app/page-layout";
 import classnames from "./engine.module.css";
-import { createLetterItems, demoLayoutItems, demoPaletteItems, demoWidgets, letterWidgets } from "./items";
+import { ItemData, ItemWidgets, demoLayoutItems, demoPaletteItems, demoWidgets } from "./items";
 
 const itemStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag me",
   resizeLabel: "Resize me",
 };
 
-/*
-  Use letter items to reproduce test scenarious.
-  
-  Example input:
-  [
-    ["A", "B", "C"],
-    ["D", "E", "C"],
-    [" ", "F", " "],
-    [" ", "F", " "],
-  ]
-*/
-const letterItems = createLetterItems(null);
-
-const widgets = !letterItems ? demoWidgets : letterWidgets;
-const initialLayoutItems = !letterItems ? demoLayoutItems : letterItems.layoutItems;
-const initialPaletteItems = !letterItems ? demoPaletteItems : letterItems.paletteItems;
-
 export default function () {
+  return (
+    <EnginePage initialLayoutItems={demoLayoutItems} initialPaletteItems={demoPaletteItems} widgets={demoWidgets} />
+  );
+}
+
+export function EnginePage({
+  initialLayoutItems,
+  initialPaletteItems,
+  widgets,
+}: {
+  initialLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[];
+  initialPaletteItems: readonly PaletteProps.Item<ItemData>[];
+  widgets: ItemWidgets;
+}) {
   const [items, setItems] = useState(initialLayoutItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 

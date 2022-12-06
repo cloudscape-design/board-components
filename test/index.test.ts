@@ -11,7 +11,9 @@ function setupTest(testFn: (browser: ScreenshotPageObject["browser"]) => Promise
   });
 }
 
-test.each(routes)("matches snapshot for %s", (route) => {
+const targetRoutes = routes.filter((route) => !route.includes("test-page"));
+
+test.each(targetRoutes)("matches snapshot for %s", (route) => {
   return setupTest(async (browser) => {
     await browser.url(route);
     const page = new ScreenshotPageObject(browser);
