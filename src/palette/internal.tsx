@@ -16,7 +16,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             transform: null,
           }}
         >
-          {renderItem(item)}
+          <div data-item-id={item.id}>{renderItem(item)}</div>
         </ItemContextProvider>
       ))}
     </SpaceBetween>

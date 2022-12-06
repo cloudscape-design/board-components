@@ -20,13 +20,15 @@ import { EventsTable } from "./events-table";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
 
-interface ItemData {
+export interface ItemData {
   title: string;
   description: string;
   content: ReactNode;
   footer?: ReactNode;
   disableContentPaddings?: boolean;
 }
+
+export type ItemWidgets = Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined>;
 
 const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
 const createDefaultWidget = (id: string) => ({
@@ -36,157 +38,156 @@ const createDefaultWidget = (id: string) => ({
   definition: defaultDefinition,
 });
 
-export const demoWidgets: Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined> =
-  {
-    D: {
-      definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
-      data: {
-        title: "Demo widget",
-        description: "Most minimal widget",
-        content: <DefaultContainer>Hello world!</DefaultContainer>,
-      },
+export const demoWidgets: ItemWidgets = {
+  D: {
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+    data: {
+      title: "Demo widget",
+      description: "Most minimal widget",
+      content: <DefaultContainer>Hello world!</DefaultContainer>,
     },
-    counter: {
-      definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
-      data: {
-        title: "Counter",
-        description: "State management demo",
-        content: (
-          <DefaultContainer>
-            <Counter />
-          </DefaultContainer>
-        ),
-      },
+  },
+  counter: {
+    definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
+    data: {
+      title: "Counter",
+      description: "State management demo",
+      content: (
+        <DefaultContainer>
+          <Counter />
+        </DefaultContainer>
+      ),
     },
-    responsive: {
-      data: {
-        title: "Responsive content",
-        description: "Responsive content",
-        content: <ResponsiveContainer>Responsive content</ResponsiveContainer>,
-      },
+  },
+  responsive: {
+    data: {
+      title: "Responsive content",
+      description: "Responsive content",
+      content: <ResponsiveContainer>Responsive content</ResponsiveContainer>,
     },
-    large: {
-      data: {
-        title: "Large content",
-        description: "Large content",
-        content: (
-          <FixedContainer width={600} height={400}>
-            Large content
-          </FixedContainer>
-        ),
-      },
+  },
+  large: {
+    data: {
+      title: "Large content",
+      description: "Large content",
+      content: (
+        <FixedContainer width={600} height={400}>
+          Large content
+        </FixedContainer>
+      ),
     },
-    scrollable: {
-      data: {
-        title: "Scrollable content",
-        description: "Scrollable content",
-        content: (
-          <ScrollableContainer width={600} height={400}>
-            Scrollable content
-          </ScrollableContainer>
-        ),
-      },
+  },
+  scrollable: {
+    data: {
+      title: "Scrollable content",
+      description: "Scrollable content",
+      content: (
+        <ScrollableContainer width={600} height={400}>
+          Scrollable content
+        </ScrollableContainer>
+      ),
     },
-    revenue: {
-      definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
-      data: {
-        title: "Revenue",
-        description: "Revenue over time chart",
-        content: (
-          <QueryContainer minWidth={400} minHeight={300}>
-            {({ height = 0 }) => <RevenueChart height={height - 200} />}
-          </QueryContainer>
-        ),
-      },
+  },
+  revenue: {
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+    data: {
+      title: "Revenue",
+      description: "Revenue over time chart",
+      content: (
+        <QueryContainer minWidth={400} minHeight={300}>
+          {({ height = 0 }) => <RevenueChart height={height - 200} />}
+        </QueryContainer>
+      ),
     },
-    resourceCount: {
-      definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
-      data: {
-        title: "Resource count",
-        description: "Resource count pie chart",
-        content: (
-          <QueryContainer minHeight={300}>
-            {({ width = 0, height = 0 }) => {
-              let size: "small" | "medium" | "large" = "small";
-              if (width > 300 && height > 300) {
-                size = "medium";
+  },
+  resourceCount: {
+    definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+    data: {
+      title: "Resource count",
+      description: "Resource count pie chart",
+      content: (
+        <QueryContainer minHeight={300}>
+          {({ width = 0, height = 0 }) => {
+            let size: "small" | "medium" | "large" = "small";
+            if (width > 300 && height > 300) {
+              size = "medium";
+            }
+            if (width > 450 && height > 450) {
+              size = "large";
+            }
+            return <ResourceCountChart size={size} />;
+          }}
+        </QueryContainer>
+      ),
+    },
+  },
+  allMetrics: {
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 2, minColumnSpan: 2, minRowSpan: 2 },
+    data: {
+      title: "All metrics",
+      description: "Revenue and resource count charts",
+      content: (
+        <QueryContainer minWidth={600} minHeight={300}>
+          {() => (
+            <TwoColContainer
+              left={
+                <QueryContainer minHeight={200}>
+                  {({ height = 0 }) => (
+                    <SpaceBetween size="xs">
+                      <Box fontSize="heading-s" fontWeight="bold">
+                        Revenue
+                      </Box>
+                      <RevenueChart height={height - 200} />
+                    </SpaceBetween>
+                  )}
+                </QueryContainer>
               }
-              if (width > 450 && height > 450) {
-                size = "large";
-              }
-              return <ResourceCountChart size={size} />;
-            }}
-          </QueryContainer>
-        ),
-      },
-    },
-    allMetrics: {
-      definition: { defaultColumnSpan: 2, defaultRowSpan: 2, minColumnSpan: 2, minRowSpan: 2 },
-      data: {
-        title: "All metrics",
-        description: "Revenue and resource count charts",
-        content: (
-          <QueryContainer minWidth={600} minHeight={300}>
-            {() => (
-              <TwoColContainer
-                left={
-                  <QueryContainer minHeight={200}>
-                    {({ height = 0 }) => (
-                      <SpaceBetween size="xs">
+              right={
+                <QueryContainer>
+                  {({ width = 0, height = 0 }) => {
+                    let size: "small" | "medium" | "large" = "small";
+                    if (width > 300 && height > 300) {
+                      size = "medium";
+                    }
+                    if (width > 450 && height > 500) {
+                      size = "large";
+                    }
+                    return (
+                      <SpaceBetween size="s">
                         <Box fontSize="heading-s" fontWeight="bold">
-                          Revenue
+                          Resources
                         </Box>
-                        <RevenueChart height={height - 200} />
+                        <ResourceCountChart size={size} />
                       </SpaceBetween>
-                    )}
-                  </QueryContainer>
-                }
-                right={
-                  <QueryContainer>
-                    {({ width = 0, height = 0 }) => {
-                      let size: "small" | "medium" | "large" = "small";
-                      if (width > 300 && height > 300) {
-                        size = "medium";
-                      }
-                      if (width > 450 && height > 500) {
-                        size = "large";
-                      }
-                      return (
-                        <SpaceBetween size="s">
-                          <Box fontSize="heading-s" fontWeight="bold">
-                            Resources
-                          </Box>
-                          <ResourceCountChart size={size} />
-                        </SpaceBetween>
-                      );
-                    }}
-                  </QueryContainer>
-                }
-              />
-            )}
-          </QueryContainer>
-        ),
-      },
+                    );
+                  }}
+                </QueryContainer>
+              }
+            />
+          )}
+        </QueryContainer>
+      ),
     },
-    events: {
-      definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
-      data: {
-        title: "Events",
-        description: "Service events table",
-        content: (
-          <ScrollableContainer height={300} showBorder={false}>
-            <EventsTable />
-          </ScrollableContainer>
-        ),
-        footer: (
-          <Box textAlign="center">
-            <Link href="#">View all events</Link>
-          </Box>
-        ),
-        disableContentPaddings: true,
-      },
+  },
+  events: {
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+    data: {
+      title: "Events",
+      description: "Service events table",
+      content: (
+        <ScrollableContainer height={300} showBorder={false}>
+          <EventsTable />
+        </ScrollableContainer>
+      ),
+      footer: (
+        <Box textAlign="center">
+          <Link href="#">View all events</Link>
+        </Box>
+      ),
+      disableContentPaddings: true,
     },
-  };
+  },
+};
 
 for (let i = 2; i <= 10; i++) {
   demoWidgets[i] = { data: createDefaultWidget(i.toString()) };

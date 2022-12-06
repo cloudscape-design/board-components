@@ -4,6 +4,7 @@
 import { ReactNode } from "react";
 import { DashboardLayout, DashboardLayoutProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
+import { ScreenshotArea } from "../screenshot-area";
 import classnames from "./layouts.module.css";
 
 const singleItem: DashboardLayoutProps.Item<any>[] = [
@@ -61,7 +62,7 @@ const noop = () => {
 
 export default function DashboardLayoutPage() {
   return (
-    <>
+    <ScreenshotArea>
       <h1>Dashboard layout</h1>
       <main>
         <TestBed>
@@ -89,7 +90,7 @@ export default function DashboardLayoutPage() {
           />
         </TestBed>
       </main>
-    </>
+    </ScreenshotArea>
   );
 }
 
