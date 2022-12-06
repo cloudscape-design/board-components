@@ -31,36 +31,43 @@ export default function DashboardItem({
 }: DashboardItemProps) {
   const { item, itemSize, transform } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
+  const [dragActive, setDragActive] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
-  const currentIsDragging = transition?.itemId === item.id;
   const gridContext = useGridContext();
 
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
-    if (operation === "resize") {
-      const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
-      const { width, height } = dropTarget!.scale(itemSize);
+    setDragActive(true);
 
-      setTransition({
-        itemId: draggableItem.id,
-        sizeOverride: {
-          width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
-          height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
-        },
-        transform: null,
-      });
-    } else {
-      setTransition({
-        itemId: draggableItem.id,
-        sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
-        transform: { x: cursorOffset.x, y: cursorOffset.y, scaleX: 1, scaleY: 1 },
-      });
+    if (item.id === draggableItem.id) {
+      if (operation === "resize") {
+        const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
+        const { width, height } = dropTarget!.scale(itemSize);
+
+        setTransition({
+          itemId: draggableItem.id,
+          sizeOverride: {
+            width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
+            height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
+          },
+          transform: null,
+        });
+      } else {
+        setTransition({
+          itemId: draggableItem.id,
+          sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
+          transform: { ...cursorOffset, scaleX: 1, scaleY: 1 },
+        });
+      }
     }
   }
 
   useDragSubscription("start", (detail) => updateTransition(detail));
   useDragSubscription("move", (detail) => updateTransition(detail));
-  useDragSubscription("drop", () => setTransition(null));
+  useDragSubscription("drop", () => {
+    setDragActive(false);
+    setTransition(null);
+  });
 
   const scaledTransform: null | Transform =
     transform && gridContext
@@ -72,26 +79,35 @@ export default function DashboardItem({
         }
       : null;
 
-  const style: CSSProperties = {
-    transform: CSSUtil.Transform.toString(currentIsDragging ? transition.transform : scaledTransform),
-    position: currentIsDragging && transition?.sizeOverride ? "absolute" : undefined,
-    width: currentIsDragging ? transition?.sizeOverride?.width : undefined,
-    height: currentIsDragging ? transition?.sizeOverride?.height : undefined,
-    transition:
-      transition && !currentIsDragging
+  function getDragActiveStyles(transition: Transition): CSSProperties {
+    return {
+      transform: CSSUtil.Transform.toString(transition.transform),
+      position: transition?.sizeOverride ? "absolute" : undefined,
+      width: transition?.sizeOverride?.width,
+      height: transition?.sizeOverride?.height,
+    };
+  }
+
+  function getLayoutShiftStyles(): CSSProperties {
+    return {
+      transform: CSSUtil.Transform.toString(scaledTransform),
+      transition: dragActive
         ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
         : undefined,
-  };
+    };
+  }
+
+  const style = transition ? getDragActiveStyles(transition) : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
-  if (transition?.sizeOverride && currentIsDragging) {
+  if (transition?.sizeOverride) {
     maxBodyWidth = transition.sizeOverride.width;
     maxBodyHeight = transition.sizeOverride.height;
   }
 
   return (
-    <div ref={itemRef} className={clsx(styles.root, currentIsDragging && styles.wrapperDragging)} style={style}>
+    <div ref={itemRef} className={clsx(styles.root, transition && styles.wrapperDragging)} style={style}>
       <Container disableContentPaddings={true}>
         <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
           <WidgetContainerHeader
