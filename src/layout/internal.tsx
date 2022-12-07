@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import { Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
@@ -25,7 +26,7 @@ import styles from "./styles.css.js";
 interface Transition {
   isResizing: boolean;
   engine: LayoutEngine;
-  transforms: { [itemId: ItemId]: Position };
+  transforms: { [itemId: ItemId]: Transform };
   collisionIds: ItemId[];
   draggableItem: DashboardItemBase<unknown>;
   layoutItem: null | GridLayoutItem;
@@ -159,13 +160,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       return;
     }
 
-    const itemWidth = transition.layoutItem
-      ? transition.layoutItem.width
-      : transition.draggableItem.definition.defaultColumnSpan;
-
-    const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
-    const layoutShift = getLayoutShift(transition, path);
+    const layoutShift = getLayoutShift(transition, transition.path);
     const canDrop = checkCanDrop(detail.draggableElement);
 
     if (layoutShift) {
@@ -205,7 +200,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function moveItem(transition: Transition, targetItem: GridLayoutItem, path: Position[]) {
+  function updateManualItemTransition(transition: Transition, targetItem: GridLayoutItem, path: Position[]) {
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
       const rows = Math.min(itemsLayout.rows + targetItem.height, layoutShift.next.rows + targetItem.height);
@@ -214,37 +209,49 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function moveItemLeft(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemLeft(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x > 0) {
-      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x - 1, y: lastPosition.y }]);
+    if (lastPosition.x > (transition.isResizing ? 1 : 0)) {
+      updateManualItemTransition(transition, targetItem, [
+        ...transition.path,
+        { x: lastPosition.x - 1, y: lastPosition.y },
+      ]);
     } else {
       // TODO: add announcement
     }
   }
 
-  function moveItemRight(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemRight(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x < columns - 1) {
-      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x + 1, y: lastPosition.y }]);
+    if (lastPosition.x < (transition.isResizing ? columns : columns - 1)) {
+      updateManualItemTransition(transition, targetItem, [
+        ...transition.path,
+        { x: lastPosition.x + 1, y: lastPosition.y },
+      ]);
     } else {
       // TODO: add announcement
     }
   }
 
-  function moveItemUp(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemUp(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y > 0) {
-      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x, y: lastPosition.y - 1 }]);
+    if (lastPosition.y > (transition.isResizing ? 1 : 0)) {
+      updateManualItemTransition(transition, targetItem, [
+        ...transition.path,
+        { x: lastPosition.x, y: lastPosition.y - 1 },
+      ]);
     } else {
       // TODO: add announcement
     }
   }
 
-  function moveItemDown(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemDown(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y < rows - 1) {
-      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x, y: lastPosition.y + 1 }]);
+    if (lastPosition.y < (transition.isResizing ? 999 : rows - 1)) {
+      updateManualItemTransition(transition, targetItem, [
+        ...transition.path,
+        { x: lastPosition.x, y: lastPosition.y + 1 },
+      ]);
     } else {
       // TODO: add announcement
     }
@@ -282,13 +289,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutItem = layoutItemById.get(itemId)!;
     switch (direction) {
       case "left":
-        return transition ? moveItemLeft(transition, layoutItem) : navigateItemLeft(layoutItem);
+        return transition ? shiftItemLeft(transition, layoutItem) : navigateItemLeft(layoutItem);
       case "right":
-        return transition ? moveItemRight(transition, layoutItem) : navigateItemRight(layoutItem);
+        return transition ? shiftItemRight(transition, layoutItem) : navigateItemRight(layoutItem);
       case "up":
-        return transition ? moveItemUp(transition, layoutItem) : navigateItemUp(layoutItem);
+        return transition ? shiftItemUp(transition, layoutItem) : navigateItemUp(layoutItem);
       case "down":
-        return transition ? moveItemDown(transition, layoutItem) : navigateItemDown(layoutItem);
+        return transition ? shiftItemDown(transition, layoutItem) : navigateItemDown(layoutItem);
     }
   }
 
@@ -312,18 +319,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
             const isResizing = transition && transition.isResizing && transition.draggableItem.id === item.id;
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
-            let itemSize = layoutItem ?? {
+            const itemSize = layoutItem ?? {
               width: item.definition.defaultColumnSpan,
               height: item.definition.defaultRowSpan,
             };
 
-            // Pass item's max allowed size to use as boundaries for resizing.
-            if (isResizing && layoutItem) {
-              itemSize = {
-                width: columns - layoutItem.x,
-                height: 999,
-              };
-            }
+            const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
             return (
               <ItemContextProvider
@@ -331,6 +332,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 value={{
                   item,
                   itemSize,
+                  itemMaxSize,
                   transform: transition?.transforms[item.id] ?? null,
                   onNavigate: (direction) => onItemNavigate(item.id, direction),
                 }}

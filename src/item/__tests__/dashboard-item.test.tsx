@@ -25,6 +25,7 @@ function render(jsx: ReactElement) {
             value={{
               item: { id: "1", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: null },
               itemSize: { width: 1, height: 1 },
+              itemMaxSize: { width: 1, height: 1 },
               transform: null,
               onNavigate: () => undefined,
             }}

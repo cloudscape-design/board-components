@@ -1,47 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { describe, expect, test } from "vitest";
-import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
-import layoutItemStyles from "../../lib/components/item/styles.selectors.js";
-import layoutStyles from "../../lib/components/layout/styles.selectors.js";
-
-class DndPageObject extends ScreenshotPageObject {
-  sleep(time = 200) {
-    return new Promise((resolve) => setTimeout(resolve, time));
-  }
-
-  async getHeaders() {
-    const items = await this.browser.$$(`.${layoutStyles.default.root} .${layoutItemStyles.default.header}`);
-    const headers = await Promise.all([...items].map((item) => item.getText()));
-
-    const columns = 4;
-    const rows = Math.floor(headers.length / columns);
-    const grid: string[][] = [...new Array(rows)].map(() => [...new Array(columns)]);
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < columns; col++) {
-        grid[row][col] = headers[row * columns + col]?.slice("Widget ".length) ?? " ";
-      }
-    }
-
-    return grid;
-  }
-
-  async clickDragHandle(id: string) {
-    await this.click(`[data-item-id="${id}"] .${dragHandleStyles.default.handle}`);
-  }
-
-  async focusDragHandle(id: string) {
-    await this.clickDragHandle(id);
-    await this.keys(["Enter"]);
-  }
-
-  isDragHandleFocused(id: string) {
-    return this.isFocused(`[data-item-id="${id}"] .${dragHandleStyles.default.handle}`);
-  }
-}
+import { DndPageObject } from "./dnd-page-object";
 
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
@@ -125,12 +86,49 @@ describe("items reordered with keyboard", () => {
       await page.keys(["ArrowUp"]);
       await page.sleep();
       await page.keys(["Escape"]);
-      await page.sleep();
 
       await expect(page.getHeaders()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["E", "F", "G", "H"],
       ]);
+    })
+  );
+});
+
+describe("items resized with keyboard", () => {
+  test(
+    "item resize can be submitted",
+    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+      await page.setWindowSize({ width: 1000, height: 1000 });
+
+      await page.focusResizeHandle("A");
+      await page.keys(["ArrowRight"]);
+      await page.sleep();
+      await page.keys(["ArrowDown"]);
+      await page.sleep();
+      await page.keys(["Enter"]);
+
+      const itemSize = await page.getItemSize("A");
+      expect(itemSize.width).toBeGreaterThan(200);
+      expect(itemSize.height).toBeGreaterThan(520);
+    })
+  );
+
+  test(
+    "item resize can be discarded",
+    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+      await page.setWindowSize({ width: 1000, height: 1000 });
+
+      await page.focusResizeHandle("A");
+      await page.keys(["ArrowRight"]);
+      await page.sleep();
+      await page.keys(["ArrowDown"]);
+      await page.sleep();
+      await page.keys(["Escape"]);
+
+      const itemSize = await page.getItemSize("A");
+      expect(itemSize.width).toBeLessThan(200);
+      expect(itemSize.height).toBe(260);
     })
   );
 });

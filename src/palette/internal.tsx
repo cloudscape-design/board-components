@@ -53,6 +53,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             value={{
               item,
               itemSize: { width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan },
+              itemMaxSize: { width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan },
               transform: null,
               onNavigate: (direction) => onItemNavigate(index, direction),
             }}

@@ -30,7 +30,7 @@ export default function DashboardItem({
   disableContentPaddings,
   footer,
 }: DashboardItemProps) {
-  const { item, itemSize, transform, onNavigate } = useItemContext();
+  const { item, itemSize, itemMaxSize, transform, onNavigate } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
@@ -44,13 +44,12 @@ export default function DashboardItem({
     if (item.id === draggableItem.id) {
       if (operation === "resize") {
         const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
-        const { width, height } = dropTarget!.scale(itemSize);
-
+        const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
           itemId: draggableItem.id,
           sizeOverride: {
-            width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
-            height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
+            width: Math.max(cellWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
+            height: Math.max(cellHeight, draggableSize.height + cursorOffset.y),
           },
           transform: null,
         });
@@ -71,39 +70,19 @@ export default function DashboardItem({
     setTransition(null);
   });
 
-  const scaledTransform: null | Transform =
-    transform && gridContext
-      ? {
-          x: gridContext.getColOffset(transform.x),
-          y: gridContext.getRowOffset(transform.y),
-          scaleX: 1,
-          scaleY: 1,
-        }
-      : null;
-
-  function getDragActiveStyles(transition: Transition): CSSProperties {
-    return {
-      transform: CSSUtil.Transform.toString(transition.transform),
-      position: transition?.sizeOverride ? "absolute" : undefined,
-      width: transition?.sizeOverride?.width,
-      height: transition?.sizeOverride?.height,
-    };
-  }
-
-  function getLayoutShiftStyles(): CSSProperties {
-    return {
-      transform: CSSUtil.Transform.toString(scaledTransform),
-      transition: dragActive
-        ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
-        : undefined,
-    };
-  }
-
-  function onKeyboardTransitionToggle() {
+  function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (!transition) {
       const rect = itemRef.current!.getBoundingClientRect();
-      const coordiantes: Coordinates = { __type: "Coordinates", x: rect.x, y: rect.y };
-      draggableApi.startMove(coordiantes, "manual");
+      const coordiantes: Coordinates = {
+        __type: "Coordinates",
+        x: operation === "drag" ? rect.left : rect.right,
+        y: operation === "drag" ? rect.left : rect.bottom,
+      };
+      if (operation === "drag") {
+        draggableApi.startMove(coordiantes, "manual");
+      } else {
+        draggableApi.startResize(coordiantes, "manual");
+      }
       setInteractionType("manual");
     } else {
       draggableApi.endTransition();
@@ -116,19 +95,20 @@ export default function DashboardItem({
     }
   }
 
-  function onDragHandleKeyDown(event: KeyboardEvent) {
+  function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
+    const canNavigate = transition || operation === "drag";
     switch (event.key) {
       case "ArrowUp":
-        return onNavigate("up");
+        return canNavigate && onNavigate("up");
       case "ArrowDown":
-        return onNavigate("down");
+        return canNavigate && onNavigate("down");
       case "ArrowLeft":
-        return onNavigate("left");
+        return canNavigate && onNavigate("left");
       case "ArrowRight":
-        return onNavigate("right");
+        return canNavigate && onNavigate("right");
       case " ":
       case "Enter":
-        return onKeyboardTransitionToggle();
+        return onKeyboardTransitionToggle(operation);
       case "Escape":
         return onKeyboardTransitionDiscard();
     }
@@ -137,6 +117,45 @@ export default function DashboardItem({
   function onDragHandlePointerDown(coordinates: Coordinates) {
     draggableApi.startMove(coordinates, "pointer");
     setInteractionType("pointer");
+  }
+
+  function onResizeHandlePointerDown(coordinates: Coordinates) {
+    draggableApi.startResize(coordinates, "pointer");
+    setInteractionType("pointer");
+  }
+
+  function getDragActiveStyles(transition: Transition): CSSProperties {
+    return {
+      transform: CSSUtil.Transform.toString(transition.transform),
+      position: transition?.sizeOverride ? "absolute" : undefined,
+      width: transition?.sizeOverride?.width,
+      height: transition?.sizeOverride?.height,
+    };
+  }
+
+  function getLayoutShiftStyles(): CSSProperties {
+    const transitionStyle = dragActive
+      ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
+      : undefined;
+
+    if (!transform || !gridContext) {
+      return { transition: transitionStyle };
+    }
+
+    const shouldTransformSize = transform.scaleX > 1 || transform.scaleY > 1;
+
+    return {
+      transform: CSSUtil.Transform.toString({
+        x: gridContext.getColOffset(transform.x),
+        y: gridContext.getRowOffset(transform.y),
+        scaleX: 1,
+        scaleY: 1,
+      }),
+      position: shouldTransformSize ? "absolute" : undefined,
+      width: shouldTransformSize ? gridContext.getWidth(transform.scaleX) : undefined,
+      height: shouldTransformSize ? gridContext.getHeight(transform.scaleY) : undefined,
+      transition: transitionStyle,
+    };
   }
 
   const style = transition && interactionType === "pointer" ? getDragActiveStyles(transition) : getLayoutShiftStyles();
@@ -162,7 +181,7 @@ export default function DashboardItem({
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
                 onPointerDown={onDragHandlePointerDown}
-                onKeyDown={onDragHandleKeyDown}
+                onKeyDown={(event) => onHandleKeyDown("drag", event)}
               />
             }
             settings={settings}
@@ -185,7 +204,8 @@ export default function DashboardItem({
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabel={i18nStrings.resizeLabel}
-            onPointerDown={(coordinates) => draggableApi.startResize(coordinates, "pointer")}
+            onPointerDown={onResizeHandlePointerDown}
+            onKeyDown={(event) => onHandleKeyDown("resize", event)}
           />
         </div>
       )}
