@@ -1,12 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Transform } from "@dnd-kit/utilities";
 import { createContext, useContext } from "react";
-import { DashboardItemBase, Direction, Position } from "./interfaces";
+import { DashboardItemBase, Direction } from "./interfaces";
 
 export interface ItemContext {
   item: DashboardItemBase<unknown>;
   itemSize: { width: number; height: number };
-  transform: null | Position;
+  itemMaxSize: { width: number; height: number };
+  transform: null | Transform;
   onNavigate(direction: Direction): void;
 }
 

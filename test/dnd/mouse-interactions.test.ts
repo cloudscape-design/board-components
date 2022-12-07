@@ -16,28 +16,26 @@ function setupTest(url: string, testFn: (page: ScreenshotPageObject, browser: We
 }
 
 test(
-  "items reorder works when page is scrolled",
+  "items reorder with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page, browser) => {
-    await page.setWindowSize({ width: 800, height: 1000 });
-    await page.windowScrollTo({ left: 0, top: 700 });
+    await page.setWindowSize({ width: 1200, height: 800 });
 
-    const handleG = await browser.$(`[data-item-id="G"] .${dragHandleStyles.default.handle}`);
-    const placeholderH = await browser.$('[data-item-id="H"]');
-    await handleG.dragAndDrop(placeholderH);
+    const handleA = await browser.$(`[data-item-id="A"] .${dragHandleStyles.default.handle}`);
+    const placeholderB = await browser.$('[data-item-id="B"]');
+    await handleA.dragAndDrop(placeholderB);
 
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
 
 test(
-  "items resize works when page is scrolled",
+  "items resize with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page, browser) => {
-    await page.setWindowSize({ width: 800, height: 1000 });
-    await page.windowScrollTo({ left: 0, top: 700 });
+    await page.setWindowSize({ width: 1200, height: 800 });
 
-    const handleG = await browser.$(`[data-item-id="G"] .${resizeHandleStyles.default.handle}`);
-    const placeholderH = await browser.$('[data-item-id="H"]');
-    await handleG.dragAndDrop(placeholderH);
+    const handleA = await browser.$(`[data-item-id="A"] .${resizeHandleStyles.default.handle}`);
+    const placeholderB = await browser.$('[data-item-id="B"]');
+    await handleA.dragAndDrop(placeholderB);
 
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
