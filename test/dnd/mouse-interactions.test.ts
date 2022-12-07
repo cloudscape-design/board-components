@@ -25,8 +25,7 @@ test(
     const placeholderH = await browser.$('[data-item-id="H"]');
     await handleG.dragAndDrop(placeholderH);
 
-    const pngString = await page.fullPageScreenshot();
-    expect(pngString).toMatchImageSnapshot();
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
 
@@ -40,8 +39,7 @@ test(
     const placeholderH = await browser.$('[data-item-id="H"]');
     await handleG.dragAndDrop(placeholderH);
 
-    const pngString = await page.fullPageScreenshot();
-    expect(pngString).toMatchImageSnapshot();
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
 

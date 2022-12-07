@@ -29,7 +29,7 @@ interface DragDetail {
 interface DragAndDropEvents {
   start: (data: DragAndDropData) => void;
   move: (data: DragAndDropData) => void;
-  drop: (data: DragAndDropData) => void;
+  drop: (data: DragAndDropData & { cancel: boolean }) => void;
 }
 
 interface Transition extends DragDetail {
@@ -56,8 +56,13 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     }
   }
 
+  public end() {
+    this.emit("drop", { ...this.getDragAndDropData(this.transition!.startCoordinates), cancel: false });
+    this.transition = null;
+  }
+
   public cancel() {
-    this.emit("drop", this.getDragAndDropData(this.transition!.startCoordinates));
+    this.emit("drop", { ...this.getDragAndDropData(this.transition!.startCoordinates), cancel: true });
     this.transition = null;
   }
 
@@ -74,7 +79,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   };
 
   private onPointerUp = (event: PointerEvent) => {
-    this.emit("drop", this.getDragAndDropData(getCoordinates(event)));
+    this.emit("drop", { ...this.getDragAndDropData(getCoordinates(event)), cancel: false });
     document.removeEventListener("pointermove", this.onPointerMove);
     document.removeEventListener("pointerup", this.onPointerUp);
     this.transition = null;
@@ -138,8 +143,11 @@ export function useDraggable({
       const draggableSize = draggableElement.getBoundingClientRect();
       controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates, type);
     },
-    endTransition() {
+    cancelTransition() {
       controller.cancel();
+    },
+    endTransition() {
+      controller.end();
     },
   };
 }

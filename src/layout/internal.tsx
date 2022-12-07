@@ -155,6 +155,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransitionDelayed.cancel();
     setTransition(null);
 
+    if (detail.cancel) {
+      return;
+    }
+
     const itemWidth = transition.layoutItem
       ? transition.layoutItem.width
       : transition.draggableItem.definition.defaultColumnSpan;
