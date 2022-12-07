@@ -106,13 +106,13 @@ export default function DashboardItem({
       draggableApi.startMove(coordiantes, "manual");
       setInteractionType("manual");
     } else {
-      onKeyboardTransitionDiscard();
+      draggableApi.endTransition();
     }
   }
 
   function onKeyboardTransitionDiscard() {
     if (transition) {
-      draggableApi.endTransition();
+      draggableApi.cancelTransition();
     }
   }
 
