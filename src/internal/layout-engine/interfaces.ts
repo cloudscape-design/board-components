@@ -35,5 +35,3 @@ export interface LayoutShift {
   moves: readonly CommittedMove[];
   conflicts: readonly ItemId[];
 }
-
-export type Direction = "top" | "right" | "bottom" | "left";
