@@ -60,4 +60,4 @@ export interface Position {
   y: number;
 }
 
-export type Direction = "top" | "right" | "bottom" | "left";
+export type Direction = "up" | "right" | "down" | "left";
