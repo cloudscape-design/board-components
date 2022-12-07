@@ -187,8 +187,8 @@ export class LayoutEngine {
   private getMoveDirections(issuer: LayoutEngineItem): Direction[] {
     const diff = this.getLastStepDiff(issuer);
 
-    const firstVertical = diff.y > 0 ? "bottom" : "top";
-    const nextVertical = firstVertical === "bottom" ? "top" : "bottom";
+    const firstVertical = diff.y > 0 ? "down" : "up";
+    const nextVertical = firstVertical === "down" ? "up" : "down";
 
     const firstHorizontal = diff.x > 0 ? "right" : "left";
     const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
@@ -201,8 +201,8 @@ export class LayoutEngine {
   private getResizeDirections(issuer: LayoutEngineItem): Direction[] {
     const diff = this.getLastStepDiff(issuer);
 
-    const firstVertical = diff.height > 0 ? "top" : "bottom";
-    const nextVertical = firstVertical === "bottom" ? "top" : "bottom";
+    const firstVertical = diff.height > 0 ? "up" : "down";
+    const nextVertical = firstVertical === "down" ? "up" : "down";
 
     const firstHorizontal = diff.width > 0 ? "left" : "right";
     const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
@@ -450,10 +450,10 @@ export class LayoutEngine {
   ): CommittedMove {
     const common = { itemId: moveTarget.id, width: moveTarget.width, height: moveTarget.height, type: moveType };
     switch (direction) {
-      case "top": {
+      case "up": {
         return { ...common, y: overlap.top - moveTarget.height, x: moveTarget.x };
       }
-      case "bottom": {
+      case "down": {
         return { ...common, y: overlap.bottom + 1, x: moveTarget.x };
       }
       case "left": {

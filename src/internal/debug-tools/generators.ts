@@ -110,10 +110,10 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
   const affordance: [Direction, number][] = [];
 
   if (moveTarget.y > 0) {
-    affordance.push(["top", moveTarget.y]);
+    affordance.push(["up", moveTarget.y]);
   }
   if (moveTarget.y + moveTarget.height <= textGrid.length) {
-    affordance.push(["bottom", 1 + textGrid.length - (moveTarget.y + moveTarget.height)]);
+    affordance.push(["down", 1 + textGrid.length - (moveTarget.y + moveTarget.height)]);
   }
   if (moveTarget.x > 0) {
     affordance.push(["left", moveTarget.x]);
@@ -123,7 +123,7 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
   }
 
   function swap(type: "vertical" | "horizontal" | "any"): Position {
-    const verticalAffordance = affordance.filter(([direction]) => direction === "top" || direction === "bottom");
+    const verticalAffordance = affordance.filter(([direction]) => direction === "up" || direction === "down");
     const horizontalAffordance = affordance.filter(([direction]) => direction === "left" || direction === "right");
     const chosenAffordance =
       type === "any" ? affordance : type === "vertical" ? verticalAffordance : horizontalAffordance;
@@ -135,9 +135,9 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
     const [direction, maxDistance] = chosenAffordance[getRandomIndex(chosenAffordance)];
     const distance = 1 + Math.floor(Math.random() * maxDistance);
     switch (direction) {
-      case "top":
+      case "up":
         return { y: moveTarget.y - distance, x: moveTarget.x };
-      case "bottom":
+      case "down":
         return { y: moveTarget.y + distance, x: moveTarget.x };
       case "left":
         return { y: moveTarget.y, x: moveTarget.x - distance };
@@ -147,7 +147,7 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
   }
 
   function replace(): Position {
-    const verticalAffordance = affordance.filter(([direction]) => direction === "top" || direction === "bottom");
+    const verticalAffordance = affordance.filter(([direction]) => direction === "up" || direction === "down");
     const horizontalAffordance = affordance.filter(([direction]) => direction === "left" || direction === "right");
 
     if (horizontalAffordance.length === 0) {

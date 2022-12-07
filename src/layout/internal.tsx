@@ -6,7 +6,8 @@ import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
+import handleStyles from "../internal/handle/styles.css.js";
+import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
@@ -190,6 +191,58 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
   };
 
+  function focusItem(item?: GridLayoutItem) {
+    if (item) {
+      const handleSelector = `[data-item-id="${item.id}"] .${handleStyles.handle}`;
+      const handle = containerAccessRef.current!.querySelector(handleSelector) as null | HTMLButtonElement;
+      handle?.focus();
+    } else {
+      // TODO: add announcement
+    }
+  }
+
+  function navigateItemLeft(targetItem: GridLayoutItem) {
+    const [matched] = itemsLayout.items
+      .filter((item) => item.y === targetItem.y && item.x < targetItem.x)
+      .sort((a, b) => b.x - a.x);
+    focusItem(matched);
+  }
+
+  function navigateItemRight(targetItem: GridLayoutItem) {
+    const [matched] = itemsLayout.items
+      .filter((item) => item.y === targetItem.y && item.x > targetItem.x)
+      .sort((a, b) => a.x - b.x);
+    focusItem(matched);
+  }
+
+  function navigateItemUp(targetItem: GridLayoutItem) {
+    const [matched] = itemsLayout.items
+      .filter((item) => item.x === targetItem.x && item.y < targetItem.y)
+      .sort((a, b) => b.y - a.y);
+    focusItem(matched);
+  }
+
+  function navigateItemDown(targetItem: GridLayoutItem) {
+    const [matched] = itemsLayout.items
+      .filter((item) => item.x === targetItem.x && item.y > targetItem.y)
+      .sort((a, b) => a.y - b.y);
+    focusItem(matched);
+  }
+
+  function onItemNavigate(itemId: ItemId, direction: Direction) {
+    const layoutItem = layoutItemById.get(itemId)!;
+    switch (direction) {
+      case "left":
+        return navigateItemLeft(layoutItem);
+      case "right":
+        return navigateItemRight(layoutItem);
+      case "up":
+        return navigateItemUp(layoutItem);
+      case "down":
+        return navigateItemDown(layoutItem);
+    }
+  }
+
   const showGrid = items.length > 0 || transition;
 
   // TODO: make sure empty / finished states announcements are considered.
@@ -230,6 +283,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                   item,
                   itemSize,
                   transform: transition?.transforms[item.id] ?? null,
+                  onNavigate: (direction) => onItemNavigate(item.id, direction),
                 }}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}

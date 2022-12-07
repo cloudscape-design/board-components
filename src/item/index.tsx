@@ -3,7 +3,7 @@
 import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
-import { CSSProperties, useRef, useState } from "react";
+import { CSSProperties, KeyboardEvent, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
@@ -29,7 +29,7 @@ export default function DashboardItem({
   disableContentPaddings,
   footer,
 }: DashboardItemProps) {
-  const { item, itemSize, transform } = useItemContext();
+  const { item, itemSize, transform, onNavigate } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -98,6 +98,19 @@ export default function DashboardItem({
     };
   }
 
+  function onDragHandleKeyDown(event: KeyboardEvent) {
+    switch (event.key) {
+      case "ArrowUp":
+        return onNavigate("up");
+      case "ArrowDown":
+        return onNavigate("down");
+      case "ArrowLeft":
+        return onNavigate("left");
+      case "ArrowRight":
+        return onNavigate("right");
+    }
+  }
+
   const style = transition ? getDragActiveStyles(transition) : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
@@ -116,6 +129,7 @@ export default function DashboardItem({
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
                 onPointerDown={(coordinates) => draggableApi.startMove(coordinates)}
+                onKeyDown={onDragHandleKeyDown}
               />
             }
             settings={settings}
