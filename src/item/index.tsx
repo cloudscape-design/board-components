@@ -7,6 +7,7 @@ import { CSSProperties, KeyboardEvent, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
+import { Coordinates } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
 import WidgetContainerHeader from "./header";
@@ -98,6 +99,22 @@ export default function DashboardItem({
     };
   }
 
+  function onKeyboardTransitionToggle() {
+    if (!transition) {
+      const rect = itemRef.current!.getBoundingClientRect();
+      const coordiantes: Coordinates = { __type: "Coordinates", x: rect.x, y: rect.y };
+      draggableApi.startMove(coordiantes, "manual");
+    } else {
+      onKeyboardTransitionDiscard();
+    }
+  }
+
+  function onKeyboardTransitionDiscard() {
+    if (transition) {
+      draggableApi.endTransition();
+    }
+  }
+
   function onDragHandleKeyDown(event: KeyboardEvent) {
     switch (event.key) {
       case "ArrowUp":
@@ -108,6 +125,11 @@ export default function DashboardItem({
         return onNavigate("left");
       case "ArrowRight":
         return onNavigate("right");
+      case " ":
+      case "Enter":
+        return onKeyboardTransitionToggle();
+      case "Escape":
+        return onKeyboardTransitionDiscard();
     }
   }
 
@@ -121,14 +143,19 @@ export default function DashboardItem({
   }
 
   return (
-    <div ref={itemRef} className={clsx(styles.root, transition && styles.wrapperDragging)} style={style}>
+    <div
+      ref={itemRef}
+      className={clsx(styles.root, transition && styles.wrapperDragging)}
+      style={style}
+      onBlur={onKeyboardTransitionDiscard}
+    >
       <Container disableContentPaddings={true}>
         <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
           <WidgetContainerHeader
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
-                onPointerDown={(coordinates) => draggableApi.startMove(coordinates)}
+                onPointerDown={(coordinates) => draggableApi.startMove(coordinates, "pointer")}
                 onKeyDown={onDragHandleKeyDown}
               />
             }
@@ -152,7 +179,7 @@ export default function DashboardItem({
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabel={i18nStrings.resizeLabel}
-            onPointerDown={(coordinates) => draggableApi.startResize(coordinates)}
+            onPointerDown={(coordinates) => draggableApi.startResize(coordinates, "pointer")}
           />
         </div>
       )}

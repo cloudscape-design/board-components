@@ -32,19 +32,33 @@ interface DragAndDropEvents {
   drop: (data: DragAndDropData) => void;
 }
 
+interface Transition extends DragDetail {
+  startCoordinates: Coordinates;
+  startScroll: Coordinates;
+}
+
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
-  private transition: null | (DragDetail & { startCoordinates: Coordinates; startScroll: Coordinates }) = null;
+  private transition: null | Transition = null;
 
-  public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
+  public activateDrag(dragDetail: DragDetail, coordinates: Coordinates, type: "pointer" | "manual") {
     this.transition = {
       ...dragDetail,
       startCoordinates: coordinates,
       startScroll: { __type: "Coordinates", x: window.scrollX, y: window.scrollY },
     };
+
     this.emit("start", this.getDragAndDropData(coordinates));
-    document.addEventListener("pointermove", this.onPointerMove);
-    document.addEventListener("pointerup", this.onPointerUp);
+
+    if (type === "pointer") {
+      document.addEventListener("pointermove", this.onPointerMove);
+      document.addEventListener("pointerup", this.onPointerUp);
+    }
+  }
+
+  public cancel() {
+    this.emit("drop", this.getDragAndDropData(this.transition!.startCoordinates));
+    this.transition = null;
   }
 
   public addDroppable(id: string, scale: Scale, element: HTMLElement) {
@@ -112,17 +126,20 @@ export function useDraggable({
   getElement: () => HTMLElement;
 }) {
   return {
-    startMove(coordinates: Coordinates) {
+    startMove(coordinates: Coordinates, type: "pointer" | "manual") {
       const operation = "move";
       const draggableElement = getElement();
       const draggableSize = draggableElement.getBoundingClientRect();
-      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
+      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates, type);
     },
-    startResize(coordinates: Coordinates) {
+    startResize(coordinates: Coordinates, type: "pointer" | "manual") {
       const operation = "resize";
       const draggableElement = getElement();
       const draggableSize = draggableElement.getBoundingClientRect();
-      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
+      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates, type);
+    },
+    endTransition() {
+      controller.cancel();
     },
   };
 }
