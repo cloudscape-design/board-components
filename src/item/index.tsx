@@ -33,6 +33,7 @@ export default function DashboardItem({
   const { item, itemSize, transform, onNavigate } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const gridContext = useGridContext();
@@ -104,6 +105,7 @@ export default function DashboardItem({
       const rect = itemRef.current!.getBoundingClientRect();
       const coordiantes: Coordinates = { __type: "Coordinates", x: rect.x, y: rect.y };
       draggableApi.startMove(coordiantes, "manual");
+      setInteractionType("manual");
     } else {
       onKeyboardTransitionDiscard();
     }
@@ -133,7 +135,12 @@ export default function DashboardItem({
     }
   }
 
-  const style = transition ? getDragActiveStyles(transition) : getLayoutShiftStyles();
+  function onDragHandlePointerDown(coordinates: Coordinates) {
+    draggableApi.startMove(coordinates, "pointer");
+    setInteractionType("pointer");
+  }
+
+  const style = transition && interactionType === "pointer" ? getDragActiveStyles(transition) : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
@@ -155,7 +162,7 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ariaLabel={i18nStrings.dragHandleLabel}
-                onPointerDown={(coordinates) => draggableApi.startMove(coordinates, "pointer")}
+                onPointerDown={onDragHandlePointerDown}
                 onKeyDown={onDragHandleKeyDown}
               />
             }

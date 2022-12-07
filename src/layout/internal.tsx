@@ -201,6 +201,51 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
+  function moveItem(transition: Transition, targetItem: GridLayoutItem, path: Position[]) {
+    const layoutShift = getLayoutShift(transition, path);
+    if (layoutShift) {
+      const rows = Math.min(itemsLayout.rows + targetItem.height, layoutShift.next.rows + targetItem.height);
+      const transforms = createTransforms(itemsLayout, layoutShift.moves);
+      setTransition({ ...transition, collisionIds: [], transforms, path, rows });
+    }
+  }
+
+  function moveItemLeft(transition: Transition, targetItem: GridLayoutItem) {
+    const lastPosition = transition.path[transition.path.length - 1];
+    if (lastPosition.x > 0) {
+      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x - 1, y: lastPosition.y }]);
+    } else {
+      // TODO: add announcement
+    }
+  }
+
+  function moveItemRight(transition: Transition, targetItem: GridLayoutItem) {
+    const lastPosition = transition.path[transition.path.length - 1];
+    if (lastPosition.x < columns - 1) {
+      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x + 1, y: lastPosition.y }]);
+    } else {
+      // TODO: add announcement
+    }
+  }
+
+  function moveItemUp(transition: Transition, targetItem: GridLayoutItem) {
+    const lastPosition = transition.path[transition.path.length - 1];
+    if (lastPosition.y > 0) {
+      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x, y: lastPosition.y - 1 }]);
+    } else {
+      // TODO: add announcement
+    }
+  }
+
+  function moveItemDown(transition: Transition, targetItem: GridLayoutItem) {
+    const lastPosition = transition.path[transition.path.length - 1];
+    if (lastPosition.y < rows - 1) {
+      moveItem(transition, targetItem, [...transition.path, { x: lastPosition.x, y: lastPosition.y + 1 }]);
+    } else {
+      // TODO: add announcement
+    }
+  }
+
   function navigateItemLeft(targetItem: GridLayoutItem) {
     const [matched] = itemsLayout.items
       .filter((item) => item.y === targetItem.y && item.x < targetItem.x)
@@ -233,13 +278,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutItem = layoutItemById.get(itemId)!;
     switch (direction) {
       case "left":
-        return navigateItemLeft(layoutItem);
+        return transition ? moveItemLeft(transition, layoutItem) : navigateItemLeft(layoutItem);
       case "right":
-        return navigateItemRight(layoutItem);
+        return transition ? moveItemRight(transition, layoutItem) : navigateItemRight(layoutItem);
       case "up":
-        return navigateItemUp(layoutItem);
+        return transition ? moveItemUp(transition, layoutItem) : navigateItemUp(layoutItem);
       case "down":
-        return navigateItemDown(layoutItem);
+        return transition ? moveItemDown(transition, layoutItem) : navigateItemDown(layoutItem);
     }
   }
 
