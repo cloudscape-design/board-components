@@ -18,7 +18,7 @@ export type { DashboardItemProps };
 interface Transition {
   itemId: string;
   sizeOverride: null | { width: number; height: number };
-  transform: null | Transform;
+  transform: null | { x: number; y: number };
 }
 
 export default function DashboardItem({
@@ -50,13 +50,13 @@ export default function DashboardItem({
             width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
             height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
           },
-          transform: { x: 0 - window.scrollX, y: 0 - window.scrollY, scaleX: 1, scaleY: 1 },
+          transform: null,
         });
       } else {
         setTransition({
           itemId: draggableItem.id,
           sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
-          transform: { x: cursorOffset.x - window.scrollX, y: cursorOffset.y - window.scrollY, scaleX: 1, scaleY: 1 },
+          transform: { x: cursorOffset.x, y: cursorOffset.y },
         });
       }
     }
@@ -81,9 +81,14 @@ export default function DashboardItem({
 
   function getDragActiveStyles(transition: Transition): CSSProperties {
     return {
-      transform: CSSUtil.Transform.toString(transition.transform),
+      transform: CSSUtil.Transform.toString({
+        x: (transition.transform?.x ?? 0) - window.scrollX,
+        y: (transition.transform?.y ?? 0) - window.scrollY,
+        scaleX: 1,
+        scaleY: 1,
+      }),
       zIndex: 5000,
-      position: transition?.sizeOverride ? "fixed" : undefined,
+      position: "fixed",
       width: transition?.sizeOverride?.width,
       height: transition?.sizeOverride?.height,
     };
