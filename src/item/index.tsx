@@ -21,8 +21,8 @@ export type { DashboardItemProps };
 interface Transition {
   itemId: ItemId;
   operation: Operation;
-  sizeOverride: null | { width: number; height: number };
-  transform: null | { x: number; y: number };
+  sizeTransform: null | { width: number; height: number };
+  positionTransform: null | { x: number; y: number };
 }
 
 export default function DashboardItem({
@@ -60,18 +60,18 @@ export default function DashboardItem({
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeOverride: {
+          sizeTransform: {
             width: Math.max(cellWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
             height: Math.max(cellHeight, draggableSize.height + cursorOffset.y),
           },
-          transform: null,
+          positionTransform: null,
         });
       } else {
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
-          transform: cursorOffset,
+          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : null,
+          positionTransform: cursorOffset,
         });
       }
     }
@@ -192,15 +192,15 @@ export default function DashboardItem({
   function getDragActiveStyles(transition: Transition): CSSProperties {
     return {
       transform: CSSUtil.Transform.toString({
-        x: (transition.transform?.x ?? 0) - scroll.x,
-        y: (transition.transform?.y ?? 0) - scroll.y,
+        x: (transition.positionTransform?.x ?? 0) - scroll.x,
+        y: (transition.positionTransform?.y ?? 0) - scroll.y,
         scaleX: 1,
         scaleY: 1,
       }),
-      position: transition?.sizeOverride ? "fixed" : undefined,
+      position: transition?.sizeTransform ? "fixed" : undefined,
       zIndex: 5000,
-      width: transition?.sizeOverride?.width,
-      height: transition?.sizeOverride?.height,
+      width: transition?.sizeTransform?.width,
+      height: transition?.sizeTransform?.height,
     };
   }
 
@@ -213,7 +213,7 @@ export default function DashboardItem({
       return { transition: transitionStyle };
     }
 
-    const shouldTransformSize = transform.scaleX > 1 || transform.scaleY > 1;
+    const shouldTransformSize = transform.width > 1 || transform.height > 1;
 
     return {
       transform: CSSUtil.Transform.toString({
@@ -223,8 +223,8 @@ export default function DashboardItem({
         scaleY: 1,
       }),
       position: shouldTransformSize ? "absolute" : undefined,
-      width: shouldTransformSize ? gridContext.getWidth(transform.scaleX) : undefined,
-      height: shouldTransformSize ? gridContext.getHeight(transform.scaleY) : undefined,
+      width: shouldTransformSize ? gridContext.getWidth(transform.width) : undefined,
+      height: shouldTransformSize ? gridContext.getHeight(transform.height) : undefined,
       transition: transitionStyle,
     };
   }
@@ -236,9 +236,9 @@ export default function DashboardItem({
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
-  if (transition?.sizeOverride) {
-    maxBodyWidth = transition.sizeOverride.width;
-    maxBodyHeight = transition.sizeOverride.height;
+  if (transition?.sizeTransform) {
+    maxBodyWidth = transition.sizeTransform.width;
+    maxBodyHeight = transition.sizeTransform.height;
   }
 
   return (

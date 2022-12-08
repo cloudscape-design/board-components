@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Transform } from "@dnd-kit/utilities";
 import { toString as engineToString } from "../../internal/debug-tools";
-import { GridLayout, ItemId } from "../../internal/interfaces";
+import { GridLayout, ItemId, Transform } from "../../internal/interfaces";
 import { Position, Rect } from "../../internal/interfaces";
 import { CommittedMove, LayoutShift } from "../../internal/layout-engine/interfaces";
 
@@ -29,8 +28,8 @@ export function createTransforms(grid: GridLayout, moves: readonly CommittedMove
       transforms[item.id] = {
         x: move.x - item.x,
         y: move.y - item.y,
-        scaleX: move.width,
-        scaleY: move.height,
+        width: move.width,
+        height: move.height,
       };
     }
   }

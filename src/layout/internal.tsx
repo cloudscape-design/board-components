@@ -1,14 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import handleStyles from "../internal/handle/styles.css.js";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
+import {
+  DashboardItem,
+  DashboardItemBase,
+  Direction,
+  GridLayoutItem,
+  ItemId,
+  Position,
+  Transform,
+} from "../internal/interfaces";
 import { ItemContextProvider } from "../internal/item-context";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
