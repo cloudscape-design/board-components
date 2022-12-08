@@ -7,10 +7,6 @@ import layoutItemStyles from "../../lib/components/item/styles.selectors.js";
 import layoutStyles from "../../lib/components/layout/styles.selectors.js";
 
 export class DndPageObject extends ScreenshotPageObject {
-  sleep(time = 200) {
-    return new Promise((resolve) => setTimeout(resolve, time));
-  }
-
   async getHeaders() {
     const items = await this.browser.$$(`.${layoutStyles.default.root} .${layoutItemStyles.default.header}`);
     const headers = await Promise.all([...items].map((item) => item.getText()));

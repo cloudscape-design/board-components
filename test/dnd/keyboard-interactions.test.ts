@@ -61,15 +61,15 @@ describe("items reordered with keyboard", () => {
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
       await page.focusDragHandle("A");
       await page.keys(["ArrowRight"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowRight"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowLeft"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowUp"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["Enter"]);
 
       await expect(page.getHeaders()).resolves.toEqual([
@@ -84,7 +84,7 @@ describe("items reordered with keyboard", () => {
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
       await page.focusDragHandle("F");
       await page.keys(["ArrowUp"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["Escape"]);
 
       await expect(page.getHeaders()).resolves.toEqual([
@@ -103,9 +103,9 @@ describe("items resized with keyboard", () => {
 
       await page.focusResizeHandle("A");
       await page.keys(["ArrowRight"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["Enter"]);
 
       const itemSize = await page.getItemSize("A");
@@ -121,9 +121,9 @@ describe("items resized with keyboard", () => {
 
       await page.focusResizeHandle("A");
       await page.keys(["ArrowRight"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["Escape"]);
 
       const itemSize = await page.getItemSize("A");
@@ -139,9 +139,9 @@ describe("items inserted with keyboard", () => {
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
       await page.focusDragHandle("I");
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["Enter"]);
 
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
@@ -153,9 +153,9 @@ describe("items inserted with keyboard", () => {
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
       await page.focusDragHandle("I");
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.sleep();
+      await page.pause(200);
       await page.keys(["Escape"]);
 
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
