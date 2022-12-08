@@ -1,8 +1,5 @@
 .grid {
   display: grid;
-  justify-items: stretch;
-  justify-content: stretch;
-  align-content: stretch;
   gap: 16px; // Can't use design tokens for the gap because it is used in calculations;
   grid-auto-rows: 100px;
 }
