@@ -88,7 +88,7 @@ export default function DashboardItem({
         scaleY: 1,
       }),
       zIndex: 5000,
-      position: "fixed",
+      position: transition.sizeOverride ? "fixed" : undefined,
       width: transition?.sizeOverride?.width,
       height: transition?.sizeOverride?.height,
     };
