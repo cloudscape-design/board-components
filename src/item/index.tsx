@@ -89,7 +89,8 @@ export default function DashboardItem({
         draggableApi.startResize(coordiantes, "manual");
       }
       setInteractionType("manual");
-      ankerPositionRef.current = ankerRef.current!.getBoundingClientRect();
+      const ankerRect = ankerRef.current!.getBoundingClientRect();
+      ankerPositionRef.current = { x: ankerRect.x + window.scrollX, y: ankerRect.y + window.scrollY };
     } else {
       draggableApi.endTransition();
     }
