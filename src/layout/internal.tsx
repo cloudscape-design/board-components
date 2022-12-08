@@ -162,8 +162,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     const layoutShift = getLayoutShift(transition, transition.path);
+    const canDrop = detail.operation === "insert" || checkCanDrop(detail.draggableElement);
 
-    if (layoutShift) {
+    if (layoutShift && canDrop) {
       printLayoutDebug(itemsLayout, layoutShift);
 
       if (layoutShift.conflicts.length > 0) {
