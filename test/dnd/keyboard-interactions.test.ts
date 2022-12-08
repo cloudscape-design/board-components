@@ -132,3 +132,33 @@ describe("items resized with keyboard", () => {
     })
   );
 });
+
+describe("items inserted with keyboard", () => {
+  test(
+    "item insert can be submitted",
+    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+      await page.focusDragHandle("I");
+      await page.keys(["ArrowDown"]);
+      await page.sleep();
+      await page.keys(["ArrowDown"]);
+      await page.sleep();
+      await page.keys(["Enter"]);
+
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+    })
+  );
+
+  test(
+    "item insert can be discarded",
+    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+      await page.focusDragHandle("I");
+      await page.keys(["ArrowDown"]);
+      await page.sleep();
+      await page.keys(["ArrowDown"]);
+      await page.sleep();
+      await page.keys(["Escape"]);
+
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+    })
+  );
+});

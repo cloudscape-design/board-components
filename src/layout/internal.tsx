@@ -40,11 +40,11 @@ function getLayoutShift(transition: Transition, path: Position[]) {
   }
 
   if (transition.isResizing) {
-    return transition.engine.resize({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
+    return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
   }
 
   if (transition.layoutItem) {
-    return transition.engine.move({ itemId: transition.draggableItem.id, path: path.slice(1) }).getLayoutShift();
+    return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
   }
 
   return transition.engine
@@ -137,7 +137,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         detail.operation === "resize"
           ? layoutShift.next.rows + itemHeight
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
-      const canDrop = checkCanDrop(detail.draggableElement);
+      const canDrop = detail.operation === "insert" || checkCanDrop(detail.draggableElement);
 
       setTransitionDelayed(
         canDrop
@@ -161,12 +161,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     const layoutShift = getLayoutShift(transition, transition.path);
-    const canDrop = checkCanDrop(detail.draggableElement);
 
     if (layoutShift) {
       printLayoutDebug(itemsLayout, layoutShift);
 
-      if (!canDrop || layoutShift.conflicts.length > 0) {
+      if (layoutShift.conflicts.length > 0) {
         return;
       }
 

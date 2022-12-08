@@ -7,9 +7,10 @@ import { CSSProperties, KeyboardEvent, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
-import { Coordinates } from "../internal/interfaces";
+import { Coordinates, Direction } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
+import { getNextDroppable } from "./get-next-droppable";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -33,8 +34,11 @@ export default function DashboardItem({
   const { item, itemSize, itemMaxSize, transform, onNavigate } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [manualInsert, setManualInsert] = useState(false);
   const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
   const itemRef = useRef<HTMLDivElement>(null);
+  const ankerRef = useRef<HTMLDivElement>(null);
+  const ankerPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const gridContext = useGridContext();
 
@@ -68,6 +72,7 @@ export default function DashboardItem({
   useDragSubscription("drop", () => {
     setDragActive(false);
     setTransition(null);
+    setManualInsert(false);
   });
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
@@ -76,7 +81,7 @@ export default function DashboardItem({
       const coordiantes: Coordinates = {
         __type: "Coordinates",
         x: operation === "drag" ? rect.left : rect.right,
-        y: operation === "drag" ? rect.left : rect.bottom,
+        y: operation === "drag" ? rect.top : rect.bottom,
       };
       if (operation === "drag") {
         draggableApi.startMove(coordiantes, "manual");
@@ -84,6 +89,7 @@ export default function DashboardItem({
         draggableApi.startResize(coordiantes, "manual");
       }
       setInteractionType("manual");
+      ankerPositionRef.current = ankerRef.current!.getBoundingClientRect();
     } else {
       draggableApi.endTransition();
     }
@@ -95,17 +101,41 @@ export default function DashboardItem({
     }
   }
 
+  function handleInsert(direction: Direction) {
+    const droppables = draggableApi.getDroppables();
+    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
+    if (!nextDroppable) {
+      // TODO: add announcement
+      return;
+    }
+    const ankerRect = ankerRef.current!.getBoundingClientRect();
+    const droppableRect = nextDroppable[1].element.getBoundingClientRect();
+    setManualInsert(true);
+    const dx = ankerPositionRef.current.x - ankerRect.x - window.scrollX;
+    const dy = ankerPositionRef.current.y - ankerRect.y - window.scrollY;
+    draggableApi.insert({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
+  }
+
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
+    const canInsert = transition && operation === "drag" && !gridContext;
     const canNavigate = transition || operation === "drag";
+    const move = (direction: Direction) => {
+      if (canInsert) {
+        handleInsert(direction);
+      } else if (canNavigate) {
+        onNavigate(direction);
+      }
+    };
+
     switch (event.key) {
       case "ArrowUp":
-        return canNavigate && onNavigate("up");
+        return move("up");
       case "ArrowDown":
-        return canNavigate && onNavigate("down");
+        return move("down");
       case "ArrowLeft":
-        return canNavigate && onNavigate("left");
+        return move("left");
       case "ArrowRight":
-        return canNavigate && onNavigate("right");
+        return move("right");
       case " ":
       case "Enter":
         return onKeyboardTransitionToggle(operation);
@@ -158,7 +188,10 @@ export default function DashboardItem({
     };
   }
 
-  const style = transition && interactionType === "pointer" ? getDragActiveStyles(transition) : getLayoutShiftStyles();
+  const style =
+    transition && (interactionType === "pointer" || manualInsert)
+      ? getDragActiveStyles(transition)
+      : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
@@ -168,47 +201,50 @@ export default function DashboardItem({
   }
 
   return (
-    <div
-      ref={itemRef}
-      className={clsx(styles.root, transition && styles.wrapperDragging)}
-      style={style}
-      onBlur={onKeyboardTransitionDiscard}
-    >
-      <Container disableContentPaddings={true}>
-        <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
-          <WidgetContainerHeader
-            handle={
-              <DragHandle
-                ariaLabel={i18nStrings.dragHandleLabel}
-                onPointerDown={onDragHandlePointerDown}
-                onKeyDown={(event) => onHandleKeyDown("drag", event)}
-              />
-            }
-            settings={settings}
-          >
-            {header}
-          </WidgetContainerHeader>
+    <>
+      <div
+        ref={itemRef}
+        className={clsx(styles.root, transition && styles.wrapperDragging)}
+        style={style}
+        onBlur={onKeyboardTransitionDiscard}
+      >
+        <Container disableContentPaddings={true}>
+          <div className={styles.body} style={{ maxWidth: maxBodyWidth, maxHeight: maxBodyHeight }}>
+            <WidgetContainerHeader
+              handle={
+                <DragHandle
+                  ariaLabel={i18nStrings.dragHandleLabel}
+                  onPointerDown={onDragHandlePointerDown}
+                  onKeyDown={(event) => onHandleKeyDown("drag", event)}
+                />
+              }
+              settings={settings}
+            >
+              {header}
+            </WidgetContainerHeader>
 
-          <div
-            className={clsx(styles["content-wrapper"], {
-              [styles["content-wrapper-disable-paddings"]]: disableContentPaddings,
-            })}
-          >
-            <div className={styles.content}>{children}</div>
+            <div
+              className={clsx(styles["content-wrapper"], {
+                [styles["content-wrapper-disable-paddings"]]: disableContentPaddings,
+              })}
+            >
+              <div className={styles.content}>{children}</div>
+            </div>
+
+            {footer && <div className={styles.footer}>{footer}</div>}
           </div>
-
-          {footer && <div className={styles.footer}>{footer}</div>}
-        </div>
-      </Container>
-      {gridContext && (
-        <div className={styles.resizer}>
-          <ResizeHandle
-            ariaLabel={i18nStrings.resizeLabel}
-            onPointerDown={onResizeHandlePointerDown}
-            onKeyDown={(event) => onHandleKeyDown("resize", event)}
-          />
-        </div>
-      )}
-    </div>
+        </Container>
+        {gridContext && (
+          <div className={styles.resizer}>
+            <ResizeHandle
+              ariaLabel={i18nStrings.resizeLabel}
+              onPointerDown={onResizeHandlePointerDown}
+              onKeyDown={(event) => onHandleKeyDown("resize", event)}
+            />
+          </div>
+        )}
+      </div>
+      <div ref={ankerRef} style={{ position: "absolute", top: 0, left: 0, visibility: "hidden" }}></div>
+    </>
   );
 }

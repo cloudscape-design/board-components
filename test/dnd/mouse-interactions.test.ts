@@ -1,15 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
 import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
 import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
+import { DndPageObject } from "./dnd-page-object.js";
 
-function setupTest(url: string, testFn: (page: ScreenshotPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
+function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
-    const page = new ScreenshotPageObject(browser);
+    const page = new DndPageObject(browser);
     await page.waitForVisible("main");
     await testFn(page, browser);
   });
@@ -22,7 +22,7 @@ test(
 
     const handleA = await browser.$(`[data-item-id="A"] .${dragHandleStyles.default.handle}`);
     const placeholderB = await browser.$('[data-item-id="B"]');
-    await handleA.dragAndDrop(placeholderB);
+    await handleA.dragAndDrop(placeholderB, { duration: 100 });
 
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
@@ -35,7 +35,7 @@ test(
 
     const handleA = await browser.$(`[data-item-id="A"] .${resizeHandleStyles.default.handle}`);
     const placeholderB = await browser.$('[data-item-id="B"]');
-    await handleA.dragAndDrop(placeholderB);
+    await handleA.dragAndDrop(placeholderB, { duration: 100 });
 
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })

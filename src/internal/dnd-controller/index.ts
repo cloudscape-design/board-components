@@ -6,7 +6,7 @@ import { getCoordinates } from "../utils/get-coordinates";
 import { getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
-type Scale = (size: { width: number; height: number }) => { width: number; height: number };
+export type Scale = (size: { width: number; height: number }) => { width: number; height: number };
 
 export interface DragAndDropData extends DragDetail {
   cursorOffset: Coordinates;
@@ -14,13 +14,13 @@ export interface DragAndDropData extends DragDetail {
   dropTarget: null | { scale: Scale };
 }
 
-interface Droppable {
+export interface Droppable {
   element: HTMLElement;
   scale: Scale;
 }
 
 interface DragDetail {
-  operation: "move" | "resize";
+  operation: "move" | "resize" | "insert";
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
   draggableSize: { width: number; height: number };
@@ -66,12 +66,20 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.transition = null;
   }
 
-  public addDroppable(id: string, scale: Scale, element: HTMLElement) {
+  public addDroppable(id: ItemId, scale: Scale, element: HTMLElement) {
     this.droppables.set(id, { element, scale });
   }
 
-  public removeDroppable(id: string) {
+  public removeDroppable(id: ItemId) {
     this.droppables.delete(id);
+  }
+
+  public insert(coordinates: Coordinates) {
+    this.emit("move", this.getDragAndDropData(coordinates, "insert"));
+  }
+
+  public getDroppables() {
+    return [...this.droppables.entries()];
   }
 
   private onPointerMove = (event: PointerEvent) => {
@@ -85,12 +93,15 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.transition = null;
   };
 
-  private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
+  private getDragAndDropData(
+    coordinates: Coordinates,
+    operationOverride?: "move" | "resize" | "insert"
+  ): DragAndDropData {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
-    const { operation, draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } =
-      this.transition;
+    const { draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } = this.transition;
+    const operation = operationOverride ?? this.transition.operation;
     const cursorOffset = {
       ...coordinates,
       x: coordinates.x - startCoordinates.x + (window.scrollX - startScroll.x),
@@ -100,7 +111,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };
   }
 
-  private getCollisions(operation: "move" | "resize", draggableElement: HTMLElement, coordinates: Coordinates) {
+  private getCollisions(
+    operation: "move" | "resize" | "insert",
+    draggableElement: HTMLElement,
+    coordinates: Coordinates
+  ) {
     const droppableEntries = [...this.droppables.entries()];
     const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
     const collisionIds = getHoveredDroppables(operation, draggableElement, coordinates, droppableElements);
@@ -148,6 +163,12 @@ export function useDraggable({
     },
     endTransition() {
       controller.end();
+    },
+    getDroppables() {
+      return controller.getDroppables();
+    },
+    insert(coordinates: Coordinates) {
+      controller.insert(coordinates);
     },
   };
 }
