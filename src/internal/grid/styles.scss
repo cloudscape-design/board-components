@@ -2,9 +2,6 @@
 
 .grid {
   display: grid;
-  justify-items: stretch;
-  justify-content: stretch;
-  align-content: stretch;
   gap: cs.$space-scaled-m;
   grid-auto-rows: 260px;
 }

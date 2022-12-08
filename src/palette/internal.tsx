@@ -60,7 +60,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
           >
-            <div data-item-id={item.id}>{renderItem(item)}</div>
+            {renderItem(item)}
           </ItemContainer>
         ))}
       </SpaceBetween>

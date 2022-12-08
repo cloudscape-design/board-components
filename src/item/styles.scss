@@ -1,5 +1,9 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
+.root {
+  height: 100%;
+}
+
 .header {
   display: flex;
   justify-items: center;
@@ -32,43 +36,4 @@
   position: absolute;
   bottom: cs.$space-scaled-xs;
   right: cs.$space-static-s;
-}
-
-.root {
-  touch-action: none;
-  position: relative;
-  height: 100%;
-  display: grid;
-}
-
-.body {
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-wrapper {
-  padding: 0 cs.$space-container-horizontal cs.$space-scaled-l cs.$space-container-horizontal;
-  box-sizing: border-box;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
-
-  &-disable-paddings {
-    padding: 0;
-  }
-}
-
-.content {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.footer {
-  flex: 0 0 auto;
-  border-top: 2px solid cs.$color-border-divider-default;
-  padding: cs.$space-scaled-s cs.$space-container-horizontal;
 }

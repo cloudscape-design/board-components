@@ -26,8 +26,6 @@ export interface ItemContainerRef {
 }
 
 export interface ItemContext {
-  contentWidth?: number;
-  contentHeight?: number;
   dragHandle: {
     ref: React.RefObject<HTMLButtonElement>;
     onPointerDown(coordinates: Coordinates): void;
@@ -285,13 +283,6 @@ function ItemContainerComponent(
       ? getDragActiveStyles(transition)
       : getLayoutShiftStyles();
 
-  let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
-  let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
-  if (transition?.sizeTransform) {
-    maxBodyWidth = transition.sizeTransform.width;
-    maxBodyHeight = transition.sizeTransform.height;
-  }
-
   const dragHandleRef = useRef<HTMLButtonElement>(null);
   useImperativeHandle(ref, () => ({
     focusDragHandle: () => dragHandleRef.current?.focus(),
@@ -299,11 +290,15 @@ function ItemContainerComponent(
 
   return (
     <>
-      <div ref={itemRef} className={styles.root} style={style} onBlur={onKeyboardTransitionDiscard}>
+      <div
+        ref={itemRef}
+        className={styles.root}
+        style={style}
+        data-item-id={item.id}
+        onBlur={onKeyboardTransitionDiscard}
+      >
         <Context.Provider
           value={{
-            contentWidth: maxBodyWidth,
-            contentHeight: maxBodyHeight,
             dragHandle: {
               ref: dragHandleRef,
               onPointerDown: onDragHandlePointerDown,
