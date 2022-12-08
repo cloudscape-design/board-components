@@ -82,7 +82,8 @@ export default function DashboardItem({
   function getDragActiveStyles(transition: Transition): CSSProperties {
     return {
       transform: CSSUtil.Transform.toString(transition.transform),
-      position: transition?.sizeOverride ? "absolute" : undefined,
+      zIndex: 10000,
+      position: transition?.sizeOverride ? "fixed" : undefined,
       width: transition?.sizeOverride?.width,
       height: transition?.sizeOverride?.height,
     };
