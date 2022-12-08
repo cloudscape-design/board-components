@@ -50,13 +50,13 @@ export default function DashboardItem({
             width: Math.max(cellWidth, Math.min(width, draggableSize.width + cursorOffset.x)),
             height: Math.max(cellHeight, Math.min(height, draggableSize.height + cursorOffset.y)),
           },
-          transform: null,
+          transform: { x: 0 - window.scrollX, y: 0 - window.scrollY, scaleX: 1, scaleY: 1 },
         });
       } else {
         setTransition({
           itemId: draggableItem.id,
           sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
-          transform: { ...cursorOffset, scaleX: 1, scaleY: 1 },
+          transform: { x: cursorOffset.x - window.scrollX, y: cursorOffset.y - window.scrollY, scaleX: 1, scaleY: 1 },
         });
       }
     }
