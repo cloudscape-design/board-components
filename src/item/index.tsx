@@ -39,8 +39,8 @@ export default function DashboardItem({
   const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
   const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
   const itemRef = useRef<HTMLDivElement>(null);
-  const ankerRef = useRef<HTMLDivElement>(null);
-  const ankerPositionRef = useRef({ x: 0, y: 0 });
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const anchorPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const eventHandlersRef = useRef({
     onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(getCoordinates(event)),
@@ -124,8 +124,8 @@ export default function DashboardItem({
         draggableApi.start("resize", coordiantes);
       }
       setInteractionType("manual");
-      const ankerRect = ankerRef.current!.getBoundingClientRect();
-      ankerPositionRef.current = { x: ankerRect.x + window.scrollX, y: ankerRect.y + window.scrollY };
+      const anchorRect = anchorRef.current!.getBoundingClientRect();
+      anchorPositionRef.current = { x: anchorRect.x + window.scrollX, y: anchorRect.y + window.scrollY };
     } else {
       draggableApi.submitTransition();
     }
@@ -144,10 +144,10 @@ export default function DashboardItem({
       // TODO: add announcement
       return;
     }
-    const ankerRect = ankerRef.current!.getBoundingClientRect();
+    const anchorRect = anchorRef.current!.getBoundingClientRect();
     const droppableRect = nextDroppable[1].element.getBoundingClientRect();
-    const dx = ankerPositionRef.current.x - ankerRect.x - window.scrollX;
-    const dy = ankerPositionRef.current.y - ankerRect.y - window.scrollY;
+    const dx = anchorPositionRef.current.x - anchorRect.x - window.scrollX;
+    const dy = anchorPositionRef.current.y - anchorRect.y - window.scrollY;
     draggableApi.updateTransition({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
   }
 
@@ -285,7 +285,7 @@ export default function DashboardItem({
           </div>
         )}
       </div>
-      <div ref={ankerRef} style={{ position: "absolute", top: 0, left: 0, visibility: "hidden" }}></div>
+      <div ref={anchorRef} style={{ position: "absolute", top: 0, left: 0, visibility: "hidden" }}></div>
     </>
   );
 }
