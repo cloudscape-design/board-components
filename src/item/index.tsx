@@ -116,14 +116,20 @@ export default function DashboardItem({
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
       };
-      if (operation === "drag" && !gridContext) {
-        draggableApi.start("insert", coordiantes);
-      } else if (operation === "drag") {
-        draggableApi.start("reorder", coordiantes);
-      } else {
-        draggableApi.start("resize", coordiantes);
-      }
+
       setInteractionType("manual");
+
+      // Timeout allows interaction type state to propagate.
+      setTimeout(() => {
+        if (operation === "drag" && !gridContext) {
+          draggableApi.start("insert", coordiantes);
+        } else if (operation === "drag") {
+          draggableApi.start("reorder", coordiantes);
+        } else {
+          draggableApi.start("resize", coordiantes);
+        }
+      }, 0);
+
       const anchorRect = anchorRef.current!.getBoundingClientRect();
       anchorPositionRef.current = { x: anchorRect.x + window.scrollX, y: anchorRect.y + window.scrollY };
     } else {
