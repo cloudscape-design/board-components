@@ -4,10 +4,10 @@ import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, KeyboardEvent, useEffect, useRef, useState } from "react";
-import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller/controller";
+import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../internal/dnd-controller/controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
-import { Coordinates, Direction } from "../internal/interfaces";
+import { Coordinates, Direction, ItemId } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
 import { getCoordinates } from "../internal/utils/get-coordinates";
@@ -19,7 +19,8 @@ import styles from "./styles.css.js";
 export type { DashboardItemProps };
 
 interface Transition {
-  itemId: string;
+  itemId: ItemId;
+  operation: Operation;
   sizeOverride: null | { width: number; height: number };
   transform: null | { x: number; y: number };
 }
@@ -35,7 +36,6 @@ export default function DashboardItem({
   const { item, itemSize, itemMaxSize, transform, onNavigate } = useItemContext();
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [manualInsert, setManualInsert] = useState(false);
   const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
   const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
   const itemRef = useRef<HTMLDivElement>(null);
@@ -58,6 +58,7 @@ export default function DashboardItem({
         const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
+          operation,
           itemId: draggableItem.id,
           sizeOverride: {
             width: Math.max(cellWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
@@ -67,6 +68,7 @@ export default function DashboardItem({
         });
       } else {
         setTransition({
+          operation,
           itemId: draggableItem.id,
           sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
           transform: cursorOffset,
@@ -89,7 +91,6 @@ export default function DashboardItem({
   useDragSubscription("submit", () => {
     setDragActive(false);
     setTransition(null);
-    setManualInsert(false);
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
     window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
   });
@@ -97,7 +98,6 @@ export default function DashboardItem({
   useDragSubscription("discard", () => {
     setDragActive(false);
     setTransition(null);
-    setManualInsert(false);
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
     window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
   });
@@ -146,7 +146,6 @@ export default function DashboardItem({
     }
     const ankerRect = ankerRef.current!.getBoundingClientRect();
     const droppableRect = nextDroppable[1].element.getBoundingClientRect();
-    setManualInsert(true);
     const dx = ankerPositionRef.current.x - ankerRect.x - window.scrollX;
     const dy = ankerPositionRef.current.y - ankerRect.y - window.scrollY;
     draggableApi.updateTransition({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
@@ -231,7 +230,7 @@ export default function DashboardItem({
   }
 
   const style =
-    transition && (interactionType === "pointer" || manualInsert)
+    transition && (interactionType === "pointer" || transition.operation === "insert")
       ? getDragActiveStyles(transition)
       : getLayoutShiftStyles();
 
