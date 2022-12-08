@@ -5,7 +5,7 @@ import { Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller";
+import { useDragSubscription } from "../internal/dnd-controller/pointer-controller";
 import Grid from "../internal/grid";
 import handleStyles from "../internal/handle/styles.css.js";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Position } from "../internal/interfaces";

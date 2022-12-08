@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
 import { useRef } from "react";
-import { useDroppable } from "../internal/dnd-controller";
+import { useDroppable } from "../internal/dnd-controller/pointer-controller";
 import { useGridContext } from "../internal/grid-context";
 import styles from "./styles.css.js";
 

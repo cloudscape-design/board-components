@@ -4,7 +4,7 @@ import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, KeyboardEvent, useEffect, useRef, useState } from "react";
-import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
+import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller/pointer-controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
 import { Coordinates, Direction } from "../internal/interfaces";
