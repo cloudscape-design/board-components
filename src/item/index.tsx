@@ -3,7 +3,7 @@
 import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
-import { CSSProperties, KeyboardEvent, useRef, useState } from "react";
+import { CSSProperties, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
@@ -35,6 +35,7 @@ export default function DashboardItem({
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const [manualInsert, setManualInsert] = useState(false);
+  const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
   const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
   const itemRef = useRef<HTMLDivElement>(null);
   const ankerRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,8 @@ export default function DashboardItem({
     setDragActive(true);
 
     if (item.id === draggableItem.id) {
+      setScroll({ x: window.scrollX, y: window.scrollY });
+
       if (operation === "resize") {
         const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
@@ -73,6 +76,12 @@ export default function DashboardItem({
     setDragActive(false);
     setTransition(null);
     setManualInsert(false);
+  });
+
+  useEffect(() => {
+    const listener = () => setScroll({ x: window.scrollX, y: window.scrollY });
+    document.addEventListener("scroll", listener);
+    return () => document.removeEventListener("scroll", listener);
   });
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
@@ -158,12 +167,12 @@ export default function DashboardItem({
   function getDragActiveStyles(transition: Transition): CSSProperties {
     return {
       transform: CSSUtil.Transform.toString({
-        x: (transition.transform?.x ?? 0) - window.scrollX,
-        y: (transition.transform?.y ?? 0) - window.scrollY,
+        x: (transition.transform?.x ?? 0) - scroll.x,
+        y: (transition.transform?.y ?? 0) - scroll.y,
         scaleX: 1,
         scaleY: 1,
       }),
-      position: "fixed",
+      position: transition?.sizeOverride ? "fixed" : undefined,
       zIndex: 5000,
       width: transition?.sizeOverride?.width,
       height: transition?.sizeOverride?.height,
