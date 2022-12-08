@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { CSS as CSSUtil, Transform } from "@dnd-kit/utilities";
+import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, KeyboardEvent, useRef, useState } from "react";
 import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller";
@@ -20,7 +20,7 @@ export type { DashboardItemProps };
 interface Transition {
   itemId: string;
   sizeOverride: null | { width: number; height: number };
-  transform: null | Transform;
+  transform: null | { x: number; y: number };
 }
 
 export default function DashboardItem({
@@ -61,7 +61,7 @@ export default function DashboardItem({
         setTransition({
           itemId: draggableItem.id,
           sizeOverride: dropTarget ? dropTarget.scale(itemSize) : null,
-          transform: { ...cursorOffset, scaleX: 1, scaleY: 1 },
+          transform: cursorOffset,
         });
       }
     }
@@ -157,8 +157,13 @@ export default function DashboardItem({
 
   function getDragActiveStyles(transition: Transition): CSSProperties {
     return {
-      transform: CSSUtil.Transform.toString(transition.transform),
-      position: transition?.sizeOverride ? "fixed" : undefined,
+      transform: CSSUtil.Transform.toString({
+        x: (transition.transform?.x ?? 0) - window.scrollX,
+        y: (transition.transform?.y ?? 0) - window.scrollY,
+        scaleX: 1,
+        scaleY: 1,
+      }),
+      position: "fixed",
       zIndex: 5000,
       width: transition?.sizeOverride?.width,
       height: transition?.sizeOverride?.height,
