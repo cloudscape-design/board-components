@@ -16,7 +16,7 @@ import {
   Position,
   Transform,
 } from "../internal/interfaces";
-import { ItemContextProvider } from "../internal/item-context";
+import { ItemContainer } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
@@ -339,18 +339,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
             return (
-              <ItemContextProvider
+              <ItemContainer
                 key={item.id}
-                value={{
-                  item,
-                  itemSize,
-                  itemMaxSize,
-                  transform: transition?.transforms[item.id] ?? null,
-                  onNavigate: (direction) => onItemNavigate(item.id, direction),
-                }}
+                item={item}
+                itemSize={itemSize}
+                itemMaxSize={itemMaxSize}
+                transform={transition?.transforms[item.id] ?? null}
+                onNavigate={(direction) => onItemNavigate(item.id, direction)}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
-              </ItemContextProvider>
+              </ItemContainer>
             );
           })}
         </Grid>

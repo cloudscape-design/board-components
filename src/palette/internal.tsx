@@ -4,7 +4,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useRef } from "react";
 import handleStyles from "../internal/handle/styles.css.js";
 import { Direction } from "../internal/interfaces";
-import { ItemContextProvider } from "../internal/item-context";
+import { ItemContainer } from "../internal/item-container";
 import { DashboardPaletteProps } from "./interfaces";
 
 export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
@@ -48,18 +48,16 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
     <div ref={paletteRef}>
       <SpaceBetween size="l">
         {items.map((item, index) => (
-          <ItemContextProvider
+          <ItemContainer
             key={item.id}
-            value={{
-              item,
-              itemSize: { width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan },
-              itemMaxSize: { width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan },
-              transform: null,
-              onNavigate: (direction) => onItemNavigate(index, direction),
-            }}
+            item={item}
+            itemSize={{ width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan }}
+            itemMaxSize={{ width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan }}
+            transform={null}
+            onNavigate={(direction) => onItemNavigate(index, direction)}
           >
             <div data-item-id={item.id}>{renderItem(item)}</div>
-          </ItemContextProvider>
+          </ItemContainer>
         ))}
       </SpaceBetween>
     </div>
