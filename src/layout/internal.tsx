@@ -127,7 +127,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       : transition.draggableItem.definition.defaultRowSpan;
 
     const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
+    let path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
+
+    // Manual insert does not require path.
+    if (detail.operation === "insert") {
+      path = path.slice(-1);
+    }
+
     const layoutShift = getLayoutShift(transition, path);
 
     if (layoutShift) {
