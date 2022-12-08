@@ -5,7 +5,7 @@ import { Transform } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller/pointer-controller";
+import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import handleStyles from "../internal/handle/styles.css.js";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Position } from "../internal/interfaces";
@@ -114,7 +114,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
   });
 
-  useDragSubscription("move", (detail) => {
+  useDragSubscription("update", (detail) => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
@@ -148,7 +148,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   });
 
-  useDragSubscription("drop", (detail) => {
+  useDragSubscription("submit", (detail) => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
@@ -156,10 +156,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
     setTransitionDelayed.cancel();
     setTransition(null);
-
-    if (detail.cancel) {
-      return;
-    }
 
     const layoutShift = getLayoutShift(transition, transition.path);
     const canDrop = detail.operation === "insert" || checkCanDrop(detail.draggableElement);
@@ -184,6 +180,14 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
       }
     }
+  });
+
+  useDragSubscription("discard", () => {
+    if (!transition) {
+      throw new Error("Invariant violation: no transition.");
+    }
+    setTransitionDelayed.cancel();
+    setTransition(null);
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {

@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
 import { Coordinates, DashboardItemBase, ItemId } from "../interfaces";
-import { getCoordinates } from "../utils/get-coordinates";
 import { getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
+
+export type Operation = "reorder" | "resize" | "insert";
 
 export type Scale = (size: { width: number; height: number }) => { width: number; height: number };
 
@@ -20,7 +21,7 @@ export interface Droppable {
 }
 
 interface DragDetail {
-  operation: "move" | "resize" | "insert";
+  operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
   draggableSize: { width: number; height: number };
@@ -28,12 +29,14 @@ interface DragDetail {
 
 interface DragAndDropEvents {
   start: (data: DragAndDropData) => void;
-  move: (data: DragAndDropData) => void;
-  drop: (data: DragAndDropData & { cancel: boolean }) => void;
+  update: (data: DragAndDropData) => void;
+  submit: (data: DragAndDropData) => void;
+  discard: (data: DragAndDropData) => void;
 }
 
 interface Transition extends DragDetail {
   startCoordinates: Coordinates;
+  lastCoordinates: Coordinates;
   startScroll: Coordinates;
 }
 
@@ -41,28 +44,35 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
   private transition: null | Transition = null;
 
-  public activateDrag(dragDetail: DragDetail, coordinates: Coordinates, type: "pointer" | "manual") {
+  public start(
+    operation: Operation,
+    draggableItem: DashboardItemBase<unknown>,
+    draggableElement: HTMLElement,
+    startCoordinates: Coordinates
+  ) {
     this.transition = {
-      ...dragDetail,
-      startCoordinates: coordinates,
+      operation,
+      draggableItem,
+      draggableElement,
+      draggableSize: draggableElement.getBoundingClientRect(),
+      startCoordinates,
+      lastCoordinates: startCoordinates,
       startScroll: { __type: "Coordinates", x: window.scrollX, y: window.scrollY },
     };
-
-    this.emit("start", this.getDragAndDropData(coordinates));
-
-    if (type === "pointer") {
-      document.addEventListener("pointermove", this.onPointerMove);
-      document.addEventListener("pointerup", this.onPointerUp);
-    }
+    this.emit("start", this.getDragAndDropData(startCoordinates));
   }
 
-  public end() {
-    this.emit("drop", { ...this.getDragAndDropData(this.transition!.startCoordinates), cancel: false });
+  public update(coordinates: Coordinates) {
+    this.emit("update", this.getDragAndDropData(coordinates));
+  }
+
+  public submit() {
+    this.emit("submit", this.getDragAndDropData());
     this.transition = null;
   }
 
-  public cancel() {
-    this.emit("drop", { ...this.getDragAndDropData(this.transition!.startCoordinates), cancel: true });
+  public discard() {
+    this.emit("discard", this.getDragAndDropData());
     this.transition = null;
   }
 
@@ -74,34 +84,19 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.droppables.delete(id);
   }
 
-  public insert(coordinates: Coordinates) {
-    this.emit("move", this.getDragAndDropData(coordinates, "insert"));
-  }
-
   public getDroppables() {
     return [...this.droppables.entries()];
   }
 
-  private onPointerMove = (event: PointerEvent) => {
-    this.emit("move", this.getDragAndDropData(getCoordinates(event)));
-  };
-
-  private onPointerUp = (event: PointerEvent) => {
-    this.emit("drop", { ...this.getDragAndDropData(getCoordinates(event)), cancel: false });
-    document.removeEventListener("pointermove", this.onPointerMove);
-    document.removeEventListener("pointerup", this.onPointerUp);
-    this.transition = null;
-  };
-
-  private getDragAndDropData(
-    coordinates: Coordinates,
-    operationOverride?: "move" | "resize" | "insert"
-  ): DragAndDropData {
+  private getDragAndDropData(coordinates?: Coordinates): DragAndDropData {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
-    const { draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } = this.transition;
-    const operation = operationOverride ?? this.transition.operation;
+    coordinates = coordinates ?? this.transition.lastCoordinates;
+
+    const { operation, draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } =
+      this.transition;
+
     const cursorOffset = {
       ...coordinates,
       x: coordinates.x - startCoordinates.x + (window.scrollX - startScroll.x),
@@ -111,11 +106,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };
   }
 
-  private getCollisions(
-    operation: "move" | "resize" | "insert",
-    draggableElement: HTMLElement,
-    coordinates: Coordinates
-  ) {
+  private getCollisions(operation: Operation, draggableElement: HTMLElement, coordinates: Coordinates) {
     const droppableEntries = [...this.droppables.entries()];
     const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
     const collisionIds = getHoveredDroppables(operation, draggableElement, coordinates, droppableElements);
@@ -146,29 +137,20 @@ export function useDraggable({
   getElement: () => HTMLElement;
 }) {
   return {
-    startMove(coordinates: Coordinates, type: "pointer" | "manual") {
-      const operation = "move";
-      const draggableElement = getElement();
-      const draggableSize = draggableElement.getBoundingClientRect();
-      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates, type);
+    start(operation: Operation, startCoordinates: Coordinates) {
+      controller.start(operation, item, getElement(), startCoordinates);
     },
-    startResize(coordinates: Coordinates, type: "pointer" | "manual") {
-      const operation = "resize";
-      const draggableElement = getElement();
-      const draggableSize = draggableElement.getBoundingClientRect();
-      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates, type);
+    updateTransition(coordinates: Coordinates) {
+      controller.update(coordinates);
     },
-    cancelTransition() {
-      controller.cancel();
+    submitTransition() {
+      controller.submit();
     },
-    endTransition() {
-      controller.end();
+    discardTransition() {
+      controller.discard();
     },
     getDroppables() {
       return controller.getDroppables();
-    },
-    insert(coordinates: Coordinates) {
-      controller.insert(coordinates);
     },
   };
 }

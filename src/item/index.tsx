@@ -4,12 +4,13 @@ import Container from "@cloudscape-design/components/container";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { CSSProperties, KeyboardEvent, useEffect, useRef, useState } from "react";
-import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller/pointer-controller";
+import { DragAndDropData, useDragSubscription, useDraggable } from "../internal/dnd-controller/controller";
 import DragHandle from "../internal/drag-handle";
 import { useGridContext } from "../internal/grid-context";
 import { Coordinates, Direction } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-context";
 import ResizeHandle from "../internal/resize-handle";
+import { getCoordinates } from "../internal/utils/get-coordinates";
 import { getNextDroppable } from "./get-next-droppable";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
@@ -41,6 +42,10 @@ export default function DashboardItem({
   const ankerRef = useRef<HTMLDivElement>(null);
   const ankerPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
+  const eventHandlersRef = useRef({
+    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(getCoordinates(event)),
+    onPointerUp: () => draggableApi.submitTransition(),
+  });
   const gridContext = useGridContext();
 
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
@@ -70,12 +75,31 @@ export default function DashboardItem({
     }
   }
 
-  useDragSubscription("start", (detail) => updateTransition(detail));
-  useDragSubscription("move", (detail) => updateTransition(detail));
-  useDragSubscription("drop", () => {
+  useDragSubscription("start", (detail) => {
+    updateTransition(detail);
+
+    if (interactionType === "pointer" && item.id === detail.draggableItem.id) {
+      window.addEventListener("pointermove", eventHandlersRef.current.onPointerMove);
+      window.addEventListener("pointerup", eventHandlersRef.current.onPointerUp);
+    }
+  });
+
+  useDragSubscription("update", (detail) => updateTransition(detail));
+
+  useDragSubscription("submit", () => {
     setDragActive(false);
     setTransition(null);
     setManualInsert(false);
+    window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
+    window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
+  });
+
+  useDragSubscription("discard", () => {
+    setDragActive(false);
+    setTransition(null);
+    setManualInsert(false);
+    window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
+    window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
   });
 
   useEffect(() => {
@@ -92,22 +116,24 @@ export default function DashboardItem({
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
       };
-      if (operation === "drag") {
-        draggableApi.startMove(coordiantes, "manual");
+      if (operation === "drag" && !gridContext) {
+        draggableApi.start("insert", coordiantes);
+      } else if (operation === "drag") {
+        draggableApi.start("reorder", coordiantes);
       } else {
-        draggableApi.startResize(coordiantes, "manual");
+        draggableApi.start("resize", coordiantes);
       }
       setInteractionType("manual");
       const ankerRect = ankerRef.current!.getBoundingClientRect();
       ankerPositionRef.current = { x: ankerRect.x + window.scrollX, y: ankerRect.y + window.scrollY };
     } else {
-      draggableApi.endTransition();
+      draggableApi.submitTransition();
     }
   }
 
   function onKeyboardTransitionDiscard() {
     if (transition) {
-      draggableApi.cancelTransition();
+      draggableApi.discardTransition();
     }
   }
 
@@ -123,7 +149,7 @@ export default function DashboardItem({
     setManualInsert(true);
     const dx = ankerPositionRef.current.x - ankerRect.x - window.scrollX;
     const dy = ankerPositionRef.current.y - ankerRect.y - window.scrollY;
-    draggableApi.insert({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
+    draggableApi.updateTransition({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -155,12 +181,12 @@ export default function DashboardItem({
   }
 
   function onDragHandlePointerDown(coordinates: Coordinates) {
-    draggableApi.startMove(coordinates, "pointer");
+    draggableApi.start(!gridContext ? "insert" : "reorder", coordinates);
     setInteractionType("pointer");
   }
 
   function onResizeHandlePointerDown(coordinates: Coordinates) {
-    draggableApi.startResize(coordinates, "pointer");
+    draggableApi.start("resize", coordinates);
     setInteractionType("pointer");
   }
 

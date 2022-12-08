@@ -3,6 +3,7 @@
 import { Coordinates, ItemId } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
 import { isIntersecting } from "../utils/geometry";
+import { Operation } from "./controller";
 
 function getMinDistance(min: number, current: number, collision: number) {
   const minDistance = Math.abs(min - collision);
@@ -53,7 +54,7 @@ const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLEl
 };
 
 export function getHoveredDroppables(
-  operation: "move" | "resize" | "insert",
+  operation: Operation,
   draggableElement: HTMLElement,
   coordinates: Coordinates,
   droppables: readonly [ItemId, HTMLElement][]
@@ -62,7 +63,7 @@ export function getHoveredDroppables(
 
   let collisionRect = { left: 0, top: 0, right: 0, bottom: 0 };
 
-  if (operation === "move") {
+  if (operation === "reorder") {
     collisionRect = activeRect;
   }
   if (operation === "resize") {

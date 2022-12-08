@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Droppable } from "../internal/dnd-controller/pointer-controller";
+import { Droppable } from "../internal/dnd-controller/controller";
 import { Direction, ItemId } from "../internal/interfaces";
 
 export function getNextDroppable(
