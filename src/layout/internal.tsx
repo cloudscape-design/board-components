@@ -20,7 +20,6 @@ import { ItemContainer } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
-import { isIntersecting } from "../internal/utils/geometry";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
@@ -81,12 +80,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const rows = (transition?.rows ?? itemsLayout.rows) || 1;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function checkCanDrop(itemEl: HTMLElement): boolean {
-    const containerRect = containerAccessRef.current!.getBoundingClientRect();
-    const itemRect = itemEl.getBoundingClientRect();
-    return isIntersecting(containerRect, itemRect);
-  }
-
   // The debounce makes UX smoother and ensures all state is propagated between transitions.
   // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
   const setTransitionDelayed = useMemo(
@@ -107,8 +100,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const itemHeight = layoutItem ? layoutItem.height : detail.draggableItem.definition.defaultRowSpan;
     const rows = detail.operation === "resize" ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
-    const canDrop = checkCanDrop(detail.draggableElement);
-    const transition = {
+    setTransition({
       isResizing: detail.operation === "resize",
       engine: new LayoutEngine(itemsLayout),
       transforms: {},
@@ -117,8 +109,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       layoutItem,
       path,
       rows,
-    };
-    setTransition(canDrop ? transition : { ...transition, rows: itemsLayout.rows });
+    });
   });
 
   useDragSubscription("update", (detail) => {
@@ -145,10 +136,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         detail.operation === "resize"
           ? layoutShift.next.rows + itemHeight
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
-      const canDrop = detail.operation === "insert" || checkCanDrop(detail.draggableElement);
 
       setTransitionDelayed(
-        canDrop
+        detail.collisionIds.length > 0
           ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
           : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
       );
@@ -165,9 +155,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransition(null);
 
     const layoutShift = getLayoutShift(transition, transition.path);
-    const canDrop = detail.operation === "insert" || checkCanDrop(detail.draggableElement);
 
-    if (layoutShift && canDrop) {
+    if (layoutShift && detail.collisionIds.length > 0) {
       printLayoutDebug(itemsLayout, layoutShift);
 
       if (layoutShift.conflicts.length > 0) {

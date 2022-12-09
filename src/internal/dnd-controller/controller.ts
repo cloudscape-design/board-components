@@ -64,6 +64,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 
   public update(coordinates: Coordinates) {
     this.emit("update", this.getDragAndDropData(coordinates));
+    this.transition!.lastCoordinates = coordinates;
   }
 
   public submit() {
