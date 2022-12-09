@@ -38,46 +38,33 @@ export function createTransforms(grid: GridLayout, moves: readonly CommittedMove
   return transforms;
 }
 
-export function appendPath(
-  prevPath: Position[],
-  collisionRect: Rect,
-  columns: number,
-  colspan: number,
-  resize: boolean
-): Position[] {
-  if (
-    !isFinite(collisionRect.top) ||
-    !isFinite(collisionRect.bottom) ||
-    !isFinite(collisionRect.left) ||
-    !isFinite(collisionRect.right)
-  ) {
-    return prevPath;
-  }
+export function appendMovePath(prevPath: Position[], collisionRect: Rect): Position[] {
+  return appendPath(prevPath, new Position({ x: collisionRect.left, y: collisionRect.top }));
+}
 
-  const collisionX = resize ? collisionRect.right : collisionRect.left;
-  const collisionY = resize ? collisionRect.bottom : collisionRect.top;
+export function appendResizePath(prevPath: Position[], collisionRect: Rect): Position[] {
+  return appendPath(prevPath, new Position({ x: collisionRect.right, y: collisionRect.bottom }));
+}
 
+function appendPath(prevPath: Position[], nextPosition: Position): Position[] {
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
-  const nextX = resize ? collisionX : Math.min(columns - colspan, collisionX);
-  const nextY = collisionY;
-
   if (!lastPosition) {
-    return [new Position({ x: nextX, y: nextY })];
+    return [nextPosition];
   }
 
-  const vx = Math.sign(collisionX - lastPosition.x);
-  const vy = Math.sign(collisionY - lastPosition.y);
+  const vx = Math.sign(nextPosition.x - lastPosition.x);
+  const vy = Math.sign(nextPosition.y - lastPosition.y);
 
   let { x, y } = lastPosition;
   let safetyCounter = 0;
 
-  while (x !== nextX || y !== nextY) {
+  while (x !== nextPosition.x || y !== nextPosition.y) {
     if (++safetyCounter === 100) {
       throw new Error("Infinite loop in appendPath.");
     }
-    if (x !== nextX) {
+    if (x !== nextPosition.x) {
       x += vx;
     } else {
       y += vy;

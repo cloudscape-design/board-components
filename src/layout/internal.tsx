@@ -15,7 +15,7 @@ import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "
 import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
-import { appendPath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
+import { appendMovePath, appendResizePath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
@@ -85,9 +85,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     // Define starting path.
     const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const path = layoutItem
-      ? appendPath([], collisionRect, columns, layoutItem.width, detail.operation === "resize")
-      : [];
+    const appendPath = detail.operation === "resize" ? appendResizePath : appendMovePath;
+    const path = layoutItem ? appendPath([], collisionRect) : [];
 
     // Override rows to plan for possible height increase.
     const itemHeight = layoutItem ? layoutItem.height : detail.draggableItem.definition.defaultRowSpan;
@@ -116,9 +115,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const itemHeight = transition.layoutItem
       ? transition.layoutItem.height
       : transition.draggableItem.definition.defaultRowSpan;
+    const itemSize = itemWidth * itemHeight;
+
+    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
+      setTransitionDelayed({ ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows });
+      return;
+    }
 
     const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
+    const appendPath = detail.operation === "resize" ? appendResizePath : appendMovePath;
+    const path = appendPath(transition.path, collisionRect);
 
     const layoutShift = getLayoutShift(transition, path);
 
