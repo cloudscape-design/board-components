@@ -85,6 +85,8 @@ function ItemContainerComponent(
   });
   const gridContext = useGridContext();
 
+  const currentIsDragging = !!transition;
+
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
     setDragActive(true);
 
@@ -140,10 +142,12 @@ function ItemContainerComponent(
   });
 
   useEffect(() => {
-    const listener = () => setScroll({ x: window.scrollX, y: window.scrollY });
-    document.addEventListener("scroll", listener);
-    return () => document.removeEventListener("scroll", listener);
-  });
+    if (currentIsDragging) {
+      const listener = () => setScroll({ x: window.scrollX, y: window.scrollY });
+      document.addEventListener("scroll", listener);
+      return () => document.removeEventListener("scroll", listener);
+    }
+  }, [currentIsDragging]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (!transition) {
@@ -182,16 +186,15 @@ function ItemContainerComponent(
 
   function handleInsert(direction: Direction) {
     const droppables = draggableApi.getDroppables();
-    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
-    if (!nextDroppable) {
+    const droppableRect = getNextDroppable(itemRef.current!, droppables, direction);
+    if (!droppableRect) {
       // TODO: add announcement
       return;
     }
     const anchorRect = anchorRef.current!.getBoundingClientRect();
-    const droppableRect = nextDroppable[1].element.getBoundingClientRect();
     const dx = anchorPositionRef.current.x - anchorRect.x - window.scrollX;
     const dy = anchorPositionRef.current.y - anchorRect.y - window.scrollY;
-    draggableApi.updateTransition({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
+    draggableApi.updateTransition({ __type: "Coordinates", x: droppableRect.left + dx, y: droppableRect.top + dy });
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
