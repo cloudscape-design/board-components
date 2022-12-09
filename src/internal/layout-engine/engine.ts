@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, GridLayout, ItemId } from "../interfaces";
+import { Position } from "../utils/position";
 import { StackSet } from "../utils/stack-set";
 import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove, InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
@@ -503,7 +504,7 @@ export class LayoutEngine {
       }
     }
 
-    return { itemId, path: normalizeMovePath({ x: moveTarget.x, y: moveTarget.y }, path) };
+    return { itemId, path: normalizeMovePath(new Position({ x: moveTarget.x, y: moveTarget.y }), path) };
   }
 
   private validateResizeCommand({ itemId, path }: ResizeCommand): ResizeCommand {
@@ -520,6 +521,6 @@ export class LayoutEngine {
       }
     }
 
-    return { itemId, path: normalizeResizePath({ x, y }, path) };
+    return { itemId, path: normalizeResizePath(new Position({ x, y }), path) };
   }
 }

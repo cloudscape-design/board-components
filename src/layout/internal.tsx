@@ -6,20 +6,13 @@ import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import {
-  DashboardItem,
-  DashboardItemBase,
-  Direction,
-  GridLayoutItem,
-  ItemId,
-  Position,
-  Transform,
-} from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Transform } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
+import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
 import { appendPath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
@@ -213,7 +206,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.x > (transition.isResizing ? 1 : 0)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x - 1, y: lastPosition.y },
+        new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
       // TODO: add announcement
@@ -225,7 +218,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.x < (transition.isResizing ? columns : columns - 1)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x + 1, y: lastPosition.y },
+        new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
       // TODO: add announcement
@@ -237,7 +230,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.y > (transition.isResizing ? 1 : 0)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x, y: lastPosition.y - 1 },
+        new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
       // TODO: add announcement
@@ -249,7 +242,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.y < (transition.isResizing ? 999 : rows - 1)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x, y: lastPosition.y + 1 },
+        new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
       // TODO: add announcement

@@ -54,10 +54,4 @@ export interface Transform {
   height: number;
 }
 
-// Represents a point in the grid.
-export interface Position {
-  x: number;
-  y: number;
-}
-
 export type Direction = "up" | "right" | "down" | "left";

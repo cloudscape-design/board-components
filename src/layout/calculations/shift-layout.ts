@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { toString as engineToString } from "../../internal/debug-tools";
 import { GridLayout, ItemId, Transform } from "../../internal/interfaces";
-import { Position, Rect } from "../../internal/interfaces";
+import { Rect } from "../../internal/interfaces";
 import { CommittedMove, LayoutShift } from "../../internal/layout-engine/interfaces";
+import { Position } from "../../internal/utils/position";
 
 export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   // Logs for layout-engine debugging.
@@ -63,7 +64,7 @@ export function appendPath(
   const nextY = collisionY;
 
   if (!lastPosition) {
-    return [{ x: nextX, y: nextY }];
+    return [new Position({ x: nextX, y: nextY })];
   }
 
   const vx = Math.sign(collisionX - lastPosition.x);
@@ -81,7 +82,7 @@ export function appendPath(
     } else {
       y += vy;
     }
-    path.push({ x, y });
+    path.push(new Position({ x, y }));
   }
 
   return path;

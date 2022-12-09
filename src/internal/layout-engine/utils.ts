@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { GridLayoutItem } from "../interfaces";
-import { Position } from "../interfaces";
+import { Position } from "../utils/position";
 
 export interface Rect {
   left: number;
@@ -93,7 +93,7 @@ function normalizePathSteps(origin: Position, path: readonly Position[]): readon
       } else {
         y += vy;
       }
-      normalizedPath.push({ x, y });
+      normalizedPath.push(new Position({ x, y }));
     }
 
     prevX = step.x;
