@@ -6,17 +6,10 @@ import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import {
-  DashboardItem,
-  DashboardItemBase,
-  Direction,
-  GridLayout,
-  GridLayoutItem,
-  ItemId,
-  Transform,
-} from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
+import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
@@ -32,8 +25,7 @@ import styles from "./styles.css.js";
 interface Transition {
   operation: Operation;
   engine: LayoutEngine;
-  transforms: { [itemId: ItemId]: Transform };
-  itemsLayout: GridLayout;
+  layoutShift: null | LayoutShift;
   collisionIds: ItemId[];
   draggableItem: DashboardItemBase<unknown>;
   path: Position[];
@@ -102,9 +94,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransition({
       operation: detail.operation,
       engine: new LayoutEngine(itemsLayout),
-      transforms: {},
       collisionIds: [],
-      itemsLayout,
+      layoutShift: null,
       draggableItem: detail.draggableItem,
       path,
       rows,
@@ -116,13 +107,14 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       throw new Error("Invariant violation: no transition.");
     }
 
-    const layoutItem = transition.itemsLayout.items.find((it) => it.id === detail.draggableItem.id);
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === detail.draggableItem.id);
     const itemWidth = layoutItem ? layoutItem.width : transition.draggableItem.definition.defaultColumnSpan;
     const itemHeight = layoutItem ? layoutItem.height : transition.draggableItem.definition.defaultRowSpan;
     const itemSize = itemWidth * itemHeight;
 
     if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
-      setTransitionDelayed({ ...transition, collisionIds: [], transforms: {}, itemsLayout, rows: itemsLayout.rows });
+      setTransitionDelayed({ ...transition, collisionIds: [], layoutShift: null, rows: itemsLayout.rows });
       return;
     }
 
@@ -133,25 +125,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
 
     if (layoutShift) {
-      const transforms = createTransforms(itemsLayout, layoutShift.moves);
-
       const rows =
         detail.operation === "resize"
           ? Math.max(layoutShift.next.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0)
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
 
-      setTransitionDelayed({
-        ...transition,
-        collisionIds: detail.collisionIds,
-        transforms,
-        itemsLayout: layoutShift.next,
-        path,
-        rows,
-      });
+      setTransitionDelayed({ ...transition, collisionIds: detail.collisionIds, layoutShift, path, rows });
     }
   });
 
-  useDragSubscription("submit", (detail) => {
+  useDragSubscription("submit", () => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
@@ -160,31 +143,20 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransitionDelayed.cancel();
     setTransition(null);
 
-    const layoutItem = transition.itemsLayout.items.find((it) => it.id === detail.draggableItem.id);
-    const itemWidth = layoutItem ? layoutItem.width : transition.draggableItem.definition.defaultColumnSpan;
-    const itemHeight = layoutItem ? layoutItem.height : transition.draggableItem.definition.defaultRowSpan;
-    const itemSize = itemWidth * itemHeight;
-
-    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
-      return;
-    }
-
-    const layoutShift = getLayoutShift(transition, transition.path);
-
-    if (layoutShift) {
-      printLayoutDebug(itemsLayout, layoutShift);
+    if (transition.layoutShift) {
+      printLayoutDebug(itemsLayout, transition.layoutShift);
 
       // Commit new layout for insert case.
       if (transition.operation === "insert") {
         // TODO: resolve "any" here.
         // It is not quite clear yet how to ensure the addedItem matches generic D type.
-        const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.draggableItem] as any);
+        const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
         const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
         onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
       }
       // Commit new layout for reorder/resize case.
       else {
-        onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
+        onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
       }
     }
   });
@@ -214,8 +186,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
       const rows = Math.min(itemsLayout.rows + targetItem.height, layoutShift.next.rows + targetItem.height);
-      const transforms = createTransforms(itemsLayout, layoutShift.moves);
-      setTransition({ ...transition, collisionIds: [], transforms, path, rows });
+      setTransition({ ...transition, collisionIds: [], layoutShift, path, rows });
     }
   }
 
@@ -309,6 +280,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
+  const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
+
   const showGrid = items.length > 0 || transition;
 
   // TODO: make sure empty / finished states announcements are considered.
@@ -350,7 +323,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 item={item}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
-                transform={transition?.transforms[item.id] ?? null}
+                transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
