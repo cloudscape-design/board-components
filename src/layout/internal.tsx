@@ -4,7 +4,7 @@ import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller/controller";
+import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import {
   DashboardItem,
@@ -30,13 +30,12 @@ import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 
 interface Transition {
-  isResizing: boolean;
+  operation: Operation;
   engine: LayoutEngine;
   transforms: { [itemId: ItemId]: Transform };
   itemsLayout: GridLayout;
   collisionIds: ItemId[];
   draggableItem: DashboardItemBase<unknown>;
-  layoutItem: null | GridLayoutItem;
   path: Position[];
   rows: number;
 }
@@ -46,22 +45,21 @@ function getLayoutShift(transition: Transition, path: Position[]) {
     return null;
   }
 
-  if (transition.isResizing) {
-    return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+  switch (transition.operation) {
+    case "resize":
+      return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+    case "reorder":
+      return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+    case "insert":
+      return transition.engine
+        .insert({
+          itemId: transition.draggableItem.id,
+          width: transition.draggableItem.definition.defaultColumnSpan,
+          height: transition.draggableItem.definition.defaultRowSpan,
+          path,
+        })
+        .getLayoutShift();
   }
-
-  if (transition.layoutItem) {
-    return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
-  }
-
-  return transition.engine
-    .insert({
-      itemId: transition.draggableItem.id,
-      width: transition.draggableItem.definition.defaultColumnSpan,
-      height: transition.draggableItem.definition.defaultRowSpan,
-      path,
-    })
-    .getLayoutShift();
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
@@ -102,13 +100,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const rows = detail.operation === "resize" ? itemsLayout.rows : itemsLayout.rows + itemHeight;
 
     setTransition({
-      isResizing: detail.operation === "resize",
+      operation: detail.operation,
       engine: new LayoutEngine(itemsLayout),
       transforms: {},
       collisionIds: [],
       itemsLayout,
       draggableItem: detail.draggableItem,
-      layoutItem,
       path,
       rows,
     });
@@ -163,12 +160,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransitionDelayed.cancel();
     setTransition(null);
 
-    const itemWidth = transition.layoutItem
-      ? transition.layoutItem.width
-      : transition.draggableItem.definition.defaultColumnSpan;
-    const itemHeight = transition.layoutItem
-      ? transition.layoutItem.height
-      : transition.draggableItem.definition.defaultRowSpan;
+    const layoutItem = transition.itemsLayout.items.find((it) => it.id === detail.draggableItem.id);
+    const itemWidth = layoutItem ? layoutItem.width : transition.draggableItem.definition.defaultColumnSpan;
+    const itemHeight = layoutItem ? layoutItem.height : transition.draggableItem.definition.defaultRowSpan;
     const itemSize = itemWidth * itemHeight;
 
     if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
@@ -177,11 +171,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     const layoutShift = getLayoutShift(transition, transition.path);
 
-    if (layoutShift && detail.collisionIds.length > 0) {
+    if (layoutShift) {
       printLayoutDebug(itemsLayout, layoutShift);
 
       // Commit new layout for insert case.
-      if (!transition.layoutItem) {
+      if (transition.operation === "insert") {
         // TODO: resolve "any" here.
         // It is not quite clear yet how to ensure the addedItem matches generic D type.
         const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.draggableItem] as any);
@@ -227,7 +221,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemLeft(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x > (transition.isResizing ? 1 : 0)) {
+    if (lastPosition.x > (transition.operation === "resize" ? 1 : 0)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
@@ -239,7 +233,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemRight(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x < (transition.isResizing ? columns : columns - 1)) {
+    if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
@@ -251,7 +245,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemUp(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y > (transition.isResizing ? 1 : 0)) {
+    if (lastPosition.y > (transition.operation === "resize" ? 1 : 0)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
@@ -263,7 +257,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemDown(transition: Transition, targetItem: GridLayoutItem) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y < (transition.isResizing ? 999 : rows - 1)) {
+    if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
@@ -332,7 +326,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
           ))}
           {items.map((item) => {
             const layoutItem = layoutItemById.get(item.id);
-            const isResizing = transition && transition.isResizing && transition.draggableItem.id === item.id;
+            const isResizing =
+              transition && transition.operation === "resize" && transition.draggableItem.id === item.id;
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
             const itemSize = layoutItem ?? {
