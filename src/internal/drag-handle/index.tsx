@@ -1,16 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ForwardedRef, KeyboardEvent, forwardRef } from "react";
+import { ForwardedRef, KeyboardEvent, PointerEvent, forwardRef } from "react";
 
 import Handle from "../handle";
-import { Coordinates } from "../interfaces";
-import { getCoordinates } from "../utils/get-coordinates";
 import DragHandleIcon from "./icon";
 import styles from "./styles.css.js";
 
 export interface DragHandleProps {
   ariaLabel?: string;
-  onPointerDown: (coordinates: Coordinates) => void;
+  onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
 }
 
@@ -20,7 +18,7 @@ function DragHandle({ ariaLabel, onPointerDown, onKeyDown }: DragHandleProps, re
       ref={ref}
       className={styles.handle}
       aria-label={ariaLabel}
-      onPointerDown={(event) => onPointerDown(getCoordinates(event))}
+      onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
     >
       <DragHandleIcon />

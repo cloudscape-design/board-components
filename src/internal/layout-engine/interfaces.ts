@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayout, ItemId, Position } from "../interfaces";
+import { GridLayout, ItemId } from "../interfaces";
+import { Position } from "../utils/position";
 
 export interface MoveCommand {
   itemId: ItemId;

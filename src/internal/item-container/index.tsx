@@ -5,6 +5,7 @@ import {
   CSSProperties,
   KeyboardEvent,
   ReactNode,
+  PointerEvent as ReactPointerEvent,
   Ref,
   createContext,
   forwardRef,
@@ -16,8 +17,8 @@ import {
 } from "react";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
-import { Coordinates, DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
-import { getCoordinates } from "../utils/get-coordinates";
+import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
+import { Coordinates } from "../utils/coordinates";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
@@ -30,11 +31,11 @@ export interface ItemContext {
   contentHeight?: number;
   dragHandle: {
     ref: React.RefObject<HTMLButtonElement>;
-    onPointerDown(coordinates: Coordinates): void;
+    onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
   };
   resizeHandle: null | {
-    onPointerDown(coordinates: Coordinates): void;
+    onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
   };
 }
@@ -80,10 +81,12 @@ function ItemContainerComponent(
   const anchorPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(getCoordinates(event)),
+    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
     onPointerUp: () => draggableApi.submitTransition(),
   });
   const gridContext = useGridContext();
+
+  const currentIsDragging = !!transition;
 
   function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
     setDragActive(true);
@@ -140,19 +143,20 @@ function ItemContainerComponent(
   });
 
   useEffect(() => {
-    const listener = () => setScroll({ x: window.scrollX, y: window.scrollY });
-    document.addEventListener("scroll", listener);
-    return () => document.removeEventListener("scroll", listener);
-  });
+    if (currentIsDragging) {
+      const listener = () => setScroll({ x: window.scrollX, y: window.scrollY });
+      document.addEventListener("scroll", listener);
+      return () => document.removeEventListener("scroll", listener);
+    }
+  }, [currentIsDragging]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (!transition) {
       const rect = itemRef.current!.getBoundingClientRect();
-      const coordiantes: Coordinates = {
-        __type: "Coordinates",
+      const coordiantes = new Coordinates({
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
-      };
+      });
 
       setInteractionType("manual");
 
@@ -182,16 +186,15 @@ function ItemContainerComponent(
 
   function handleInsert(direction: Direction) {
     const droppables = draggableApi.getDroppables();
-    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
-    if (!nextDroppable) {
+    const droppableRect = getNextDroppable(itemRef.current!, droppables, direction);
+    if (!droppableRect) {
       // TODO: add announcement
       return;
     }
     const anchorRect = anchorRef.current!.getBoundingClientRect();
-    const droppableRect = nextDroppable[1].element.getBoundingClientRect();
     const dx = anchorPositionRef.current.x - anchorRect.x - window.scrollX;
     const dy = anchorPositionRef.current.y - anchorRect.y - window.scrollY;
-    draggableApi.updateTransition({ __type: "Coordinates", x: droppableRect.x + dx, y: droppableRect.y + dy });
+    draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -222,8 +225,8 @@ function ItemContainerComponent(
     }
   }
 
-  function onDragHandlePointerDown(coordinates: Coordinates) {
-    draggableApi.start(!gridContext ? "insert" : "reorder", coordinates);
+  function onDragHandlePointerDown(event: ReactPointerEvent) {
+    draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
     setInteractionType("pointer");
   }
 
@@ -231,8 +234,8 @@ function ItemContainerComponent(
     onHandleKeyDown("drag", event);
   }
 
-  function onResizeHandlePointerDown(coordinates: Coordinates) {
-    draggableApi.start("resize", coordinates);
+  function onResizeHandlePointerDown(event: ReactPointerEvent) {
+    draggableApi.start("resize", Coordinates.fromEvent(event));
     setInteractionType("pointer");
   }
 

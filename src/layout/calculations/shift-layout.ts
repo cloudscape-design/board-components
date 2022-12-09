@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { toString as engineToString } from "../../internal/debug-tools";
 import { GridLayout, ItemId, Transform } from "../../internal/interfaces";
-import { Position, Rect } from "../../internal/interfaces";
+import { Rect } from "../../internal/interfaces";
 import { CommittedMove, LayoutShift } from "../../internal/layout-engine/interfaces";
+import { Position } from "../../internal/utils/position";
 
 export function printLayoutDebug(grid: GridLayout, layoutShift: LayoutShift) {
   // Logs for layout-engine debugging.
@@ -37,51 +38,38 @@ export function createTransforms(grid: GridLayout, moves: readonly CommittedMove
   return transforms;
 }
 
-export function appendPath(
-  prevPath: Position[],
-  collisionRect: Rect,
-  columns: number,
-  colspan: number,
-  resize: boolean
-): Position[] {
-  if (
-    !isFinite(collisionRect.top) ||
-    !isFinite(collisionRect.bottom) ||
-    !isFinite(collisionRect.left) ||
-    !isFinite(collisionRect.right)
-  ) {
-    return prevPath;
-  }
+export function appendMovePath(prevPath: Position[], collisionRect: Rect): Position[] {
+  return appendPath(prevPath, new Position({ x: collisionRect.left, y: collisionRect.top }));
+}
 
-  const collisionX = resize ? collisionRect.right : collisionRect.left;
-  const collisionY = resize ? collisionRect.bottom : collisionRect.top;
+export function appendResizePath(prevPath: Position[], collisionRect: Rect): Position[] {
+  return appendPath(prevPath, new Position({ x: collisionRect.right, y: collisionRect.bottom }));
+}
 
+function appendPath(prevPath: Position[], nextPosition: Position): Position[] {
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 
-  const nextX = resize ? collisionX : Math.min(columns - colspan, collisionX);
-  const nextY = collisionY;
-
   if (!lastPosition) {
-    return [{ x: nextX, y: nextY }];
+    return [nextPosition];
   }
 
-  const vx = Math.sign(collisionX - lastPosition.x);
-  const vy = Math.sign(collisionY - lastPosition.y);
+  const vx = Math.sign(nextPosition.x - lastPosition.x);
+  const vy = Math.sign(nextPosition.y - lastPosition.y);
 
   let { x, y } = lastPosition;
   let safetyCounter = 0;
 
-  while (x !== nextX || y !== nextY) {
+  while (x !== nextPosition.x || y !== nextPosition.y) {
     if (++safetyCounter === 100) {
       throw new Error("Infinite loop in appendPath.");
     }
-    if (x !== nextX) {
+    if (x !== nextPosition.x) {
       x += vx;
     } else {
       y += vy;
     }
-    path.push({ x, y });
+    path.push(new Position({ x, y }));
   }
 
   return path;

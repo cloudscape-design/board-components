@@ -60,7 +60,7 @@ test(
           { type: "pointerMove", duration: 0, origin: "pointer", ...handleCenter },
           { type: "pointerDown", button: 0 },
           { type: "pause", duration: 10 },
-          { type: "pointerMove", duration: 10, origin: "pointer", x: -100, y: 0 },
+          { type: "pointerMove", duration: 10, origin: "pointer", x: -25, y: 0 },
         ],
       },
     ]);

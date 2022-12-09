@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, GridLayout, GridLayoutItem } from "../interfaces";
-import { Position } from "../interfaces";
 import { InsertCommand, MoveCommand, ResizeCommand } from "../layout-engine/interfaces";
+import { Position } from "../utils/position";
 import { toMatrix } from ".";
 
 export type GenerateMoveType = "any" | "vertical" | "horizontal";
@@ -136,13 +136,13 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
     const distance = 1 + Math.floor(Math.random() * maxDistance);
     switch (direction) {
       case "up":
-        return { y: moveTarget.y - distance, x: moveTarget.x };
+        return new Position({ y: moveTarget.y - distance, x: moveTarget.x });
       case "down":
-        return { y: moveTarget.y + distance, x: moveTarget.x };
+        return new Position({ y: moveTarget.y + distance, x: moveTarget.x });
       case "left":
-        return { y: moveTarget.y, x: moveTarget.x - distance };
+        return new Position({ y: moveTarget.y, x: moveTarget.x - distance });
       case "right":
-        return { y: moveTarget.y, x: moveTarget.x + distance };
+        return new Position({ y: moveTarget.y, x: moveTarget.x + distance });
     }
   }
 
@@ -162,28 +162,28 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
 
     switch (`${directionVertical}-${directionHorizontal}`) {
       case "top-left":
-        return {
+        return new Position({
           y: moveTarget.y - distanceVertical,
           x: moveTarget.x - distanceHorizontal,
-        };
+        });
       case "top-right":
-        return {
+        return new Position({
           y: moveTarget.y - distanceVertical,
           x: moveTarget.x + distanceHorizontal,
-        };
+        });
       case "bottom-left":
-        return {
+        return new Position({
           y: moveTarget.y + distanceVertical,
           x: moveTarget.x - distanceHorizontal,
-        };
+        });
       case "bottom-right":
-        return {
+        return new Position({
           y: moveTarget.y + distanceVertical,
           x: moveTarget.x + distanceHorizontal,
-        };
+        });
     }
 
-    return { y: moveTarget.y, x: moveTarget.x };
+    return new Position({ y: moveTarget.y, x: moveTarget.x });
   }
 
   const position = (() => {
@@ -208,7 +208,7 @@ export function generateMove(grid: GridLayout, type: GenerateMoveType = "any"): 
     throw new Error("Move is not possible");
   })();
 
-  const path = generateRandomPath({ y: moveTarget.y, x: moveTarget.x }, position);
+  const path = generateRandomPath(new Position({ y: moveTarget.y, x: moveTarget.x }), position);
 
   return { itemId: moveTarget.id, path };
 }
@@ -254,8 +254,11 @@ export function generateResize(grid: GridLayout, options?: GenerateGridResizeOpt
   const heightDelta = Math.sign(maxHeightDelta) * getRandomInt(0, Math.abs(maxHeightDelta) + 1);
 
   const path = generateRandomPath(
-    { x: resizeTarget.x + resizeTarget.width, y: resizeTarget.y + resizeTarget.height },
-    { x: resizeTarget.x + resizeTarget.width + widthDelta, y: resizeTarget.y + resizeTarget.height + heightDelta }
+    new Position({ x: resizeTarget.x + resizeTarget.width, y: resizeTarget.y + resizeTarget.height }),
+    new Position({
+      x: resizeTarget.x + resizeTarget.width + widthDelta,
+      y: resizeTarget.y + resizeTarget.height + heightDelta,
+    })
   );
 
   return { itemId: resizeTarget.id, path };
@@ -272,7 +275,7 @@ export function generateInsert(grid: GridLayout, insertId = "X", options?: Gener
   const width = getRandomInt(1, maxWidth + 1 - x);
   const height = getRandomInt(1, maxHeight + 1);
 
-  return { itemId: insertId, width, height, path: [{ x, y }] };
+  return { itemId: insertId, width, height, path: [new Position({ x, y })] };
 }
 
 export function generateRandomPath(from: Position, to: Position): Position[] {

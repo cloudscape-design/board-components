@@ -6,23 +6,16 @@ import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import {
-  DashboardItem,
-  DashboardItemBase,
-  Direction,
-  GridLayoutItem,
-  ItemId,
-  Position,
-  Transform,
-} from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Transform } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
+import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
-import { appendPath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
+import { appendMovePath, appendResizePath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
@@ -92,9 +85,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     // Define starting path.
     const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const path = layoutItem
-      ? appendPath([], collisionRect, columns, layoutItem.width, detail.operation === "resize")
-      : [];
+    const appendPath = detail.operation === "resize" ? appendResizePath : appendMovePath;
+    const path = layoutItem ? appendPath([], collisionRect) : [];
 
     // Override rows to plan for possible height increase.
     const itemHeight = layoutItem ? layoutItem.height : detail.draggableItem.definition.defaultRowSpan;
@@ -123,9 +115,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const itemHeight = transition.layoutItem
       ? transition.layoutItem.height
       : transition.draggableItem.definition.defaultRowSpan;
+    const itemSize = itemWidth * itemHeight;
+
+    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
+      setTransitionDelayed({ ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows });
+      return;
+    }
 
     const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const path = appendPath(transition.path, collisionRect, columns, itemWidth, detail.operation === "resize");
+    const appendPath = detail.operation === "resize" ? appendResizePath : appendMovePath;
+    const path = appendPath(transition.path, collisionRect);
 
     const layoutShift = getLayoutShift(transition, path);
 
@@ -137,11 +136,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
           ? layoutShift.next.rows + itemHeight
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
 
-      setTransitionDelayed(
-        detail.collisionIds.length > 0
-          ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
-          : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
-      );
+      setTransitionDelayed({ ...transition, collisionIds: detail.collisionIds, transforms, path, rows });
     }
   });
 
@@ -154,14 +149,22 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransitionDelayed.cancel();
     setTransition(null);
 
+    const itemWidth = transition.layoutItem
+      ? transition.layoutItem.width
+      : transition.draggableItem.definition.defaultColumnSpan;
+    const itemHeight = transition.layoutItem
+      ? transition.layoutItem.height
+      : transition.draggableItem.definition.defaultRowSpan;
+    const itemSize = itemWidth * itemHeight;
+
+    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
+      return;
+    }
+
     const layoutShift = getLayoutShift(transition, transition.path);
 
     if (layoutShift && detail.collisionIds.length > 0) {
       printLayoutDebug(itemsLayout, layoutShift);
-
-      if (layoutShift.conflicts.length > 0) {
-        return;
-      }
 
       // Commit new layout for insert case.
       if (!transition.layoutItem) {
@@ -213,7 +216,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.x > (transition.isResizing ? 1 : 0)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x - 1, y: lastPosition.y },
+        new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
       // TODO: add announcement
@@ -225,7 +228,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.x < (transition.isResizing ? columns : columns - 1)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x + 1, y: lastPosition.y },
+        new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
       // TODO: add announcement
@@ -237,7 +240,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.y > (transition.isResizing ? 1 : 0)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x, y: lastPosition.y - 1 },
+        new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
       // TODO: add announcement
@@ -249,7 +252,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (lastPosition.y < (transition.isResizing ? 999 : rows - 1)) {
       updateManualItemTransition(transition, targetItem, [
         ...transition.path,
-        { x: lastPosition.x, y: lastPosition.y + 1 },
+        new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
       // TODO: add announcement
