@@ -136,11 +136,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
           ? layoutShift.next.rows + itemHeight
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
 
-      setTransitionDelayed(
-        detail.collisionIds.length > 0
-          ? { ...transition, collisionIds: detail.collisionIds, transforms, path, rows }
-          : { ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows }
-      );
+      setTransitionDelayed({ ...transition, collisionIds: detail.collisionIds, transforms, path, rows });
     }
   });
 
@@ -153,14 +149,22 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransitionDelayed.cancel();
     setTransition(null);
 
+    const itemWidth = transition.layoutItem
+      ? transition.layoutItem.width
+      : transition.draggableItem.definition.defaultColumnSpan;
+    const itemHeight = transition.layoutItem
+      ? transition.layoutItem.height
+      : transition.draggableItem.definition.defaultRowSpan;
+    const itemSize = itemWidth * itemHeight;
+
+    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
+      return;
+    }
+
     const layoutShift = getLayoutShift(transition, transition.path);
 
     if (layoutShift && detail.collisionIds.length > 0) {
       printLayoutDebug(itemsLayout, layoutShift);
-
-      if (layoutShift.conflicts.length > 0) {
-        return;
-      }
 
       // Commit new layout for insert case.
       if (!transition.layoutItem) {
