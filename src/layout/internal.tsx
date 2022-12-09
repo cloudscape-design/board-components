@@ -6,7 +6,6 @@ import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import handleStyles from "../internal/handle/styles.css.js";
 import {
   DashboardItem,
   DashboardItemBase,
@@ -16,7 +15,7 @@ import {
   Position,
   Transform,
 } from "../internal/interfaces";
-import { ItemContainer } from "../internal/item-container";
+import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
@@ -71,6 +70,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   );
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
+  const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
   const [transition, setTransition] = useState<null | Transition>(null);
 
@@ -193,9 +193,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function focusItem(item?: GridLayoutItem) {
     if (item) {
-      const handleSelector = `[data-item-id="${item.id}"] .${handleStyles.handle}`;
-      const handle = containerAccessRef.current!.querySelector(handleSelector) as null | HTMLButtonElement;
-      handle?.focus();
+      itemContainerRef.current[item.id].focusDragHandle();
     } else {
       // TODO: add announcement
     }
@@ -329,6 +327,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
             return (
               <ItemContainer
+                ref={(elem) => {
+                  if (elem) {
+                    itemContainerRef.current[item.id] = elem;
+                  } else {
+                    delete itemContainerRef.current[item.id];
+                  }
+                }}
                 key={item.id}
                 item={item}
                 itemSize={itemSize}

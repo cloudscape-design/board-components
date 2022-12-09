@@ -28,6 +28,7 @@ export default function DashboardItem({
           <WidgetContainerHeader
             handle={
               <DragHandle
+                ref={dragHandle.ref}
                 ariaLabel={i18nStrings.dragHandleLabel}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}

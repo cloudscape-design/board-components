@@ -1,7 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
-import { CSSProperties, KeyboardEvent, ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  CSSProperties,
+  KeyboardEvent,
+  ReactNode,
+  Ref,
+  createContext,
+  forwardRef,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { Coordinates, DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
@@ -9,10 +21,15 @@ import { getCoordinates } from "../utils/get-coordinates";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
+export interface ItemContainerRef {
+  focusDragHandle(): void;
+}
+
 export interface ItemContext {
   contentWidth?: number;
   contentHeight?: number;
   dragHandle: {
+    ref: React.RefObject<HTMLButtonElement>;
     onPointerDown(coordinates: Coordinates): void;
     onKeyDown(event: KeyboardEvent): void;
   };
@@ -48,7 +65,12 @@ interface ItemContainerProps {
   children: ReactNode;
 }
 
-export function ItemContainer({ item, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps) {
+export const ItemContainer = forwardRef(ItemContainerComponent);
+
+function ItemContainerComponent(
+  { item, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
+  ref: Ref<ItemContainerRef>
+) {
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
@@ -270,6 +292,11 @@ export function ItemContainer({ item, itemSize, itemMaxSize, transform, onNaviga
     maxBodyHeight = transition.sizeTransform.height;
   }
 
+  const dragHandleRef = useRef<HTMLButtonElement>(null);
+  useImperativeHandle(ref, () => ({
+    focusDragHandle: () => dragHandleRef.current?.focus(),
+  }));
+
   return (
     <>
       <div ref={itemRef} className={styles.root} style={style} onBlur={onKeyboardTransitionDiscard}>
@@ -278,6 +305,7 @@ export function ItemContainer({ item, itemSize, itemMaxSize, transform, onNaviga
             contentWidth: maxBodyWidth,
             contentHeight: maxBodyHeight,
             dragHandle: {
+              ref: dragHandleRef,
               onPointerDown: onDragHandlePointerDown,
               onKeyDown: onDragHandleKeyDown,
             },

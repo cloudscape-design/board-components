@@ -2,24 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useRef } from "react";
-import handleStyles from "../internal/handle/styles.css.js";
-import { Direction } from "../internal/interfaces";
-import { ItemContainer } from "../internal/item-container";
+import { Direction, ItemId } from "../internal/interfaces";
+import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { DashboardPaletteProps } from "./interfaces";
 
 export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
+  const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
-  function focusItem(index: number) {
-    const itemId = items[index].id;
-    const handleSelector = `[data-item-id="${itemId}"] .${handleStyles.handle}`;
-    const handle = paletteRef.current!.querySelector(handleSelector) as null | HTMLButtonElement;
-    handle?.focus();
+  function focusItem(itemId: ItemId) {
+    itemContainerRef.current[itemId].focusDragHandle();
   }
 
   function navigatePreviousItem(index: number) {
     if (index > 0) {
-      focusItem(index - 1);
+      focusItem(items[index - 1].id);
     } else {
       // TODO: add announcement
     }
@@ -27,7 +24,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
 
   function navigateNextItem(index: number) {
     if (index < items.length - 1) {
-      focusItem(index + 1);
+      focusItem(items[index + 1].id);
     } else {
       // TODO: add announcement
     }
@@ -49,6 +46,13 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
       <SpaceBetween size="l">
         {items.map((item, index) => (
           <ItemContainer
+            ref={(elem) => {
+              if (elem) {
+                itemContainerRef.current[item.id] = elem;
+              } else {
+                delete itemContainerRef.current[item.id];
+              }
+            }}
             key={item.id}
             item={item}
             itemSize={{ width: item.definition.defaultColumnSpan, height: item.definition.defaultRowSpan }}

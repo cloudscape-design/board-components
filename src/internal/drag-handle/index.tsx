@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { KeyboardEvent } from "react";
+import { ForwardedRef, KeyboardEvent, forwardRef } from "react";
+
 import Handle from "../handle";
 import { Coordinates } from "../interfaces";
 import { getCoordinates } from "../utils/get-coordinates";
@@ -13,9 +14,10 @@ export interface DragHandleProps {
   onKeyDown: (event: KeyboardEvent) => void;
 }
 
-export default function DragHandle({ ariaLabel, onPointerDown, onKeyDown }: DragHandleProps) {
+function DragHandle({ ariaLabel, onPointerDown, onKeyDown }: DragHandleProps, ref: ForwardedRef<HTMLButtonElement>) {
   return (
     <Handle
+      ref={ref}
       className={styles.handle}
       aria-label={ariaLabel}
       onPointerDown={(event) => onPointerDown(getCoordinates(event))}
@@ -25,3 +27,5 @@ export default function DragHandle({ ariaLabel, onPointerDown, onKeyDown }: Drag
     </Handle>
   );
 }
+
+export default forwardRef(DragHandle);
