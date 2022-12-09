@@ -47,6 +47,13 @@ export interface Rect {
   bottom: number;
 }
 
+export interface Transform {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 // Represents a point on a screen.
 export interface Coordinates {
   readonly __type: "Coordinates";
@@ -59,3 +66,5 @@ export interface Position {
   x: number;
   y: number;
 }
+
+export type Direction = "up" | "right" | "down" | "left";

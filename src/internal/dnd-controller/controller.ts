@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
 import { Coordinates, DashboardItemBase, ItemId } from "../interfaces";
-import { getCoordinates } from "../utils/get-coordinates";
 import { getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
-type Scale = (size: { width: number; height: number }) => { width: number; height: number };
+export type Operation = "reorder" | "resize" | "insert";
+
+export type Scale = (size: { width: number; height: number }) => { width: number; height: number };
 
 export interface DragAndDropData extends DragDetail {
   cursorOffset: Coordinates;
@@ -14,13 +15,13 @@ export interface DragAndDropData extends DragDetail {
   dropTarget: null | { scale: Scale };
 }
 
-interface Droppable {
+export interface Droppable {
   element: HTMLElement;
   scale: Scale;
 }
 
 interface DragDetail {
-  operation: "move" | "resize";
+  operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
   draggableSize: { width: number; height: number };
@@ -28,50 +29,75 @@ interface DragDetail {
 
 interface DragAndDropEvents {
   start: (data: DragAndDropData) => void;
-  move: (data: DragAndDropData) => void;
-  drop: (data: DragAndDropData) => void;
+  update: (data: DragAndDropData) => void;
+  submit: (data: DragAndDropData) => void;
+  discard: (data: DragAndDropData) => void;
+}
+
+interface Transition extends DragDetail {
+  startCoordinates: Coordinates;
+  lastCoordinates: Coordinates;
+  startScroll: Coordinates;
 }
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
-  private transition: null | (DragDetail & { startCoordinates: Coordinates; startScroll: Coordinates }) = null;
+  private transition: null | Transition = null;
 
-  public activateDrag(dragDetail: DragDetail, coordinates: Coordinates) {
+  public start(
+    operation: Operation,
+    draggableItem: DashboardItemBase<unknown>,
+    draggableElement: HTMLElement,
+    startCoordinates: Coordinates
+  ) {
     this.transition = {
-      ...dragDetail,
-      startCoordinates: coordinates,
+      operation,
+      draggableItem,
+      draggableElement,
+      draggableSize: draggableElement.getBoundingClientRect(),
+      startCoordinates,
+      lastCoordinates: startCoordinates,
       startScroll: { __type: "Coordinates", x: window.scrollX, y: window.scrollY },
     };
-    this.emit("start", this.getDragAndDropData(coordinates));
-    document.addEventListener("pointermove", this.onPointerMove);
-    document.addEventListener("pointerup", this.onPointerUp);
+    this.emit("start", this.getDragAndDropData(startCoordinates));
   }
 
-  public addDroppable(id: string, scale: Scale, element: HTMLElement) {
+  public update(coordinates: Coordinates) {
+    this.emit("update", this.getDragAndDropData(coordinates));
+    this.transition!.lastCoordinates = coordinates;
+  }
+
+  public submit() {
+    this.emit("submit", this.getDragAndDropData());
+    this.transition = null;
+  }
+
+  public discard() {
+    this.emit("discard", this.getDragAndDropData());
+    this.transition = null;
+  }
+
+  public addDroppable(id: ItemId, scale: Scale, element: HTMLElement) {
     this.droppables.set(id, { element, scale });
   }
 
-  public removeDroppable(id: string) {
+  public removeDroppable(id: ItemId) {
     this.droppables.delete(id);
   }
 
-  private onPointerMove = (event: PointerEvent) => {
-    this.emit("move", this.getDragAndDropData(getCoordinates(event)));
-  };
+  public getDroppables() {
+    return [...this.droppables.entries()];
+  }
 
-  private onPointerUp = (event: PointerEvent) => {
-    this.emit("drop", this.getDragAndDropData(getCoordinates(event)));
-    document.removeEventListener("pointermove", this.onPointerMove);
-    document.removeEventListener("pointerup", this.onPointerUp);
-    this.transition = null;
-  };
-
-  private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
+  private getDragAndDropData(coordinates?: Coordinates): DragAndDropData {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
+    coordinates = coordinates ?? this.transition.lastCoordinates;
+
     const { operation, draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } =
       this.transition;
+
     const cursorOffset = {
       ...coordinates,
       x: coordinates.x - startCoordinates.x + (window.scrollX - startScroll.x),
@@ -81,7 +107,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };
   }
 
-  private getCollisions(operation: "move" | "resize", draggableElement: HTMLElement, coordinates: Coordinates) {
+  private getCollisions(operation: Operation, draggableElement: HTMLElement, coordinates: Coordinates) {
     const droppableEntries = [...this.droppables.entries()];
     const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
     const collisionIds = getHoveredDroppables(operation, draggableElement, coordinates, droppableElements);
@@ -112,17 +138,20 @@ export function useDraggable({
   getElement: () => HTMLElement;
 }) {
   return {
-    startMove(coordinates: Coordinates) {
-      const operation = "move";
-      const draggableElement = getElement();
-      const draggableSize = draggableElement.getBoundingClientRect();
-      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
+    start(operation: Operation, startCoordinates: Coordinates) {
+      controller.start(operation, item, getElement(), startCoordinates);
     },
-    startResize(coordinates: Coordinates) {
-      const operation = "resize";
-      const draggableElement = getElement();
-      const draggableSize = draggableElement.getBoundingClientRect();
-      controller.activateDrag({ operation, draggableItem: item, draggableElement, draggableSize }, coordinates);
+    updateTransition(coordinates: Coordinates) {
+      controller.update(coordinates);
+    },
+    submitTransition() {
+      controller.submit();
+    },
+    discardTransition() {
+      controller.discard();
+    },
+    getDroppables() {
+      return controller.getDroppables();
     },
   };
 }
