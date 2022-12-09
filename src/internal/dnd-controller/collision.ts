@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Coordinates, ItemId } from "../../internal/interfaces";
+import { ItemId } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
+import { Coordinates } from "../utils/coordinates";
 import { getGridPlacement, isInside } from "../utils/rects";
 import { Operation } from "./controller";
 

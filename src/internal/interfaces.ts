@@ -54,13 +54,6 @@ export interface Transform {
   height: number;
 }
 
-// Represents a point on a screen.
-export interface Coordinates {
-  readonly __type: "Coordinates";
-  x: number;
-  y: number;
-}
-
 // Represents a point in the grid.
 export interface Position {
   x: number;

@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
-import { Coordinates, DashboardItemBase, ItemId } from "../interfaces";
+import { DashboardItemBase, ItemId } from "../interfaces";
+import { Coordinates } from "../utils/coordinates";
 import { getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
@@ -37,7 +38,6 @@ interface DragAndDropEvents {
 interface Transition extends DragDetail {
   startCoordinates: Coordinates;
   lastCoordinates: Coordinates;
-  startScroll: Coordinates;
 }
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
@@ -57,7 +57,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
       draggableSize: draggableElement.getBoundingClientRect(),
       startCoordinates,
       lastCoordinates: startCoordinates,
-      startScroll: { __type: "Coordinates", x: window.scrollX, y: window.scrollY },
     };
     this.emit("start", this.getDragAndDropData(startCoordinates));
   }
@@ -95,14 +94,8 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     }
     coordinates = coordinates ?? this.transition.lastCoordinates;
 
-    const { operation, draggableItem, draggableElement, draggableSize, startCoordinates, startScroll } =
-      this.transition;
-
-    const cursorOffset = {
-      ...coordinates,
-      x: coordinates.x - startCoordinates.x + (window.scrollX - startScroll.x),
-      y: coordinates.y - startCoordinates.y + (window.scrollY - startScroll.y),
-    };
+    const { operation, draggableItem, draggableElement, draggableSize, startCoordinates } = this.transition;
+    const cursorOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
     const { collisionIds, dropTarget } = this.getCollisions(operation, draggableElement, coordinates);
     return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };
   }
