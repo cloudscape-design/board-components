@@ -6,7 +6,15 @@ import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Transform } from "../internal/interfaces";
+import {
+  DashboardItem,
+  DashboardItemBase,
+  Direction,
+  GridLayout,
+  GridLayoutItem,
+  ItemId,
+  Transform,
+} from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { debounce } from "../internal/utils/debounce";
@@ -25,6 +33,7 @@ interface Transition {
   isResizing: boolean;
   engine: LayoutEngine;
   transforms: { [itemId: ItemId]: Transform };
+  itemsLayout: GridLayout;
   collisionIds: ItemId[];
   draggableItem: DashboardItemBase<unknown>;
   layoutItem: null | GridLayoutItem;
@@ -97,6 +106,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       engine: new LayoutEngine(itemsLayout),
       transforms: {},
       collisionIds: [],
+      itemsLayout,
       draggableItem: detail.draggableItem,
       layoutItem,
       path,
@@ -109,16 +119,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       throw new Error("Invariant violation: no transition.");
     }
 
-    const itemWidth = transition.layoutItem
-      ? transition.layoutItem.width
-      : transition.draggableItem.definition.defaultColumnSpan;
-    const itemHeight = transition.layoutItem
-      ? transition.layoutItem.height
-      : transition.draggableItem.definition.defaultRowSpan;
+    const layoutItem = transition.itemsLayout.items.find((it) => it.id === detail.draggableItem.id);
+    const itemWidth = layoutItem ? layoutItem.width : transition.draggableItem.definition.defaultColumnSpan;
+    const itemHeight = layoutItem ? layoutItem.height : transition.draggableItem.definition.defaultRowSpan;
     const itemSize = itemWidth * itemHeight;
 
     if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
-      setTransitionDelayed({ ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows });
+      setTransitionDelayed({ ...transition, collisionIds: [], transforms: {}, itemsLayout, rows: itemsLayout.rows });
       return;
     }
 
@@ -133,10 +140,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
       const rows =
         detail.operation === "resize"
-          ? layoutShift.next.rows + itemHeight
+          ? Math.max(layoutShift.next.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0)
           : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
 
-      setTransitionDelayed({ ...transition, collisionIds: detail.collisionIds, transforms, path, rows });
+      setTransitionDelayed({
+        ...transition,
+        collisionIds: detail.collisionIds,
+        transforms,
+        itemsLayout: layoutShift.next,
+        path,
+        rows,
+      });
     }
   });
 
