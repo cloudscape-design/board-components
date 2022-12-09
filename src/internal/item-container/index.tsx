@@ -226,7 +226,10 @@ function ItemContainerComponent(
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
-    draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
+    // Wait for possible operation discard on blur.
+    setTimeout(() => {
+      draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
+    }, 0);
     setInteractionType("pointer");
   }
 
@@ -235,7 +238,10 @@ function ItemContainerComponent(
   }
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
-    draggableApi.start("resize", Coordinates.fromEvent(event));
+    // Wait for possible operation discard on blur.
+    setTimeout(() => {
+      draggableApi.start("resize", Coordinates.fromEvent(event));
+    }, 0);
     setInteractionType("pointer");
   }
 
