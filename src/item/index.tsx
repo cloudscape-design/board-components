@@ -21,9 +21,9 @@ export default function DashboardItem({
   const { dragHandle, resizeHandle } = useItemContext();
 
   return (
-    <div>
+    <div className={styles.root}>
       <Container
-        className={styles.root}
+        fitHeight={true}
         disableHeaderPaddings={true}
         header={
           <WidgetContainerHeader

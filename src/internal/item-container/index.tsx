@@ -325,15 +325,9 @@ function ItemContainerComponent(
   }));
 
   return (
-    <div
-        ref={itemRef}
-        className={styles.root}
-        style={style}
-        data-item-id={item.id}
-        onBlur={onBlur}
-      >
-        <Context.Provider
-          value={{
+    <div ref={itemRef} className={styles.root} style={style} data-item-id={item.id} onBlur={onBlur}>
+      <Context.Provider
+        value={{
           dragHandle: {
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
