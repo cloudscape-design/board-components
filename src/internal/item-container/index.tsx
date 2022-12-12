@@ -22,6 +22,7 @@ import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
+import { useAutoScroll } from "./use-auto-scroll";
 
 export interface ItemContainerRef {
   focusDragHandle(): void;
@@ -82,9 +83,16 @@ function ItemContainerComponent(
   const anchorPositionRef = useRef({ x: 0, y: 0 });
   const draggableSizeRef = useRef({ width: 0, height: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
+  const activeScrollHandlers = useAutoScroll();
   const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-    onPointerUp: () => draggableApi.submitTransition(),
+    onPointerMove: (event: PointerEvent) => {
+      draggableApi.updateTransition(Coordinates.fromEvent(event));
+      activeScrollHandlers.onPointerMove(event);
+    },
+    onPointerUp: () => {
+      draggableApi.submitTransition();
+      activeScrollHandlers.onPointerUp();
+    },
   });
   const gridContext = useGridContext();
 

@@ -68,11 +68,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
 
-  // const eventHandlersRef = useRef({
-  //   onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-  //   onPointerUp: () => draggableApi.submitTransition(),
-  // });
-
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   let rows = itemsLayout.rows || 1;
 
