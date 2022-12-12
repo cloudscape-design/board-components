@@ -203,8 +203,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemLeft(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    const minSize = transition.draggableItem.definition.minColumnSpan ?? 1;
-    if (lastPosition.x > (transition.operation === "resize" ? minSize : 0)) {
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const position = layoutItem?.x ?? 0;
+    const minSize = Math.max(1, transition.draggableItem.definition.minColumnSpan ?? 1);
+    if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
@@ -228,8 +231,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemUp(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    const minSize = transition.draggableItem.definition.minRowSpan ?? 1;
-    if (lastPosition.y > (transition.operation === "resize" ? minSize : 0)) {
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const position = layoutItem?.y ?? 0;
+    const minSize = Math.max(MIN_ROW_SPAN, transition.draggableItem.definition.minRowSpan ?? 1);
+    if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
