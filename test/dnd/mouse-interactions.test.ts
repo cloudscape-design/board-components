@@ -5,7 +5,8 @@ import { expect, test } from "vitest";
 import createWrapper from "../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
-const wrapper = createWrapper().findDashboard();
+const dashboardWrapper = createWrapper().findDashboard();
+const paletteWrapper = createWrapper().findPalette();
 
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
@@ -18,11 +19,11 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
 }
 
 test(
-  "items reorder with pointer",
+  "item reorder with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
     await page.dragAndDropTo(
-      wrapper.findItemById("A").findDragHandle().toSelector(),
-      wrapper.findItemById("B").findDragHandle().toSelector()
+      dashboardWrapper.findItemById("A").findDragHandle().toSelector(),
+      dashboardWrapper.findItemById("B").findDragHandle().toSelector()
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["B", "A", "C", "D"],
@@ -32,11 +33,26 @@ test(
 );
 
 test(
-  "items resize with pointer",
+  "item insert with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
     await page.dragAndDropTo(
-      wrapper.findItemById("A").findResizeHandle().toSelector(),
-      wrapper.findItemById("B").findResizeHandle().toSelector()
+      paletteWrapper.findItemById("K").findDragHandle().toSelector(),
+      dashboardWrapper.findItemById("H").findDragHandle().toSelector()
+    );
+    await expect(page.getGrid()).resolves.toEqual([
+      ["A", "B", "C", "D"],
+      ["E", "F", "G", "K"],
+      [" ", " ", " ", "H"],
+    ]);
+  })
+);
+
+test(
+  "item resize with pointer",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.dragAndDropTo(
+      dashboardWrapper.findItemById("A").findResizeHandle().toSelector(),
+      dashboardWrapper.findItemById("B").findResizeHandle().toSelector()
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "A", "B", "C"],
