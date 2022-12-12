@@ -197,7 +197,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemLeft(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x > (transition.operation === "resize" ? 1 : 0)) {
+    const minSize = transition.draggableItem.definition.minColumnSpan ?? 1;
+    if (lastPosition.x > (transition.operation === "resize" ? minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
@@ -221,7 +222,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemUp(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y > (transition.operation === "resize" ? 1 : 0)) {
+    const minSize = transition.draggableItem.definition.minRowSpan ?? 1;
+    if (lastPosition.y > (transition.operation === "resize" ? minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),

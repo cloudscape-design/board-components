@@ -41,7 +41,7 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 1 },
     data: {
       title: "Demo widget",
       description: "Most minimal widget",

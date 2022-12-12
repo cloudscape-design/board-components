@@ -173,8 +173,10 @@ describe("items resized with keyboard", () => {
         await page.keys(["Enter"]);
         await page.keys(["ArrowLeft"]);
         await page.keys(["ArrowUp"]);
-        await page.keys(["Enter"]);
 
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+        await page.keys(["Enter"]);
         await expect(page.getGrid()).resolves.toEqual([
           ["X", "X", " ", " "],
           ["X", "X", " ", " "],

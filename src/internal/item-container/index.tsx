@@ -97,14 +97,17 @@ function ItemContainerComponent(
       draggableSizeRef.current = draggableSize;
 
       if (operation === "resize") {
-        const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
+        const { width: minWidth, height: minHeight } = dropTarget!.scale({
+          width: draggableItem.definition.minColumnSpan ?? 1,
+          height: draggableItem.definition.minRowSpan ?? 1,
+        });
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
           operation,
           itemId: draggableItem.id,
           sizeTransform: {
-            width: Math.max(cellWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
-            height: Math.max(cellHeight, draggableSize.height + cursorOffset.y),
+            width: Math.max(minWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
+            height: Math.max(minHeight, draggableSize.height + cursorOffset.y),
           },
           positionTransform: null,
         });

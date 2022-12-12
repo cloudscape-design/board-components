@@ -99,8 +99,10 @@ test(
     async (page) => {
       await page.mouseDown(dashboardWrapper.findItemById("X").findResizeHandle().toSelector());
       await page.mouseMove(-250, -250);
-      await page.mouseUp();
 
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+      await page.mouseUp();
       await expect(page.getGrid()).resolves.toEqual([
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
