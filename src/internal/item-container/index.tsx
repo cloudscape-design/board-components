@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { MIN_ROW_SPAN } from "../constants";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
@@ -99,7 +100,7 @@ function ItemContainerComponent(
       if (operation === "resize") {
         const { width: minWidth, height: minHeight } = dropTarget!.scale({
           width: draggableItem.definition.minColumnSpan ?? 1,
-          height: draggableItem.definition.minRowSpan ?? 1,
+          height: Math.max(draggableItem.definition.minRowSpan ?? 1, MIN_ROW_SPAN),
         });
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({

@@ -32,6 +32,8 @@ test(
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["B", "A", "C", "D"],
+      ["B", "A", "C", "D"],
+      ["E", "F", "G", "H"],
       ["E", "F", "G", "H"],
     ]);
   })
@@ -46,7 +48,10 @@ test(
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "B", "C", "D"],
+      ["A", "B", "C", "D"],
       ["E", "F", "G", "K"],
+      ["E", "F", "G", "K"],
+      [" ", " ", " ", "H"],
       [" ", " ", " ", "H"],
     ]);
   })
@@ -61,17 +66,22 @@ test(
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "A", "B", "C"],
+      ["A", "A", "B", "C"],
       ["E", "F", "G", "D"],
+      ["E", "F", "G", "D"],
+      [" ", " ", " ", "H"],
       [" ", " ", " ", "H"],
     ]);
   })
 );
 
 test(
-  "item resize down to 1x1",
+  "item resize down to 2x1",
   setupTest(
     makeQueryUrl(
       [
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
         ["A", "A", " ", " "],
         ["A", "A", " ", " "],
       ],
@@ -81,7 +91,10 @@ test(
       await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
       await page.mouseMove(-250, -250);
       await page.mouseUp();
-      await expect(page.getGrid()).resolves.toEqual([["A", " ", " ", " "]]);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", " ", " ", " "],
+        ["A", " ", " ", " "],
+      ]);
     }
   )
 );
@@ -91,6 +104,8 @@ test(
   setupTest(
     makeQueryUrl(
       [
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
       ],
@@ -104,6 +119,8 @@ test(
 
       await page.mouseUp();
       await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
       ]);

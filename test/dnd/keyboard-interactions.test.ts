@@ -77,6 +77,8 @@ describe("items reordered with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["B", "A", "C", "D"],
+        ["B", "A", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })
@@ -92,6 +94,8 @@ describe("items reordered with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })
@@ -110,8 +114,11 @@ describe("items resized with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
         ["A", "A", "G", "D"],
+        ["E", "F", "G", "D"],
         ["E", "F", " ", "H"],
+        [" ", " ", " ", "H"],
       ]);
     })
   );
@@ -127,18 +134,23 @@ describe("items resized with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })
   );
 
   test(
-    "resizes 2x2 item down to 1x1 one step at a time",
+    "resizes 4x2 item down to 2x1 one step at a time",
     setupTest(
       makeQueryUrl(
         [
           ["A", "A", "B", "C"],
+          ["A", "A", "B", "C"],
           ["A", "A", "D", "E"],
+          ["A", "A", "D", "E"],
+          ["F", "G", " ", " "],
           ["F", "G", " ", " "],
         ],
         []
@@ -149,6 +161,7 @@ describe("items resized with keyboard", () => {
         await page.keys(["ArrowLeft"]);
         expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
+        await page.keys(["ArrowUp"]);
         await page.keys(["ArrowUp"]);
         expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
@@ -165,6 +178,8 @@ describe("items resized with keyboard", () => {
         [
           ["X", "X", " ", " "],
           ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
         ],
         []
       ),
@@ -178,6 +193,8 @@ describe("items resized with keyboard", () => {
 
         await page.keys(["Enter"]);
         await expect(page.getGrid()).resolves.toEqual([
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
           ["X", "X", " ", " "],
           ["X", "X", " ", " "],
         ]);
@@ -198,7 +215,10 @@ describe("items inserted with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
         ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+        [" ", " ", " ", "I"],
         [" ", " ", " ", "I"],
       ]);
     })
@@ -215,6 +235,8 @@ describe("items inserted with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })

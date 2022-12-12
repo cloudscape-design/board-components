@@ -10,7 +10,7 @@ import styles from "./styles.css.js";
 import { zipTwoArrays } from "./utils";
 
 const GRID_GAP = 16;
-const ROWSPAN_HEIGHT = 260;
+const ROWSPAN_HEIGHT = 100;
 
 export default function Grid({ layout, children, columns, rows }: GridProps) {
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
