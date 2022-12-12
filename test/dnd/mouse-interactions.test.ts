@@ -8,6 +8,11 @@ import { DndPageObject } from "./dnd-page-object.js";
 const dashboardWrapper = createWrapper().findDashboard();
 const paletteWrapper = createWrapper().findPalette();
 
+function makeQueryUrl(layout: string[][], palette: string[]) {
+  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}
+
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
@@ -60,4 +65,46 @@ test(
       [" ", " ", " ", "H"],
     ]);
   })
+);
+
+test(
+  "item resize down to 1x1",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
+      await page.mouseMove(-250, -250);
+      await page.mouseUp();
+      await expect(page.getGrid()).resolves.toEqual([["A", " ", " ", " "]]);
+    }
+  )
+);
+
+test(
+  "can't resize below min row/col span",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(dashboardWrapper.findItemById("X").findResizeHandle().toSelector());
+      await page.mouseMove(-250, -250);
+      await page.mouseUp();
+
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ]);
+    }
+  )
 );

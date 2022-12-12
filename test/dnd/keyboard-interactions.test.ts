@@ -157,6 +157,31 @@ describe("items resized with keyboard", () => {
       }
     )
   );
+
+  test(
+    "can't resize below min row/col span",
+    setupTest(
+      makeQueryUrl(
+        [
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+        ],
+        []
+      ),
+      async (page) => {
+        await page.focus(dashboardItemResizeHandle("X"));
+        await page.keys(["Enter"]);
+        await page.keys(["ArrowLeft"]);
+        await page.keys(["ArrowUp"]);
+        await page.keys(["Enter"]);
+
+        await expect(page.getGrid()).resolves.toEqual([
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+        ]);
+      }
+    )
+  );
 });
 
 describe("items inserted with keyboard", () => {

@@ -226,15 +226,15 @@ export const demoPaletteItems: readonly PaletteProps.Item<ItemData>[] = Object.e
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
   const definitions: { [letter: string]: DashboardItemDefinition } = {
-    R: { defaultRowSpan: 1, defaultColumnSpan: 2 },
-    S: { defaultRowSpan: 1, defaultColumnSpan: 2 },
-    T: { defaultRowSpan: 1, defaultColumnSpan: 2 },
-    U: { defaultRowSpan: 2, defaultColumnSpan: 1 },
-    V: { defaultRowSpan: 2, defaultColumnSpan: 1 },
-    W: { defaultRowSpan: 2, defaultColumnSpan: 1 },
-    X: { defaultRowSpan: 2, defaultColumnSpan: 2 },
-    Y: { defaultRowSpan: 2, defaultColumnSpan: 2 },
-    Z: { defaultRowSpan: 2, defaultColumnSpan: 2 },
+    R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    U: { defaultRowSpan: 2, defaultColumnSpan: 1, minRowSpan: 2, minColumnSpan: 1 },
+    V: { defaultRowSpan: 2, defaultColumnSpan: 1, minRowSpan: 2, minColumnSpan: 1 },
+    W: { defaultRowSpan: 2, defaultColumnSpan: 1, minRowSpan: 2, minColumnSpan: 1 },
+    X: { defaultRowSpan: 2, defaultColumnSpan: 2, minRowSpan: 2, minColumnSpan: 2 },
+    Y: { defaultRowSpan: 2, defaultColumnSpan: 2, minRowSpan: 2, minColumnSpan: 2 },
+    Z: { defaultRowSpan: 2, defaultColumnSpan: 2, minRowSpan: 2, minColumnSpan: 2 },
   };
   acc[letter] = {
     id: letter,
