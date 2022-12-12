@@ -275,7 +275,7 @@ function ItemContainerComponent(
       return { transition: transitionStyle };
     }
 
-    const shouldTransformSize = transform.width > 1 || transform.height > 1;
+    const shouldTransformSize = transform.width !== itemSize.width || transform.height !== itemSize.height;
 
     return {
       transform: CSSUtil.Transform.toString({

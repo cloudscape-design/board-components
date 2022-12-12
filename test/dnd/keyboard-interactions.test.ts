@@ -11,6 +11,11 @@ const dashboardItemHandle = (id: string) => dashboardWrapper.findItemById(id).fi
 const dashboardItemResizeHandle = (id: string) => dashboardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemHandle = (id: string) => paletteWrapper.findItemById(id).findDragHandle().toSelector();
 
+function makeQueryUrl(layout: string[][], palette: string[]) {
+  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}
+
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
@@ -125,6 +130,32 @@ describe("items resized with keyboard", () => {
         ["E", "F", "G", "H"],
       ]);
     })
+  );
+
+  test(
+    "resizes 2x2 item down to 1x1 one step at a time",
+    setupTest(
+      makeQueryUrl(
+        [
+          ["A", "A", "B", "C"],
+          ["A", "A", "D", "E"],
+          ["F", "G", " ", " "],
+        ],
+        []
+      ),
+      async (page) => {
+        await page.focus(dashboardItemResizeHandle("A"));
+        await page.keys(["Enter"]);
+        await page.keys(["ArrowLeft"]);
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+        await page.keys(["ArrowUp"]);
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+        await page.keys(["Enter"]);
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+      }
+    )
   );
 });
 
