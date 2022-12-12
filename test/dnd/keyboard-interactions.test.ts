@@ -72,7 +72,7 @@ describe("items reordered with keyboard", () => {
       await page.pause(200);
       await page.keys(["Enter"]);
 
-      await expect(page.getHeaders()).resolves.toEqual([
+      await expect(page.getGrid()).resolves.toEqual([
         ["B", "A", "C", "D"],
         ["E", "F", "G", "H"],
       ]);
@@ -87,7 +87,7 @@ describe("items reordered with keyboard", () => {
       await page.pause(200);
       await page.keys(["Escape"]);
 
-      await expect(page.getHeaders()).resolves.toEqual([
+      await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["E", "F", "G", "H"],
       ]);
