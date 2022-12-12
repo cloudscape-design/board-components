@@ -240,6 +240,7 @@ function ItemContainerComponent(
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
+    // TODO: check if timeout-based solution can be replaced with a synchronous one.
     // Wait for possible operation discard on blur.
     setTimeout(() => {
       draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
@@ -252,6 +253,7 @@ function ItemContainerComponent(
   }
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
+    // TODO: check if timeout-based solution can be replaced with a synchronous one.
     // Wait for possible operation discard on blur.
     setTimeout(() => {
       draggableApi.start("resize", Coordinates.fromEvent(event));
