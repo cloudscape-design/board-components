@@ -117,3 +117,29 @@ test(
     }
   )
 );
+
+test(
+  "palette item size remains the same after drag start",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.mouseDown(paletteWrapper.findItemById("L").findDragHandle().toSelector());
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    await page.mouseUp();
+    await page.windowScrollTo({ top: 600 });
+
+    await page.mouseDown(paletteWrapper.findItemById("Q").findDragHandle().toSelector());
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
+
+test(
+  "palette item size adjusts to dashboard item size when moved over dashboard",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.mouseDown(paletteWrapper.findItemById("K").findDragHandle().toSelector());
+    await page.mouseMove(-200, 0);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    await page.mouseMove(200, 0);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);

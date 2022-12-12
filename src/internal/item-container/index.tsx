@@ -79,6 +79,7 @@ function ItemContainerComponent(
   const itemRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const anchorPositionRef = useRef({ x: 0, y: 0 });
+  const draggableSizeRef = useRef({ width: 0, height: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const eventHandlersRef = useRef({
     onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
@@ -93,6 +94,7 @@ function ItemContainerComponent(
 
     if (item.id === draggableItem.id) {
       setScroll({ x: window.scrollX, y: window.scrollY });
+      draggableSizeRef.current = draggableSize;
 
       if (operation === "resize") {
         const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
@@ -257,10 +259,10 @@ function ItemContainerComponent(
         scaleX: 1,
         scaleY: 1,
       }),
-      position: transition?.sizeTransform ? "fixed" : undefined,
+      position: transition ? "fixed" : undefined,
       zIndex: 5000,
-      width: transition?.sizeTransform?.width,
-      height: transition?.sizeTransform?.height,
+      width: transition?.sizeTransform?.width ?? draggableSizeRef.current.width,
+      height: transition?.sizeTransform?.height ?? draggableSizeRef.current.height,
     };
   }
 
