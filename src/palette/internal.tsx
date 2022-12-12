@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { DashboardPaletteProps } from "./interfaces";
+import styles from "./styles.css.js";
 
 export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
@@ -42,7 +43,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
   }
 
   return (
-    <div ref={paletteRef}>
+    <div ref={paletteRef} className={styles.root}>
       <SpaceBetween size="l">
         {items.map((item, index) => (
           <ItemContainer

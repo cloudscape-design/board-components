@@ -31,9 +31,9 @@ export function createItemsLayout(items: readonly DashboardItem<unknown>[], colu
 export function createPlaceholdersLayout(rows: number, columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
 
-  for (let x = 0; x < columns; x++) {
-    for (let y = 0; y < rows; y++) {
-      layoutItems.push({ id: `awsui-placeholder-${x}-${y}`, x, y, width: 1, height: 1 });
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < columns; col++) {
+      layoutItems.push({ id: `awsui-placeholder-${row}-${col}`, x: col, y: row, width: 1, height: 1 });
     }
   }
 
