@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
+import { range } from "lodash";
 import gridStyles from "../../lib/components/internal/grid/styles.selectors.js";
 import layoutStyles from "../../lib/components/layout/styles.selectors.js";
 import createWrapper from "../../lib/components/test-utils/selectors";
@@ -9,20 +10,25 @@ const dashboardWrapper = createWrapper().findDashboard();
 
 export class DndPageObject extends ScreenshotPageObject {
   async getGrid() {
-    const placeholders = await this.browser.$$(`.${layoutStyles.default.root} .${layoutStyles.default.placeholder}`);
-    const placehodlerRects = (
-      await Promise.all(placeholders.map((el) => this.browser.getElementRect(el.elementId)))
-    ).map(({ x: left, y: top, width, height }) => ({ left, right: left + width, top, bottom: top + height }));
+    await this.pause(50);
 
-    const items = await this.browser.$$(`.${layoutStyles.default.root} .${gridStyles.default.grid__item}`);
-    const allIds = await Promise.all([...items].map((item) => item.getAttribute("data-item-id")));
-    const widgetIds = allIds.filter((id) => !id.startsWith("awsui"));
+    const itemSelector = `.${layoutStyles.default.root} .${gridStyles.default.grid__item}`;
+    const placeholderSelector = `${itemSelector}:not([data-item-id])`;
+    const widgetSelector = `${itemSelector}[data-item-id]`;
+
+    const placeholdersCount = await this.getElementsCount(placeholderSelector);
+    const placeholderRects = await Promise.all(
+      range(0, placeholdersCount).map((index) => this.getBoundingBox(`${placeholderSelector}:nth-child(${index + 1})`))
+    );
+
+    const widgets = await this.browser.$$(widgetSelector);
+    const widgetIds = await Promise.all([...widgets].map((item) => item.getAttribute("data-item-id")));
     const widgetRects = await Promise.all(
       widgetIds.map((id) => this.getBoundingBox(dashboardWrapper.findItemById(id).toSelector()))
     );
 
     function matchWidget(placeholderIndex: number): null | string {
-      const placeholderRect = placehodlerRects[placeholderIndex];
+      const placeholderRect = placeholderRects[placeholderIndex];
 
       for (let widgetIndex = 0; widgetIndex < widgetRects.length; widgetIndex++) {
         if (
@@ -39,7 +45,7 @@ export class DndPageObject extends ScreenshotPageObject {
     }
 
     const columns = 4;
-    const rows = Math.floor(placeholders.length / columns);
+    const rows = Math.floor(placeholderRects.length / columns);
     const grid: string[][] = [...new Array(rows)].map(() => [...new Array(columns)]);
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < columns; col++) {
