@@ -236,7 +236,7 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
   return acc;
 }, {} as { [id: string]: DashboardItemBase<ItemData> });
 
-export function createLetterItems(grid: null | string[][]) {
+export function createLetterItems(grid: null | string[][], palette?: string[]) {
   if (!grid) {
     return null;
   }
@@ -246,7 +246,9 @@ export function createLetterItems(grid: null | string[][]) {
     Object.values(letterWidgets).map((item) => ({ ...item, columnOffset: 0, columnSpan: 0, rowSpan: 0 }))
   );
   const usedLetterItems = new Set(layoutItems.map((item) => item.id));
-  const paletteItems = Object.values(letterWidgets).filter((item) => !usedLetterItems.has(item.id));
+  const paletteItems = Object.values(letterWidgets).filter(
+    (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id))
+  );
 
   return { layoutItems, paletteItems };
 }
