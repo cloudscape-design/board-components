@@ -4,11 +4,12 @@ import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller/controller";
+import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId, Transform } from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
+import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
@@ -22,14 +23,12 @@ import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 
 interface Transition {
-  isResizing: boolean;
-  engine: LayoutEngine;
-  transforms: { [itemId: ItemId]: Transform };
-  collisionIds: ItemId[];
+  operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
-  layoutItem: null | GridLayoutItem;
+  collisionIds: ItemId[];
+  engine: LayoutEngine;
+  layoutShift: null | LayoutShift;
   path: Position[];
-  rows: number;
 }
 
 function getLayoutShift(transition: Transition, path: Position[]) {
@@ -37,22 +36,21 @@ function getLayoutShift(transition: Transition, path: Position[]) {
     return null;
   }
 
-  if (transition.isResizing) {
-    return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+  switch (transition.operation) {
+    case "resize":
+      return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+    case "reorder":
+      return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+    case "insert":
+      return transition.engine
+        .insert({
+          itemId: transition.draggableItem.id,
+          width: transition.draggableItem.definition.defaultColumnSpan,
+          height: transition.draggableItem.definition.defaultRowSpan,
+          path,
+        })
+        .getLayoutShift();
   }
-
-  if (transition.layoutItem) {
-    return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
-  }
-
-  return transition.engine
-    .insert({
-      itemId: transition.draggableItem.id,
-      width: transition.draggableItem.definition.defaultColumnSpan,
-      height: transition.draggableItem.definition.defaultRowSpan,
-      path,
-    })
-    .getLayoutShift();
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
@@ -69,8 +67,25 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
+
   // Rows can't be 0 as it would prevent placing the first item to the layout.
-  const rows = (transition?.rows ?? itemsLayout.rows) || 1;
+  let rows = itemsLayout.rows || 1;
+
+  if (transition) {
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const itemHeight = layoutItem?.height ?? transition.draggableItem.definition.defaultRowSpan;
+
+    // Add extra row for resize when already at the bottom.
+    if (transition.operation === "resize") {
+      rows = Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
+    }
+    // Add extra row(s) for reorder/insert based on item's height.
+    else {
+      rows = itemsLayout.rows + itemHeight;
+    }
+  }
+
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   // The debounce makes UX smoother and ensures all state is propagated between transitions.
@@ -80,67 +95,52 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     []
   );
 
-  useDragSubscription("start", (detail) => {
-    const layoutItem = layoutItemById.get(detail.draggableItem.id) ?? null;
+  useDragSubscription("start", ({ operation, draggableItem, collisionIds }) => {
+    const layoutItem = layoutItemById.get(draggableItem.id) ?? null;
 
     // Define starting path.
-    const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const appendPath = detail.operation === "resize" ? appendResizePath : appendMovePath;
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+    const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
     const path = layoutItem ? appendPath([], collisionRect) : [];
 
-    // Override rows to plan for possible height increase.
-    const itemHeight = layoutItem ? layoutItem.height : detail.draggableItem.definition.defaultRowSpan;
-    const rows = detail.operation === "resize" ? itemsLayout.rows : itemsLayout.rows + itemHeight;
-
     setTransition({
-      isResizing: detail.operation === "resize",
-      engine: new LayoutEngine(itemsLayout),
-      transforms: {},
+      operation,
+      draggableItem,
       collisionIds: [],
-      draggableItem: detail.draggableItem,
-      layoutItem,
+      engine: new LayoutEngine(itemsLayout),
+      layoutShift: null,
       path,
-      rows,
     });
   });
 
-  useDragSubscription("update", (detail) => {
+  useDragSubscription("update", ({ operation, draggableItem, collisionIds }) => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
 
-    const itemWidth = transition.layoutItem
-      ? transition.layoutItem.width
-      : transition.draggableItem.definition.defaultColumnSpan;
-    const itemHeight = transition.layoutItem
-      ? transition.layoutItem.height
-      : transition.draggableItem.definition.defaultRowSpan;
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === draggableItem.id);
+    const itemWidth = layoutItem ? layoutItem.width : transition.draggableItem.definition.defaultColumnSpan;
+    const itemHeight = layoutItem ? layoutItem.height : transition.draggableItem.definition.defaultRowSpan;
     const itemSize = itemWidth * itemHeight;
 
-    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
-      setTransitionDelayed({ ...transition, collisionIds: [], transforms: {}, rows: itemsLayout.rows });
+    if (operation !== "resize" && collisionIds.length < itemSize) {
+      setTransitionDelayed({ ...transition, collisionIds: [], layoutShift: null });
       return;
     }
 
-    const collisionRect = getHoveredRect(detail.collisionIds, placeholdersLayout.items);
-    const appendPath = detail.operation === "resize" ? appendResizePath : appendMovePath;
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+    const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
     const path = appendPath(transition.path, collisionRect);
 
     const layoutShift = getLayoutShift(transition, path);
 
     if (layoutShift) {
-      const transforms = createTransforms(itemsLayout, layoutShift.moves);
-
-      const rows =
-        detail.operation === "resize"
-          ? layoutShift.next.rows + itemHeight
-          : Math.min(itemsLayout.rows + itemHeight, layoutShift.next.rows + itemHeight);
-
-      setTransitionDelayed({ ...transition, collisionIds: detail.collisionIds, transforms, path, rows });
+      setTransitionDelayed({ ...transition, collisionIds, layoutShift, path });
     }
   });
 
-  useDragSubscription("submit", (detail) => {
+  useDragSubscription("submit", () => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
@@ -149,34 +149,20 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransitionDelayed.cancel();
     setTransition(null);
 
-    const itemWidth = transition.layoutItem
-      ? transition.layoutItem.width
-      : transition.draggableItem.definition.defaultColumnSpan;
-    const itemHeight = transition.layoutItem
-      ? transition.layoutItem.height
-      : transition.draggableItem.definition.defaultRowSpan;
-    const itemSize = itemWidth * itemHeight;
-
-    if (detail.operation !== "resize" && detail.collisionIds.length < itemSize) {
-      return;
-    }
-
-    const layoutShift = getLayoutShift(transition, transition.path);
-
-    if (layoutShift && detail.collisionIds.length > 0) {
-      printLayoutDebug(itemsLayout, layoutShift);
+    if (transition.layoutShift) {
+      printLayoutDebug(itemsLayout, transition.layoutShift);
 
       // Commit new layout for insert case.
-      if (!transition.layoutItem) {
+      if (transition.operation === "insert") {
         // TODO: resolve "any" here.
         // It is not quite clear yet how to ensure the addedItem matches generic D type.
-        const newLayout = exportItemsLayout(layoutShift.next, [...items, transition.draggableItem] as any);
+        const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
         const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
         onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
       }
       // Commit new layout for reorder/resize case.
       else {
-        onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items) }));
+        onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
       }
     }
   });
@@ -202,19 +188,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function updateManualItemTransition(transition: Transition, targetItem: GridLayoutItem, path: Position[]) {
+  function updateManualItemTransition(transition: Transition, path: Position[]) {
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
-      const rows = Math.min(itemsLayout.rows + targetItem.height, layoutShift.next.rows + targetItem.height);
-      const transforms = createTransforms(itemsLayout, layoutShift.moves);
-      setTransition({ ...transition, collisionIds: [], transforms, path, rows });
+      setTransition({ ...transition, collisionIds: [], layoutShift, path });
     }
   }
 
-  function shiftItemLeft(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemLeft(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x > (transition.isResizing ? 1 : 0)) {
-      updateManualItemTransition(transition, targetItem, [
+    if (lastPosition.x > (transition.operation === "resize" ? 1 : 0)) {
+      updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
@@ -223,10 +207,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function shiftItemRight(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemRight(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x < (transition.isResizing ? columns : columns - 1)) {
-      updateManualItemTransition(transition, targetItem, [
+    if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
+      updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
@@ -235,10 +219,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function shiftItemUp(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemUp(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y > (transition.isResizing ? 1 : 0)) {
-      updateManualItemTransition(transition, targetItem, [
+    if (lastPosition.y > (transition.operation === "resize" ? 1 : 0)) {
+      updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
@@ -247,10 +231,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function shiftItemDown(transition: Transition, targetItem: GridLayoutItem) {
+  function shiftItemDown(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y < (transition.isResizing ? 999 : rows - 1)) {
-      updateManualItemTransition(transition, targetItem, [
+    if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
+      updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
@@ -291,15 +275,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutItem = layoutItemById.get(itemId)!;
     switch (direction) {
       case "left":
-        return transition ? shiftItemLeft(transition, layoutItem) : navigateItemLeft(layoutItem);
+        return transition ? shiftItemLeft(transition) : navigateItemLeft(layoutItem);
       case "right":
-        return transition ? shiftItemRight(transition, layoutItem) : navigateItemRight(layoutItem);
+        return transition ? shiftItemRight(transition) : navigateItemRight(layoutItem);
       case "up":
-        return transition ? shiftItemUp(transition, layoutItem) : navigateItemUp(layoutItem);
+        return transition ? shiftItemUp(transition) : navigateItemUp(layoutItem);
       case "down":
-        return transition ? shiftItemDown(transition, layoutItem) : navigateItemDown(layoutItem);
+        return transition ? shiftItemDown(transition) : navigateItemDown(layoutItem);
     }
   }
+
+  const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
 
   const showGrid = items.length > 0 || transition;
 
@@ -318,7 +304,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
           ))}
           {items.map((item) => {
             const layoutItem = layoutItemById.get(item.id);
-            const isResizing = transition && transition.isResizing && transition.draggableItem.id === item.id;
+            const isResizing =
+              transition && transition.operation === "resize" && transition.draggableItem.id === item.id;
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
             const itemSize = layoutItem ?? {
@@ -341,7 +328,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 item={item}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
-                transform={transition?.transforms[item.id] ?? null}
+                transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}

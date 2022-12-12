@@ -31,13 +31,12 @@ interface DragDetail {
 interface DragAndDropEvents {
   start: (data: DragAndDropData) => void;
   update: (data: DragAndDropData) => void;
-  submit: (data: DragAndDropData) => void;
-  discard: (data: DragAndDropData) => void;
+  submit: () => void;
+  discard: () => void;
 }
 
 interface Transition extends DragDetail {
   startCoordinates: Coordinates;
-  lastCoordinates: Coordinates;
 }
 
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
@@ -56,23 +55,21 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
       draggableElement,
       draggableSize: draggableElement.getBoundingClientRect(),
       startCoordinates,
-      lastCoordinates: startCoordinates,
     };
     this.emit("start", this.getDragAndDropData(startCoordinates));
   }
 
   public update(coordinates: Coordinates) {
     this.emit("update", this.getDragAndDropData(coordinates));
-    this.transition!.lastCoordinates = coordinates;
   }
 
   public submit() {
-    this.emit("submit", this.getDragAndDropData());
+    this.emit("submit");
     this.transition = null;
   }
 
   public discard() {
-    this.emit("discard", this.getDragAndDropData());
+    this.emit("discard");
     this.transition = null;
   }
 
@@ -88,12 +85,10 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     return [...this.droppables.entries()];
   }
 
-  private getDragAndDropData(coordinates?: Coordinates): DragAndDropData {
+  private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
-    coordinates = coordinates ?? this.transition.lastCoordinates;
-
     const { operation, draggableItem, draggableElement, draggableSize, startCoordinates } = this.transition;
     const cursorOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
     const { collisionIds, dropTarget } = this.getCollisions(operation, draggableElement, coordinates);
