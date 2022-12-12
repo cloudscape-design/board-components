@@ -12,8 +12,8 @@ export default function () {
 
   const letterItems = useMemo(() => {
     const { layout: layoutStr = "[]", palette: paletteStr = "[]" } = qs.parse(location.search.slice(1));
-    const layout = JSON.parse(layoutStr as string);
-    const palette = JSON.parse(paletteStr as string);
+    const layout = safeParseJSON(layoutStr as string, []);
+    const palette = safeParseJSON(paletteStr as string, []);
     return createLetterItems(layout, palette);
   }, [location.search]);
 
@@ -24,4 +24,12 @@ export default function () {
       widgets={letterWidgets}
     />
   );
+}
+
+function safeParseJSON<T>(value: string, fallback: T) {
+  try {
+    return JSON.parse(value as string);
+  } catch {
+    return fallback;
+  }
 }

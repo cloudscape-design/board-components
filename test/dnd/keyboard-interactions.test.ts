@@ -2,12 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { describe, expect, test } from "vitest";
+import createWrapper from "../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object";
+
+const dashboardWrapper = createWrapper().findDashboard();
+const paletteWrapper = createWrapper().findPalette();
+const dashboardItemHandle = (id: string) => dashboardWrapper.findItemById(id).findDragHandle().toSelector();
+const dashboardItemResizeHandle = (id: string) => dashboardWrapper.findItemById(id).findResizeHandle().toSelector();
+const paletteItemHandle = (id: string) => paletteWrapper.findItemById(id).findDragHandle().toSelector();
 
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
     const page = new DndPageObject(browser);
+    await page.setWindowSize({ width: 1200, height: 800 });
     await page.waitForVisible("main");
     await testFn(page, browser);
   });
@@ -16,42 +24,36 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
 test(
   "navigates items in the palette",
   setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
-    await page.clickDragHandle("R");
-    await page.keys(["ArrowRight"]);
-    await expect(page.isDragHandleFocused("S")).resolves.toBe(true);
+    await page.focus(paletteItemHandle("R"));
+    await page.keys(["ArrowDown", "ArrowDown"]);
+    await expect(page.isFocused(paletteItemHandle("T"))).resolves.toBe(true);
 
-    await page.clickDragHandle("R");
-    await page.keys(["ArrowDown"]);
-    await expect(page.isDragHandleFocused("S")).resolves.toBe(true);
+    await page.keys(["ArrowRight", "ArrowRight"]);
+    await expect(page.isFocused(paletteItemHandle("V"))).resolves.toBe(true);
 
-    await page.clickDragHandle("R");
-    await page.keys(["ArrowLeft"]);
-    await expect(page.isDragHandleFocused("Q")).resolves.toBe(true);
+    await page.keys(["ArrowLeft", "ArrowLeft"]);
+    await expect(page.isFocused(paletteItemHandle("T"))).resolves.toBe(true);
 
-    await page.clickDragHandle("R");
-    await page.keys(["ArrowUp"]);
-    await expect(page.isDragHandleFocused("Q")).resolves.toBe(true);
+    await page.keys(["ArrowUp", "ArrowUp"]);
+    await expect(page.isFocused(paletteItemHandle("R"))).resolves.toBe(true);
   })
 );
 
 test(
   "navigates items in the dashboard",
   setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
-    await page.clickDragHandle("F");
-    await page.keys(["ArrowLeft"]);
-    await expect(page.isDragHandleFocused("E")).resolves.toBe(true);
+    await page.focus(dashboardItemHandle("F"));
+    await page.keys(["ArrowRight", "ArrowRight"]);
+    await expect(page.isFocused(dashboardItemHandle("H"))).resolves.toBe(true);
 
-    await page.clickDragHandle("F");
-    await page.keys(["ArrowRight"]);
-    await expect(page.isDragHandleFocused("G")).resolves.toBe(true);
+    await page.keys(["ArrowDown", "ArrowDown"]);
+    await expect(page.isFocused(dashboardItemHandle("P"))).resolves.toBe(true);
 
-    await page.clickDragHandle("F");
-    await page.keys(["ArrowUp"]);
-    await expect(page.isDragHandleFocused("B")).resolves.toBe(true);
+    await page.keys(["ArrowLeft", "ArrowLeft"]);
+    await expect(page.isFocused(dashboardItemHandle("N"))).resolves.toBe(true);
 
-    await page.clickDragHandle("F");
-    await page.keys(["ArrowDown"]);
-    await expect(page.isDragHandleFocused("J")).resolves.toBe(true);
+    await page.keys(["ArrowUp", "ArrowUp"]);
+    await expect(page.isFocused(dashboardItemHandle("F"))).resolves.toBe(true);
   })
 );
 
@@ -59,17 +61,13 @@ describe("items reordered with keyboard", () => {
   test(
     "item move can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focusDragHandle("A");
+      await page.focus(dashboardItemHandle("A"));
+      await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
-      await page.pause(200);
       await page.keys(["ArrowRight"]);
-      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["ArrowLeft"]);
-      await page.pause(200);
       await page.keys(["ArrowUp"]);
-      await page.pause(200);
       await page.keys(["Enter"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -82,9 +80,9 @@ describe("items reordered with keyboard", () => {
   test(
     "item move can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focusDragHandle("F");
-      await page.keys(["ArrowUp"]);
-      await page.pause(200);
+      await page.focus(dashboardItemHandle("A"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowRight"]);
       await page.keys(["Escape"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -99,36 +97,33 @@ describe("items resized with keyboard", () => {
   test(
     "item resize can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.setWindowSize({ width: 1000, height: 1000 });
-
-      await page.focusResizeHandle("A");
+      await page.focus(dashboardItemResizeHandle("A"));
+      await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
-      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["Enter"]);
 
-      const itemSize = await page.getItemSize("A");
-      expect(itemSize.width).toBeGreaterThan(200);
-      expect(itemSize.height).toBeGreaterThan(520);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "A", "B", "C"],
+        ["A", "A", "G", "D"],
+        ["E", "F", " ", "H"],
+      ]);
     })
   );
 
   test(
     "item resize can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.setWindowSize({ width: 1000, height: 1000 });
-
-      await page.focusResizeHandle("A");
+      await page.focus(dashboardItemResizeHandle("A"));
+      await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
-      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["Escape"]);
 
-      const itemSize = await page.getItemSize("A");
-      expect(itemSize.width).toBeLessThan(200);
-      expect(itemSize.height).toBe(260);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+      ]);
     })
   );
 });
@@ -137,28 +132,33 @@ describe("items inserted with keyboard", () => {
   test(
     "item insert can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focusDragHandle("I");
+      await page.focus(paletteItemHandle("I"));
+      await page.keys(["Enter"]);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["Enter"]);
 
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+        [" ", " ", " ", "I"],
+      ]);
     })
   );
 
   test(
     "item insert can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focusDragHandle("I");
+      await page.focus(paletteItemHandle("I"));
+      await page.keys(["Enter"]);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["ArrowDown"]);
-      await page.pause(200);
       await page.keys(["Escape"]);
 
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+      ]);
     })
   );
 });

@@ -8,14 +8,14 @@ import { DndPageObject } from "./dnd-page-object.js";
 const dashboardWrapper = createWrapper().findDashboard();
 const paletteWrapper = createWrapper().findPalette();
 
-function setupTest(
-  layout: string[][],
-  palette: string[],
-  testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>
-) {
+function makeQueryUrl(layout: string[][], palette: string[]) {
+  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}
+
+function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
-    const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
-    await browser.url(`/index.html#/dnd/engine-query-test?${query}`);
+    await browser.url(url);
     const page = new DndPageObject(browser);
     await page.setWindowSize({ width: 1200, height: 800 });
     await page.waitForVisible("main");
@@ -26,11 +26,13 @@ function setupTest(
 test(
   "for reorder creates extra placeholder rows based on draggable height",
   setupTest(
-    [
-      ["A", "B", "C", "D"],
-      ["E", "B", "G", "H"],
-    ],
-    [],
+    makeQueryUrl(
+      [
+        ["A", "B", "C", "D"],
+        ["E", "B", "G", "H"],
+      ],
+      []
+    ),
     async (page) => {
       await page.mouseDown(dashboardWrapper.findItemById("A").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
@@ -54,11 +56,13 @@ test(
 test(
   "for insert creates extra placeholder rows based on draggable height",
   setupTest(
-    [
-      ["A", "B", "C", "D"],
-      ["E", "F", "G", "H"],
-    ],
-    ["I", "X"],
+    makeQueryUrl(
+      [
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+      ],
+      ["I", "X"]
+    ),
     async (page) => {
       await page.mouseDown(paletteWrapper.findItemById("I").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
@@ -82,11 +86,13 @@ test(
 test(
   "for resize creates extra placeholder rows when reaching the bottom row",
   setupTest(
-    [
-      ["A", "B", "C", "D"],
-      [" ", "F", "G", "H"],
-    ],
-    [],
+    makeQueryUrl(
+      [
+        ["A", "B", "C", "D"],
+        [" ", "F", "G", "H"],
+      ],
+      []
+    ),
     async (page) => {
       await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([

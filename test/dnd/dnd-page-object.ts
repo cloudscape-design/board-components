@@ -1,9 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
 import gridStyles from "../../lib/components/internal/grid/styles.selectors.js";
-import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
 import layoutStyles from "../../lib/components/layout/styles.selectors.js";
 import createWrapper from "../../lib/components/test-utils/selectors";
 
@@ -53,26 +51,15 @@ export class DndPageObject extends ScreenshotPageObject {
     return grid;
   }
 
-  async clickDragHandle(id: string) {
-    await this.click(`[data-item-id="${id}"] .${dragHandleStyles.default.handle}`);
+  async focus(selector: string) {
+    await this.browser.execute((target) => {
+      (document.querySelector(target) as HTMLButtonElement)!.focus();
+    }, selector);
   }
 
-  async focusDragHandle(id: string) {
-    await this.clickDragHandle(id);
-    await this.keys(["Enter"]);
-  }
-
-  async focusResizeHandle(id: string) {
-    await this.click(`[data-item-id="${id}"] .${resizeHandleStyles.default.handle}`);
-    await this.keys(["Enter"]);
-  }
-
-  isDragHandleFocused(id: string) {
-    return this.isFocused(`[data-item-id="${id}"] .${dragHandleStyles.default.handle}`);
-  }
-
-  async getItemSize(id: string) {
-    return (await this.browser.$(`[data-item-id="${id}"]`)).getSize();
+  async keys(keys: string[]) {
+    await super.keys(keys);
+    await this.pause(25);
   }
 
   async mouseDown(selector: string) {
