@@ -22,6 +22,7 @@ import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
+import { useAutoScroll } from "./use-auto-scroll";
 
 export interface ItemContainerRef {
   focusDragHandle(): void;
@@ -81,9 +82,16 @@ function ItemContainerComponent(
   const anchorRef = useRef<HTMLDivElement>(null);
   const anchorPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
+  const activeScrollHandlers = useAutoScroll();
   const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-    onPointerUp: () => draggableApi.submitTransition(),
+    onPointerMove: (event: PointerEvent) => {
+      draggableApi.updateTransition(Coordinates.fromEvent(event));
+      activeScrollHandlers.onPointerMove(event);
+    },
+    onPointerUp: () => {
+      draggableApi.submitTransition();
+      activeScrollHandlers.onPointerUp();
+    },
   });
   const gridContext = useGridContext();
 
@@ -279,6 +287,7 @@ function ItemContainerComponent(
 
     const shouldTransformSize = transform.width !== itemSize.width || transform.height !== itemSize.height;
 
+    // TODO: add z-index for keyboard interactions for active item to be on-top when it overlaps with other.
     return {
       transform: CSSUtil.Transform.toString({
         x: gridContext.getColOffset(transform.x),
