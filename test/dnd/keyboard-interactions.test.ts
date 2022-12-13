@@ -11,6 +11,11 @@ const dashboardItemHandle = (id: string) => dashboardWrapper.findItemById(id).fi
 const dashboardItemResizeHandle = (id: string) => dashboardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemHandle = (id: string) => paletteWrapper.findItemById(id).findDragHandle().toSelector();
 
+function makeQueryUrl(layout: string[][], palette: string[]) {
+  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}
+
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
@@ -72,6 +77,8 @@ describe("items reordered with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["B", "A", "C", "D"],
+        ["B", "A", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })
@@ -87,8 +94,21 @@ describe("items reordered with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
+    })
+  );
+
+  test(
+    "active item overlays other items",
+    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+      await page.focus(dashboardItemHandle("A"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowDown"]);
+
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
     })
   );
 });
@@ -105,8 +125,11 @@ describe("items resized with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
         ["A", "A", "G", "D"],
+        ["E", "F", "G", "D"],
         ["E", "F", " ", "H"],
+        [" ", " ", " ", "H"],
       ]);
     })
   );
@@ -122,9 +145,72 @@ describe("items resized with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })
+  );
+
+  test(
+    "resizes 4x2 item down to 2x1 one step at a time",
+    setupTest(
+      makeQueryUrl(
+        [
+          ["A", "A", "B", "C"],
+          ["A", "A", "B", "C"],
+          ["A", "A", "D", "E"],
+          ["A", "A", "D", "E"],
+          ["F", "G", " ", " "],
+          ["F", "G", " ", " "],
+        ],
+        []
+      ),
+      async (page) => {
+        await page.focus(dashboardItemResizeHandle("A"));
+        await page.keys(["Enter"]);
+        await page.keys(["ArrowLeft"]);
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+        await page.keys(["ArrowUp"]);
+        await page.keys(["ArrowUp"]);
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+        await page.keys(["Enter"]);
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+      }
+    )
+  );
+
+  test(
+    "can't resize below min row/col span",
+    setupTest(
+      makeQueryUrl(
+        [
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+        ],
+        []
+      ),
+      async (page) => {
+        await page.focus(dashboardItemResizeHandle("X"));
+        await page.keys(["Enter"]);
+        await page.keys(["ArrowLeft"]);
+        await page.keys(["ArrowUp"]);
+
+        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+        await page.keys(["Enter"]);
+        await expect(page.getGrid()).resolves.toEqual([
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+          ["X", "X", " ", " "],
+        ]);
+      }
+    )
   );
 });
 
@@ -140,7 +226,10 @@ describe("items inserted with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
         ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+        [" ", " ", " ", "I"],
         [" ", " ", " ", "I"],
       ]);
     })
@@ -157,6 +246,8 @@ describe("items inserted with keyboard", () => {
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
     })

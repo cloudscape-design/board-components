@@ -6,13 +6,20 @@ import { fromMatrix, toString } from "../../debug-tools";
 import { DashboardItem } from "../../interfaces";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../layout";
 
-function makeItem(id: string, columnOffset: number, columnSpan: number, rowSpan: number): DashboardItem<unknown> {
+function makeItem(
+  id: string,
+  columnOffset: number,
+  columnSpan: number,
+  rowSpan: number,
+  minColumnSpan = 1,
+  minRowSpan = 1
+): DashboardItem<unknown> {
   return {
     id,
     columnOffset,
     rowSpan,
     columnSpan,
-    definition: { defaultRowSpan: 1, defaultColumnSpan: 1 },
+    definition: { defaultRowSpan: 1, defaultColumnSpan: 1, minColumnSpan, minRowSpan },
     data: null,
   };
 }
@@ -31,22 +38,41 @@ describe("createItemsLayout", () => {
       2,
       [
         ["A1", "B1"],
+        ["A1", "B1"],
         ["A2", "B2"],
+        ["A2", "B2"],
+        ["A3", "B3"],
         ["A3", "B3"],
       ],
     ],
     [
-      [makeItem("A", 0, 2, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)],
+      [makeItem("A", 0, 2, 3), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)],
       3,
       [
         ["A", "A", " "],
         ["A", "A", " "],
+        ["A", "A", " "],
+        [" ", "B", "B"],
         [" ", "B", "B"],
         [" ", " ", "C"],
         [" ", " ", "C"],
       ],
     ],
-    [[makeItem("A", 0, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 0, 2, 1)], 1, [["A"], ["B"], ["C"]]],
+    [
+      [makeItem("A", 0, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 0, 2, 1)],
+      1,
+      [["A"], ["A"], ["B"], ["B"], ["C"], ["C"]],
+    ],
+    [
+      [makeItem("A", 0, 1, 1, 2, 2), makeItem("B", 0, 1, 1, 3, 1)],
+      3,
+      [
+        ["A", "A", " "],
+        ["A", "A", " "],
+        ["B", "B", "B"],
+        ["B", "B", "B"],
+      ],
+    ],
   ])("Transforms dashboard items to internal grid layout", (items, columns, expectation) => {
     expect(toString(createItemsLayout(items, columns))).toBe(toString(expectation));
   });

@@ -29,6 +29,8 @@ test(
     makeQueryUrl(
       [
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "B", "G", "H"],
         ["E", "B", "G", "H"],
       ],
       []
@@ -37,7 +39,10 @@ test(
       await page.mouseDown(dashboardWrapper.findItemById("A").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
         ["E", "B", "G", "H"],
+        ["E", "B", "G", "H"],
+        [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
       await page.mouseUp();
@@ -45,7 +50,11 @@ test(
       await page.mouseDown(dashboardWrapper.findItemById("B").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
         ["E", "B", "G", "H"],
+        ["E", "B", "G", "H"],
+        [" ", " ", " ", " "],
+        [" ", " ", " ", " "],
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
@@ -59,6 +68,8 @@ test(
     makeQueryUrl(
       [
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ],
       ["I", "X"]
@@ -67,7 +78,10 @@ test(
       await page.mouseDown(paletteWrapper.findItemById("I").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
         ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+        [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
       await page.mouseUp();
@@ -75,7 +89,11 @@ test(
       await page.mouseDown(paletteWrapper.findItemById("X").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
         ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+        [" ", " ", " ", " "],
+        [" ", " ", " ", " "],
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
@@ -89,6 +107,8 @@ test(
     makeQueryUrl(
       [
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        [" ", "F", "G", "H"],
         [" ", "F", "G", "H"],
       ],
       []
@@ -97,23 +117,55 @@ test(
       await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        [" ", "F", "G", "H"],
         [" ", "F", "G", "H"],
       ]);
 
       await page.mouseMove(0, 250);
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        [" ", "F", "G", "H"],
         [" ", "F", "G", "H"],
         [" ", " ", " ", " "],
       ]);
 
-      await page.mouseMove(0, 250);
+      await page.mouseMove(0, 100);
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        [" ", "F", "G", "H"],
         [" ", "F", "G", "H"],
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
     }
   )
+);
+
+test(
+  "palette item size remains the same after drag start",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.mouseDown(paletteWrapper.findItemById("L").findDragHandle().toSelector());
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    await page.mouseUp();
+    await page.windowScrollTo({ top: 600 });
+
+    await page.mouseDown(paletteWrapper.findItemById("Q").findDragHandle().toSelector());
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
+
+test(
+  "palette item size adjusts to dashboard item size when moved over dashboard",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.mouseDown(paletteWrapper.findItemById("K").findDragHandle().toSelector());
+    await page.mouseMove(-200, 0);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    await page.mouseMove(200, 0);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
 );
