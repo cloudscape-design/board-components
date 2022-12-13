@@ -10,7 +10,10 @@ export function createItemsLayout(items: readonly DashboardItem<unknown>[], colu
 
   for (const { id, columnSpan, rowSpan, columnOffset, definition } of items) {
     const startCol = Math.min(columns - 1, columnOffset);
-    const allowedColSpan = Math.max(definition.minColumnSpan ?? 1, Math.min(columns - startCol, columnSpan));
+    const allowedColSpan = Math.min(
+      columns,
+      Math.max(definition.minColumnSpan ?? 1, Math.min(columns - startCol, columnSpan))
+    );
     const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition.minRowSpan ?? 1, rowSpan);
 
     let itemRow = 0;

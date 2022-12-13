@@ -17,6 +17,7 @@ export default function Grid({ layout, children, columns, rows }: GridProps) {
   const zipped = zipTwoArrays(layout, Children.toArray(children));
 
   const getWidth = (colspan: number) => {
+    colspan = Math.min(columns, colspan);
     const cellWidth = ((gridWidth || 0) - (columns - 1) * GRID_GAP) / columns;
     return colspan * cellWidth + (colspan - 1) * GRID_GAP;
   };

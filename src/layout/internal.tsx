@@ -76,13 +76,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
 
+  const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
+  const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
+
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   let rows = itemsLayout.rows || 1;
 
   if (transition) {
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const itemHeight = layoutItem?.height ?? getDefaultItemSize(transition.draggableItem).height;
+    const itemHeight = layoutItem?.height ?? getDefaultItemHeight(transition.draggableItem);
     // Add extra row for resize when already at the bottom.
     if (transition.operation === "resize") {
       rows = Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
@@ -109,8 +112,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         return transition.engine
           .insert({
             itemId: transition.draggableItem.id,
-            width: getDefaultItemSize(transition.draggableItem).width,
-            height: getDefaultItemSize(transition.draggableItem).height,
+            width: getDefaultItemWidth(transition.draggableItem),
+            height: getDefaultItemHeight(transition.draggableItem),
             path: normalizeInsertionPath(path, insertionDirection, columns, rows),
           })
           .getLayoutShift();
@@ -150,8 +153,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === draggableItem.id);
-    const itemWidth = layoutItem ? layoutItem.width : getDefaultItemSize(transition.draggableItem).width;
-    const itemHeight = layoutItem ? layoutItem.height : getDefaultItemSize(transition.draggableItem).height;
+    const itemWidth = layoutItem ? layoutItem.width : getDefaultItemWidth(transition.draggableItem);
+    const itemHeight = layoutItem ? layoutItem.height : getDefaultItemHeight(transition.draggableItem);
     const itemSize = itemWidth * itemHeight;
 
     if (operation !== "resize" && collisionIds.length < itemSize) {
@@ -347,7 +350,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
               transition && transition.operation === "resize" && transition.draggableItem.id === item.id;
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
-            const itemSize = layoutItem ?? getDefaultItemSize(item);
+            const itemSize = layoutItem ?? {
+              width: getDefaultItemWidth(item),
+              height: getDefaultItemHeight(item),
+            };
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
