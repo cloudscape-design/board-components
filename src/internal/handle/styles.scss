@@ -28,6 +28,12 @@
   border: none;
   padding: cs.$space-scaled-xxs;
 
+  color: cs.$color-text-interactive-default;
+
+  &:hover {
+    color: cs.$color-text-interactive-hover;
+  }
+
   &:focus-visible {
     @include focus-highlight();
   }
