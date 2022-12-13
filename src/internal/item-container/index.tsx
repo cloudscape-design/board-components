@@ -110,7 +110,7 @@ function ItemContainerComponent(
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : null,
+          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : draggableSize,
           positionTransform: cursorOffset,
         });
       }
@@ -257,7 +257,7 @@ function ItemContainerComponent(
         scaleX: 1,
         scaleY: 1,
       }),
-      position: transition?.sizeTransform ? "fixed" : undefined,
+      position: transition ? "fixed" : undefined,
       zIndex: 5000,
       width: transition?.sizeTransform?.width,
       height: transition?.sizeTransform?.height,
