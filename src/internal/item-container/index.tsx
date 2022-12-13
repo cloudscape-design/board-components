@@ -287,7 +287,6 @@ function ItemContainerComponent(
 
     const shouldTransformSize = transform.width !== itemSize.width || transform.height !== itemSize.height;
 
-    // TODO: add z-index for keyboard interactions for active item to be on-top when it overlaps with other.
     return {
       transform: CSSUtil.Transform.toString({
         x: gridContext.getColOffset(transform.x),
@@ -295,6 +294,7 @@ function ItemContainerComponent(
         scaleX: 1,
         scaleY: 1,
       }),
+      zIndex: transition && transition.itemId === item.id ? 1 : undefined,
       position: shouldTransformSize ? "absolute" : undefined,
       width: shouldTransformSize ? gridContext.getWidth(transform.width) : undefined,
       height: shouldTransformSize ? gridContext.getHeight(transform.height) : undefined,
