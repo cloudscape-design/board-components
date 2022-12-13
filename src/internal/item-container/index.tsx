@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { MIN_ROW_SPAN } from "../constants";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
@@ -95,14 +96,17 @@ function ItemContainerComponent(
       setScroll({ x: window.scrollX, y: window.scrollY });
 
       if (operation === "resize") {
-        const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
+        const { width: minWidth, height: minHeight } = dropTarget!.scale({
+          width: draggableItem.definition.minColumnSpan ?? 1,
+          height: Math.max(draggableItem.definition.minRowSpan ?? 1, MIN_ROW_SPAN),
+        });
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
           operation,
           itemId: draggableItem.id,
           sizeTransform: {
-            width: Math.max(cellWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
-            height: Math.max(cellHeight, draggableSize.height + cursorOffset.y),
+            width: Math.max(minWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
+            height: Math.max(minHeight, draggableSize.height + cursorOffset.y),
           },
           positionTransform: null,
         });
@@ -273,7 +277,7 @@ function ItemContainerComponent(
       return { transition: transitionStyle };
     }
 
-    const shouldTransformSize = transform.width > 1 || transform.height > 1;
+    const shouldTransformSize = transform.width !== itemSize.width || transform.height !== itemSize.height;
 
     return {
       transform: CSSUtil.Transform.toString({
