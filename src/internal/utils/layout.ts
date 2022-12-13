@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { MIN_ROW_SPAN } from "../constants";
 import { DashboardItem, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly DashboardItem<unknown>[], columns: number): GridLayout {
@@ -10,7 +11,7 @@ export function createItemsLayout(items: readonly DashboardItem<unknown>[], colu
   for (const { id, columnSpan, rowSpan, columnOffset, definition } of items) {
     const startCol = Math.min(columns - 1, columnOffset);
     const allowedColSpan = Math.max(definition.minColumnSpan ?? 1, Math.min(columns - startCol, columnSpan));
-    const allowedRowSpan = Math.max(definition.minRowSpan ?? 1, rowSpan);
+    const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition.minRowSpan ?? 1, rowSpan);
 
     let itemRow = 0;
     for (let col = startCol; col < startCol + allowedColSpan; col++) {

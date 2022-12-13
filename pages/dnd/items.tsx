@@ -229,12 +229,12 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
     R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
     S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
     T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    U: { defaultRowSpan: 2, defaultColumnSpan: 1, minRowSpan: 2, minColumnSpan: 1 },
-    V: { defaultRowSpan: 2, defaultColumnSpan: 1, minRowSpan: 2, minColumnSpan: 1 },
-    W: { defaultRowSpan: 2, defaultColumnSpan: 1, minRowSpan: 2, minColumnSpan: 1 },
-    X: { defaultRowSpan: 2, defaultColumnSpan: 2, minRowSpan: 2, minColumnSpan: 2 },
-    Y: { defaultRowSpan: 2, defaultColumnSpan: 2, minRowSpan: 2, minColumnSpan: 2 },
-    Z: { defaultRowSpan: 2, defaultColumnSpan: 2, minRowSpan: 2, minColumnSpan: 2 },
+    U: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    V: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    W: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    X: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    Y: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    Z: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
   };
   acc[letter] = {
     id: letter,
@@ -257,6 +257,7 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
     fromMatrix(grid),
     Object.values(letterWidgets).map((item) => ({ ...item, columnOffset: 0, columnSpan: 0, rowSpan: 0 }))
   );
+
   const usedLetterItems = new Set(layoutItems.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(
     (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id))

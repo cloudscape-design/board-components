@@ -3,7 +3,7 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, MIN_ROW_SPAN } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
@@ -74,7 +74,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   if (transition) {
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const itemHeight = layoutItem?.height ?? transition.draggableItem.definition.defaultRowSpan;
+    const itemHeight =
+      layoutItem?.height ??
+      Math.max(
+        MIN_ROW_SPAN,
+        transition.draggableItem.definition.minRowSpan ?? 1,
+        transition.draggableItem.definition.defaultRowSpan
+      );
 
     // Add extra row for resize when already at the bottom.
     if (transition.operation === "resize") {
@@ -197,8 +203,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemLeft(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    const minSize = transition.draggableItem.definition.minColumnSpan ?? 1;
-    if (lastPosition.x > (transition.operation === "resize" ? minSize : 0)) {
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const position = layoutItem?.x ?? 0;
+    const minSize = Math.max(1, transition.draggableItem.definition.minColumnSpan ?? 1);
+    if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
@@ -222,8 +231,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   function shiftItemUp(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
-    const minSize = transition.draggableItem.definition.minRowSpan ?? 1;
-    if (lastPosition.y > (transition.operation === "resize" ? minSize : 0)) {
+    const layout = transition.layoutShift?.next ?? itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const position = layoutItem?.y ?? 0;
+    const minSize = Math.max(MIN_ROW_SPAN, transition.draggableItem.definition.minRowSpan ?? 1);
+    if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
@@ -311,8 +323,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
             const itemSize = layoutItem ?? {
-              width: item.definition.defaultColumnSpan,
-              height: item.definition.defaultRowSpan,
+              width: Math.max(item.definition.defaultColumnSpan, item.definition.minColumnSpan ?? 1),
+              height: Math.max(item.definition.defaultRowSpan, item.definition.minRowSpan ?? 1, MIN_ROW_SPAN),
             };
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
