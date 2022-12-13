@@ -15,12 +15,14 @@ import {
   useRef,
   useState,
 } from "react";
+import { MIN_ROW_SPAN } from "../constants";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
+import { useAutoScroll } from "./use-auto-scroll";
 
 export interface ItemContainerRef {
   focusDragHandle(): void;
@@ -80,9 +82,16 @@ function ItemContainerComponent(
   const anchorRef = useRef<HTMLDivElement>(null);
   const anchorPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
+  const activeScrollHandlers = useAutoScroll();
   const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-    onPointerUp: () => draggableApi.submitTransition(),
+    onPointerMove: (event: PointerEvent) => {
+      draggableApi.updateTransition(Coordinates.fromEvent(event));
+      activeScrollHandlers.onPointerMove(event);
+    },
+    onPointerUp: () => {
+      draggableApi.submitTransition();
+      activeScrollHandlers.onPointerUp();
+    },
   });
   const gridContext = useGridContext();
 
@@ -95,14 +104,17 @@ function ItemContainerComponent(
       setScroll({ x: window.scrollX, y: window.scrollY });
 
       if (operation === "resize") {
-        const { width: cellWidth, height: cellHeight } = dropTarget!.scale({ width: 1, height: 1 });
+        const { width: minWidth, height: minHeight } = dropTarget!.scale({
+          width: draggableItem.definition.minColumnSpan ?? 1,
+          height: Math.max(draggableItem.definition.minRowSpan ?? 1, MIN_ROW_SPAN),
+        });
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
           operation,
           itemId: draggableItem.id,
           sizeTransform: {
-            width: Math.max(cellWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
-            height: Math.max(cellHeight, draggableSize.height + cursorOffset.y),
+            width: Math.max(minWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
+            height: Math.max(minHeight, draggableSize.height + cursorOffset.y),
           },
           positionTransform: null,
         });
@@ -110,7 +122,7 @@ function ItemContainerComponent(
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : null,
+          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : draggableSize,
           positionTransform: cursorOffset,
         });
       }
@@ -257,7 +269,7 @@ function ItemContainerComponent(
         scaleX: 1,
         scaleY: 1,
       }),
-      position: transition?.sizeTransform ? "fixed" : undefined,
+      position: transition ? "fixed" : undefined,
       zIndex: 5000,
       width: transition?.sizeTransform?.width,
       height: transition?.sizeTransform?.height,
@@ -273,7 +285,7 @@ function ItemContainerComponent(
       return { transition: transitionStyle };
     }
 
-    const shouldTransformSize = transform.width > 1 || transform.height > 1;
+    const shouldTransformSize = transform.width !== itemSize.width || transform.height !== itemSize.height;
 
     return {
       transform: CSSUtil.Transform.toString({
@@ -282,6 +294,7 @@ function ItemContainerComponent(
         scaleX: 1,
         scaleY: 1,
       }),
+      zIndex: transition && transition.itemId === item.id ? 1 : undefined,
       position: shouldTransformSize ? "absolute" : undefined,
       width: shouldTransformSize ? gridContext.getWidth(transform.width) : undefined,
       height: shouldTransformSize ? gridContext.getHeight(transform.height) : undefined,

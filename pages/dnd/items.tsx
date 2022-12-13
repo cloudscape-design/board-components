@@ -3,6 +3,7 @@
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
 import { ReactNode } from "react";
 import { DashboardLayoutProps } from "../../lib/components";
+import { DashboardItemDefinition } from "../../lib/components/internal/interfaces";
 import { fromMatrix } from "../../src/internal/debug-tools";
 import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
@@ -40,7 +41,7 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 1 },
     data: {
       title: "Demo widget",
       description: "Most minimal widget",
@@ -224,9 +225,20 @@ export const demoPaletteItems: readonly PaletteProps.Item<ItemData>[] = Object.e
   }));
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
+  const definitions: { [letter: string]: DashboardItemDefinition } = {
+    R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    U: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    V: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    W: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    X: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    Y: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    Z: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+  };
   acc[letter] = {
     id: letter,
-    definition: defaultDefinition,
+    definition: definitions[letter] ?? defaultDefinition,
     data: {
       title: `Widget ${letter}`,
       description: "Empty widget",
@@ -236,7 +248,7 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
   return acc;
 }, {} as { [id: string]: DashboardItemBase<ItemData> });
 
-export function createLetterItems(grid: null | string[][]) {
+export function createLetterItems(grid: null | string[][], palette?: string[]) {
   if (!grid) {
     return null;
   }
@@ -245,8 +257,11 @@ export function createLetterItems(grid: null | string[][]) {
     fromMatrix(grid),
     Object.values(letterWidgets).map((item) => ({ ...item, columnOffset: 0, columnSpan: 0, rowSpan: 0 }))
   );
+
   const usedLetterItems = new Set(layoutItems.map((item) => item.id));
-  const paletteItems = Object.values(letterWidgets).filter((item) => !usedLetterItems.has(item.id));
+  const paletteItems = Object.values(letterWidgets).filter(
+    (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id))
+  );
 
   return { layoutItems, paletteItems };
 }

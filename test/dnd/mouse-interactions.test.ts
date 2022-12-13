@@ -2,80 +2,128 @@
 // SPDX-License-Identifier: Apache-2.0
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import dragHandleStyles from "../../lib/components/internal/drag-handle/styles.selectors.js";
-import resizeHandleStyles from "../../lib/components/internal/resize-handle/styles.selectors.js";
+import createWrapper from "../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
+
+const dashboardWrapper = createWrapper().findDashboard();
+const paletteWrapper = createWrapper().findPalette();
+
+function makeQueryUrl(layout: string[][], palette: string[]) {
+  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}
 
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
     const page = new DndPageObject(browser);
+    await page.setWindowSize({ width: 1200, height: 800 });
     await page.waitForVisible("main");
     await testFn(page, browser);
   });
 }
 
 test(
-  "items reorder with pointer",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page, browser) => {
-    await page.setWindowSize({ width: 1200, height: 800 });
-
-    const handleA = await browser.$(`[data-item-id="A"] .${dragHandleStyles.default.handle}`);
-    const placeholderB = await browser.$('[data-item-id="B"]');
-    await handleA.dragAndDrop(placeholderB, { duration: 100 });
-
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  "item reorder with pointer",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.dragAndDropTo(
+      dashboardWrapper.findItemById("A").findDragHandle().toSelector(),
+      dashboardWrapper.findItemById("B").findDragHandle().toSelector()
+    );
+    await expect(page.getGrid()).resolves.toEqual([
+      ["B", "A", "C", "D"],
+      ["B", "A", "C", "D"],
+      ["E", "F", "G", "H"],
+      ["E", "F", "G", "H"],
+    ]);
   })
 );
 
 test(
-  "items resize with pointer",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page, browser) => {
-    await page.setWindowSize({ width: 1200, height: 800 });
-
-    const handleA = await browser.$(`[data-item-id="A"] .${resizeHandleStyles.default.handle}`);
-    const placeholderB = await browser.$('[data-item-id="B"]');
-    await handleA.dragAndDrop(placeholderB, { duration: 100 });
-
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  "item insert with pointer",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.dragAndDropTo(
+      paletteWrapper.findItemById("K").findDragHandle().toSelector(),
+      dashboardWrapper.findItemById("H").findDragHandle().toSelector()
+    );
+    await expect(page.getGrid()).resolves.toEqual([
+      ["A", "B", "C", "D"],
+      ["A", "B", "C", "D"],
+      ["E", "F", "G", "K"],
+      ["E", "F", "G", "K"],
+      [" ", " ", " ", "H"],
+      [" ", " ", " ", "H"],
+    ]);
   })
 );
 
 test(
-  "highlights drop location and adjusts size when over grid",
-  setupTest("/index.html#/dnd/engine-a2p-test", async (page, browser) => {
-    await page.setWindowSize({ width: 1200, height: 800 });
-
-    const handle = await browser.$(`[data-item-id="Q"] .${dragHandleStyles.default.handle}`);
-    const handleRect = await browser.getElementRect(handle.elementId);
-    const handleCenter = { x: handleRect.x + handleRect.width / 2, y: handleRect.y + handleRect.height / 2 };
-
-    await handle.moveTo();
-    await browser.performActions([
-      {
-        type: "pointer",
-        id: "event",
-        parameters: { pointerType: "mouse" },
-        actions: [
-          { type: "pointerMove", duration: 0, origin: "pointer", ...handleCenter },
-          { type: "pointerDown", button: 0 },
-          { type: "pause", duration: 10 },
-          { type: "pointerMove", duration: 10, origin: "pointer", x: -25, y: 0 },
-        ],
-      },
+  "item resize with pointer",
+  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+    await page.dragAndDropTo(
+      dashboardWrapper.findItemById("A").findResizeHandle().toSelector(),
+      dashboardWrapper.findItemById("B").findResizeHandle().toSelector()
+    );
+    await expect(page.getGrid()).resolves.toEqual([
+      ["A", "A", "B", "C"],
+      ["A", "A", "B", "C"],
+      ["E", "F", "G", "D"],
+      ["E", "F", "G", "D"],
+      [" ", " ", " ", "H"],
+      [" ", " ", " ", "H"],
     ]);
-
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-    await browser.performActions([
-      {
-        type: "pointer",
-        id: "event",
-        parameters: { pointerType: "mouse" },
-        actions: [{ type: "pointerMove", duration: 10, origin: "pointer", x: -100, y: 0 }],
-      },
-    ]);
-
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
+);
+
+test(
+  "item resize down to 2x1",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
+      await page.mouseMove(-250, -250);
+      await page.mouseUp();
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", " ", " ", " "],
+        ["A", " ", " ", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "can't resize below min row/col span",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(dashboardWrapper.findItemById("X").findResizeHandle().toSelector());
+      await page.mouseMove(-250, -250);
+
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+      await page.mouseUp();
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ]);
+    }
+  )
 );

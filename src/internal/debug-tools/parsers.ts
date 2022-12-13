@@ -47,7 +47,7 @@ export function fromMatrix(matrix: GridMatrix): GridLayout {
     }
   }
 
-  return { items, columns: matrix[0].length, rows: matrix.length };
+  return { items, columns: matrix[0]?.length ?? 0, rows: matrix.length };
 }
 
 // Path is defined like "A1 A2 B2 C2" where A-C is a column index (A-based) and 1-2 is a row index (1-based).
