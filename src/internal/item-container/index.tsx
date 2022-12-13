@@ -57,6 +57,12 @@ interface Transition {
   operation: Operation;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
+  interactionType: "pointer" | "manual";
+}
+
+interface TransitionContext {
+  interactionType: "pointer" | "manual";
+  anchorPosition: Coordinates;
 }
 
 interface ItemContainerProps {
@@ -74,15 +80,17 @@ function ItemContainerComponent(
   { item, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
+  const transitionContextRef = useRef<TransitionContext>({
+    anchorPosition: new Coordinates({ x: 0, y: 0 }),
+    interactionType: "pointer",
+  });
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
-  const [interactionType, setInteractionType] = useState<"pointer" | "manual">("pointer");
   const itemRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
-  const anchorPositionRef = useRef({ x: 0, y: 0 });
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
-  const activeScrollHandlers = useAutoScroll();
+  const { onManualMove, ...activeScrollHandlers } = useAutoScroll();
   const eventHandlersRef = useRef({
     onPointerMove: (event: PointerEvent) => {
       draggableApi.updateTransition(Coordinates.fromEvent(event));
@@ -114,6 +122,7 @@ function ItemContainerComponent(
             height: Math.max(minHeight, draggableSize.height + cursorOffset.y),
           },
           positionTransform: null,
+          interactionType: transitionContextRef.current.interactionType,
         });
       } else {
         setTransition({
@@ -121,6 +130,7 @@ function ItemContainerComponent(
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : draggableSize,
           positionTransform: cursorOffset,
+          interactionType: transitionContextRef.current.interactionType,
         });
       }
     }
@@ -129,7 +139,7 @@ function ItemContainerComponent(
   useDragSubscription("start", (detail) => {
     updateTransition(detail);
 
-    if (interactionType === "pointer" && item.id === detail.draggableItem.id) {
+    if (transitionContextRef.current.interactionType === "pointer" && item.id === detail.draggableItem.id) {
       window.addEventListener("pointermove", eventHandlersRef.current.onPointerMove);
       window.addEventListener("pointerup", eventHandlersRef.current.onPointerUp);
     }
@@ -166,50 +176,49 @@ function ItemContainerComponent(
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
       });
-
-      setInteractionType("manual");
-
-      // Timeout allows interaction type state to propagate.
-      setTimeout(() => {
-        if (operation === "drag" && !gridContext) {
-          draggableApi.start("insert", coordiantes);
-        } else if (operation === "drag") {
-          draggableApi.start("reorder", coordiantes);
-        } else {
-          draggableApi.start("resize", coordiantes);
-        }
-      }, 0);
-
       const anchorRect = anchorRef.current!.getBoundingClientRect();
-      anchorPositionRef.current = { x: anchorRect.x + window.scrollX, y: anchorRect.y + window.scrollY };
+
+      transitionContextRef.current.interactionType = "manual";
+      transitionContextRef.current.anchorPosition = new Coordinates({
+        x: anchorRect.x + window.scrollX,
+        y: anchorRect.y + window.scrollY,
+      });
+
+      if (operation === "drag" && !gridContext) {
+        draggableApi.start("insert", coordiantes);
+      } else if (operation === "drag") {
+        draggableApi.start("reorder", coordiantes);
+      } else {
+        draggableApi.start("resize", coordiantes);
+      }
     } else {
       draggableApi.submitTransition();
     }
   }
 
   function onKeyboardTransitionDiscard() {
-    if (transition) {
+    if (transition && transitionContextRef.current.interactionType === "manual") {
       draggableApi.discardTransition();
     }
   }
 
   function handleInsert(direction: Direction) {
     const droppables = draggableApi.getDroppables();
-    const droppableRect = getNextDroppable(itemRef.current!, droppables, direction);
-    if (!droppableRect) {
+    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
+    if (!nextDroppable) {
       // TODO: add announcement
       return;
     }
     const anchorRect = anchorRef.current!.getBoundingClientRect();
-    const dx = anchorPositionRef.current.x - anchorRect.x - window.scrollX;
-    const dy = anchorPositionRef.current.y - anchorRect.y - window.scrollY;
-    draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
+    const dx = transitionContextRef.current.anchorPosition.x - anchorRect.x - window.scrollX;
+    const dy = transitionContextRef.current.anchorPosition.y - anchorRect.y - window.scrollY;
+    const droppableRect = nextDroppable.element.getBoundingClientRect();
 
-    // Hack: the first update ensures the layout to receive the item and adjust its width/height.
-    // The second update recalculates collistions given the updated width/height.
-    setTimeout(() => {
-      draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
-    }, 0);
+    // Update active element for its collisions to be properly calculated.
+    itemRef.current!.style.width = nextDroppable.scale(itemSize).width + "px";
+    itemRef.current!.style.height = nextDroppable.scale(itemSize).height + "px";
+
+    draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -241,11 +250,8 @@ function ItemContainerComponent(
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
-    // Wait for possible operation discard on blur.
-    setTimeout(() => {
-      draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
-    }, 0);
-    setInteractionType("pointer");
+    transitionContextRef.current.interactionType = "pointer";
+    draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -253,11 +259,8 @@ function ItemContainerComponent(
   }
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
-    // Wait for possible operation discard on blur.
-    setTimeout(() => {
-      draggableApi.start("resize", Coordinates.fromEvent(event));
-    }, 0);
-    setInteractionType("pointer");
+    transitionContextRef.current.interactionType = "pointer";
+    draggableApi.start("resize", Coordinates.fromEvent(event));
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {
@@ -306,9 +309,15 @@ function ItemContainerComponent(
   }
 
   const style =
-    transition && (interactionType === "pointer" || transition.operation === "insert")
+    transition && (transition.interactionType === "pointer" || transition.operation === "insert")
       ? getDragActiveStyles(transition)
       : getLayoutShiftStyles();
+
+  useEffect(() => {
+    if (transition?.interactionType === "manual") {
+      return onManualMove();
+    }
+  }, [onManualMove, transition?.interactionType, transform?.y, transform?.height]);
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;

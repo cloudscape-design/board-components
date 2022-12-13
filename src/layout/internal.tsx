@@ -224,11 +224,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
     }
-    if (transition.operation === "resize") {
-      setTimeout(() => {
-        document.activeElement?.scrollIntoView({ behavior: "smooth" });
-      }, 0);
-    }
   }
 
   function shiftItemLeft(transition: Transition) {
