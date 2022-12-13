@@ -197,7 +197,7 @@ function ItemContainerComponent(
   }
 
   function onKeyboardTransitionDiscard() {
-    if (transition) {
+    if (transition && transitionContextRef.current.interactionType === "manual") {
       draggableApi.discardTransition();
     }
   }
@@ -251,11 +251,7 @@ function ItemContainerComponent(
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
     transitionContextRef.current.interactionType = "pointer";
-
-    // Wait for possible operation discard on blur.
-    setTimeout(() => {
-      draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
-    }, 0);
+    draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -264,11 +260,7 @@ function ItemContainerComponent(
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
     transitionContextRef.current.interactionType = "pointer";
-
-    // Wait for possible operation discard on blur.
-    setTimeout(() => {
-      draggableApi.start("resize", Coordinates.fromEvent(event));
-    }, 0);
+    draggableApi.start("resize", Coordinates.fromEvent(event));
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {
