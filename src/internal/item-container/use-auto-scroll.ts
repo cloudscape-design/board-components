@@ -40,5 +40,23 @@ export function useAutoScroll() {
     setActiveAutoScroll("none");
   }, []);
 
-  return { onPointerMove, onPointerUp };
+  const onManualMove = useCallback(() => {
+    const timeoutId = setTimeout(() => {
+      const element = document.activeElement;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        if (
+          rect.top < 0 ||
+          rect.left < 0 ||
+          rect.bottom > (window.innerHeight || document.documentElement.clientHeight) ||
+          rect.right > (window.innerWidth || document.documentElement.clientWidth)
+        ) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }, 200);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  return { onPointerMove, onPointerUp, onManualMove };
 }

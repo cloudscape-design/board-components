@@ -220,10 +220,17 @@ describe("items inserted with keyboard", () => {
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
       await page.focus(paletteItemHandle("I"));
       await page.keys(["Enter"]);
-      await page.keys(["ArrowDown"]);
-      await page.keys(["ArrowDown"]);
-      await page.keys(["Enter"]);
 
+      await page.keys(["ArrowLeft"]);
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+      await page.keys(["ArrowDown"]);
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+      await page.keys(["ArrowDown"]);
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+      await page.keys(["Enter"]);
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
