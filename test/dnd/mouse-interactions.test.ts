@@ -8,6 +8,11 @@ import { DndPageObject } from "./dnd-page-object.js";
 const dashboardWrapper = createWrapper().findDashboard();
 const paletteWrapper = createWrapper().findPalette();
 
+function makeQueryUrl(layout: string[][], palette: string[]) {
+  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}
+
 function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
   return useBrowser(async (browser) => {
     await browser.url(url);
@@ -27,6 +32,8 @@ test(
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["B", "A", "C", "D"],
+      ["B", "A", "C", "D"],
+      ["E", "F", "G", "H"],
       ["E", "F", "G", "H"],
     ]);
   })
@@ -41,7 +48,10 @@ test(
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "B", "C", "D"],
+      ["A", "B", "C", "D"],
       ["E", "F", "G", "K"],
+      ["E", "F", "G", "K"],
+      [" ", " ", " ", "H"],
       [" ", " ", " ", "H"],
     ]);
   })
@@ -56,8 +66,64 @@ test(
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "A", "B", "C"],
+      ["A", "A", "B", "C"],
       ["E", "F", "G", "D"],
+      ["E", "F", "G", "D"],
+      [" ", " ", " ", "H"],
       [" ", " ", " ", "H"],
     ]);
   })
+);
+
+test(
+  "item resize down to 2x1",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
+      await page.mouseMove(-250, -250);
+      await page.mouseUp();
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", " ", " ", " "],
+        ["A", " ", " ", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "can't resize below min row/col span",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(dashboardWrapper.findItemById("X").findResizeHandle().toSelector());
+      await page.mouseMove(-250, -250);
+
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+      await page.mouseUp();
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ]);
+    }
+  )
 );

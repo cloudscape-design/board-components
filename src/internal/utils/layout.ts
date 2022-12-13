@@ -1,25 +1,27 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { MIN_ROW_SPAN } from "../constants";
 import { DashboardItem, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly DashboardItem<unknown>[], columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
   const colAffordance = Array(columns).fill(-1);
 
-  for (const { id, columnSpan, rowSpan, columnOffset } of items) {
+  for (const { id, columnSpan, rowSpan, columnOffset, definition } of items) {
     const startCol = Math.min(columns - 1, columnOffset);
-    const allowedColSpan = Math.min(columns - startCol, columnSpan);
+    const allowedColSpan = Math.max(definition.minColumnSpan ?? 1, Math.min(columns - startCol, columnSpan));
+    const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition.minRowSpan ?? 1, rowSpan);
 
     let itemRow = 0;
     for (let col = startCol; col < startCol + allowedColSpan; col++) {
       itemRow = Math.max(itemRow, colAffordance[col] + 1);
     }
 
-    layoutItems.push({ id, width: allowedColSpan, height: rowSpan, x: startCol, y: itemRow });
+    layoutItems.push({ id, width: allowedColSpan, height: allowedRowSpan, x: startCol, y: itemRow });
 
     for (let col = startCol; col < startCol + allowedColSpan; col++) {
-      colAffordance[col] = itemRow + rowSpan - 1;
+      colAffordance[col] = itemRow + allowedRowSpan - 1;
     }
   }
 
