@@ -30,8 +30,9 @@
 
 .resizer {
   position: absolute;
-  bottom: cs.$space-scaled-xs;
-  right: cs.$space-static-s;
+  // offset for inner paddings in the handle
+  bottom: calc(#{cs.$space-scaled-s} - #{cs.$space-scaled-xxs});
+  right: calc(#{cs.$space-scaled-s} - #{cs.$space-scaled-xxs});
 }
 
 .root {
