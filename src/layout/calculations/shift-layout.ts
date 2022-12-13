@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { toString as engineToString } from "../../internal/debug-tools";
-import { GridLayout, ItemId, Transform } from "../../internal/interfaces";
+import { Direction, GridLayout, ItemId, Transform } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
 import { CommittedMove, LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Position } from "../../internal/utils/position";
@@ -36,6 +36,44 @@ export function createTransforms(grid: GridLayout, moves: readonly CommittedMove
   }
 
   return transforms;
+}
+
+export function normalizeInsertionPath(
+  path: Position[],
+  insertionDirection: Direction,
+  columns: number,
+  rows: number
+): Position[] {
+  let edgeIndex = -1;
+  for (let i = 0; i < path.length; i++) {
+    switch (insertionDirection) {
+      case "left": {
+        if (path[i].x === 0) {
+          edgeIndex = i;
+        }
+        break;
+      }
+      case "right": {
+        if (path[i].x === columns - 1) {
+          edgeIndex = i;
+        }
+        break;
+      }
+      case "up": {
+        if (path[i].y === 0) {
+          edgeIndex = i;
+        }
+        break;
+      }
+      case "down": {
+        if (path[i].y === rows - 1) {
+          edgeIndex = i;
+        }
+        break;
+      }
+    }
+  }
+  return path.slice(edgeIndex);
 }
 
 export function appendMovePath(prevPath: Position[], collisionRect: Rect): Position[] {

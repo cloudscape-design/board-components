@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MIN_ROW_SPAN } from "../constants";
-import { DashboardItem, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
+import { DashboardItem, DashboardItemBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly DashboardItem<unknown>[], columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
@@ -67,4 +67,18 @@ export function exportItemsLayout<D>(
     dashboardItems.push({ ...getItem(id), columnOffset: x, columnSpan: width, rowSpan: height });
   }
   return dashboardItems;
+}
+
+export function getMinItemSize(item: DashboardItemBase<unknown>) {
+  return {
+    width: Math.min(1, item.definition.minColumnSpan ?? 1),
+    height: Math.max(MIN_ROW_SPAN, item.definition.minRowSpan ?? 1),
+  };
+}
+
+export function getDefaultItemSize(item: DashboardItemBase<unknown>) {
+  return {
+    width: Math.max(getMinItemSize(item).width, item.definition.defaultColumnSpan),
+    height: Math.max(getMinItemSize(item).height, item.definition.defaultRowSpan),
+  };
 }

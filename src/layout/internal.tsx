@@ -3,20 +3,33 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, MIN_ROW_SPAN } from "../internal/constants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
+import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
-import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
+import {
+  createItemsLayout,
+  createPlaceholdersLayout,
+  exportItemsLayout,
+  getDefaultItemSize,
+  getMinItemSize,
+} from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
-import { appendMovePath, appendResizePath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
+import {
+  appendMovePath,
+  appendResizePath,
+  createTransforms,
+  normalizeInsertionPath,
+  printLayoutDebug,
+} from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
@@ -24,6 +37,7 @@ import styles from "./styles.css.js";
 
 interface Transition {
   operation: Operation;
+  insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
   collisionIds: ItemId[];
   engine: LayoutEngine;
@@ -31,26 +45,20 @@ interface Transition {
   path: Position[];
 }
 
-function getLayoutShift(transition: Transition, path: Position[]) {
-  if (path.length === 0) {
-    return null;
+function getInsertionDirection(cursorOffset: Coordinates): Direction {
+  if (cursorOffset.x < 0) {
+    return "right";
   }
-
-  switch (transition.operation) {
-    case "resize":
-      return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
-    case "reorder":
-      return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
-    case "insert":
-      return transition.engine
-        .insert({
-          itemId: transition.draggableItem.id,
-          width: transition.draggableItem.definition.defaultColumnSpan,
-          height: transition.draggableItem.definition.defaultRowSpan,
-          path,
-        })
-        .getLayoutShift();
+  if (cursorOffset.x > 0) {
+    return "left";
   }
+  if (cursorOffset.y < 0) {
+    return "down";
+  }
+  if (cursorOffset.y > 0) {
+    return "up";
+  }
+  return "right";
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
@@ -74,14 +82,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   if (transition) {
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const itemHeight =
-      layoutItem?.height ??
-      Math.max(
-        MIN_ROW_SPAN,
-        transition.draggableItem.definition.minRowSpan ?? 1,
-        transition.draggableItem.definition.defaultRowSpan
-      );
-
+    const itemHeight = layoutItem?.height ?? getDefaultItemSize(transition.draggableItem).height;
     // Add extra row for resize when already at the bottom.
     if (transition.operation === "resize") {
       rows = Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
@@ -93,6 +94,28 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   }
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
+
+  function getLayoutShift(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
+    if (path.length === 0) {
+      return null;
+    }
+
+    switch (transition.operation) {
+      case "resize":
+        return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      case "reorder":
+        return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      case "insert":
+        return transition.engine
+          .insert({
+            itemId: transition.draggableItem.id,
+            width: getDefaultItemSize(transition.draggableItem).width,
+            height: getDefaultItemSize(transition.draggableItem).height,
+            path: normalizeInsertionPath(path, insertionDirection, columns, rows),
+          })
+          .getLayoutShift();
+    }
+  }
 
   // The debounce makes UX smoother and ensures all state is propagated between transitions.
   // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
@@ -111,6 +134,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     setTransition({
       operation,
+      insertionDirection: null,
       draggableItem,
       collisionIds: [],
       engine: new LayoutEngine(itemsLayout),
@@ -119,19 +143,19 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     });
   });
 
-  useDragSubscription("update", ({ operation, draggableItem, collisionIds }) => {
+  useDragSubscription("update", ({ operation, draggableItem, collisionIds, cursorOffset }) => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
 
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === draggableItem.id);
-    const itemWidth = layoutItem ? layoutItem.width : transition.draggableItem.definition.defaultColumnSpan;
-    const itemHeight = layoutItem ? layoutItem.height : transition.draggableItem.definition.defaultRowSpan;
+    const itemWidth = layoutItem ? layoutItem.width : getDefaultItemSize(transition.draggableItem).width;
+    const itemHeight = layoutItem ? layoutItem.height : getDefaultItemSize(transition.draggableItem).height;
     const itemSize = itemWidth * itemHeight;
 
     if (operation !== "resize" && collisionIds.length < itemSize) {
-      setTransitionDelayed({ ...transition, collisionIds: [], layoutShift: null });
+      setTransitionDelayed({ ...transition, collisionIds: [], layoutShift: null, insertionDirection: null });
       return;
     }
 
@@ -139,10 +163,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
     const path = appendPath(transition.path, collisionRect);
 
-    const layoutShift = getLayoutShift(transition, path);
+    const insertionDirection = transition.insertionDirection ?? getInsertionDirection(cursorOffset);
+    const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
     if (layoutShift) {
-      setTransitionDelayed({ ...transition, collisionIds, layoutShift, path });
+      setTransitionDelayed({ ...transition, collisionIds, layoutShift, path, insertionDirection });
     }
   });
 
@@ -211,7 +236,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const position = layoutItem?.x ?? 0;
-    const minSize = Math.max(1, transition.draggableItem.definition.minColumnSpan ?? 1);
+    const minSize = getMinItemSize(transition.draggableItem).width;
     if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
@@ -239,7 +264,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const position = layoutItem?.y ?? 0;
-    const minSize = Math.max(MIN_ROW_SPAN, transition.draggableItem.definition.minRowSpan ?? 1);
+    const minSize = getMinItemSize(transition.draggableItem).height;
     if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
       updateManualItemTransition(transition, [
         ...transition.path,
@@ -327,10 +352,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
               transition && transition.operation === "resize" && transition.draggableItem.id === item.id;
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
-            const itemSize = layoutItem ?? {
-              width: Math.max(item.definition.defaultColumnSpan, item.definition.minColumnSpan ?? 1),
-              height: Math.max(item.definition.defaultRowSpan, item.definition.minRowSpan ?? 1, MIN_ROW_SPAN),
-            };
+            const itemSize = layoutItem ?? getDefaultItemSize(item);
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 

@@ -15,11 +15,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { MIN_ROW_SPAN } from "../constants";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
+import { getMinItemSize } from "../utils/layout";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 import { useAutoScroll } from "./use-auto-scroll";
@@ -104,10 +104,7 @@ function ItemContainerComponent(
       setScroll({ x: window.scrollX, y: window.scrollY });
 
       if (operation === "resize") {
-        const { width: minWidth, height: minHeight } = dropTarget!.scale({
-          width: draggableItem.definition.minColumnSpan ?? 1,
-          height: Math.max(draggableItem.definition.minRowSpan ?? 1, MIN_ROW_SPAN),
-        });
+        const { width: minWidth, height: minHeight } = dropTarget!.scale(getMinItemSize(draggableItem));
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
           operation,
@@ -207,6 +204,12 @@ function ItemContainerComponent(
     const dx = anchorPositionRef.current.x - anchorRect.x - window.scrollX;
     const dy = anchorPositionRef.current.y - anchorRect.y - window.scrollY;
     draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
+
+    // Hack: the first update ensures the layout to receive the item and adjust its width/height.
+    // The second update recalculates collistions given the updated width/height.
+    setTimeout(() => {
+      draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
+    }, 0);
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
