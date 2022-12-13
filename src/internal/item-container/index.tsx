@@ -204,21 +204,21 @@ function ItemContainerComponent(
 
   function handleInsert(direction: Direction) {
     const droppables = draggableApi.getDroppables();
-    const droppableRect = getNextDroppable(itemRef.current!, droppables, direction);
-    if (!droppableRect) {
+    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
+    if (!nextDroppable) {
       // TODO: add announcement
       return;
     }
     const anchorRect = anchorRef.current!.getBoundingClientRect();
     const dx = transitionContextRef.current.anchorPosition.x - anchorRect.x - window.scrollX;
     const dy = transitionContextRef.current.anchorPosition.y - anchorRect.y - window.scrollY;
-    draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
+    const droppableRect = nextDroppable.element.getBoundingClientRect();
 
-    // Hack: the first update ensures the layout to receive the item and adjust its width/height.
-    // The second update recalculates collistions given the updated width/height.
-    setTimeout(() => {
-      draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
-    }, 0);
+    // Update active element for its collisions to be properly calculated.
+    itemRef.current!.style.width = nextDroppable.scale(itemSize).width + "px";
+    itemRef.current!.style.height = nextDroppable.scale(itemSize).height + "px";
+
+    draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
