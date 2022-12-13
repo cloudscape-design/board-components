@@ -169,3 +169,19 @@ test(
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
+
+test(
+  "palette item with min colspan=2 can be inserted into 1-column layout",
+  setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
+    await page.setWindowSize({ width: 800, height: 800 });
+
+    await page.focus(paletteWrapper.findItemById("R").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
+
+    await page.keys(["ArrowLeft"]);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    await page.keys(["Enter"]);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
