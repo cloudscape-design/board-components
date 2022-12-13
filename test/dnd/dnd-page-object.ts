@@ -1,43 +1,38 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import { range } from "lodash";
 import gridStyles from "../../lib/components/internal/grid/styles.selectors.js";
 import layoutStyles from "../../lib/components/layout/styles.selectors.js";
-import createWrapper from "../../lib/components/test-utils/selectors";
-
-const dashboardWrapper = createWrapper().findDashboard();
 
 export class DndPageObject extends ScreenshotPageObject {
   async getGrid() {
     await this.pause(50);
 
-    const itemSelector = `.${layoutStyles.default.root} .${gridStyles.default.grid__item}`;
-    const placeholderSelector = `${itemSelector}:not([data-item-id])`;
-    const widgetSelector = `${itemSelector}[data-item-id]`;
-
-    const placeholdersCount = await this.getElementsCount(placeholderSelector);
-    const placeholderRects = await Promise.all(
-      range(0, placeholdersCount).map((index) => this.getBoundingBox(`${placeholderSelector}:nth-child(${index + 1})`))
+    const widgets = await this.browser.execute(
+      (widgetsSelector) =>
+        [...document.querySelectorAll(widgetsSelector)].map(
+          (w) => [w.getAttribute("data-item-id"), w.getBoundingClientRect()] as [string, DOMRect]
+        ),
+      `.${layoutStyles.default.root} .${gridStyles.default.grid__item}[data-item-id]`
     );
 
-    const widgets = await this.browser.$$(widgetSelector);
-    const widgetIds = await Promise.all([...widgets].map((item) => item.getAttribute("data-item-id")));
-    const widgetRects = await Promise.all(
-      widgetIds.map((id) => this.getBoundingBox(dashboardWrapper.findItemById(id).toSelector()))
+    const placeholderRects = await this.browser.execute(
+      (placeholderSelector) =>
+        [...document.querySelectorAll(placeholderSelector)].map((p) => p.getBoundingClientRect()),
+      `.${layoutStyles.default.placeholder}`
     );
 
     function matchWidget(placeholderIndex: number): null | string {
       const placeholderRect = placeholderRects[placeholderIndex];
 
-      for (let widgetIndex = 0; widgetIndex < widgetRects.length; widgetIndex++) {
+      for (let widgetIndex = 0; widgetIndex < widgets.length; widgetIndex++) {
         if (
-          placeholderRect.top >= widgetRects[widgetIndex].top - 2 &&
-          placeholderRect.left >= widgetRects[widgetIndex].left - 2 &&
-          placeholderRect.right <= widgetRects[widgetIndex].right + 2 &&
-          placeholderRect.bottom <= widgetRects[widgetIndex].bottom + 2
+          placeholderRect.top >= widgets[widgetIndex][1].top - 2 &&
+          placeholderRect.left >= widgets[widgetIndex][1].left - 2 &&
+          placeholderRect.right <= widgets[widgetIndex][1].right + 2 &&
+          placeholderRect.bottom <= widgets[widgetIndex][1].bottom + 2
         ) {
-          return widgetIds[widgetIndex];
+          return widgets[widgetIndex][0];
         }
       }
 
