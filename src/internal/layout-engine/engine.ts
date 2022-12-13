@@ -202,13 +202,13 @@ export class LayoutEngine {
   private getResizeDirections(issuer: LayoutEngineItem): Direction[] {
     const diff = this.getLastStepDiff(issuer);
 
-    const firstVertical = diff.height > 0 ? "up" : "down";
+    const firstVertical = diff.y > 0 ? "up" : "down";
     const nextVertical = firstVertical === "down" ? "up" : "down";
 
-    const firstHorizontal = diff.width > 0 ? "left" : "right";
+    const firstHorizontal = diff.x > 0 ? "left" : "right";
     const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
 
-    return Math.abs(diff.height) > Math.abs(diff.width)
+    return Math.abs(diff.y) > Math.abs(diff.x)
       ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
       : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
   }
@@ -223,12 +223,13 @@ export class LayoutEngine {
     };
     const prevIssuerMove = issuerMoves[issuerMoves.length - 2] ?? originalParams;
     const lastIssuerMove = issuerMoves[issuerMoves.length - 1] ?? originalParams;
-    return {
+    const diff = {
       x: prevIssuerMove.x - lastIssuerMove.x,
       y: prevIssuerMove.y - lastIssuerMove.y,
       width: prevIssuerMove.width - lastIssuerMove.width,
       height: prevIssuerMove.height - lastIssuerMove.height,
     };
+    return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
   }
 
   // Try finding a move that resovles an overlap by moving an item to a vacant space.
@@ -359,7 +360,7 @@ export class LayoutEngine {
     const moveTarget = this.grid.getItem(move.itemId);
 
     const diff = this.getLastStepDiff(resizeTarget);
-    const direction = diff.width ? "horizontal" : "vertical";
+    const direction = diff.x ? "horizontal" : "vertical";
 
     const originalPlacement = {
       isNext: resizeTarget.x + resizeTarget.originalWidth - 1 < moveTarget.x,
