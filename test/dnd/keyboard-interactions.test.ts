@@ -100,6 +100,17 @@ describe("items reordered with keyboard", () => {
       ]);
     })
   );
+
+  test(
+    "active item overlays other items",
+    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+      await page.focus(dashboardItemHandle("A"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowDown"]);
+
+      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+    })
+  );
 });
 
 describe("items resized with keyboard", () => {
