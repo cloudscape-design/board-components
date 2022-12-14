@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
-import Grid from "@cloudscape-design/components/grid";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
 import {
@@ -25,17 +24,19 @@ export function EnginePageTemplate({
   initialLayoutItems,
   initialPaletteItems,
   widgets,
+  layout = "grid",
 }: {
   initialLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[];
   initialPaletteItems: readonly PaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
+  layout: "grid" | "absolute";
 }) {
   const [items, setItems] = useState(initialLayoutItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
     <PageLayout header={<Header variant="h1">Configurable dashboard demo</Header>}>
-      <Grid gridDefinition={[{ colspan: 9 }, { colspan: 3 }]}>
+      <div className={classnames[`layout-${layout}`]}>
         <DashboardLayout
           items={items}
           renderItem={(item, actions) => (
@@ -85,7 +86,7 @@ export function EnginePageTemplate({
             i18nStrings={{}}
           />
         </div>
-      </Grid>
+      </div>
     </PageLayout>
   );
 }
