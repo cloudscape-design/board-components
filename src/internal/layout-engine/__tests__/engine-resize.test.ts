@@ -197,6 +197,26 @@ describe("resize scenarios", () => {
         ["C", "F", "F", "F"],
       ],
     ],
+    [
+      "resize B to 1:2",
+      [
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+        ["I", "J", "K", "L"],
+        ["M", "N", "O", "P"],
+      ],
+      {
+        itemId: "B",
+        path: [{ x: 2, y: 2 }],
+      },
+      [
+        ["A", "B", "C", "D"],
+        ["E", "B", "G", "H"],
+        ["I", "F", "K", "L"],
+        ["M", "J", "O", "P"],
+        [" ", "N", " ", " "],
+      ],
+    ],
   ])("%s", (_, gridMatrix, resize, expectation) => {
     const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).resize(resize).refloat().getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
