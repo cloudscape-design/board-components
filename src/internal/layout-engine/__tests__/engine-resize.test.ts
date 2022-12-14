@@ -219,7 +219,6 @@ describe("resize scenarios", () => {
     ],
   ])("%s", (_, gridMatrix, resize, expectation) => {
     const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).resize(resize).refloat().getLayoutShift();
-    console.log(layoutShift.moves);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
