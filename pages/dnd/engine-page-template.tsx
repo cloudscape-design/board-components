@@ -29,7 +29,7 @@ export function EnginePageTemplate({
   initialLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[];
   initialPaletteItems: readonly PaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
-  layout: "grid" | "absolute";
+  layout?: "grid" | "absolute";
 }) {
   const [items, setItems] = useState(initialLayoutItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
