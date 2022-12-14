@@ -34,6 +34,9 @@ import {
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
+import { useAutoScroll } from "./use-auto-scroll";
+
+const TRANSITION_DURATION_MS = 200;
 
 interface Transition {
   operation: Operation;
@@ -70,6 +73,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
+
+  const activeScrollHandlers = useAutoScroll();
 
   const [transition, setTransition] = useState<null | Transition>(null);
 
@@ -144,6 +149,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       layoutShift: null,
       path,
     });
+
+    activeScrollHandlers.addPointerEventHandlers();
   });
 
   useDragSubscription("update", ({ operation, draggableItem, collisionIds, cursorOffset }) => {
@@ -199,14 +206,19 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
       }
     }
+
+    activeScrollHandlers.removePointerEventHandlers();
   });
 
   useDragSubscription("discard", () => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
+
     setTransitionDelayed.cancel();
     setTransition(null);
+
+    activeScrollHandlers.removePointerEventHandlers();
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
@@ -226,6 +238,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
+      activeScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
     }
   }
 
@@ -371,6 +384,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
+                transitionDuration={TRANSITION_DURATION_MS}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}

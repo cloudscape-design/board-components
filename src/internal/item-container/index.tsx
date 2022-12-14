@@ -23,7 +23,6 @@ import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
-import { useAutoScroll } from "./use-auto-scroll";
 
 export interface ItemContainerRef {
   focusDragHandle(): void;
@@ -71,6 +70,7 @@ interface ItemContainerProps {
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
   transform: null | Transform;
+  transitionDuration?: number;
   onNavigate(direction: Direction): void;
   children: ReactNode;
 }
@@ -78,7 +78,7 @@ interface ItemContainerProps {
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
+  { item, itemSize, itemMaxSize, transform, transitionDuration, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const transitionContextRef = useRef<TransitionContext>({
@@ -91,16 +91,9 @@ function ItemContainerComponent(
   const itemRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
-  const { onManualMove, ...activeScrollHandlers } = useAutoScroll();
   const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => {
-      draggableApi.updateTransition(Coordinates.fromEvent(event));
-      activeScrollHandlers.onPointerMove(event);
-    },
-    onPointerUp: () => {
-      draggableApi.submitTransition();
-      activeScrollHandlers.onPointerUp();
-    },
+    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
+    onPointerUp: () => draggableApi.submitTransition(),
   });
   const gridContext = useGridContext();
 
@@ -288,7 +281,7 @@ function ItemContainerComponent(
 
   function getLayoutShiftStyles(): CSSProperties {
     const transitionStyle = dragActive
-      ? CSSUtil.Transition.toString({ property: "transform", duration: 200, easing: "ease" })
+      ? CSSUtil.Transition.toString({ property: "transform", duration: transitionDuration ?? 0, easing: "ease" })
       : undefined;
 
     if (!transform || !gridContext) {
@@ -316,12 +309,6 @@ function ItemContainerComponent(
     transition && (transition.interactionType === "pointer" || transition.operation === "insert")
       ? getDragActiveStyles(transition)
       : getLayoutShiftStyles();
-
-  useEffect(() => {
-    if (transition?.interactionType === "manual") {
-      return onManualMove();
-    }
-  }, [onManualMove, transition?.interactionType, transform?.y, transform?.height]);
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
