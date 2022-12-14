@@ -25,31 +25,31 @@ $visual-refresh-dark-hover: $blue-600;
   &--active {
     background-color: $classic-light-active;
 
-    &.dark {
+    :global(.awsui-polaris-dark-mode) & {
       background-color: $classic-dark-active;
     }
 
-    &.visual-refresh {
+    :global(.awsui-visual-refresh) & {
       background-color: $visual-refresh-light-active;
+    }
 
-      &.dark {
-        background-color: $visual-refresh-dark-active;
-      }
+    :global(.awsui-visual-refresh.awsui-polaris-dark-mode) & {
+      background-color: $visual-refresh-dark-active;
     }
   }
   &--hover {
     background-color: $classic-light-hover;
 
-    &.dark {
+    :global(.awsui-polaris-dark-mode) & {
       background-color: $classic-dark-hover;
     }
 
-    &.visual-refresh {
+    :global(.awsui-visual-refresh) & {
       background-color: $visual-refresh-light-hover;
+    }
 
-      &.dark {
-        background-color: $visual-refresh-dark-hover;
-      }
+    :global(.awsui-visual-refresh.awsui-polaris-dark-mode) & {
+      background-color: $visual-refresh-dark-hover;
     }
   }
 }
