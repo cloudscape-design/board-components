@@ -1,13 +1,56 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
+$blue-200: #d3e7f9;
+$blue-300: #b5d6f4;
+$blue-600: #0972d3;
+$grey-200: #e9ebed;
+$grey-300: #d1d5db;
+$grey-550: #5f6b7a;
+
+$classic-light-active: $grey-300;
+$classic-light-hover: $blue-300;
+
+$classic-dark-active: $grey-550;
+$classic-dark-hover: $blue-600;
+
+$visual-refresh-light-active: $grey-200;
+$visual-refresh-light-hover: $blue-200;
+
+$visual-refresh-dark-active: $grey-550;
+$visual-refresh-dark-hover: $blue-600;
+
 .placeholder {
   border-radius: cs.$border-radius-container;
   height: 100%;
   &--active {
-    background-color: #eaeded;
+    background-color: $classic-light-active;
+
+    &.dark {
+      background-color: $classic-dark-active;
+    }
+
+    &.visual-refresh {
+      background-color: $visual-refresh-light-active;
+
+      &.dark {
+        background-color: $visual-refresh-dark-active;
+      }
+    }
   }
   &--hover {
-    background-color: #99cbe4;
+    background-color: $classic-light-hover;
+
+    &.dark {
+      background-color: $classic-dark-hover;
+    }
+
+    &.visual-refresh {
+      background-color: $visual-refresh-light-hover;
+
+      &.dark {
+        background-color: $visual-refresh-dark-hover;
+      }
+    }
   }
 }
 
