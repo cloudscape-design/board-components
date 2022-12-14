@@ -74,7 +74,7 @@ export function exportItemsLayout<D>(
 
 export function getMinItemSize(item: DashboardItemBase<unknown>) {
   return {
-    width: Math.min(1, item.definition.minColumnSpan ?? 1),
+    width: Math.max(1, item.definition.minColumnSpan ?? 1),
     height: Math.max(MIN_ROW_SPAN, item.definition.minRowSpan ?? 1),
   };
 }
