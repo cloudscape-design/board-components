@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { TRANSITION_DURATION_MS } from "../constants";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
@@ -70,7 +71,6 @@ interface ItemContainerProps {
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
   transform: null | Transform;
-  transitionDuration?: number;
   onNavigate(direction: Direction): void;
   children: ReactNode;
 }
@@ -78,7 +78,7 @@ interface ItemContainerProps {
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, itemSize, itemMaxSize, transform, transitionDuration, onNavigate, children }: ItemContainerProps,
+  { item, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const transitionContextRef = useRef<TransitionContext>({
@@ -281,7 +281,7 @@ function ItemContainerComponent(
 
   function getLayoutShiftStyles(): CSSProperties {
     const transitionStyle = dragActive
-      ? CSSUtil.Transition.toString({ property: "transform", duration: transitionDuration ?? 0, easing: "ease" })
+      ? CSSUtil.Transition.toString({ property: "transform", duration: TRANSITION_DURATION_MS, easing: "ease" })
       : undefined;
 
     if (!transform || !gridContext) {

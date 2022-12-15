@@ -3,7 +3,7 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
@@ -35,8 +35,6 @@ import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 import { useAutoScroll } from "./use-auto-scroll";
-
-const TRANSITION_DURATION_MS = 200;
 
 interface Transition {
   operation: Operation;
@@ -384,7 +382,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
-                transitionDuration={TRANSITION_DURATION_MS}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
