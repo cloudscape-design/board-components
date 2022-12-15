@@ -41,15 +41,7 @@ export function useAutoScroll() {
           document.activeElement === activeElementBeforeDelay &&
           getLastInteraction() === "keyboard"
         ) {
-          const rect = document.activeElement.getBoundingClientRect();
-          if (
-            rect.top < 0 ||
-            rect.left < 0 ||
-            rect.bottom > (window.innerHeight || document.documentElement.clientHeight) ||
-            rect.right > (window.innerWidth || document.documentElement.clientWidth)
-          ) {
-            document.activeElement.scrollIntoView({ behavior: "smooth" });
-          }
+          document.activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       }, scrollIntoViewDelayRef.current);
 
