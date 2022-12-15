@@ -10,6 +10,11 @@ export type Operation = "reorder" | "resize" | "insert";
 
 export type Scale = (size: { width: number; height: number }) => { width: number; height: number };
 
+export interface DropTargetContext {
+  scale: Scale;
+  acquire: () => unknown;
+}
+
 export interface DragAndDropData {
   operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
@@ -17,12 +22,12 @@ export interface DragAndDropData {
   coordinates: Coordinates;
   collisionRect: Rect;
   collisionIds: ItemId[];
-  dropTarget: null | { scale: Scale };
+  dropTarget: null | DropTargetContext;
 }
 
 export interface Droppable {
   element: HTMLElement;
-  scale: Scale;
+  context: DropTargetContext;
 }
 
 interface DragDetail {
@@ -75,8 +80,8 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.transition = null;
   }
 
-  public addDroppable(id: ItemId, scale: Scale, element: HTMLElement) {
-    this.droppables.set(id, { element, scale });
+  public addDroppable(id: ItemId, context: DropTargetContext, element: HTMLElement) {
+    this.droppables.set(id, { element, context });
   }
 
   public removeDroppable(id: ItemId) {
@@ -110,7 +115,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     if (!matchedDroppable) {
       throw new Error("Invariant violation: no droppable matches collision.");
     }
-    return { collisionIds, dropTarget: { scale: matchedDroppable[1].scale } };
+    return { collisionIds, dropTarget: matchedDroppable[1].context };
   }
 }
 
@@ -149,15 +154,15 @@ export function useDraggable({
 
 export function useDroppable({
   itemId,
-  scale,
+  context,
   getElement,
 }: {
   itemId: ItemId;
-  scale: Scale;
+  context: DropTargetContext;
   getElement: () => HTMLElement;
 }) {
   useEffect(() => {
-    controller.addDroppable(itemId, scale, getElement());
+    controller.addDroppable(itemId, context, getElement());
     return () => controller.removeDroppable(itemId);
-  }, [itemId, scale, getElement]);
+  }, [itemId, context, getElement]);
 }

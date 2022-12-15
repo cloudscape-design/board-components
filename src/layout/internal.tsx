@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
@@ -75,9 +75,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const activeScrollHandlers = useAutoScroll();
 
   const [transition, setTransition] = useState<null | Transition>(null);
+  const [acquiredItem, setAcquiredItem] = useState<null | DashboardItem<D>>(null);
 
+  items = acquiredItem ? [...items, acquiredItem] : items;
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
+
+  useEffect(() => {
+    if (acquiredItem) {
+      itemContainerRef.current[acquiredItem.id].focusDragHandle();
+    }
+  }, [acquiredItem]);
 
   const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
   const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
@@ -187,6 +195,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
     setTransitionDelayed.cancel();
     setTransition(null);
+    setAcquiredItem(null);
 
     if (transition.layoutShift) {
       printLayoutDebug(itemsLayout, transition.layoutShift);
@@ -215,6 +224,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     setTransitionDelayed.cancel();
     setTransition(null);
+    setAcquiredItem(null);
 
     activeScrollHandlers.removePointerEventHandlers();
   });
@@ -338,6 +348,20 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
+  function acquireItem(position: Position) {
+    if (!transition) {
+      throw new Error("Invariant violation: no transition for acquire.");
+    }
+    const path = [...transition.path, position];
+    const layoutShift = getLayoutShift(transition, path, "right");
+
+    setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
+
+    if (layoutShift) {
+      setTransition({ ...transition, collisionIds: [], layoutShift, path });
+    }
+  }
+
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
 
   const showGrid = items.length > 0 || transition;
@@ -353,6 +377,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
               key={placeholder.id}
               id={placeholder.id}
               state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+              acquire={() => acquireItem(new Position({ x: placeholder.x, y: placeholder.y }))}
             />
           ))}
           {items.map((item) => {
@@ -379,6 +404,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 }}
                 key={item.id}
                 item={item}
+                acquired={item.id === acquiredItem?.id}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
