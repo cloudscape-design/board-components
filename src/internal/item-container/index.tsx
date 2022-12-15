@@ -106,11 +106,13 @@ function ItemContainerComponent(
 
   const currentIsDragging = !!transition;
 
-  function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
+  function updateTransition({ operation, draggableItem, collisionRect, cursorOffset, dropTarget }: DragAndDropData) {
     setDragActive(true);
 
     if (item.id === draggableItem.id) {
       setScroll({ x: window.scrollX, y: window.scrollY });
+
+      const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
 
       if (operation === "resize") {
         const { width: minWidth, height: minHeight } = dropTarget!.scale(getMinItemSize(draggableItem));
@@ -119,8 +121,8 @@ function ItemContainerComponent(
           operation,
           itemId: draggableItem.id,
           sizeTransform: {
-            width: Math.max(minWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
-            height: Math.max(minHeight, draggableSize.height + cursorOffset.y),
+            width: Math.max(minWidth, Math.min(maxWidth, width)),
+            height: Math.max(minHeight, height),
           },
           positionTransform: null,
           interactionType: transitionContextRef.current.interactionType,
@@ -129,7 +131,7 @@ function ItemContainerComponent(
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : draggableSize,
+          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
           positionTransform: cursorOffset,
           interactionType: transitionContextRef.current.interactionType,
         });

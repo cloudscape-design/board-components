@@ -16,8 +16,3 @@ export function getNormalizedElementRect(element: HTMLElement): DOMRect {
     height: height,
   } as DOMRect;
 }
-
-export function getElementSize(element: HTMLElement): { width: number; height: number } {
-  const { width, height } = element.getBoundingClientRect();
-  return { width, height };
-}

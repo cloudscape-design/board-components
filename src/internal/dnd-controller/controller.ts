@@ -1,18 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
-import { DashboardItemBase, ItemId } from "../interfaces";
+import { DashboardItemBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getElementSize } from "../utils/screen";
-import { getHoveredDroppables } from "./collision";
+import { getCollisionRect, getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
 export type Operation = "reorder" | "resize" | "insert";
 
 export type Scale = (size: { width: number; height: number }) => { width: number; height: number };
 
-export interface DragAndDropData extends DragDetail {
+export interface DragAndDropData {
+  operation: Operation;
+  draggableItem: DashboardItemBase<unknown>;
   cursorOffset: Coordinates;
+  collisionRect: Rect;
   collisionIds: ItemId[];
   dropTarget: null | { scale: Scale };
 }
@@ -26,7 +28,6 @@ interface DragDetail {
   operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
-  draggableSize: { width: number; height: number };
 }
 
 interface DragAndDropEvents {
@@ -54,7 +55,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
       operation,
       draggableItem,
       draggableElement,
-      draggableSize: getElementSize(draggableElement),
       startCoordinates,
     };
     this.emit("start", this.getDragAndDropData(startCoordinates));
@@ -90,16 +90,17 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
-    const { operation, draggableItem, draggableElement, draggableSize, startCoordinates } = this.transition;
+    const { operation, draggableItem, draggableElement, startCoordinates } = this.transition;
     const cursorOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
-    const { collisionIds, dropTarget } = this.getCollisions(operation, draggableElement, coordinates);
-    return { operation, draggableItem, draggableElement, draggableSize, cursorOffset, collisionIds, dropTarget };
+    const collisionRect = getCollisionRect(operation, draggableElement, coordinates);
+    const { collisionIds, dropTarget } = this.getCollisions(collisionRect);
+    return { operation, draggableItem, cursorOffset, collisionRect, collisionIds, dropTarget };
   }
 
-  private getCollisions(operation: Operation, draggableElement: HTMLElement, coordinates: Coordinates) {
+  private getCollisions(collisionRect: Rect) {
     const droppableEntries = [...this.droppables.entries()];
     const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
-    const collisionIds = getHoveredDroppables(operation, draggableElement, coordinates, droppableElements);
+    const collisionIds = getHoveredDroppables(collisionRect, droppableElements);
     if (collisionIds.length === 0) {
       return { collisionIds, dropTarget: null };
     }
