@@ -20,6 +20,7 @@ import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
+import { getNormalizedElementRect } from "../utils/screen";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 import { useAutoScroll } from "./use-auto-scroll";
@@ -105,11 +106,13 @@ function ItemContainerComponent(
 
   const currentIsDragging = !!transition;
 
-  function updateTransition({ operation, draggableItem, draggableSize, cursorOffset, dropTarget }: DragAndDropData) {
+  function updateTransition({ operation, draggableItem, collisionRect, cursorOffset, dropTarget }: DragAndDropData) {
     setDragActive(true);
 
     if (item.id === draggableItem.id) {
       setScroll({ x: window.scrollX, y: window.scrollY });
+
+      const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
 
       if (operation === "resize") {
         const { width: minWidth, height: minHeight } = dropTarget!.scale(getMinItemSize(draggableItem));
@@ -118,8 +121,8 @@ function ItemContainerComponent(
           operation,
           itemId: draggableItem.id,
           sizeTransform: {
-            width: Math.max(minWidth, Math.min(maxWidth, draggableSize.width + cursorOffset.x)),
-            height: Math.max(minHeight, draggableSize.height + cursorOffset.y),
+            width: Math.max(minWidth, Math.min(maxWidth, width)),
+            height: Math.max(minHeight, height),
           },
           positionTransform: null,
           interactionType: transitionContextRef.current.interactionType,
@@ -128,7 +131,7 @@ function ItemContainerComponent(
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : draggableSize,
+          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
           positionTransform: cursorOffset,
           interactionType: transitionContextRef.current.interactionType,
         });
@@ -171,13 +174,13 @@ function ItemContainerComponent(
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (!transition) {
-      const rect = itemRef.current!.getBoundingClientRect();
+      const rect = getNormalizedElementRect(itemRef.current!);
       const coordiantes = new Coordinates({
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
       });
-      const anchorRect = anchorRef.current!.getBoundingClientRect();
 
+      const anchorRect = getNormalizedElementRect(anchorRef.current!);
       transitionContextRef.current.interactionType = "manual";
       transitionContextRef.current.anchorPosition = new Coordinates({
         x: anchorRect.x + window.scrollX,
@@ -209,10 +212,11 @@ function ItemContainerComponent(
       // TODO: add announcement
       return;
     }
-    const anchorRect = anchorRef.current!.getBoundingClientRect();
+
+    const anchorRect = getNormalizedElementRect(anchorRef.current!);
     const dx = transitionContextRef.current.anchorPosition.x - anchorRect.x - window.scrollX;
     const dy = transitionContextRef.current.anchorPosition.y - anchorRect.y - window.scrollY;
-    const droppableRect = nextDroppable.element.getBoundingClientRect();
+    const droppableRect = getNormalizedElementRect(nextDroppable.element);
 
     // Update active element for its collisions to be properly calculated.
     itemRef.current!.style.width = nextDroppable.scale(itemSize).width + "px";
