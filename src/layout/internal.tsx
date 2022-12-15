@@ -3,7 +3,7 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL } from "../internal/constants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
@@ -34,6 +34,7 @@ import {
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
+import { useAutoScroll } from "./use-auto-scroll";
 
 interface Transition {
   operation: Operation;
@@ -70,6 +71,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
+
+  const activeScrollHandlers = useAutoScroll();
 
   const [transition, setTransition] = useState<null | Transition>(null);
 
@@ -144,6 +147,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       layoutShift: null,
       path,
     });
+
+    activeScrollHandlers.addPointerEventHandlers();
   });
 
   useDragSubscription("update", ({ operation, draggableItem, collisionIds, cursorOffset }) => {
@@ -199,14 +204,19 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
       }
     }
+
+    activeScrollHandlers.removePointerEventHandlers();
   });
 
   useDragSubscription("discard", () => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
+
     setTransitionDelayed.cancel();
     setTransition(null);
+
+    activeScrollHandlers.removePointerEventHandlers();
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
@@ -226,6 +236,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
+      activeScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
     }
   }
 
