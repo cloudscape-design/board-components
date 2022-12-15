@@ -6,8 +6,7 @@ import { useLastInteraction } from "../internal/utils/use-last-interaction";
 
 export function useAutoScroll() {
   const [activeAutoScroll, setActiveAutoScroll] = useState<"up" | "down" | "none">("none");
-  const [scrollIntoViewCounter, setScrollIntoViewCounter] = useState(0);
-  const scrollIntoViewDelayRef = useRef(0);
+  const scrollIntoViewTimerRef = useRef<null | number>(null);
   const getLastInteraction = useLastInteraction();
 
   // Scroll window repeatedly if activeAutoScroll="up" or activeAutoScroll="down".
@@ -29,25 +28,6 @@ export function useAutoScroll() {
 
     return () => clearTimeout(timer);
   }, [activeAutoScroll]);
-
-  // Scrolls active element into view after a delay.
-  useEffect(() => {
-    if (scrollIntoViewCounter) {
-      const activeElementBeforeDelay = document.activeElement;
-
-      const timeoutId = setTimeout(() => {
-        if (
-          document.activeElement &&
-          document.activeElement === activeElementBeforeDelay &&
-          getLastInteraction() === "keyboard"
-        ) {
-          document.activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
-      }, scrollIntoViewDelayRef.current);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [getLastInteraction, scrollIntoViewCounter]);
 
   const onPointerMove = useCallback((event: PointerEvent) => {
     const autoScrollMargin = 50;
@@ -76,10 +56,24 @@ export function useAutoScroll() {
     window.removeEventListener("pointerup", onPointerUp);
   }, [onPointerMove, onPointerUp]);
 
-  const scheduleActiveElementScrollIntoView = useCallback((delay: number) => {
-    scrollIntoViewDelayRef.current = delay;
-    setScrollIntoViewCounter((prev) => prev + 1);
-  }, []);
+  const scheduleActiveElementScrollIntoView = useCallback(
+    (delay: number) => {
+      scrollIntoViewTimerRef.current && clearTimeout(scrollIntoViewTimerRef.current);
+
+      const activeElementBeforeDelay = document.activeElement;
+
+      scrollIntoViewTimerRef.current = setTimeout(() => {
+        if (
+          document.activeElement &&
+          document.activeElement === activeElementBeforeDelay &&
+          getLastInteraction() === "keyboard"
+        ) {
+          document.activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, delay);
+    },
+    [getLastInteraction]
+  );
 
   return { addPointerEventHandlers, removePointerEventHandlers, scheduleActiveElementScrollIntoView };
 }
