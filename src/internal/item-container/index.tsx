@@ -10,7 +10,6 @@ import {
   createContext,
   forwardRef,
   useContext,
-  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -87,7 +86,6 @@ function ItemContainerComponent(
   });
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
   const itemRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
@@ -97,14 +95,10 @@ function ItemContainerComponent(
   });
   const gridContext = useGridContext();
 
-  const currentIsDragging = !!transition;
-
-  function updateTransition({ operation, draggableItem, collisionRect, cursorOffset, dropTarget }: DragAndDropData) {
+  function updateTransition({ operation, draggableItem, collisionRect, coordinates, dropTarget }: DragAndDropData) {
     setDragActive(true);
 
     if (item.id === draggableItem.id) {
-      setScroll({ x: window.scrollX, y: window.scrollY });
-
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
 
       if (operation === "resize") {
@@ -125,7 +119,7 @@ function ItemContainerComponent(
           operation,
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
-          positionTransform: cursorOffset,
+          positionTransform: { x: coordinates.x - 32, y: coordinates.y - 32 },
           interactionType: transitionContextRef.current.interactionType,
         });
       }
@@ -156,14 +150,6 @@ function ItemContainerComponent(
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
     window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
   });
-
-  useEffect(() => {
-    if (currentIsDragging) {
-      const listener = () => setScroll({ x: window.scrollX, y: window.scrollY });
-      document.addEventListener("scroll", listener);
-      return () => document.removeEventListener("scroll", listener);
-    }
-  }, [currentIsDragging]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (!transition) {
@@ -266,12 +252,8 @@ function ItemContainerComponent(
 
   function getDragActiveStyles(transition: Transition): CSSProperties {
     return {
-      transform: CSSUtil.Transform.toString({
-        x: (transition.positionTransform?.x ?? 0) - scroll.x,
-        y: (transition.positionTransform?.y ?? 0) - scroll.y,
-        scaleX: 1,
-        scaleY: 1,
-      }),
+      left: transition.positionTransform?.x,
+      top: transition.positionTransform?.y,
       position: transition ? "fixed" : undefined,
       zIndex: 5000,
       width: transition?.sizeTransform?.width,

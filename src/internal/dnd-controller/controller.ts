@@ -14,6 +14,7 @@ export interface DragAndDropData {
   operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
   cursorOffset: Coordinates;
+  coordinates: Coordinates;
   collisionRect: Rect;
   collisionIds: ItemId[];
   dropTarget: null | { scale: Scale };
@@ -94,7 +95,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     const cursorOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
     const collisionRect = getCollisionRect(operation, draggableElement, coordinates);
     const { collisionIds, dropTarget } = this.getCollisions(collisionRect);
-    return { operation, draggableItem, cursorOffset, collisionRect, collisionIds, dropTarget };
+    return { operation, draggableItem, cursorOffset, coordinates, collisionRect, collisionIds, dropTarget };
   }
 
   private getCollisions(collisionRect: Rect) {
