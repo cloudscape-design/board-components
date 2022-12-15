@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { DashboardItemBase, ItemId } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
+import { getElementSize } from "../utils/screen";
 import { getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
@@ -53,7 +54,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
       operation,
       draggableItem,
       draggableElement,
-      draggableSize: draggableElement.getBoundingClientRect(),
+      draggableSize: getElementSize(draggableElement),
       startCoordinates,
     };
     this.emit("start", this.getDragAndDropData(startCoordinates));

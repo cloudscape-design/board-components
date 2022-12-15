@@ -20,6 +20,7 @@ import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
+import { getNormalizedElementRect } from "../utils/screen";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 import { useAutoScroll } from "./use-auto-scroll";
@@ -62,7 +63,6 @@ interface Transition {
 
 interface TransitionContext {
   interactionType: "pointer" | "manual";
-  anchorPosition: Coordinates;
 }
 
 interface ItemContainerProps {
@@ -80,15 +80,11 @@ function ItemContainerComponent(
   { item, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
-  const transitionContextRef = useRef<TransitionContext>({
-    anchorPosition: new Coordinates({ x: 0, y: 0 }),
-    interactionType: "pointer",
-  });
+  const transitionContextRef = useRef<TransitionContext>({ interactionType: "pointer" });
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const [scroll, setScroll] = useState({ x: window.scrollX, y: window.scrollY });
   const itemRef = useRef<HTMLDivElement>(null);
-  const anchorRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const { onManualMove, ...activeScrollHandlers } = useAutoScroll();
   const eventHandlersRef = useRef({
@@ -171,18 +167,13 @@ function ItemContainerComponent(
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (!transition) {
-      const rect = itemRef.current!.getBoundingClientRect();
+      const rect = getNormalizedElementRect(itemRef.current!);
       const coordiantes = new Coordinates({
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
       });
-      const anchorRect = anchorRef.current!.getBoundingClientRect();
 
       transitionContextRef.current.interactionType = "manual";
-      transitionContextRef.current.anchorPosition = new Coordinates({
-        x: anchorRect.x + window.scrollX,
-        y: anchorRect.y + window.scrollY,
-      });
 
       if (operation === "drag" && !gridContext) {
         draggableApi.start("insert", coordiantes);
@@ -209,16 +200,14 @@ function ItemContainerComponent(
       // TODO: add announcement
       return;
     }
-    const anchorRect = anchorRef.current!.getBoundingClientRect();
-    const dx = transitionContextRef.current.anchorPosition.x - anchorRect.x - window.scrollX;
-    const dy = transitionContextRef.current.anchorPosition.y - anchorRect.y - window.scrollY;
-    const droppableRect = nextDroppable.element.getBoundingClientRect();
+
+    const { x, y } = getNormalizedElementRect(nextDroppable.element);
 
     // Update active element for its collisions to be properly calculated.
     itemRef.current!.style.width = nextDroppable.scale(itemSize).width + "px";
     itemRef.current!.style.height = nextDroppable.scale(itemSize).height + "px";
 
-    draggableApi.updateTransition(new Coordinates({ x: droppableRect.left + dx, y: droppableRect.top + dy }));
+    draggableApi.updateTransition(new Coordinates({ x, y }));
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -332,29 +321,26 @@ function ItemContainerComponent(
   }));
 
   return (
-    <>
-      <div ref={itemRef} className={styles.root} style={style} onBlur={onKeyboardTransitionDiscard}>
-        <Context.Provider
-          value={{
-            contentWidth: maxBodyWidth,
-            contentHeight: maxBodyHeight,
-            dragHandle: {
-              ref: dragHandleRef,
-              onPointerDown: onDragHandlePointerDown,
-              onKeyDown: onDragHandleKeyDown,
-            },
-            resizeHandle: gridContext
-              ? {
-                  onPointerDown: onResizeHandlePointerDown,
-                  onKeyDown: onResizeHandleKeyDown,
-                }
-              : null,
-          }}
-        >
-          {children}
-        </Context.Provider>
-      </div>
-      <div ref={anchorRef} style={{ position: "absolute", top: 0, left: 0, visibility: "hidden" }}></div>
-    </>
+    <div ref={itemRef} className={styles.root} style={style} onBlur={onKeyboardTransitionDiscard}>
+      <Context.Provider
+        value={{
+          contentWidth: maxBodyWidth,
+          contentHeight: maxBodyHeight,
+          dragHandle: {
+            ref: dragHandleRef,
+            onPointerDown: onDragHandlePointerDown,
+            onKeyDown: onDragHandleKeyDown,
+          },
+          resizeHandle: gridContext
+            ? {
+                onPointerDown: onResizeHandlePointerDown,
+                onKeyDown: onResizeHandleKeyDown,
+              }
+            : null,
+        }}
+      >
+        {children}
+      </Context.Provider>
+    </div>
   );
 }

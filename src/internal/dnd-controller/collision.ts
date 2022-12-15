@@ -4,10 +4,11 @@ import { ItemId } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getGridPlacement, isInside } from "../utils/rects";
+import { getNormalizedElementRect } from "../utils/screen";
 import { Operation } from "./controller";
 
 const getCollisions = (collisionRect: Rect, droppables: readonly [string, HTMLElement][]) => {
-  const droppableRects = droppables.map(([, element]) => element.getBoundingClientRect());
+  const droppableRects = droppables.map(([, element]) => getNormalizedElementRect(element));
   const bounds = getGridPlacement(collisionRect, droppableRects);
   return droppables.filter((_, index) => isInside(droppableRects[index], bounds)).map(([droppableId]) => droppableId);
 };
@@ -18,7 +19,7 @@ export function getHoveredDroppables(
   coordinates: Coordinates,
   droppables: readonly [ItemId, HTMLElement][]
 ) {
-  const activeRect = draggableElement.getBoundingClientRect();
+  const activeRect = getNormalizedElementRect(draggableElement);
 
   let collisionRect = { left: 0, top: 0, right: 0, bottom: 0 };
 
