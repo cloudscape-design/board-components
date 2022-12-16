@@ -112,7 +112,10 @@ function ItemContainerComponent(
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeTransform: { width: Math.max(minWidth, Math.min(maxWidth, width)), height: Math.max(minHeight, height) },
+          sizeTransform: {
+            width: Math.max(minWidth, Math.min(maxWidth, width - pointerOffset.x)),
+            height: Math.max(minHeight, height - pointerOffset.y),
+          },
           positionTransform: null,
         });
       } else {
@@ -280,11 +283,11 @@ function ItemContainerComponent(
   function getPointerDragStyles(transition: Transition): CSSProperties {
     return {
       zIndex: 5000,
-      position: transition ? "fixed" : undefined,
+      position: transition.operation === "resize" ? "absolute" : "fixed",
       left: transition.positionTransform?.x,
       top: transition.positionTransform?.y,
-      width: transition?.sizeTransform?.width,
-      height: transition?.sizeTransform?.height,
+      width: transition.sizeTransform?.width,
+      height: transition.sizeTransform?.height,
     };
   }
 
