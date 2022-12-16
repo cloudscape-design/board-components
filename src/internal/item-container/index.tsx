@@ -62,6 +62,7 @@ interface Transition {
 }
 
 interface TransitionContext {
+  pointerOffset: Coordinates;
   interactionType: "pointer" | "keyboard";
   isBorrowed: boolean;
 }
@@ -82,7 +83,11 @@ function ItemContainerComponent(
   { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
-  const transitionContextRef = useRef<TransitionContext>({ interactionType: "pointer", isBorrowed: false });
+  const transitionContextRef = useRef<TransitionContext>({
+    pointerOffset: new Coordinates({ x: 0, y: 0 }),
+    interactionType: "pointer",
+    isBorrowed: false,
+  });
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -99,6 +104,8 @@ function ItemContainerComponent(
     if (item.id === draggableItem.id) {
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
 
+      const { pointerOffset, interactionType, isBorrowed } = transitionContextRef.current;
+
       if (operation === "resize") {
         const { width: minWidth, height: minHeight } = dropTarget!.scale(getMinItemSize(draggableItem));
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
@@ -110,15 +117,17 @@ function ItemContainerComponent(
             height: Math.max(minHeight, height),
           },
           positionTransform: null,
-          ...transitionContextRef.current,
+          interactionType,
+          isBorrowed,
         });
       } else {
         setTransition({
           operation,
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
-          positionTransform: { x: coordinates.x - 32, y: coordinates.y - 32 },
-          ...transitionContextRef.current,
+          positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
+          interactionType,
+          isBorrowed,
         });
       }
     }
@@ -228,6 +237,11 @@ function ItemContainerComponent(
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
+    const itemRect = itemRef.current!.getBoundingClientRect();
+    transitionContextRef.current.pointerOffset = new Coordinates({
+      x: event.clientX - itemRect.left,
+      y: event.clientY - itemRect.top,
+    });
     transitionContextRef.current.interactionType = "pointer";
     draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
   }
