@@ -23,6 +23,7 @@ import {
 import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
+import { getNextItem } from "./calculations/grid-navigation";
 import {
   appendMovePath,
   appendResizePath,
@@ -240,7 +241,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
   };
 
-  function focusItem(item?: GridLayoutItem) {
+  function focusItem(item: null | GridLayoutItem) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
     } else {
@@ -312,45 +313,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function navigateItemLeft(targetItem: GridLayoutItem) {
-    const [matched] = itemsLayout.items
-      .filter((item) => item.y === targetItem.y && item.x < targetItem.x)
-      .sort((a, b) => b.x - a.x);
-    focusItem(matched);
-  }
-
-  function navigateItemRight(targetItem: GridLayoutItem) {
-    const [matched] = itemsLayout.items
-      .filter((item) => item.y === targetItem.y && item.x > targetItem.x)
-      .sort((a, b) => a.x - b.x);
-    focusItem(matched);
-  }
-
-  function navigateItemUp(targetItem: GridLayoutItem) {
-    const [matched] = itemsLayout.items
-      .filter((item) => item.x === targetItem.x && item.y < targetItem.y)
-      .sort((a, b) => b.y - a.y);
-    focusItem(matched);
-  }
-
-  function navigateItemDown(targetItem: GridLayoutItem) {
-    const [matched] = itemsLayout.items
-      .filter((item) => item.x === targetItem.x && item.y > targetItem.y)
-      .sort((a, b) => a.y - b.y);
-    focusItem(matched);
-  }
-
   function onItemNavigate(itemId: ItemId, direction: Direction) {
     const layoutItem = layoutItemById.get(itemId)!;
     switch (direction) {
       case "left":
-        return transition ? shiftItemLeft(transition) : navigateItemLeft(layoutItem);
+        return transition ? shiftItemLeft(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "left"));
       case "right":
-        return transition ? shiftItemRight(transition) : navigateItemRight(layoutItem);
+        return transition ? shiftItemRight(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "right"));
       case "up":
-        return transition ? shiftItemUp(transition) : navigateItemUp(layoutItem);
+        return transition ? shiftItemUp(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "up"));
       case "down":
-        return transition ? shiftItemDown(transition) : navigateItemDown(layoutItem);
+        return transition ? shiftItemDown(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "down"));
     }
   }
 
