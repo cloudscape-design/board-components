@@ -356,21 +356,22 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     const layoutRect = transition.draggableElement.getBoundingClientRect();
-    const draggableElementRect = transition.draggableElement.getBoundingClientRect();
-    const offset = new Coordinates({
-      x: draggableElementRect.x - layoutRect.x,
-      y: draggableElementRect.y - layoutRect.y,
-    });
+    const itemRect = transition.draggableElement.getBoundingClientRect();
+    const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
     const insertionDirection = getInsertionDirection(offset);
+
+    const width = getDefaultItemWidth(transition.draggableItem);
+    position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
     const path = [...transition.path, position];
     const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
-    setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
-
-    if (layoutShift) {
-      setTransition({ ...transition, collisionIds: [], layoutShift, path });
+    if (!layoutShift) {
+      throw new Error("Invariant violation: acquired item is not inserted into layout.");
     }
+
+    setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
+    setTransition({ ...transition, collisionIds: [], layoutShift, path });
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
