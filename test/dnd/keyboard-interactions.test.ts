@@ -225,8 +225,10 @@ describe("items inserted with keyboard", () => {
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
       await page.keys(["ArrowDown"]);
+      await page.keys(["ArrowDown"]);
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
+      await page.keys(["ArrowDown"]);
       await page.keys(["ArrowDown"]);
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
