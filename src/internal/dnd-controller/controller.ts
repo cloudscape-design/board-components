@@ -8,17 +8,16 @@ import { EventEmitter } from "./event-emitter";
 
 export type Operation = "reorder" | "resize" | "insert";
 
-export type Scale = (size: { width: number; height: number }) => { width: number; height: number };
-
 export interface DropTargetContext {
-  scale: Scale;
+  scale: (size: { width: number; height: number }) => { width: number; height: number };
   acquire: () => unknown;
 }
 
 export interface DragAndDropData {
   operation: Operation;
   draggableItem: DashboardItemBase<unknown>;
-  cursorOffset: Coordinates;
+  draggableElement: HTMLElement;
+  positionOffset: Coordinates;
   coordinates: Coordinates;
   collisionRect: Rect;
   collisionIds: ItemId[];
@@ -96,11 +95,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
-    const { operation, draggableItem, draggableElement, startCoordinates } = this.transition;
-    const cursorOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
+    const { operation, draggableElement, startCoordinates } = this.transition;
+    const positionOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
     const collisionRect = getCollisionRect(operation, draggableElement, coordinates);
     const { collisionIds, dropTarget } = this.getCollisions(collisionRect);
-    return { operation, draggableItem, cursorOffset, coordinates, collisionRect, collisionIds, dropTarget };
+    return { ...this.transition, positionOffset, coordinates, collisionRect, collisionIds, dropTarget };
   }
 
   private getCollisions(collisionRect: Rect) {

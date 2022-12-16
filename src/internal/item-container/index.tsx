@@ -57,11 +57,13 @@ interface Transition {
   operation: Operation;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
-  interactionType: "pointer" | "manual" | "acquire";
+  interactionType: "pointer" | "keyboard";
+  isBorrowed: boolean;
 }
 
 interface TransitionContext {
-  interactionType: "pointer" | "manual" | "acquire";
+  interactionType: "pointer" | "keyboard";
+  isBorrowed: boolean;
 }
 
 interface ItemContainerProps {
@@ -80,9 +82,7 @@ function ItemContainerComponent(
   { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
-  const transitionContextRef = useRef<TransitionContext>({
-    interactionType: "pointer",
-  });
+  const transitionContextRef = useRef<TransitionContext>({ interactionType: "pointer", isBorrowed: false });
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -110,7 +110,7 @@ function ItemContainerComponent(
             height: Math.max(minHeight, height),
           },
           positionTransform: null,
-          interactionType: transitionContextRef.current.interactionType,
+          ...transitionContextRef.current,
         });
       } else {
         setTransition({
@@ -118,7 +118,7 @@ function ItemContainerComponent(
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
           positionTransform: { x: coordinates.x - 32, y: coordinates.y - 32 },
-          interactionType: transitionContextRef.current.interactionType,
+          ...transitionContextRef.current,
         });
       }
     }
@@ -136,6 +136,7 @@ function ItemContainerComponent(
   useDragSubscription("update", (detail) => updateTransition(detail));
 
   useDragSubscription("submit", () => {
+    transitionContextRef.current.isBorrowed = false;
     setDragActive(false);
     setTransition(null);
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
@@ -143,6 +144,7 @@ function ItemContainerComponent(
   });
 
   useDragSubscription("discard", () => {
+    transitionContextRef.current.isBorrowed = false;
     setDragActive(false);
     setTransition(null);
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
@@ -161,7 +163,7 @@ function ItemContainerComponent(
         y: operation === "drag" ? rect.top : rect.bottom,
       });
 
-      transitionContextRef.current.interactionType = "manual";
+      transitionContextRef.current.interactionType = "keyboard";
 
       if (operation === "drag" && !gridContext) {
         draggableApi.start("insert", coordiantes);
@@ -176,7 +178,9 @@ function ItemContainerComponent(
   }
 
   function onKeyboardTransitionDiscard() {
-    if (transition && transitionContextRef.current.interactionType === "manual") {
+    const { interactionType, isBorrowed } = transitionContextRef.current;
+
+    if (transition && interactionType === "keyboard" && !isBorrowed) {
       draggableApi.discardTransition();
     }
   }
@@ -189,7 +193,9 @@ function ItemContainerComponent(
       return;
     }
 
-    transitionContextRef.current.interactionType = "acquire";
+    transitionContextRef.current.isBorrowed = true;
+    setTransition((prev) => prev && { ...prev, isBorrowed: true });
+
     nextDroppable.context.acquire();
   }
 
@@ -251,6 +257,10 @@ function ItemContainerComponent(
   }
 
   function getLayoutShiftStyles(): CSSProperties {
+    if (transition?.isBorrowed) {
+      return { opacity: 0.5 };
+    }
+
     const transitionStyle = dragActive
       ? CSSUtil.Transition.toString({ property: "transform", duration: TRANSITION_DURATION_MS, easing: "ease" })
       : undefined;

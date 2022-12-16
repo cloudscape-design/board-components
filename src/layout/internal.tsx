@@ -40,6 +40,7 @@ interface Transition {
   operation: Operation;
   insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
+  draggableElement: HTMLElement;
   collisionIds: ItemId[];
   engine: LayoutEngine;
   layoutShift: null | LayoutShift;
@@ -138,7 +139,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     []
   );
 
-  useDragSubscription("start", ({ operation, draggableItem, collisionIds }) => {
+  useDragSubscription("start", ({ operation, draggableItem, draggableElement, collisionIds }) => {
     const layoutItem = layoutItemById.get(draggableItem.id) ?? null;
 
     // Define starting path.
@@ -150,6 +151,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       operation,
       insertionDirection: null,
       draggableItem,
+      draggableElement,
       collisionIds: [],
       engine: new LayoutEngine(itemsLayout),
       layoutShift: null,
@@ -159,7 +161,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     activeScrollHandlers.addPointerEventHandlers();
   });
 
-  useDragSubscription("update", ({ operation, draggableItem, collisionIds, cursorOffset }) => {
+  useDragSubscription("update", ({ operation, draggableItem, collisionIds, positionOffset }) => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
@@ -179,7 +181,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
     const path = appendPath(transition.path, collisionRect);
 
-    const insertionDirection = transition.insertionDirection ?? getInsertionDirection(cursorOffset);
+    const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
     const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
     if (layoutShift) {
@@ -352,8 +354,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (!transition) {
       throw new Error("Invariant violation: no transition for acquire.");
     }
+
+    const layoutRect = transition.draggableElement.getBoundingClientRect();
+    const draggableElementRect = transition.draggableElement.getBoundingClientRect();
+    const offset = new Coordinates({
+      x: draggableElementRect.x - layoutRect.x,
+      y: draggableElementRect.y - layoutRect.y,
+    });
+    const insertionDirection = getInsertionDirection(offset);
+
     const path = [...transition.path, position];
-    const layoutShift = getLayoutShift(transition, path, "right");
+    const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
 
