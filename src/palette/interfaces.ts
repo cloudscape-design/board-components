@@ -12,7 +12,7 @@ export interface DashboardPaletteProps<D = DataFallbackType> {
   /**
    * Specifies a function to render a palette item content. The return value must include dashboard item component.
    */
-  renderItem(item: PaletteProps.Item<D>): JSX.Element;
+  renderItem(item: PaletteProps.Item<D>, context: PaletteProps.ItemContext): JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
@@ -22,6 +22,10 @@ export interface DashboardPaletteProps<D = DataFallbackType> {
 
 export namespace PaletteProps {
   export type Item<D = DataFallbackType> = DashboardItemBase<D>;
+
+  export interface ItemContext {
+    showPreview: boolean;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface I18nStrings {}

@@ -43,7 +43,7 @@ interface DragDetail {
   draggableElement: HTMLElement;
 }
 
-interface DragAndDropEvents {
+export interface DragAndDropEvents {
   start: (data: DragAndDropData) => void;
   update: (data: DragAndDropData) => void;
   submit: () => void;

@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { getDefaultItemSize } from "../internal/utils/layout";
@@ -11,6 +12,7 @@ import styles from "./styles.css.js";
 export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
+  const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();
@@ -43,6 +45,12 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
     }
   }
 
+  useDragSubscription("update", ({ draggableItem, dropTarget }) =>
+    setDropState({ id: draggableItem.id, isExpanded: !!dropTarget })
+  );
+  useDragSubscription("submit", () => setDropState(undefined));
+  useDragSubscription("discard", () => setDropState(undefined));
+
   return (
     <div ref={paletteRef} className={styles.root}>
       <SpaceBetween size="l">
@@ -62,7 +70,11 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
           >
-            <div data-item-id={item.id}>{renderItem(item)}</div>
+            <div data-item-id={item.id}>
+              {renderItem(item, {
+                showPreview: dropState?.id === item.id && dropState.isExpanded,
+              })}
+            </div>
           </ItemContainer>
         ))}
       </SpaceBetween>
