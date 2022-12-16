@@ -153,7 +153,7 @@ function ItemContainerComponent(
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     if (acquired) {
-      draggableApi.submitTransition();
+      return draggableApi.submitTransition();
     }
 
     if (!transition) {
