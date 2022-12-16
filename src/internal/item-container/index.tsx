@@ -21,6 +21,7 @@ import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
+import { useRefState } from "../utils/use-ref-state";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
@@ -57,14 +58,6 @@ interface Transition {
   operation: Operation;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
-  interactionType: "pointer" | "keyboard";
-  isBorrowed: boolean;
-}
-
-interface TransitionContext {
-  pointerOffset: Coordinates;
-  interactionType: "pointer" | "keyboard";
-  isBorrowed: boolean;
 }
 
 interface ItemContainerProps {
@@ -83,11 +76,9 @@ function ItemContainerComponent(
   { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
-  const transitionContextRef = useRef<TransitionContext>({
-    pointerOffset: new Coordinates({ x: 0, y: 0 }),
-    interactionType: "pointer",
-    isBorrowed: false,
-  });
+  const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
+  const [getInteractionType, interactionTypeState, setInteractionType] = useRefState<"pointer" | "keyboard">("pointer");
+  const [getIsBorrowed, isBorrowedState, setIsBorrowed] = useRefState(false);
   const [transition, setTransition] = useState<null | Transition>(null);
   const [dragActive, setDragActive] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -103,8 +94,7 @@ function ItemContainerComponent(
 
     if (item.id === draggableItem.id) {
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
-
-      const { pointerOffset, interactionType, isBorrowed } = transitionContextRef.current;
+      const pointerOffset = pointerOffsetRef.current;
 
       if (operation === "resize") {
         const { width: minWidth, height: minHeight } = dropTarget!.scale(getMinItemSize(draggableItem));
@@ -117,8 +107,6 @@ function ItemContainerComponent(
             height: Math.max(minHeight, height),
           },
           positionTransform: null,
-          interactionType,
-          isBorrowed,
         });
       } else {
         setTransition({
@@ -126,8 +114,6 @@ function ItemContainerComponent(
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
-          interactionType,
-          isBorrowed,
         });
       }
     }
@@ -136,7 +122,7 @@ function ItemContainerComponent(
   useDragSubscription("start", (detail) => {
     updateTransition(detail);
 
-    if (transitionContextRef.current.interactionType === "pointer" && item.id === detail.draggableItem.id) {
+    if (getInteractionType() === "pointer" && item.id === detail.draggableItem.id) {
       window.addEventListener("pointermove", eventHandlersRef.current.onPointerMove);
       window.addEventListener("pointerup", eventHandlersRef.current.onPointerUp);
     }
@@ -145,7 +131,7 @@ function ItemContainerComponent(
   useDragSubscription("update", (detail) => updateTransition(detail));
 
   useDragSubscription("submit", () => {
-    transitionContextRef.current.isBorrowed = false;
+    setIsBorrowed(false);
     setDragActive(false);
     setTransition(null);
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
@@ -153,7 +139,7 @@ function ItemContainerComponent(
   });
 
   useDragSubscription("discard", () => {
-    transitionContextRef.current.isBorrowed = false;
+    setIsBorrowed(false);
     setDragActive(false);
     setTransition(null);
     window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
@@ -172,7 +158,7 @@ function ItemContainerComponent(
         y: operation === "drag" ? rect.top : rect.bottom,
       });
 
-      transitionContextRef.current.interactionType = "keyboard";
+      setInteractionType("keyboard");
 
       if (operation === "drag" && !gridContext) {
         draggableApi.start("insert", coordiantes);
@@ -194,7 +180,7 @@ function ItemContainerComponent(
       return;
     }
 
-    transitionContextRef.current.isBorrowed = true;
+    setIsBorrowed(true);
     setTransition((prev) => prev && { ...prev, isBorrowed: true });
 
     nextDroppable.context.acquire();
@@ -229,20 +215,16 @@ function ItemContainerComponent(
   }
 
   function onBlur() {
-    const { interactionType, isBorrowed } = transitionContextRef.current;
-
-    if (transition && interactionType === "keyboard" && !isBorrowed) {
+    if (transition && getInteractionType() === "keyboard" && !getIsBorrowed()) {
       draggableApi.discardTransition();
     }
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
-    const itemRect = itemRef.current!.getBoundingClientRect();
-    transitionContextRef.current.pointerOffset = new Coordinates({
-      x: event.clientX - itemRect.left,
-      y: event.clientY - itemRect.top,
-    });
-    transitionContextRef.current.interactionType = "pointer";
+    const rect = itemRef.current!.getBoundingClientRect();
+    pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+
+    setInteractionType("pointer");
     draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
   }
 
@@ -251,7 +233,10 @@ function ItemContainerComponent(
   }
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
-    transitionContextRef.current.interactionType = "pointer";
+    const rect = itemRef.current!.getBoundingClientRect();
+    pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.right, y: event.clientY - rect.bottom });
+
+    setInteractionType("pointer");
     draggableApi.start("resize", Coordinates.fromEvent(event));
   }
 
@@ -271,7 +256,7 @@ function ItemContainerComponent(
   }
 
   function getLayoutShiftStyles(): CSSProperties {
-    if (transition?.isBorrowed) {
+    if (isBorrowedState) {
       return { opacity: 0.5 };
     }
 
@@ -301,7 +286,7 @@ function ItemContainerComponent(
   }
 
   const style =
-    transition && transition.interactionType === "pointer" ? getDragActiveStyles(transition) : getLayoutShiftStyles();
+    transition && interactionTypeState === "pointer" ? getDragActiveStyles(transition) : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;
