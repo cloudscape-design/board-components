@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
@@ -40,6 +40,7 @@ interface Transition {
   operation: Operation;
   insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
+  draggableElement: HTMLElement;
   collisionIds: ItemId[];
   engine: LayoutEngine;
   layoutShift: null | LayoutShift;
@@ -72,12 +73,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
-  const activeScrollHandlers = useAutoScroll();
+  const autoScrollHandlers = useAutoScroll();
 
   const [transition, setTransition] = useState<null | Transition>(null);
+  const [acquiredItem, setAcquiredItem] = useState<null | DashboardItem<D>>(null);
 
+  // The acquired item is the one being inserting at the moment but not submitted yet.
+  // It needs to be included to the layout to be a part of layout shifts and rendering.
+  items = acquiredItem ? [...items, acquiredItem] : items;
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
+
+  // When the item gets acquired its drag handle needs to be focused to enable the keyboard handlers.
+  useEffect(() => {
+    if (acquiredItem) {
+      itemContainerRef.current[acquiredItem.id].focusDragHandle();
+    }
+  }, [acquiredItem]);
 
   const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
   const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
@@ -85,6 +97,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   let rows = itemsLayout.rows || 1;
 
+  // The rows can be overridden during transition to create more drop targets at the bottom.
   if (transition) {
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
@@ -130,7 +143,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     []
   );
 
-  useDragSubscription("start", ({ operation, draggableItem, collisionIds }) => {
+  useDragSubscription("start", ({ operation, draggableItem, draggableElement, collisionIds }) => {
     const layoutItem = layoutItemById.get(draggableItem.id) ?? null;
 
     // Define starting path.
@@ -142,16 +155,17 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       operation,
       insertionDirection: null,
       draggableItem,
+      draggableElement,
       collisionIds: [],
       engine: new LayoutEngine(itemsLayout),
       layoutShift: null,
       path,
     });
 
-    activeScrollHandlers.addPointerEventHandlers();
+    autoScrollHandlers.addPointerEventHandlers();
   });
 
-  useDragSubscription("update", ({ operation, draggableItem, collisionIds, cursorOffset }) => {
+  useDragSubscription("update", ({ operation, draggableItem, collisionIds, positionOffset }) => {
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
@@ -171,7 +185,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
     const path = appendPath(transition.path, collisionRect);
 
-    const insertionDirection = transition.insertionDirection ?? getInsertionDirection(cursorOffset);
+    const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
     const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
     if (layoutShift) {
@@ -187,6 +201,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
     setTransitionDelayed.cancel();
     setTransition(null);
+    setAcquiredItem(null);
 
     if (transition.layoutShift) {
       printLayoutDebug(itemsLayout, transition.layoutShift);
@@ -205,7 +220,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       }
     }
 
-    activeScrollHandlers.removePointerEventHandlers();
+    autoScrollHandlers.removePointerEventHandlers();
   });
 
   useDragSubscription("discard", () => {
@@ -215,8 +230,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     setTransitionDelayed.cancel();
     setTransition(null);
+    setAcquiredItem(null);
 
-    activeScrollHandlers.removePointerEventHandlers();
+    autoScrollHandlers.removePointerEventHandlers();
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
@@ -236,7 +252,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
-      activeScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
     }
   }
 
@@ -338,6 +354,33 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
+  function acquireItem(position: Position) {
+    if (!transition) {
+      throw new Error("Invariant violation: no transition for acquire.");
+    }
+
+    const layoutRect = transition.draggableElement.getBoundingClientRect();
+    const itemRect = transition.draggableElement.getBoundingClientRect();
+    const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
+    const insertionDirection = getInsertionDirection(offset);
+
+    // Update original insertion position if the item can't fit into the layout by width.
+    const width = getDefaultItemWidth(transition.draggableItem);
+    position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
+
+    const path = [...transition.path, position];
+    const layoutShift = getLayoutShift(transition, path, insertionDirection);
+
+    if (!layoutShift) {
+      throw new Error("Invariant violation: acquired item is not inserted into layout.");
+    }
+
+    // TODO: resolve "any" here.
+    // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
+    setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
+    setTransition({ ...transition, collisionIds: [], layoutShift, path });
+  }
+
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
 
   const showGrid = items.length > 0 || transition;
@@ -353,6 +396,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
               key={placeholder.id}
               id={placeholder.id}
               state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+              acquire={() => acquireItem(new Position({ x: placeholder.x, y: placeholder.y }))}
             />
           ))}
           {items.map((item) => {
@@ -379,6 +423,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 }}
                 key={item.id}
                 item={item}
+                acquired={item.id === acquiredItem?.id}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
