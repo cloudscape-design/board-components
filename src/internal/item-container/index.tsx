@@ -177,14 +177,6 @@ function ItemContainerComponent(
     }
   }
 
-  function onKeyboardTransitionDiscard() {
-    const { interactionType, isBorrowed } = transitionContextRef.current;
-
-    if (transition && interactionType === "keyboard" && !isBorrowed) {
-      draggableApi.discardTransition();
-    }
-  }
-
   function handleInsert(direction: Direction) {
     const droppables = draggableApi.getDroppables();
     const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
@@ -223,7 +215,15 @@ function ItemContainerComponent(
       case "Enter":
         return onKeyboardTransitionToggle(operation);
       case "Escape":
-        return onKeyboardTransitionDiscard();
+        return draggableApi.discardTransition();
+    }
+  }
+
+  function onBlur() {
+    const { interactionType, isBorrowed } = transitionContextRef.current;
+
+    if (transition && interactionType === "keyboard" && !isBorrowed) {
+      draggableApi.discardTransition();
     }
   }
 
@@ -302,7 +302,7 @@ function ItemContainerComponent(
   }));
 
   return (
-    <div ref={itemRef} className={styles.root} style={style} onBlur={onKeyboardTransitionDiscard}>
+    <div ref={itemRef} className={styles.root} style={style} onBlur={onBlur}>
       <Context.Provider
         value={{
           contentWidth: maxBodyWidth,
