@@ -181,7 +181,6 @@ function ItemContainerComponent(
     }
 
     setIsBorrowed(true);
-    setTransition((prev) => prev && { ...prev, isBorrowed: true });
 
     nextDroppable.context.acquire();
   }
