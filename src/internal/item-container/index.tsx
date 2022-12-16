@@ -60,6 +60,16 @@ interface Transition {
   positionTransform: null | { x: number; y: number };
 }
 
+/**
+ * Defines item's parameters and its relation with the layout.
+ *
+ * `item` - the unique dashboard item base object to be used in d&d context.
+ * `acquired` - specifies if the item is essentially a copy temporarily acquired by a droppable but not submitted yet.
+ * `itemSize` - the actual item's size in units.
+ * `itemMaxSize` - the item's size in units it is allowed to grow to.
+ * `transform` - items's position and size offset in units to temporarily change its placement.
+ * `onNavigate` - a callback to fire when arrow keys are pressed on drag handle.
+ */
 interface ItemContainerProps {
   item: DashboardItemBase<unknown>;
   acquired?: boolean;
@@ -102,10 +112,7 @@ function ItemContainerComponent(
         setTransition({
           operation,
           itemId: draggableItem.id,
-          sizeTransform: {
-            width: Math.max(minWidth, Math.min(maxWidth, width)),
-            height: Math.max(minHeight, height),
-          },
+          sizeTransform: { width: Math.max(minWidth, Math.min(maxWidth, width)), height: Math.max(minHeight, height) },
           positionTransform: null,
         });
       } else {
@@ -147,10 +154,13 @@ function ItemContainerComponent(
   });
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
+    // The acquired item is a copy and does not have the transition state.
+    // However, pressing "Space" or "Enter" on the acquired item must submit the active transition.
     if (acquired) {
       return draggableApi.submitTransition();
     }
 
+    // Create new transition if missing.
     if (!transition) {
       const rect = getNormalizedElementRect(itemRef.current!);
       const coordiantes = new Coordinates({
@@ -167,27 +177,34 @@ function ItemContainerComponent(
       } else {
         draggableApi.start("resize", coordiantes);
       }
-    } else {
+    }
+    // Submit a transition if existing.
+    else {
       draggableApi.submitTransition();
     }
   }
 
   function handleInsert(direction: Direction) {
+    // Find the closest droppable (in the direction) to the item.
     const droppables = draggableApi.getDroppables();
     const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
+
     if (!nextDroppable) {
       // TODO: add announcement
       return;
     }
 
-    setIsBorrowed(true);
-
+    // Notify the respective droppable of the intention to insert the item in it.
     nextDroppable.context.acquire();
+
+    setIsBorrowed(true);
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
     const canInsert = transition && operation === "drag" && !gridContext;
     const canNavigate = transition || operation === "drag";
+
+    // The insert is handled by the item and the navigation is delegated to the containing layout.
     const move = (direction: Direction) => {
       if (canInsert) {
         handleInsert(direction);
@@ -214,12 +231,16 @@ function ItemContainerComponent(
   }
 
   function onBlur() {
+    // When drag- or resize handle loses focus the transition must be discarded with two exceptions:
+    // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
+    // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
     if (transition && getInteractionType() === "keyboard" && !getIsBorrowed()) {
       draggableApi.discardTransition();
     }
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
+    // Calculate the offset between item's top-left corner and the pointer landing position.
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.left, y: event.clientY - rect.top });
 
@@ -232,6 +253,7 @@ function ItemContainerComponent(
   }
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
+    // Calculate the offset between item's bottom-right corner and the pointer landing position.
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.right, y: event.clientY - rect.bottom });
 
@@ -243,22 +265,34 @@ function ItemContainerComponent(
     onHandleKeyDown("resize", event);
   }
 
-  function getDragActiveStyles(transition: Transition): CSSProperties {
+  // TODO: use a combination of styles and classes.
+  // When there is a transition the item's placement and styles might need to be altered for the period of the trasnition.
+  let style: CSSProperties = {};
+
+  if (transition && interactionTypeState === "pointer") {
+    style = getPointerDragStyles(transition);
+  } else if (isBorrowedState) {
+    style = getBorrowedItemStyles();
+  } else {
+    style = getLayoutShiftStyles();
+  }
+
+  function getPointerDragStyles(transition: Transition): CSSProperties {
     return {
+      zIndex: 5000,
+      position: transition ? "fixed" : undefined,
       left: transition.positionTransform?.x,
       top: transition.positionTransform?.y,
-      position: transition ? "fixed" : undefined,
-      zIndex: 5000,
       width: transition?.sizeTransform?.width,
       height: transition?.sizeTransform?.height,
     };
   }
 
-  function getLayoutShiftStyles(): CSSProperties {
-    if (isBorrowedState) {
-      return { opacity: 0.5 };
-    }
+  function getBorrowedItemStyles(): CSSProperties {
+    return { opacity: 0.5 };
+  }
 
+  function getLayoutShiftStyles(): CSSProperties {
     const transitionStyle = dragActive
       ? CSSUtil.Transition.toString({ property: "transform", duration: TRANSITION_DURATION_MS, easing: "ease" })
       : undefined;
@@ -283,9 +317,6 @@ function ItemContainerComponent(
       transition: transitionStyle,
     };
   }
-
-  const style =
-    transition && interactionTypeState === "pointer" ? getDragActiveStyles(transition) : getLayoutShiftStyles();
 
   let maxBodyWidth = gridContext ? gridContext.getWidth(itemSize.width) : undefined;
   let maxBodyHeight = gridContext ? gridContext.getHeight(itemSize.height) : undefined;

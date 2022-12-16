@@ -73,15 +73,18 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
-  const activeScrollHandlers = useAutoScroll();
+  const autoScrollHandlers = useAutoScroll();
 
   const [transition, setTransition] = useState<null | Transition>(null);
   const [acquiredItem, setAcquiredItem] = useState<null | DashboardItem<D>>(null);
 
+  // The acquired item is the one being inserting at the moment but not submitted yet.
+  // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
 
+  // When the item gets acquired its drag handle needs to be focused to enable the keyboard handlers.
   useEffect(() => {
     if (acquiredItem) {
       itemContainerRef.current[acquiredItem.id].focusDragHandle();
@@ -94,6 +97,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   let rows = itemsLayout.rows || 1;
 
+  // The rows can be overridden during transition to create more drop targets at the bottom.
   if (transition) {
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
@@ -158,7 +162,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       path,
     });
 
-    activeScrollHandlers.addPointerEventHandlers();
+    autoScrollHandlers.addPointerEventHandlers();
   });
 
   useDragSubscription("update", ({ operation, draggableItem, collisionIds, positionOffset }) => {
@@ -216,7 +220,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       }
     }
 
-    activeScrollHandlers.removePointerEventHandlers();
+    autoScrollHandlers.removePointerEventHandlers();
   });
 
   useDragSubscription("discard", () => {
@@ -228,7 +232,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setTransition(null);
     setAcquiredItem(null);
 
-    activeScrollHandlers.removePointerEventHandlers();
+    autoScrollHandlers.removePointerEventHandlers();
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
@@ -248,7 +252,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const layoutShift = getLayoutShift(transition, path);
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
-      activeScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
     }
   }
 
@@ -360,6 +364,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
     const insertionDirection = getInsertionDirection(offset);
 
+    // Update original insertion position if the item can't fit into the layout by width.
     const width = getDefaultItemWidth(transition.draggableItem);
     position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
@@ -370,6 +375,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       throw new Error("Invariant violation: acquired item is not inserted into layout.");
     }
 
+    // TODO: resolve "any" here.
+    // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
     setTransition({ ...transition, collisionIds: [], layoutShift, path });
   }
