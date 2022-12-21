@@ -257,6 +257,19 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
+  function shiftItem(transition: Transition, direction: Direction) {
+    switch (direction) {
+      case "left":
+        return shiftItemLeft(transition);
+      case "right":
+        return shiftItemRight(transition);
+      case "up":
+        return shiftItemUp(transition);
+      case "down":
+        return shiftItemDown(transition);
+    }
+  }
+
   function shiftItemLeft(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
     const layout = transition.layoutShift?.next ?? itemsLayout;
@@ -314,16 +327,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   }
 
   function onItemNavigate(itemId: ItemId, direction: Direction) {
-    const layoutItem = layoutItemById.get(itemId)!;
-    switch (direction) {
-      case "left":
-        return transition ? shiftItemLeft(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "left"));
-      case "right":
-        return transition ? shiftItemRight(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "right"));
-      case "up":
-        return transition ? shiftItemUp(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "up"));
-      case "down":
-        return transition ? shiftItemDown(transition) : focusItem(getNextItem(itemsLayout, layoutItem, "down"));
+    if (transition) {
+      shiftItem(transition, direction);
+    } else {
+      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
     }
   }
 
