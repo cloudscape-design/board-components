@@ -396,6 +396,15 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
+            // TODO: use i18n-strings
+            const columnsDescription = layoutItem
+              ? `columns ${layoutItem.x + 1} - ${layoutItem.x + layoutItem.width} of ${columns}`
+              : "";
+            const rowsDescription = layoutItem
+              ? `rows ${layoutItem.y + 1} - ${layoutItem.y + layoutItem.height} of ${rows}`
+              : "";
+            const positionDescription = [columnsDescription, rowsDescription].filter(Boolean).join(", ");
+
             return (
               <ItemContainer
                 ref={(elem) => {
@@ -412,6 +421,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
+                positionDescription={positionDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>

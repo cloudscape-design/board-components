@@ -39,6 +39,7 @@ export interface ItemContext {
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
   };
+  positionDescription?: string;
 }
 
 const Context = createContext<ItemContext | null>(null);
@@ -76,12 +77,13 @@ interface ItemContainerProps {
   transform: null | Transform;
   onNavigate(direction: Direction): void;
   children: ReactNode;
+  positionDescription?: string;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
+  { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children, positionDescription }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -336,6 +338,7 @@ function ItemContainerComponent(
                 onKeyDown: onResizeHandleKeyDown,
               }
             : null,
+          positionDescription,
         }}
       >
         {children}
