@@ -34,10 +34,12 @@ export interface ItemContext {
     ref: React.RefObject<HTMLButtonElement>;
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    interactionDescription?: string;
   };
   resizeHandle: null | {
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    interactionDescription?: string;
   };
   positionDescription?: string;
 }
@@ -78,12 +80,25 @@ interface ItemContainerProps {
   onNavigate(direction: Direction): void;
   children: ReactNode;
   positionDescription?: string;
+  dragInteractionDescription?: string;
+  resizeInteractionDescription?: string;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children, positionDescription }: ItemContainerProps,
+  {
+    item,
+    acquired,
+    itemSize,
+    itemMaxSize,
+    transform,
+    onNavigate,
+    children,
+    positionDescription,
+    dragInteractionDescription,
+    resizeInteractionDescription,
+  }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -331,11 +346,13 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
             onKeyDown: onDragHandleKeyDown,
+            interactionDescription: dragInteractionDescription,
           },
           resizeHandle: gridContext
             ? {
                 onPointerDown: onResizeHandlePointerDown,
                 onKeyDown: onResizeHandleKeyDown,
+                interactionDescription: resizeInteractionDescription,
               }
             : null,
           positionDescription,

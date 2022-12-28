@@ -13,6 +13,7 @@ import styles from "./styles.css.js";
 export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
+  const [dragActive, setDragActive] = useState(false);
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
   const [announcement, setAnnouncement] = useState("");
 
@@ -55,11 +56,23 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
     }
   }
 
+  useDragSubscription("start", () => setDragActive(true));
   useDragSubscription("update", ({ draggableItem, dropTarget }) =>
     setDropState({ id: draggableItem.id, isExpanded: !!dropTarget })
   );
-  useDragSubscription("submit", () => setDropState(undefined));
-  useDragSubscription("discard", () => setDropState(undefined));
+  useDragSubscription("submit", () => {
+    setDragActive(false);
+    setDropState(undefined);
+  });
+  useDragSubscription("discard", () => {
+    setDragActive(false);
+    setDropState(undefined);
+  });
+
+  // TODO: use i18n-strings
+  const dragInteractionDescription = !dragActive
+    ? `Use Space or Enter to enter insert mode`
+    : `To move the item use arrow keys. Press Space or Enter to submit or Esc to discard`;
 
   return (
     <div ref={paletteRef} className={styles.root}>
@@ -79,6 +92,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
+            dragInteractionDescription={dragInteractionDescription}
           >
             <div data-item-id={item.id}>
               {renderItem(item, {

@@ -25,6 +25,8 @@ export default function DashboardItem({
   const dragHandleLabelId = useUniqueId("drag-handle-label-");
   const resizeHandleLabelId = useUniqueId("resize-handle-label-");
   const positionDescriptionId = useUniqueId("position-description-");
+  const dragInteractionDescriptionId = useUniqueId("drag-interaction-description-");
+  const resizeInteractionDescriptionId = useUniqueId("resize-interaction-description-");
   const headerId = useUniqueId("header-");
 
   return (
@@ -38,6 +40,7 @@ export default function DashboardItem({
               <DragHandle
                 ref={dragHandle.ref}
                 ariaLabelledBy={`${dragHandleLabelId} ${headerId} ${positionDescriptionId}`}
+                ariaDescribedBy={dragInteractionDescriptionId}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
               />
@@ -56,6 +59,7 @@ export default function DashboardItem({
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabelledBy={`${resizeHandleLabelId} ${headerId} ${positionDescriptionId}`}
+            ariaDescribedBy={resizeInteractionDescriptionId}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
           />
@@ -65,6 +69,8 @@ export default function DashboardItem({
       <ScreenreaderOnly id={dragHandleLabelId}>{i18nStrings.dragHandleLabel}</ScreenreaderOnly>
       <ScreenreaderOnly id={resizeHandleLabelId}>{i18nStrings.resizeHandleLabel}</ScreenreaderOnly>
       <ScreenreaderOnly id={positionDescriptionId}>{positionDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragInteractionDescriptionId}>{dragHandle.interactionDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeInteractionDescriptionId}>{resizeHandle?.interactionDescription}</ScreenreaderOnly>
     </div>
   );
 }

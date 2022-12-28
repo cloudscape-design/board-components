@@ -8,12 +8,13 @@ import styles from "./styles.css.js";
 
 export interface DragHandleProps {
   ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
 }
 
 function DragHandle(
-  { ariaLabelledBy, onPointerDown, onKeyDown }: DragHandleProps,
+  { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown }: DragHandleProps,
   ref: ForwardedRef<HTMLButtonElement>
 ) {
   return (
@@ -21,6 +22,7 @@ function DragHandle(
       ref={ref}
       className={styles.handle}
       aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
     >

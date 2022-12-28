@@ -405,6 +405,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
               : "";
             const positionDescription = [columnsDescription, rowsDescription].filter(Boolean).join(", ");
 
+            // TODO: use i18n-strings
+            const dragInteractionDescription = !transition
+              ? `Use Space or Enter to enter drag mode`
+              : `To move the item use arrow keys. Press Space or Enter to submit or Esc to discard`;
+
+            // TODO: use i18n-strings
+            const resizeInteractionDescription = !transition
+              ? `Use Space or Enter to enter resize mode`
+              : `To resize the item use arrow keys. Press Space or Enter to submit or Esc to discard`;
+
             return (
               <ItemContainer
                 ref={(elem) => {
@@ -422,6 +432,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
                 positionDescription={positionDescription}
+                dragInteractionDescription={dragInteractionDescription}
+                resizeInteractionDescription={resizeInteractionDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>
