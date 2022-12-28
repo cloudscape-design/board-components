@@ -117,25 +117,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function getLayoutShift(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
+  function applyOperation(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
     if (path.length === 0) {
       return null;
     }
 
     switch (transition.operation) {
       case "resize":
-        return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+        return transition.engine.resize({ itemId: transition.draggableItem.id, path });
       case "reorder":
-        return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+        return transition.engine.move({ itemId: transition.draggableItem.id, path });
       case "insert":
-        return transition.engine
-          .insert({
-            itemId: transition.draggableItem.id,
-            width: getDefaultItemWidth(transition.draggableItem),
-            height: getDefaultItemHeight(transition.draggableItem),
-            path: normalizeInsertionPath(path, insertionDirection, columns, rows),
-          })
-          .getLayoutShift();
+        return transition.engine.insert({
+          itemId: transition.draggableItem.id,
+          width: getDefaultItemWidth(transition.draggableItem),
+          height: getDefaultItemHeight(transition.draggableItem),
+          path: normalizeInsertionPath(path, insertionDirection, columns, rows),
+        });
     }
   }
 
@@ -189,7 +187,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const path = appendPath(transition.path, collisionRect);
 
     const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
-    const layoutShift = getLayoutShift(transition, path, insertionDirection);
+    const layoutShift = applyOperation(transition, path, insertionDirection)?.getLayoutShift();
 
     if (layoutShift) {
       setTransitionDelayed({ ...transition, collisionIds, layoutShift, path, insertionDirection });
@@ -238,9 +236,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     autoScrollHandlers.removePointerEventHandlers();
   });
 
+  // TODO: use i18n-strings
   const removeItemAction = (removedItem: DashboardItem<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    const layoutShiftWithRefloat = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
+
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
+
+    const itemTitle = (items.find((it) => it.id === removedItem.id) as any).data.title;
+
+    const totalDisturbed = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId)).size;
+    const disturbedAnnouncement = totalDisturbed > 0 ? `Disturbed ${totalDisturbed} items.` : "";
+
+    const operationAnnouncement = `Removed item ${itemTitle}.`;
+
+    setAnnouncement([operationAnnouncement, disturbedAnnouncement].filter(Boolean).join(" "));
   };
 
   function focusItem(item: null | GridLayoutItem, direction: Direction) {
@@ -254,11 +264,47 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   }
 
   function updateManualItemTransition(transition: Transition, path: Position[]) {
-    const layoutShift = getLayoutShift(transition, path);
+    const layoutShift = applyOperation(transition, path)?.getLayoutShift();
+    const layoutShiftWithRefloat = applyOperation(transition, path)?.refloat()?.getLayoutShift();
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
       autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+      setTransitionAnnouncement(layoutShiftWithRefloat!);
+    } else {
+      throw new Error("Invariant violation: no layout shift for manual transition.");
     }
+  }
+
+  // TODO: use i18n-strings
+  function setTransitionAnnouncement(layoutShift: LayoutShift) {
+    const [firstMove] = layoutShift.moves;
+    const itemMoves = layoutShift.moves.filter((m) => m.itemId === firstMove.itemId);
+    const lastMove = itemMoves[itemMoves.length - 1];
+
+    const conflicts = layoutShift.conflicts.map(
+      (conflictId) => (items.find((it) => it.id === conflictId) as any).data.title
+    );
+    const conflictsAnnouncement = conflicts.length > 0 ? `Conflicts with ${conflicts.join(", ")}.` : "";
+
+    const totalDisturbed = new Set(
+      layoutShift.moves.filter((move) => move.itemId !== firstMove.itemId).map((move) => move.itemId)
+    ).size;
+    const disturbedAnnouncement = totalDisturbed > 0 ? `Disturbed ${totalDisturbed} items.` : "";
+
+    const operationAnnouncement = (() => {
+      switch (firstMove.type) {
+        case "MOVE":
+          return `Item moved to column ${lastMove.x + 1} row ${lastMove.y + 1}.`;
+        case "INSERT":
+          return `Item inserted to column ${lastMove.x + 1} row ${lastMove.y + 1}.`;
+        case "RESIZE":
+          return `Item resized to columns ${lastMove.width} rows ${lastMove.height}.`;
+        default:
+          throw new Error("Invariant violation: unexpected first move type.");
+      }
+    })();
+
+    setAnnouncement([operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" "));
   }
 
   function shiftItem(transition: Transition, direction: Direction) {
@@ -286,7 +332,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement("Reached left boundary");
     }
   }
 
@@ -298,7 +345,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement("Reached right boundary");
     }
   }
 
@@ -314,7 +362,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement("Reached top boundary");
     }
   }
 
@@ -326,7 +375,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement("Reached bottom boundary");
     }
   }
 
@@ -353,7 +403,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
     const path = [...transition.path, position];
-    const layoutShift = getLayoutShift(transition, path, insertionDirection);
+    const layoutShift = applyOperation(transition, path, insertionDirection)?.getLayoutShift();
 
     if (!layoutShift) {
       throw new Error("Invariant violation: acquired item is not inserted into layout.");
