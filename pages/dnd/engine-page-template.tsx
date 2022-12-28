@@ -3,22 +3,13 @@
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import {
-  DashboardItem,
-  DashboardItemProps,
-  DashboardLayout,
-  DashboardLayoutProps,
-  DashboardPalette,
-} from "../../lib/components";
+import { DashboardItem, DashboardLayout, DashboardLayoutProps, DashboardPalette } from "../../lib/components";
 import { PaletteProps } from "../../src/palette/interfaces";
 import PageLayout from "../app/page-layout";
+import { dashboardI18nStrings, dashboardItemI18nStrings, paletteI18nStrings } from "../shared/i18n";
+import { ItemData } from "../shared/interfaces";
 import classnames from "./engine.module.css";
-import { ItemData, ItemWidgets } from "./items";
-
-const itemStrings: DashboardItemProps["i18nStrings"] = {
-  dragHandleLabel: "Drag me",
-  resizeHandleLabel: "Resize me",
-};
+import { ItemWidgets } from "./items";
 
 export function EnginePageTemplate({
   initialLayoutItems,
@@ -38,12 +29,13 @@ export function EnginePageTemplate({
     <PageLayout header={<Header variant="h1">Configurable dashboard demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
         <DashboardLayout
+          i18nStrings={dashboardI18nStrings}
           items={items}
           renderItem={(item, actions) => (
             <DashboardItem
               header={<Header>{item.data.title}</Header>}
               footer={item.data.footer}
-              i18nStrings={itemStrings}
+              i18nStrings={dashboardItemI18nStrings}
               settings={
                 <ButtonDropdown
                   items={[{ id: "remove", text: "Remove widget" }]}
@@ -77,12 +69,12 @@ export function EnginePageTemplate({
             renderItem={(item) => {
               const widgetConfig = widgets[item.id]!.data;
               return (
-                <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={itemStrings}>
+                <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={dashboardItemI18nStrings}>
                   {widgetConfig.description}
                 </DashboardItem>
               );
             }}
-            i18nStrings={{}}
+            i18nStrings={paletteI18nStrings}
           />
         </div>
       </div>

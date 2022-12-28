@@ -65,7 +65,13 @@ function getInsertionDirection(cursorOffset: Coordinates): Direction {
   return "right";
 }
 
-export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
+export default function DashboardLayout<D>({
+  items,
+  renderItem,
+  onItemsChange,
+  empty,
+  i18nStrings,
+}: DashboardLayoutProps<D>) {
   const [announcement, setAnnouncement] = useState("");
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
@@ -236,21 +242,29 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  // TODO: use i18n-strings
   const removeItemAction = (removedItem: DashboardItem<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
     const layoutShiftWithRefloat = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
 
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
 
-    const itemTitle = (items.find((it) => it.id === removedItem.id) as any).data.title;
+    const disturbed = [...new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId))].map(
+      (itemId) => items.find((it) => it.id === itemId)!
+    );
 
-    const totalDisturbed = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId)).size;
-    const disturbedAnnouncement = totalDisturbed > 0 ? `Disturbed ${totalDisturbed} items.` : "";
-
-    const operationAnnouncement = `Removed item ${itemTitle}.`;
-
-    setAnnouncement([operationAnnouncement, disturbedAnnouncement].filter(Boolean).join(" "));
+    setAnnouncement(
+      i18nStrings.liveAnnouncementItemRemoved({
+        item: removedItem,
+        colspan: 0,
+        rowspan: 0,
+        columnOffset: 0,
+        rowOffset: 0,
+        columns,
+        rows,
+        conflicts: [],
+        disturbed: disturbed,
+      })
+    );
   };
 
   function focusItem(item: null | GridLayoutItem, direction: Direction) {
@@ -258,8 +272,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       itemContainerRef.current[item.id].focusDragHandle();
       setAnnouncement("");
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement(`No item to the ${direction}`);
+      switch (direction) {
+        case "up":
+          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheTop);
+        case "down":
+          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheBottom);
+        case "left":
+          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheLeft);
+        case "right":
+          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheRight);
+      }
     }
   }
 
@@ -275,36 +297,40 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  // TODO: use i18n-strings
   function setTransitionAnnouncement(layoutShift: LayoutShift) {
     const [firstMove] = layoutShift.moves;
     const itemMoves = layoutShift.moves.filter((m) => m.itemId === firstMove.itemId);
     const lastMove = itemMoves[itemMoves.length - 1];
 
-    const conflicts = layoutShift.conflicts.map(
-      (conflictId) => (items.find((it) => it.id === conflictId) as any).data.title
+    const item = items.find((it) => it.id === firstMove.itemId)!;
+    const placement = {
+      item,
+      colspan: lastMove.width,
+      rowspan: lastMove.height,
+      columnOffset: lastMove.x,
+      rowOffset: lastMove.y,
+      columns,
+      rows,
+    };
+
+    const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
+
+    const disturbed = [...new Set(layoutShift.moves.map((move) => move.itemId))].map(
+      (itemId) => items.find((it) => it.id === itemId)!
     );
-    const conflictsAnnouncement = conflicts.length > 0 ? `Conflicts with ${conflicts.join(", ")}.` : "";
 
-    const totalDisturbed = new Set(
-      layoutShift.moves.filter((move) => move.itemId !== firstMove.itemId).map((move) => move.itemId)
-    ).size;
-    const disturbedAnnouncement = totalDisturbed > 0 ? `Disturbed ${totalDisturbed} items.` : "";
+    const state = { ...placement, conflicts, disturbed };
 
-    const operationAnnouncement = (() => {
-      switch (firstMove.type) {
-        case "MOVE":
-          return `Item moved to column ${lastMove.x + 1} row ${lastMove.y + 1}.`;
-        case "INSERT":
-          return `Item inserted to column ${lastMove.x + 1} row ${lastMove.y + 1}.`;
-        case "RESIZE":
-          return `Item resized to columns ${lastMove.width} rows ${lastMove.height}.`;
-        default:
-          throw new Error("Invariant violation: unexpected first move type.");
-      }
-    })();
-
-    setAnnouncement([operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" "));
+    switch (firstMove.type) {
+      case "MOVE":
+        return setAnnouncement(i18nStrings.liveAnnouncementItemMoved(state));
+      case "INSERT":
+        return setAnnouncement(i18nStrings.liveAnnouncementItemInserted(state));
+      case "RESIZE":
+        return setAnnouncement(i18nStrings.liveAnnouncementItemResized(state));
+      default:
+        throw new Error("Invariant violation: unexpected first move type.");
+    }
   }
 
   function shiftItem(transition: Transition, direction: Direction) {
@@ -332,8 +358,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement("Reached left boundary");
+      setAnnouncement(i18nStrings.liveAnnouncementReachedLeftBoundary);
     }
   }
 
@@ -345,8 +370,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement("Reached right boundary");
+      setAnnouncement(i18nStrings.liveAnnouncementReachedRightBoundary);
     }
   }
 
@@ -362,8 +386,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement("Reached top boundary");
+      setAnnouncement(i18nStrings.liveAnnouncementReachedTopBoundary);
     }
   }
 
@@ -375,8 +398,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement("Reached bottom boundary");
+      setAnnouncement(i18nStrings.liveAnnouncementReachedBottomBoundary);
     }
   }
 
@@ -446,24 +468,19 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
-            // TODO: use i18n-strings
-            const columnsDescription = layoutItem
-              ? `columns ${layoutItem.x + 1} - ${layoutItem.x + layoutItem.width} of ${columns}`
-              : "";
-            const rowsDescription = layoutItem
-              ? `rows ${layoutItem.y + 1} - ${layoutItem.y + layoutItem.height} of ${rows}`
-              : "";
-            const positionDescription = [columnsDescription, rowsDescription].filter(Boolean).join(", ");
+            const stateDescription = transition ? i18nStrings.itemDraggingAriaState : "";
 
-            // TODO: use i18n-strings
-            const dragInteractionDescription = !transition
-              ? `Use Space or Enter to enter drag mode`
-              : `To move the item use arrow keys. Press Space or Enter to submit or Esc to discard`;
-
-            // TODO: use i18n-strings
-            const resizeInteractionDescription = !transition
-              ? `Use Space or Enter to enter resize mode`
-              : `To resize the item use arrow keys. Press Space or Enter to submit or Esc to discard`;
+            const positionDescription = layoutItem
+              ? i18nStrings.itemPositionAriaState({
+                  item,
+                  colspan: layoutItem.width,
+                  rowspan: layoutItem.height,
+                  columnOffset: layoutItem.x,
+                  rowOffset: layoutItem.y,
+                  columns,
+                  rows,
+                })
+              : "";
 
             return (
               <ItemContainer
@@ -481,9 +498,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
+                stateDescription={stateDescription}
                 positionDescription={positionDescription}
-                dragInteractionDescription={dragInteractionDescription}
-                resizeInteractionDescription={resizeInteractionDescription}
+                dragInteractionDescription={i18nStrings.itemDragHandleAriaDescription}
+                resizeInteractionDescription={i18nStrings.itemResizeHandleAriaDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>

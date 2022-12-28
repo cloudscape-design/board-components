@@ -10,7 +10,7 @@ import { getDefaultItemSize } from "../internal/utils/layout";
 import { DashboardPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
+export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dragActive, setDragActive] = useState(false);
@@ -28,8 +28,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
       focusItem(item.id);
       setAnnouncement("");
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement("No previous item");
+      setAnnouncement(i18nStrings.liveAnnouncementNoPreviousItem);
     }
   }
 
@@ -40,8 +39,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
       focusItem(item.id);
       setAnnouncement("");
     } else {
-      // TODO: use i18n-strings
-      setAnnouncement("No next item");
+      setAnnouncement(i18nStrings.liveAnnouncementNoNextItem);
     }
   }
 
@@ -69,10 +67,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
     setDropState(undefined);
   });
 
-  // TODO: use i18n-strings
-  const dragInteractionDescription = !dragActive
-    ? `Use Space or Enter to enter insert mode`
-    : `To move the item use arrow keys. Press Space or Enter to submit or Esc to discard`;
+  const stateDescription = dragActive ? i18nStrings.itemDraggingAriaState : "";
 
   return (
     <div ref={paletteRef} className={styles.root}>
@@ -92,7 +87,8 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
-            dragInteractionDescription={dragInteractionDescription}
+            stateDescription={stateDescription}
+            dragInteractionDescription={i18nStrings.itemDragHandleAriaDescription}
           >
             <div data-item-id={item.id}>
               {renderItem(item, {

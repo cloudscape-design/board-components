@@ -18,7 +18,7 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
    * An object containing all the necessary localized strings required by the component.
    */
-  i18nStrings?: DashboardLayoutProps.I18nStrings;
+  i18nStrings: DashboardLayoutProps.I18nStrings<D>;
 
   /**
    * Fired when a user interaction changes size or position of dashboard items.
@@ -44,8 +44,37 @@ export namespace DashboardLayoutProps {
     removedItem?: Item<D>;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  export interface I18nStrings {
-    // TODO: add announcements to dnd interactions
+  export interface I18nStrings<D> {
+    liveAnnouncementNoItemToTheLeft: string;
+    liveAnnouncementNoItemToTheRight: string;
+    liveAnnouncementNoItemToTheTop: string;
+    liveAnnouncementNoItemToTheBottom: string;
+    liveAnnouncementReachedLeftBoundary: string;
+    liveAnnouncementReachedRightBoundary: string;
+    liveAnnouncementReachedTopBoundary: string;
+    liveAnnouncementReachedBottomBoundary: string;
+    liveAnnouncementItemMoved: (operation: OperationState<D>) => string;
+    liveAnnouncementItemResized: (operation: OperationState<D>) => string;
+    liveAnnouncementItemInserted: (operation: OperationState<D>) => string;
+    liveAnnouncementItemRemoved: (operation: OperationState<D>) => string;
+    itemDragHandleAriaDescription: string;
+    itemResizeHandleAriaDescription: string;
+    itemDraggingAriaState: string;
+    itemPositionAriaState: (placement: PositionState<D>) => string;
+  }
+
+  export interface PositionState<D> {
+    item: Item<D>;
+    colspan: number;
+    rowspan: number;
+    columnOffset: number;
+    rowOffset: number;
+    columns: number;
+    rows: number;
+  }
+
+  export interface OperationState<D> extends PositionState<D> {
+    conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
   }
 }

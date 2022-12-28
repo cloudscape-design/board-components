@@ -27,6 +27,10 @@ export namespace PaletteProps {
     showPreview: boolean;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  export interface I18nStrings {}
+  export interface I18nStrings {
+    liveAnnouncementNoNextItem: string;
+    liveAnnouncementNoPreviousItem: string;
+    itemDragHandleAriaDescription: string;
+    itemDraggingAriaState: string;
+  }
 }

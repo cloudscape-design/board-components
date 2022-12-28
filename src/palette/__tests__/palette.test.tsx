@@ -36,7 +36,12 @@ function render(jsx: ReactElement) {
 }
 
 const defaultProps: DashboardPaletteProps = {
-  i18nStrings: {},
+  i18nStrings: {
+    liveAnnouncementNoNextItem: "No next item",
+    liveAnnouncementNoPreviousItem: "No previous item",
+    itemDraggingAriaState: "Dragging",
+    itemDragHandleAriaDescription: "Keyboard actions description",
+  },
   items: [
     { id: "first", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },
     { id: "second", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },

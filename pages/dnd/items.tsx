@@ -1,13 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
-import { ReactNode } from "react";
 import { DashboardLayoutProps } from "../../lib/components";
 import { DashboardItemDefinition } from "../../lib/components/internal/interfaces";
 import { fromMatrix } from "../../src/internal/debug-tools";
 import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { PaletteProps } from "../../src/palette/interfaces";
+import { ItemData } from "../shared/interfaces";
 import { Counter } from "./commons";
 import {
   DefaultContainer,
@@ -20,13 +20,6 @@ import {
 import { EventsTable } from "./events-table";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
-
-export interface ItemData {
-  title: string;
-  description: string;
-  content: ReactNode;
-  footer?: ReactNode;
-}
 
 export type ItemWidgets = Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined>;
 

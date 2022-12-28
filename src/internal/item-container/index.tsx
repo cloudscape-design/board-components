@@ -41,6 +41,7 @@ export interface ItemContext {
     onKeyDown(event: KeyboardEvent): void;
     interactionDescription?: string;
   };
+  stateDescription?: string;
   positionDescription?: string;
 }
 
@@ -79,6 +80,7 @@ interface ItemContainerProps {
   transform: null | Transform;
   onNavigate(direction: Direction): void;
   children: ReactNode;
+  stateDescription?: string;
   positionDescription?: string;
   dragInteractionDescription?: string;
   resizeInteractionDescription?: string;
@@ -95,6 +97,7 @@ function ItemContainerComponent(
     transform,
     onNavigate,
     children,
+    stateDescription,
     positionDescription,
     dragInteractionDescription,
     resizeInteractionDescription,
@@ -355,6 +358,7 @@ function ItemContainerComponent(
                 interactionDescription: resizeInteractionDescription,
               }
             : null,
+          stateDescription,
           positionDescription,
         }}
       >

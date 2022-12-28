@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { DashboardLayout, DashboardLayoutProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
+import { dashboardI18nStrings } from "../shared/i18n";
 import classnames from "./layouts.module.css";
 
 const singleItem: DashboardLayoutProps.Item<any>[] = [
@@ -67,6 +68,7 @@ export default function DashboardLayoutPage() {
       <main>
         <TestBed>
           <DashboardLayout
+            i18nStrings={dashboardI18nStrings}
             items={singleItem}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
@@ -75,6 +77,7 @@ export default function DashboardLayoutPage() {
         </TestBed>
         <TestBed>
           <DashboardLayout
+            i18nStrings={dashboardI18nStrings}
             items={spacedOutItems}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
@@ -83,6 +86,7 @@ export default function DashboardLayoutPage() {
         </TestBed>
         <TestBed>
           <DashboardLayout
+            i18nStrings={dashboardI18nStrings}
             items={nextRowItems}
             renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
             onItemsChange={noop}
