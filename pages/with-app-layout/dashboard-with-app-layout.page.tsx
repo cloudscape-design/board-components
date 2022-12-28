@@ -54,7 +54,7 @@ export default function () {
                   footer={item.data.footer}
                   i18nStrings={{
                     dragHandleLabel: "Drag me",
-                    resizeLabel: "Resize me",
+                    resizeHandleLabel: "Resize me",
                   }}
                   settings={
                     <ButtonDropdown
@@ -94,12 +94,12 @@ export default function () {
                   items={paletteWidgets}
                   i18nStrings={{
                     dragHandleLabel: "Drag me",
-                    resizeLabel: "Resize me",
+                    resizeHandleLabel: "Resize me",
                   }}
                   renderItem={(item) => (
                     <DashboardItem
                       header={<Header>{item.data.title}</Header>}
-                      i18nStrings={{ dragHandleLabel: "Drag me", resizeLabel: "Resize me" }}
+                      i18nStrings={{ dragHandleLabel: "Drag me", resizeHandleLabel: "Resize me" }}
                     >
                       {item.data.description}
                     </DashboardItem>

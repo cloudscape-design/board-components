@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import LiveRegion from "../internal/live-region";
 import { getDefaultItemSize } from "../internal/utils/layout";
 import { DashboardPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -13,24 +14,33 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
+  const [announcement, setAnnouncement] = useState("");
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();
   }
 
   function navigatePreviousItem(index: number) {
-    if (index > 0) {
-      focusItem(items[index - 1].id);
+    const item = items[index - 1];
+
+    if (item) {
+      focusItem(item.id);
+      setAnnouncement("");
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement("No previous item");
     }
   }
 
   function navigateNextItem(index: number) {
-    if (index < items.length - 1) {
-      focusItem(items[index + 1].id);
+    const item = items[index + 1];
+
+    if (item) {
+      focusItem(item.id);
+      setAnnouncement("");
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement("No next item");
     }
   }
 
@@ -78,6 +88,8 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
           </ItemContainer>
         ))}
       </SpaceBetween>
+
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }

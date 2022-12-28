@@ -4,5 +4,5 @@ import type { DashboardItemProps } from "../../lib/components";
 
 export const dashboardItem: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag handle",
-  resizeLabel: "Resize handle",
+  resizeHandleLabel: "Resize handle",
 };

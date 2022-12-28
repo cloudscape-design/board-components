@@ -17,7 +17,7 @@ import { ItemData, ItemWidgets } from "./items";
 
 const itemStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag me",
-  resizeLabel: "Resize me",
+  resizeHandleLabel: "Resize me",
 };
 
 export function EnginePageTemplate({

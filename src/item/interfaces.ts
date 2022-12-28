@@ -34,6 +34,6 @@ export interface DashboardItemProps {
    */
   i18nStrings: {
     dragHandleLabel: string;
-    resizeLabel: string;
+    resizeHandleLabel: string;
   };
 }

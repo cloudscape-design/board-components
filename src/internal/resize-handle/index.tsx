@@ -6,14 +6,19 @@ import { ResizeHandleIcon } from "./icon";
 import styles from "./styles.css.js";
 
 export interface ResizeHandleProps {
-  ariaLabel: string | undefined;
+  ariaLabelledBy: string | undefined;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
 }
 
-export default function ResizeHandle({ ariaLabel, onPointerDown, onKeyDown }: ResizeHandleProps) {
+export default function ResizeHandle({ ariaLabelledBy, onPointerDown, onKeyDown }: ResizeHandleProps) {
   return (
-    <Handle className={styles.handle} aria-label={ariaLabel} onPointerDown={onPointerDown} onKeyDown={onKeyDown}>
+    <Handle
+      className={styles.handle}
+      aria-labelledby={ariaLabelledBy}
+      onPointerDown={onPointerDown}
+      onKeyDown={onKeyDown}
+    >
       <ResizeHandleIcon />
     </Handle>
   );

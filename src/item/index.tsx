@@ -4,6 +4,8 @@ import Container from "@cloudscape-design/components/container";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";
+import ScreenreaderOnly from "../internal/screenreader-only";
+import { useUniqueId } from "../internal/utils/use-unique-id";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -20,6 +22,10 @@ export default function DashboardItem({
 }: DashboardItemProps) {
   const { dragHandle, resizeHandle } = useItemContext();
 
+  const dragHandleLabelId = useUniqueId("drag-handle-label-");
+  const resizeHandleLabelId = useUniqueId("resize-handle-label-");
+  const headerId = useUniqueId("header-");
+
   return (
     <div className={styles.root}>
       <Container
@@ -30,14 +36,14 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ref={dragHandle.ref}
-                ariaLabel={i18nStrings.dragHandleLabel}
+                ariaLabelledBy={`${dragHandleLabelId} ${headerId}`}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
               />
             }
             settings={settings}
           >
-            {header}
+            <div id={headerId}>{header}</div>
           </WidgetContainerHeader>
         }
         footer={footer}
@@ -48,12 +54,15 @@ export default function DashboardItem({
       {resizeHandle && (
         <div className={styles.resizer}>
           <ResizeHandle
-            ariaLabel={i18nStrings.resizeLabel}
+            ariaLabelledBy={`${resizeHandleLabelId} ${headerId}`}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
           />
         </div>
       )}
+
+      <ScreenreaderOnly id={dragHandleLabelId}>{i18nStrings.dragHandleLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeHandleLabelId}>{i18nStrings.resizeHandleLabel}</ScreenreaderOnly>
     </div>
   );
 }

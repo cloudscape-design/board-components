@@ -10,6 +10,7 @@ import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } f
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
+import LiveRegion from "../internal/live-region";
 import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
@@ -65,6 +66,7 @@ function getInsertionDirection(cursorOffset: Coordinates): Direction {
 }
 
 export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
+  const [announcement, setAnnouncement] = useState("");
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -241,11 +243,13 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
   };
 
-  function focusItem(item: null | GridLayoutItem) {
+  function focusItem(item: null | GridLayoutItem, direction: Direction) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
+      setAnnouncement("");
     } else {
-      // TODO: add announcement
+      // TODO: use i18n-strings
+      setAnnouncement(`No item to the ${direction}`);
     }
   }
 
@@ -330,7 +334,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (transition) {
       shiftItem(transition, direction);
     } else {
-      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
+      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction), direction);
     }
   }
 
@@ -417,6 +421,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       ) : (
         empty
       )}
+
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }

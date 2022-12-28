@@ -11,7 +11,7 @@ import createWrapper from "../../../lib/components/test-utils/dom";
 
 export const i18nStrings: DashboardItemProps["i18nStrings"] = {
   dragHandleLabel: "Drag handle",
-  resizeLabel: "Resize handle",
+  resizeHandleLabel: "Resize handle",
 };
 
 function render(jsx: ReactElement) {
@@ -61,6 +61,6 @@ describe("WidgetContainer", () => {
     const { getByLabelText } = render(<DashboardItem i18nStrings={i18nStrings} />);
 
     expect(getByLabelText(i18nStrings.dragHandleLabel)).toBeDefined();
-    expect(getByLabelText(i18nStrings.resizeLabel)).toBeDefined();
+    expect(getByLabelText(i18nStrings.resizeHandleLabel)).toBeDefined();
   });
 });
