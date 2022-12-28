@@ -161,10 +161,10 @@ export class LayoutEngine {
         overlap = this.overlaps.pop();
       }
 
-      tryPiorityMoves();
+      tryPriorityMoves();
     };
 
-    const tryPiorityMoves = () => {
+    const tryPriorityMoves = () => {
       // Try priority moves until first success and delegate back to vacant moves check.
       let overlap = priorityOverlaps.pop();
       while (overlap) {
@@ -232,7 +232,7 @@ export class LayoutEngine {
     return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
   }
 
-  // Try finding a move that resovles an overlap by moving an item to a vacant space.
+  // Try finding a move that resolves an overlap by moving an item to a vacant space.
   private tryFindVacantMove(overlap: ItemId, activeId?: ItemId, resize = false): null | CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
@@ -275,7 +275,7 @@ export class LayoutEngine {
     return true;
   }
 
-  // Try finding a move that resovles an overlap by moving an item over another item that has not been disturbed yet.
+  // Try finding a move that resolves an overlap by moving an item over another item that has not been disturbed yet.
   private tryFindPriorityMove(
     overlap: ItemId,
     activeId: ItemId,
@@ -335,7 +335,7 @@ export class LayoutEngine {
             return false;
           }
 
-          // The overlaping item has the same priority.
+          // The overlapping item has the same priority.
           if (this.priority.get(item.id) === priority) {
             return false;
           }

@@ -199,7 +199,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       throw new Error("Invariant violation: no transition.");
     }
 
-    // Discard state first so that if there is an exption in the code below it doesn't prevent state update.
+    // Discard state first so that if there is an exception in the code below it doesn't prevent state update.
     setTransitionDelayed.cancel();
     setTransition(null);
     setAcquiredItem(null);
