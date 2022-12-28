@@ -3,7 +3,7 @@
 
 import { Droppable } from "../dnd-controller/controller";
 import { Direction, ItemId } from "../interfaces";
-import { getClosestNeighbour } from "../utils/rects";
+import { getClosestNeighbor } from "../utils/rects";
 import { getNormalizedElementRect } from "../utils/screen";
 
 export function getNextDroppable(
@@ -13,6 +13,6 @@ export function getNextDroppable(
 ): null | Droppable {
   const draggableRect = getNormalizedElementRect(draggableElement);
   const sources = new Map(droppables.map(([, d]) => [getNormalizedElementRect(d.element), d]));
-  const closest = getClosestNeighbour(draggableRect, [...sources.keys()], direction);
+  const closest = getClosestNeighbor(draggableRect, [...sources.keys()], direction);
   return sources.get(closest as DOMRect) ?? null;
 }

@@ -33,7 +33,7 @@ export function normalizeMovePath(origin: Position, path: readonly Position[]): 
     positionToLastIndex.set(`${path[index].x}:${path[index].y}`, index);
   }
 
-  // Compose path from last visited indixes only.
+  // Compose path from last visited indices only.
   const normalizedPath: Position[] = [];
   let index = 0;
   while (index < path.length) {

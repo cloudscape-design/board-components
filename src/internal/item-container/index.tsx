@@ -166,7 +166,7 @@ function ItemContainerComponent(
     // Create new transition if missing.
     if (!transition) {
       const rect = getNormalizedElementRect(itemRef.current!);
-      const coordiantes = new Coordinates({
+      const coordinates = new Coordinates({
         x: operation === "drag" ? rect.left : rect.right,
         y: operation === "drag" ? rect.top : rect.bottom,
       });
@@ -174,11 +174,11 @@ function ItemContainerComponent(
       setInteractionType("keyboard");
 
       if (operation === "drag" && !gridContext) {
-        draggableApi.start("insert", coordiantes);
+        draggableApi.start("insert", coordinates);
       } else if (operation === "drag") {
-        draggableApi.start("reorder", coordiantes);
+        draggableApi.start("reorder", coordinates);
       } else {
-        draggableApi.start("resize", coordiantes);
+        draggableApi.start("resize", coordinates);
       }
     }
     // Submit a transition if existing.
@@ -269,7 +269,7 @@ function ItemContainerComponent(
   }
 
   // TODO: use a combination of styles and classes.
-  // When there is a transition the item's placement and styles might need to be altered for the period of the trasnition.
+  // When there is a transition the item's placement and styles might need to be altered for the period of the transition.
   let style: CSSProperties = {};
 
   if (transition && interactionTypeState === "pointer") {
