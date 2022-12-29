@@ -68,9 +68,7 @@ export function EnginePageTemplate({
             renderItem={(item) => {
               const widgetConfig = widgets[item.id]!.data;
               return (
-                <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={dashboardItemI18nStrings}>
-                  {widgetConfig.description}
-                </DashboardItem>
+                <DashboardItem header={<Header>{widgetConfig.title}</Header>}>{widgetConfig.description}</DashboardItem>
               );
             }}
             i18nStrings={paletteI18nStrings}

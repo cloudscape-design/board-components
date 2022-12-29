@@ -229,9 +229,11 @@ export default function DashboardLayout<D>({
         }
 
         setAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
-      } else {
-        setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
       }
+    }
+
+    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
+      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
     }
 
     autoScrollHandlers.removePointerEventHandlers();
@@ -248,8 +250,8 @@ export default function DashboardLayout<D>({
 
     autoScrollHandlers.removePointerEventHandlers();
 
-    const hasItem = items.some((it) => it.id === transition.draggableItem.id);
-    if (hasItem) {
+    // Announce only if the target item belongs to the layout.
+    if (items.some((it) => it.id === transition.draggableItem.id)) {
       setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
     }
   });
@@ -307,15 +309,6 @@ export default function DashboardLayout<D>({
     const lastMove = itemMoves[itemMoves.length - 1];
 
     const item = items.find((it) => it.id === firstMove.itemId)!;
-    const placement = {
-      item,
-      colspan: lastMove.width,
-      rowspan: lastMove.height,
-      columnOffset: lastMove.x,
-      rowOffset: lastMove.y,
-      columns,
-      rows,
-    };
 
     const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
 
@@ -323,15 +316,25 @@ export default function DashboardLayout<D>({
       (itemId) => items.find((it) => it.id === itemId)!
     );
 
-    const state = { ...placement, conflicts, disturbed };
+    const operationState = {
+      item,
+      colspan: lastMove.width,
+      rowspan: lastMove.height,
+      columnOffset: lastMove.x,
+      rowOffset: lastMove.y,
+      columns,
+      rows,
+      conflicts,
+      disturbed,
+    };
 
     switch (firstMove.type) {
       case "MOVE":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", operationState));
       case "INSERT":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("insert", state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("insert", operationState));
       case "RESIZE":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("resize", state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("resize", operationState));
       default:
         throw new Error("Invariant violation: unexpected first move type.");
     }
