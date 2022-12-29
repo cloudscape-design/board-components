@@ -21,6 +21,10 @@ function render(jsx: ReactElement) {
             itemMaxSize={{ width: 1, height: 1 }}
             transform={null}
             onNavigate={() => undefined}
+            dragHandleAriaLabel={() => "Drag handle aria label"}
+            dragHandleAriaDescription="Drag handle aria description"
+            resizeHandleAriaLabel={() => "Resize handle aria label"}
+            resizeHandleAriaDescription="Resize handle aria description"
           >
             {children}
           </ItemContainer>
@@ -51,11 +55,10 @@ describe("WidgetContainer", () => {
     expect(itemWrapper.find('[data-testid="settings"]')).toBeDefined();
   });
 
-  // TODO: fix test
-  // test("renders handle aria labels", () => {
-  //   const { getByLabelText } = render(<DashboardItem />);
+  test("renders handle aria labels", () => {
+    const { getByLabelText } = render(<DashboardItem />);
 
-  //   expect(getByLabelText(i18nStrings.dragHandleLabel)).toBeDefined();
-  //   expect(getByLabelText(i18nStrings.resizeHandleLabel)).toBeDefined();
-  // });
+    expect(getByLabelText("Drag handle aria label")).toBeDefined();
+    expect(getByLabelText("Resize handle aria label")).toBeDefined();
+  });
 });
