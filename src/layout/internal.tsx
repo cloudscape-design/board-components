@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, Direction, Edge, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
@@ -253,7 +253,7 @@ export default function DashboardLayout<D>({
     );
 
     setAnnouncement(
-      i18nStrings.liveAnnouncementItemRemoved({
+      i18nStrings.liveAnnouncementOperationCommitted("remove", {
         item: removedItem,
         colspan: 0,
         rowspan: 0,
@@ -272,16 +272,8 @@ export default function DashboardLayout<D>({
       itemContainerRef.current[item.id].focusDragHandle();
       setAnnouncement("");
     } else {
-      switch (direction) {
-        case "up":
-          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheTop);
-        case "down":
-          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheBottom);
-        case "left":
-          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheLeft);
-        case "right":
-          return setAnnouncement(i18nStrings.liveAnnouncementNoItemToTheRight);
-      }
+      const edge = directionToEdge(direction);
+      setAnnouncement(i18nStrings.liveAnnouncementNoItem(edge));
     }
   }
 
@@ -323,11 +315,11 @@ export default function DashboardLayout<D>({
 
     switch (firstMove.type) {
       case "MOVE":
-        return setAnnouncement(i18nStrings.liveAnnouncementItemMoved(state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", state));
       case "INSERT":
-        return setAnnouncement(i18nStrings.liveAnnouncementItemInserted(state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("insert", state));
       case "RESIZE":
-        return setAnnouncement(i18nStrings.liveAnnouncementItemResized(state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("resize", state));
       default:
         throw new Error("Invariant violation: unexpected first move type.");
     }
@@ -358,7 +350,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedLeftBoundary);
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "left"));
     }
   }
 
@@ -370,7 +362,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedRightBoundary);
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "right"));
     }
   }
 
@@ -386,7 +378,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedTopBoundary);
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "top"));
     }
   }
 
@@ -398,7 +390,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedBottomBoundary);
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "bottom"));
     }
   }
 
@@ -468,19 +460,19 @@ export default function DashboardLayout<D>({
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
-            const stateDescription = transition ? i18nStrings.itemDraggingAriaState : "";
-
-            const positionDescription = layoutItem
-              ? i18nStrings.itemPositionAriaState({
-                  item,
-                  colspan: layoutItem.width,
-                  rowspan: layoutItem.height,
-                  columnOffset: layoutItem.x,
-                  rowOffset: layoutItem.y,
-                  columns,
-                  rows,
-                })
-              : "";
+            const positionState = {
+              item,
+              colspan: layoutItem?.width ?? 0,
+              rowspan: layoutItem?.height ?? 0,
+              columnOffset: layoutItem?.x ?? 0,
+              rowOffset: layoutItem?.y ?? 0,
+              columns,
+              rows,
+            };
+            const dragHandleAriaLabel = (isDragging: boolean) =>
+              i18nStrings.itemDragHandleAriaLabel(isDragging, positionState);
+            const resizeHandleAriaLabel = (isDragging: boolean) =>
+              i18nStrings.itemResizeHandleAriaLabel(isDragging, positionState);
 
             return (
               <ItemContainer
@@ -498,10 +490,10 @@ export default function DashboardLayout<D>({
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
-                stateDescription={stateDescription}
-                positionDescription={positionDescription}
-                dragInteractionDescription={i18nStrings.itemDragHandleAriaDescription}
-                resizeInteractionDescription={i18nStrings.itemResizeHandleAriaDescription}
+                dragHandleAriaLabel={dragHandleAriaLabel}
+                dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
+                resizeHandleAriaLabel={resizeHandleAriaLabel}
+                resizeHandleAriaDescription={i18nStrings.itemResizeHandleAriaDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>
@@ -515,4 +507,17 @@ export default function DashboardLayout<D>({
       <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
+}
+
+function directionToEdge(direction: Direction): Edge {
+  switch (direction) {
+    case "left":
+      return "left";
+    case "right":
+      return "right";
+    case "up":
+      return "top";
+    case "down":
+      return "bottom";
+  }
 }

@@ -4,9 +4,9 @@ import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
 import { DashboardItem, DashboardLayout, DashboardLayoutProps, DashboardPalette } from "../../lib/components";
-import { PaletteProps } from "../../src/palette/interfaces";
+import { DashboardPaletteProps } from "../../src/palette/interfaces";
 import PageLayout from "../app/page-layout";
-import { dashboardI18nStrings, dashboardItemI18nStrings, paletteI18nStrings } from "../shared/i18n";
+import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
@@ -18,7 +18,7 @@ export function EnginePageTemplate({
   layout = "grid",
 }: {
   initialLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[];
-  initialPaletteItems: readonly PaletteProps.Item<ItemData>[];
+  initialPaletteItems: readonly DashboardPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
 }) {
@@ -35,7 +35,6 @@ export function EnginePageTemplate({
             <DashboardItem
               header={<Header>{item.data.title}</Header>}
               footer={item.data.footer}
-              i18nStrings={dashboardItemI18nStrings}
               settings={
                 <ButtonDropdown
                   items={[{ id: "remove", text: "Remove widget" }]}

@@ -6,7 +6,7 @@ import { DashboardItemDefinition } from "../../lib/components/internal/interface
 import { fromMatrix } from "../../src/internal/debug-tools";
 import { DashboardItemBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
-import { PaletteProps } from "../../src/palette/interfaces";
+import { DashboardPaletteProps } from "../../src/palette/interfaces";
 import { ItemData } from "../shared/interfaces";
 import { Counter } from "./commons";
 import {
@@ -21,7 +21,10 @@ import { EventsTable } from "./events-table";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
 
-export type ItemWidgets = Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined>;
+export type ItemWidgets = Record<
+  string,
+  { data: ItemData; definition?: DashboardPaletteProps.Item["definition"] } | undefined
+>;
 
 const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
 const createDefaultWidget = (id: string) => ({
@@ -207,7 +210,7 @@ export const demoLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[] = s
   };
 });
 
-export const demoPaletteItems: readonly PaletteProps.Item<ItemData>[] = Object.entries(demoWidgets)
+export const demoPaletteItems: readonly DashboardPaletteProps.Item<ItemData>[] = Object.entries(demoWidgets)
   .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
   .map(([key, widget]) => ({
     id: key,

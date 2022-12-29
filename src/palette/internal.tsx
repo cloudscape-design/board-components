@@ -13,7 +13,6 @@ import styles from "./styles.css.js";
 export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
-  const [dragActive, setDragActive] = useState(false);
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
   const [announcement, setAnnouncement] = useState("");
 
@@ -54,20 +53,11 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
     }
   }
 
-  useDragSubscription("start", () => setDragActive(true));
-  useDragSubscription("update", ({ draggableItem, dropTarget }) =>
-    setDropState({ id: draggableItem.id, isExpanded: !!dropTarget })
+  useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) =>
+    setDropState({ id, isExpanded: !!dropTarget })
   );
-  useDragSubscription("submit", () => {
-    setDragActive(false);
-    setDropState(undefined);
-  });
-  useDragSubscription("discard", () => {
-    setDragActive(false);
-    setDropState(undefined);
-  });
-
-  const stateDescription = dragActive ? i18nStrings.itemDraggingAriaState : "";
+  useDragSubscription("submit", () => setDropState(undefined));
+  useDragSubscription("discard", () => setDropState(undefined));
 
   return (
     <div ref={paletteRef} className={styles.root}>
@@ -87,8 +77,10 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
-            stateDescription={stateDescription}
-            dragInteractionDescription={i18nStrings.itemDragHandleAriaDescription}
+            dragHandleAriaLabel={(isDragging) => i18nStrings.itemDragHandleAriaLabel(isDragging, item)}
+            dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
+            resizeHandleAriaLabel={() => ""}
+            resizeHandleAriaDescription={""}
           >
             <div data-item-id={item.id}>
               {renderItem(item, {

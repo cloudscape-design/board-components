@@ -45,23 +45,22 @@ export namespace DashboardLayoutProps {
   }
 
   export interface I18nStrings<D> {
-    liveAnnouncementNoItemToTheLeft: string;
-    liveAnnouncementNoItemToTheRight: string;
-    liveAnnouncementNoItemToTheTop: string;
-    liveAnnouncementNoItemToTheBottom: string;
-    liveAnnouncementReachedLeftBoundary: string;
-    liveAnnouncementReachedRightBoundary: string;
-    liveAnnouncementReachedTopBoundary: string;
-    liveAnnouncementReachedBottomBoundary: string;
-    liveAnnouncementItemMoved: (operation: OperationState<D>) => string;
-    liveAnnouncementItemResized: (operation: OperationState<D>) => string;
-    liveAnnouncementItemInserted: (operation: OperationState<D>) => string;
-    liveAnnouncementItemRemoved: (operation: OperationState<D>) => string;
+    liveAnnouncementNoItem: (edge: Edge) => string;
+    liveAnnouncementReachedEdge: (operationType: DragOperationType, edge: Edge) => string;
+    liveAnnouncementOperation: (operationType: DragOperationType, operation: OperationState<D>) => string;
+    liveAnnouncementOperationCommitted: (operationType: OperationType, operation: OperationState<D>) => string;
+    liveAnnouncementOperationDiscarded: (operationType: DragOperationType, operation: OperationState<D>) => string;
+    itemDragHandleAriaLabel: (isDragging: boolean, placement: PositionState<D>) => string;
     itemDragHandleAriaDescription: string;
+    itemResizeHandleAriaLabel: (isDragging: boolean, placement: PositionState<D>) => string;
     itemResizeHandleAriaDescription: string;
-    itemDraggingAriaState: string;
-    itemPositionAriaState: (placement: PositionState<D>) => string;
   }
+
+  export type DragOperationType = "reorder" | "resize" | "insert";
+
+  export type OperationType = DragOperationType | "remove";
+
+  export type Edge = "left" | "right" | "top" | "bottom";
 
   export interface PositionState<D> {
     item: Item<D>;

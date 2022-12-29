@@ -77,10 +77,7 @@ export default function GridWithWidgetContainerPage() {
               },
             ]}
             renderItem={(item) => (
-              <DashboardItem
-                i18nStrings={i18nStrings.dashboardItemI18nStrings}
-                header={<Header variant="h2">{item.data.title}</Header>}
-              >
+              <DashboardItem header={<Header variant="h2">{item.data.title}</Header>}>
                 {item.data.content}
               </DashboardItem>
             )}

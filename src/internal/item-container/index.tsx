@@ -34,15 +34,16 @@ export interface ItemContext {
     ref: React.RefObject<HTMLButtonElement>;
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
-    interactionDescription?: string;
+    ariaLabel: string;
+    ariaDescription: string;
   };
   resizeHandle: null | {
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
-    interactionDescription?: string;
+    ariaLabel: string;
+    ariaDescription: string;
   };
-  stateDescription?: string;
-  positionDescription?: string;
+  dragActive: boolean;
 }
 
 const Context = createContext<ItemContext | null>(null);
@@ -80,10 +81,10 @@ interface ItemContainerProps {
   transform: null | Transform;
   onNavigate(direction: Direction): void;
   children: ReactNode;
-  stateDescription?: string;
-  positionDescription?: string;
-  dragInteractionDescription?: string;
-  resizeInteractionDescription?: string;
+  dragHandleAriaLabel: (isDragging: boolean) => string;
+  dragHandleAriaDescription: string;
+  resizeHandleAriaLabel: (isDragging: boolean) => string;
+  resizeHandleAriaDescription: string;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
@@ -97,10 +98,10 @@ function ItemContainerComponent(
     transform,
     onNavigate,
     children,
-    stateDescription,
-    positionDescription,
-    dragInteractionDescription,
-    resizeInteractionDescription,
+    dragHandleAriaLabel,
+    dragHandleAriaDescription,
+    resizeHandleAriaLabel,
+    resizeHandleAriaDescription,
   }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
@@ -349,17 +350,18 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
             onKeyDown: onDragHandleKeyDown,
-            interactionDescription: dragInteractionDescription,
+            ariaLabel: dragHandleAriaLabel(!!transition),
+            ariaDescription: dragHandleAriaDescription,
           },
           resizeHandle: gridContext
             ? {
                 onPointerDown: onResizeHandlePointerDown,
                 onKeyDown: onResizeHandleKeyDown,
-                interactionDescription: resizeInteractionDescription,
+                ariaLabel: resizeHandleAriaLabel(!!transition),
+                ariaDescription: resizeHandleAriaDescription,
               }
             : null,
-          stateDescription,
-          positionDescription,
+          dragActive: !!transition,
         }}
       >
         {children}

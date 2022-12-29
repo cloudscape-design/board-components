@@ -54,10 +54,6 @@ export default function () {
                 <DashboardItem
                   header={<Header>{item.data.title}</Header>}
                   footer={item.data.footer}
-                  i18nStrings={{
-                    dragHandleLabel: "Drag me",
-                    resizeHandleLabel: "Resize me",
-                  }}
                   settings={
                     <ButtonDropdown
                       items={[{ id: "remove", text: "Remove widget" }]}
@@ -96,12 +92,7 @@ export default function () {
                   items={paletteWidgets}
                   i18nStrings={paletteI18nStrings}
                   renderItem={(item) => (
-                    <DashboardItem
-                      header={<Header>{item.data.title}</Header>}
-                      i18nStrings={{ dragHandleLabel: "Drag me", resizeHandleLabel: "Resize me" }}
-                    >
-                      {item.data.description}
-                    </DashboardItem>
+                    <DashboardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</DashboardItem>
                   )}
                 />
               ) : (

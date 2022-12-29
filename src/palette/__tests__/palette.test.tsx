@@ -39,8 +39,9 @@ const defaultProps: DashboardPaletteProps = {
   i18nStrings: {
     liveAnnouncementNoNextItem: "No next item",
     liveAnnouncementNoPreviousItem: "No previous item",
-    itemDraggingAriaState: "Dragging",
-    itemDragHandleAriaDescription: "Keyboard actions description",
+    itemDragHandleAriaLabel: (isDragging, item) => (isDragging ? "Dragging " : "") + item.data.title,
+    itemDragHandleAriaDescription:
+      "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
   },
   items: [
     { id: "first", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },

@@ -29,7 +29,6 @@ export default function KeyboardPage() {
         ]}
         renderItem={() => (
           <DashboardItem
-            i18nStrings={i18nStrings.dashboardItemI18nStrings}
             header={
               <span tabIndex={0} data-testid="header">
                 Header

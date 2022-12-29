@@ -16,19 +16,13 @@ export default function DashboardItem({
   children,
   header,
   settings,
-  i18nStrings,
   disableContentPaddings,
   footer,
 }: DashboardItemProps) {
-  const { dragHandle, resizeHandle, stateDescription, positionDescription } = useItemContext();
+  const { dragHandle, resizeHandle } = useItemContext();
 
-  const dragHandleLabelId = useUniqueId("drag-handle-label-");
-  const resizeHandleLabelId = useUniqueId("resize-handle-label-");
-  const stateDescriptionId = useUniqueId("state-description-");
-  const positionDescriptionId = useUniqueId("position-description-");
   const dragInteractionDescriptionId = useUniqueId("drag-interaction-description-");
   const resizeInteractionDescriptionId = useUniqueId("resize-interaction-description-");
-  const headerId = useUniqueId("header-");
 
   return (
     <div className={styles.root}>
@@ -40,7 +34,7 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ref={dragHandle.ref}
-                ariaLabelledBy={`${dragHandleLabelId} ${headerId} ${stateDescriptionId} ${positionDescriptionId}`}
+                ariaLabel={dragHandle.ariaLabel}
                 ariaDescribedBy={dragInteractionDescriptionId}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
@@ -48,7 +42,7 @@ export default function DashboardItem({
             }
             settings={settings}
           >
-            <div id={headerId}>{header}</div>
+            {header}
           </WidgetContainerHeader>
         }
         footer={footer}
@@ -59,7 +53,7 @@ export default function DashboardItem({
       {resizeHandle && (
         <div className={styles.resizer}>
           <ResizeHandle
-            ariaLabelledBy={`${resizeHandleLabelId} ${headerId} ${stateDescriptionId} ${positionDescriptionId}`}
+            ariaLabel={resizeHandle.ariaLabel}
             ariaDescribedBy={resizeInteractionDescriptionId}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
@@ -67,12 +61,8 @@ export default function DashboardItem({
         </div>
       )}
 
-      <ScreenreaderOnly id={dragHandleLabelId}>{i18nStrings.dragHandleLabel}</ScreenreaderOnly>
-      <ScreenreaderOnly id={resizeHandleLabelId}>{i18nStrings.resizeHandleLabel}</ScreenreaderOnly>
-      <ScreenreaderOnly id={stateDescriptionId}>{stateDescription}</ScreenreaderOnly>
-      <ScreenreaderOnly id={positionDescriptionId}>{positionDescription}</ScreenreaderOnly>
-      <ScreenreaderOnly id={dragInteractionDescriptionId}>{dragHandle.interactionDescription}</ScreenreaderOnly>
-      <ScreenreaderOnly id={resizeInteractionDescriptionId}>{resizeHandle?.interactionDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragInteractionDescriptionId}>{dragHandle.ariaDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeInteractionDescriptionId}>{resizeHandle?.ariaDescription}</ScreenreaderOnly>
     </div>
   );
 }

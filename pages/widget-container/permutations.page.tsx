@@ -35,12 +35,7 @@ export default function WidgetContainerPermutations() {
               data: {
                 title: "Text header",
                 description: "",
-                content: (
-                  <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
-                    header={<Header variant="h2">Text Header</Header>}
-                  />
-                ),
+                content: <DashboardItem header={<Header variant="h2">Text Header</Header>} />,
               },
             },
             {
@@ -51,7 +46,6 @@ export default function WidgetContainerPermutations() {
                 description: "",
                 content: (
                   <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
                     header={<Header variant="h2">Text Header with Settings</Header>}
                     settings={
                       <ButtonDropdown
@@ -74,7 +68,6 @@ export default function WidgetContainerPermutations() {
                 description: "",
                 content: (
                   <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
                     header={
                       <Header
                         variant="h2"
@@ -109,7 +102,6 @@ export default function WidgetContainerPermutations() {
                 description: "",
                 content: (
                   <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
                     header={
                       <Header variant="h2">
                         Text Header wraps - I will make this a long title that wraps into the next line so that I can
@@ -137,7 +129,6 @@ export default function WidgetContainerPermutations() {
                 description: "",
                 content: (
                   <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
                     header={
                       <Header
                         variant="h2"
@@ -162,11 +153,7 @@ export default function WidgetContainerPermutations() {
                 title: "Text header",
                 description: "",
                 content: (
-                  <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
-                    disableContentPaddings={true}
-                    header={<Header variant="h2">Text Header</Header>}
-                  >
+                  <DashboardItem disableContentPaddings={true} header={<Header variant="h2">Text Header</Header>}>
                     <Box textAlign="center">Content without paddings</Box>
                   </DashboardItem>
                 ),
@@ -180,7 +167,6 @@ export default function WidgetContainerPermutations() {
                 description: "",
                 content: (
                   <DashboardItem
-                    i18nStrings={i18nStrings.dashboardItemI18nStrings}
                     header={<Header variant="h2">Footer Content</Header>}
                     footer={<Box textAlign="center">More</Box>}
                   />

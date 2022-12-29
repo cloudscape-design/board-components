@@ -26,12 +26,7 @@ export default function WidgetContainerPermutations() {
         <DashboardLayout
           i18nStrings={i18nStrings.dashboardI18nStrings}
           renderItem={(item) => (
-            <DashboardItem
-              header={<Header>{item.data.title}</Header>}
-              i18nStrings={i18nStrings.dashboardItemI18nStrings}
-            >
-              {item.data.content}
-            </DashboardItem>
+            <DashboardItem header={<Header>{item.data.title}</Header>}>{item.data.content}</DashboardItem>
           )}
           items={[
             // simple 1x1
