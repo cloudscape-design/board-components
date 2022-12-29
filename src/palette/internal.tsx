@@ -63,19 +63,24 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
   useDragSubscription("submit", () => {
     setDropState(undefined);
 
-    const hasItem = items.some((it) => it.id === dropState?.id);
-    if (hasItem) {
+    // Announce only if the target item belongs to the palette.
+    if (items.some((it) => it.id === dropState?.id)) {
       setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
     }
   });
   useDragSubscription("discard", () => {
     setDropState(undefined);
 
-    const hasItem = items.some((it) => it.id === dropState?.id);
-    if (hasItem) {
+    // Announce only if the target item belongs to the palette.
+    if (items.some((it) => it.id === dropState?.id)) {
       setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
     }
   });
+
+  // "Disconnect" target item from the palette if borrowed.
+  const onBorrow = () => {
+    setDropState(undefined);
+  };
 
   return (
     <div ref={paletteRef} className={styles.root}>
@@ -95,7 +100,7 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
-            onBorrow={() => setDropState(undefined)}
+            onBorrow={onBorrow}
             dragHandleAriaLabel={(isDragging) => i18nStrings.itemDragHandleAriaLabel(isDragging, item)}
             dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
             resizeHandleAriaLabel={() => ""}

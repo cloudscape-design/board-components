@@ -21,6 +21,9 @@ export default function DashboardItem({
 }: DashboardItemProps) {
   const { dragHandle, resizeHandle, dragActive } = useItemContext();
 
+  // Both aria-label and aria-label-active have the same content.
+  // However, the IDs are swapped when dragActive state changes for screen-reader to re-announce it.
+
   const dragHandleAriaLabelledBy = useUniqueId("drag-aria-label-");
   const dragHandleAriaLabelledByActive = useUniqueId("drag-aria-label-active-");
   const dragHandleAriaDescribedBy = useUniqueId("drag-aria-description-");

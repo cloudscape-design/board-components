@@ -72,9 +72,7 @@ export default function DashboardLayout<D>({
   empty,
   i18nStrings,
 }: DashboardLayoutProps<D>) {
-  const [announcement, setAnnouncement] = useState({ text: "", assertive: false });
-  const setPoliteAnnouncement = (text: string) => setAnnouncement({ text, assertive: false });
-  // const setAssertiveAnnouncement = (text: string) => setAnnouncement({ text, assertive: true });
+  const [announcement, setAnnouncement] = useState("");
 
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
@@ -230,9 +228,9 @@ export default function DashboardLayout<D>({
           onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
         }
 
-        setPoliteAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
+        setAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
       } else {
-        setPoliteAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
+        setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
       }
     }
 
@@ -252,7 +250,7 @@ export default function DashboardLayout<D>({
 
     const hasItem = items.some((it) => it.id === transition.draggableItem.id);
     if (hasItem) {
-      setPoliteAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
+      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
     }
   });
 
@@ -266,7 +264,7 @@ export default function DashboardLayout<D>({
       (itemId) => items.find((it) => it.id === itemId)!
     );
 
-    setPoliteAnnouncement(
+    setAnnouncement(
       i18nStrings.liveAnnouncementOperation("remove", {
         item: removedItem,
         colspan: 0,
@@ -284,10 +282,10 @@ export default function DashboardLayout<D>({
   function focusItem(item: null | GridLayoutItem, direction: Direction) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
-      setPoliteAnnouncement("");
+      setAnnouncement("");
     } else {
       const edge = directionToEdge(direction);
-      setPoliteAnnouncement(i18nStrings.liveAnnouncementNoItem(edge));
+      setAnnouncement(i18nStrings.liveAnnouncementNoItem(edge));
     }
   }
 
@@ -329,11 +327,11 @@ export default function DashboardLayout<D>({
 
     switch (firstMove.type) {
       case "MOVE":
-        return setPoliteAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", state));
       case "INSERT":
-        return setPoliteAnnouncement(i18nStrings.liveAnnouncementOperation("insert", state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("insert", state));
       case "RESIZE":
-        return setPoliteAnnouncement(i18nStrings.liveAnnouncementOperation("resize", state));
+        return setAnnouncement(i18nStrings.liveAnnouncementOperation("resize", state));
       default:
         throw new Error("Invariant violation: unexpected first move type.");
     }
@@ -364,7 +362,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "left"));
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "left"));
     }
   }
 
@@ -376,7 +374,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "right"));
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "right"));
     }
   }
 
@@ -392,7 +390,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "top"));
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "top"));
     }
   }
 
@@ -404,7 +402,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "bottom"));
+      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "bottom"));
     }
   }
 
@@ -521,7 +519,7 @@ export default function DashboardLayout<D>({
         empty
       )}
 
-      <LiveRegion assertive={announcement.assertive}>{announcement.text}</LiveRegion>
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }
