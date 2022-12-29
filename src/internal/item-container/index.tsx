@@ -80,6 +80,7 @@ interface ItemContainerProps {
   itemMaxSize: { width: number; height: number };
   transform: null | Transform;
   onNavigate(direction: Direction): void;
+  onBorrow?(): void;
   children: ReactNode;
   dragHandleAriaLabel: (isDragging: boolean) => string;
   dragHandleAriaDescription: string;
@@ -97,6 +98,7 @@ function ItemContainerComponent(
     itemMaxSize,
     transform,
     onNavigate,
+    onBorrow,
     children,
     dragHandleAriaLabel,
     dragHandleAriaDescription,
@@ -217,6 +219,7 @@ function ItemContainerComponent(
     nextDroppable.context.acquire();
 
     setIsBorrowed(true);
+    onBorrow?.();
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {

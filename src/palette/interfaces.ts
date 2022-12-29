@@ -30,6 +30,7 @@ export namespace DashboardPaletteProps {
   export interface I18nStrings<D> {
     liveAnnouncementNoNextItem: string;
     liveAnnouncementNoPreviousItem: string;
+    liveAnnouncementDragDiscarded: string;
     itemDragHandleAriaLabel: (isDragging: boolean, item: Item<D>) => string;
     itemDragHandleAriaDescription: string;
   }

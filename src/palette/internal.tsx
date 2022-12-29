@@ -53,11 +53,29 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
     }
   }
 
-  useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) =>
-    setDropState({ id, isExpanded: !!dropTarget })
-  );
-  useDragSubscription("submit", () => setDropState(undefined));
-  useDragSubscription("discard", () => setDropState(undefined));
+  useDragSubscription("start", ({ draggableItem: { id } }) => {
+    setDropState({ id, isExpanded: false });
+    setAnnouncement("");
+  });
+  useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) => {
+    setDropState({ id, isExpanded: !!dropTarget });
+  });
+  useDragSubscription("submit", () => {
+    setDropState(undefined);
+
+    const hasItem = items.some((it) => it.id === dropState?.id);
+    if (hasItem) {
+      setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
+    }
+  });
+  useDragSubscription("discard", () => {
+    setDropState(undefined);
+
+    const hasItem = items.some((it) => it.id === dropState?.id);
+    if (hasItem) {
+      setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
+    }
+  });
 
   return (
     <div ref={paletteRef} className={styles.root}>
@@ -77,6 +95,7 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
+            onBorrow={() => setDropState(undefined)}
             dragHandleAriaLabel={(isDragging) => i18nStrings.itemDragHandleAriaLabel(isDragging, item)}
             dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
             resizeHandleAriaLabel={() => ""}

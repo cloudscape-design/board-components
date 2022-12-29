@@ -72,7 +72,10 @@ export default function DashboardLayout<D>({
   empty,
   i18nStrings,
 }: DashboardLayoutProps<D>) {
-  const [announcement, setAnnouncement] = useState("");
+  const [announcement, setAnnouncement] = useState({ text: "", assertive: false });
+  const setPoliteAnnouncement = (text: string) => setAnnouncement({ text, assertive: false });
+  // const setAssertiveAnnouncement = (text: string) => setAnnouncement({ text, assertive: true });
+
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -213,17 +216,23 @@ export default function DashboardLayout<D>({
     if (transition.layoutShift) {
       printLayoutDebug(itemsLayout, transition.layoutShift);
 
-      // Commit new layout for insert case.
-      if (transition.operation === "insert") {
-        // TODO: resolve "any" here.
-        // It is not quite clear yet how to ensure the addedItem matches generic D type.
-        const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
-        const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
-        onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
-      }
-      // Commit new layout for reorder/resize case.
-      else {
-        onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
+      if (transition.layoutShift.conflicts.length === 0) {
+        // Commit new layout for insert case.
+        if (transition.operation === "insert") {
+          // TODO: resolve "any" here.
+          // It is not quite clear yet how to ensure the addedItem matches generic D type.
+          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
+          const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
+          onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+        }
+        // Commit new layout for reorder/resize case.
+        else {
+          onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
+        }
+
+        setPoliteAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
+      } else {
+        setPoliteAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
       }
     }
 
@@ -240,6 +249,11 @@ export default function DashboardLayout<D>({
     setAcquiredItem(null);
 
     autoScrollHandlers.removePointerEventHandlers();
+
+    const hasItem = items.some((it) => it.id === transition.draggableItem.id);
+    if (hasItem) {
+      setPoliteAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
+    }
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
@@ -252,8 +266,8 @@ export default function DashboardLayout<D>({
       (itemId) => items.find((it) => it.id === itemId)!
     );
 
-    setAnnouncement(
-      i18nStrings.liveAnnouncementOperationCommitted("remove", {
+    setPoliteAnnouncement(
+      i18nStrings.liveAnnouncementOperation("remove", {
         item: removedItem,
         colspan: 0,
         rowspan: 0,
@@ -270,10 +284,10 @@ export default function DashboardLayout<D>({
   function focusItem(item: null | GridLayoutItem, direction: Direction) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
-      setAnnouncement("");
+      setPoliteAnnouncement("");
     } else {
       const edge = directionToEdge(direction);
-      setAnnouncement(i18nStrings.liveAnnouncementNoItem(edge));
+      setPoliteAnnouncement(i18nStrings.liveAnnouncementNoItem(edge));
     }
   }
 
@@ -315,11 +329,11 @@ export default function DashboardLayout<D>({
 
     switch (firstMove.type) {
       case "MOVE":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", state));
+        return setPoliteAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", state));
       case "INSERT":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("insert", state));
+        return setPoliteAnnouncement(i18nStrings.liveAnnouncementOperation("insert", state));
       case "RESIZE":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("resize", state));
+        return setPoliteAnnouncement(i18nStrings.liveAnnouncementOperation("resize", state));
       default:
         throw new Error("Invariant violation: unexpected first move type.");
     }
@@ -350,7 +364,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "left"));
+      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "left"));
     }
   }
 
@@ -362,7 +376,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "right"));
+      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "right"));
     }
   }
 
@@ -378,7 +392,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "top"));
+      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "top"));
     }
   }
 
@@ -390,7 +404,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "bottom"));
+      setPoliteAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "bottom"));
     }
   }
 
@@ -418,6 +432,7 @@ export default function DashboardLayout<D>({
 
     const path = [...transition.path, position];
     const layoutShift = applyOperation(transition, path, insertionDirection)?.getLayoutShift();
+    const layoutShiftWithRefloat = applyOperation(transition, path, insertionDirection)?.refloat().getLayoutShift();
 
     if (!layoutShift) {
       throw new Error("Invariant violation: acquired item is not inserted into layout.");
@@ -427,6 +442,8 @@ export default function DashboardLayout<D>({
     // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
     setTransition({ ...transition, collisionIds: [], layoutShift, path });
+
+    setTransitionAnnouncement(layoutShiftWithRefloat!);
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
@@ -504,7 +521,7 @@ export default function DashboardLayout<D>({
         empty
       )}
 
-      <LiveRegion>{announcement}</LiveRegion>
+      <LiveRegion assertive={announcement.assertive}>{announcement.text}</LiveRegion>
     </div>
   );
 }

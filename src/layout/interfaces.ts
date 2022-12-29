@@ -47,9 +47,9 @@ export namespace DashboardLayoutProps {
   export interface I18nStrings<D> {
     liveAnnouncementNoItem: (edge: Edge) => string;
     liveAnnouncementReachedEdge: (operationType: DragOperationType, edge: Edge) => string;
-    liveAnnouncementOperation: (operationType: DragOperationType, operation: OperationState<D>) => string;
-    liveAnnouncementOperationCommitted: (operationType: OperationType, operation: OperationState<D>) => string;
-    liveAnnouncementOperationDiscarded: (operationType: DragOperationType, operation: OperationState<D>) => string;
+    liveAnnouncementOperation: (operationType: OperationType, operation: OperationState<D>) => string;
+    liveAnnouncementOperationCommitted: (operationType: DragOperationType) => string;
+    liveAnnouncementOperationDiscarded: (operationType: DragOperationType) => string;
     itemDragHandleAriaLabel: (isDragging: boolean, placement: PositionState<D>) => string;
     itemDragHandleAriaDescription: string;
     itemResizeHandleAriaLabel: (isDragging: boolean, placement: PositionState<D>) => string;
@@ -58,7 +58,7 @@ export namespace DashboardLayoutProps {
 
   export type DragOperationType = "reorder" | "resize" | "insert";
 
-  export type OperationType = DragOperationType | "remove";
+  export type OperationType = "reorder" | "resize" | "insert" | "remove";
 
   export type Edge = "left" | "right" | "top" | "bottom";
 

@@ -6,9 +6,10 @@ import { ItemData } from "./interfaces";
 export const paletteI18nStrings: DashboardPaletteProps.I18nStrings<ItemData> = {
   liveAnnouncementNoNextItem: "No next item",
   liveAnnouncementNoPreviousItem: "No previous item",
-  itemDragHandleAriaLabel: (isDragging, item) => "Drag handle " + (isDragging ? "Dragging " : "") + item.data.title,
+  itemDragHandleAriaLabel: (isDragging, item) => (isDragging ? "Dragging " : "Drag handle ") + item.data.title,
   itemDragHandleAriaDescription:
     "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
+  liveAnnouncementDragDiscarded: "insert discarded",
 };
 
 export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = {
@@ -39,21 +40,14 @@ export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = 
           return `Item inserted to column ${operation.columnOffset + 1} row ${operation.rowOffset + 1}.`;
         case "resize":
           return `Item resized to columns ${operation.colspan} rows ${operation.rowspan}.`;
+        case "remove":
+          return `Removed item ${operation.item.data.title}.`;
       }
     })();
 
     return [operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
   },
-  liveAnnouncementOperationCommitted(operationType, operation) {
-    if (operationType === "remove") {
-      const disturbedAnnouncement =
-        operation.disturbed.length > 0 ? `Disturbed ${operation.disturbed.length} items.` : "";
-
-      const operationAnnouncement = `Removed item ${operation.item.data.title}.`;
-
-      return [operationAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
-    }
-
+  liveAnnouncementOperationCommitted(operationType) {
     return `${operationType} committed`;
   },
   liveAnnouncementOperationDiscarded(operationType) {
