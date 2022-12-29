@@ -19,10 +19,15 @@ export default function DashboardItem({
   disableContentPaddings,
   footer,
 }: DashboardItemProps) {
-  const { dragHandle, resizeHandle } = useItemContext();
+  const { dragHandle, resizeHandle, dragActive } = useItemContext();
 
-  const dragInteractionDescriptionId = useUniqueId("drag-interaction-description-");
-  const resizeInteractionDescriptionId = useUniqueId("resize-interaction-description-");
+  const dragHandleAriaLabelledBy = useUniqueId("drag-aria-label-");
+  const dragHandleAriaLabelledByActive = useUniqueId("drag-aria-label-active-");
+  const dragHandleAriaDescribedBy = useUniqueId("drag-aria-description-");
+
+  const resizeHandleAriaLabelledBy = useUniqueId("resize-aria-label-");
+  const resizeHandleAriaLabelledByActive = useUniqueId("resize-aria-label-active-");
+  const resizeHandleAriaDescribedBy = useUniqueId("resize-aria-description-");
 
   return (
     <div className={styles.root}>
@@ -34,8 +39,8 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ref={dragHandle.ref}
-                ariaLabel={dragHandle.ariaLabel}
-                ariaDescribedBy={dragInteractionDescriptionId}
+                ariaLabelledBy={dragActive ? dragHandleAriaLabelledByActive : dragHandleAriaLabelledBy}
+                ariaDescribedBy={dragHandleAriaDescribedBy}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
               />
@@ -53,16 +58,21 @@ export default function DashboardItem({
       {resizeHandle && (
         <div className={styles.resizer}>
           <ResizeHandle
-            ariaLabel={resizeHandle.ariaLabel}
-            ariaDescribedBy={resizeInteractionDescriptionId}
+            ariaLabelledBy={dragActive ? resizeHandleAriaLabelledByActive : resizeHandleAriaLabelledBy}
+            ariaDescribedBy={resizeHandleAriaDescribedBy}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
           />
         </div>
       )}
 
-      <ScreenreaderOnly id={dragInteractionDescriptionId}>{dragHandle.ariaDescription}</ScreenreaderOnly>
-      <ScreenreaderOnly id={resizeInteractionDescriptionId}>{resizeHandle?.ariaDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragHandleAriaLabelledBy}>{dragHandle.ariaLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragHandleAriaLabelledByActive}>{dragHandle.ariaLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragHandleAriaDescribedBy}>{dragHandle.ariaDescription}</ScreenreaderOnly>
+
+      <ScreenreaderOnly id={resizeHandleAriaLabelledBy}>{resizeHandle?.ariaLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeHandleAriaLabelledByActive}>{resizeHandle?.ariaLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeHandleAriaDescribedBy}>{resizeHandle?.ariaDescription}</ScreenreaderOnly>
     </div>
   );
 }

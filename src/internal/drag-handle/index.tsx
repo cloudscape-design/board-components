@@ -7,21 +7,21 @@ import DragHandleIcon from "./icon";
 import styles from "./styles.css.js";
 
 export interface DragHandleProps {
-  ariaLabel: string;
+  ariaLabelledBy: string;
   ariaDescribedBy: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
 }
 
 function DragHandle(
-  { ariaLabel, ariaDescribedBy, onPointerDown, onKeyDown }: DragHandleProps,
+  { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown }: DragHandleProps,
   ref: ForwardedRef<HTMLButtonElement>
 ) {
   return (
     <Handle
       ref={ref}
       className={styles.handle}
-      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
