@@ -45,14 +45,59 @@ export namespace DashboardLayoutProps {
   }
 
   export interface I18nStrings<D> {
+    /**
+     * Specifies live announcement made when user reaches the last item in the particular direction and tries to move further.
+     *
+     * Example: "No item to the right".
+     */
     liveAnnouncementNoItem: (edge: Edge) => string;
+    /**
+     * Specifies live announcement made when d&d operation can't be performed.
+     *
+     * Example: "Reached bottom edge" or "Reached minimal width".
+     */
     liveAnnouncementReachedEdge: (operationType: DragOperationType, edge: Edge) => string;
+    /**
+     * Specifies live announcement made when operation is performed.
+     *
+     * Example: "Moved Demo widget to column 2, row 3. Conflicts with Second widget. Disturbed 2 items."
+     */
     liveAnnouncementOperation: (operationType: OperationType, operation: OperationState<D>) => string;
+    /**
+     * Specifies live announcement made when operation is committed.
+     *
+     * Example: "Reorder committed".
+     */
     liveAnnouncementOperationCommitted: (operationType: DragOperationType) => string;
+    /**
+     * Specifies live announcement made when operation is discarded.
+     *
+     * Example: "Reorder discarded".
+     */
     liveAnnouncementOperationDiscarded: (operationType: DragOperationType) => string;
+    /**
+     * Specifies layout item's drag handle aria label.
+     *
+     * Example: "Dragging Demo widget columns 2-4 of 4, rows 1-2 or 12".
+     */
     itemDragHandleAriaLabel: (isDragging: boolean, placement: PositionState<D>) => string;
+    /**
+     * Specifies layout item's drag handle aria description.
+     *
+     * Example: "Use drag handle to ..."
+     */
     itemDragHandleAriaDescription: string;
+    /**
+     * Specifies layout item's resize handle aria label.
+     *
+     * Example: "Resizing Demo widget columns 2-4 of 4, rows 1-2 or 12".
+     */
     itemResizeHandleAriaLabel: (isDragging: boolean, placement: PositionState<D>) => string;
+    /**
+     * Specifies layout item's resize handle aria description.
+     *
+     * Example: "Use resize handle to ..."
+     */
     itemResizeHandleAriaDescription: string;
   }
 

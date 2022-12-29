@@ -28,10 +28,35 @@ export namespace DashboardPaletteProps {
   }
 
   export interface I18nStrings<D> {
-    liveAnnouncementNoNextItem: string;
+    /**
+     * Specifies live announcement made when user reaches the first item and tries to navigate further back.
+     *
+     * Example: "No previous item".
+     */
     liveAnnouncementNoPreviousItem: string;
+    /**
+     * Specifies live announcement made when user reaches the last item and tries to navigate further forward.
+     *
+     * Example: "No next item".
+     */
+    liveAnnouncementNoNextItem: string;
+    /**
+     * Specifies live announcement made when palette item is dropped back to palette.
+     *
+     * Example: "Insertion discarded".
+     */
     liveAnnouncementDragDiscarded: string;
+    /**
+     * Specifies palette item's drag handle aria label.
+     *
+     * Example: "Drag handle, Demo widget" or "Dragging Demo widget"
+     */
     itemDragHandleAriaLabel: (isDragging: boolean, item: Item<D>) => string;
+    /**
+     * Specifies palette item's drag handle aria description.
+     *
+     * Example: "Use drag handle to ...".
+     */
     itemDragHandleAriaDescription: string;
   }
 }
