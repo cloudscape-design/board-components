@@ -26,7 +26,6 @@ export interface ItemData {
   description: string;
   content: ReactNode;
   footer?: ReactNode;
-  disableContentPaddings?: boolean;
 }
 
 export type ItemWidgets = Record<string, { data: ItemData; definition?: PaletteProps.Item["definition"] } | undefined>;
@@ -185,7 +184,6 @@ export const demoWidgets: ItemWidgets = {
           <Link href="#">View all events</Link>
         </Box>
       ),
-      disableContentPaddings: true,
     },
   },
 };
