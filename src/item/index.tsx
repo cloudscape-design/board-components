@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import clsx from "clsx";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";
@@ -19,12 +18,14 @@ export default function DashboardItem({
   disableContentPaddings,
   footer,
 }: DashboardItemProps) {
-  const { contentWidth, contentHeight, dragHandle, resizeHandle } = useItemContext();
+  const { dragHandle, resizeHandle } = useItemContext();
 
   return (
     <div className={styles.root}>
-      <Container disableContentPaddings={true}>
-        <div className={styles.body} style={{ maxWidth: contentWidth, maxHeight: contentHeight }}>
+      <Container
+        fitHeight={true}
+        disableHeaderPaddings={true}
+        header={
           <WidgetContainerHeader
             handle={
               <DragHandle
@@ -38,17 +39,11 @@ export default function DashboardItem({
           >
             {header}
           </WidgetContainerHeader>
-
-          <div
-            className={clsx(styles["content-wrapper"], {
-              [styles["content-wrapper-disable-paddings"]]: disableContentPaddings,
-            })}
-          >
-            <div className={styles.content}>{children}</div>
-          </div>
-
-          {footer && <div className={styles.footer}>{footer}</div>}
-        </div>
+        }
+        footer={footer}
+        disableContentPaddings={disableContentPaddings}
+      >
+        {children}
       </Container>
       {resizeHandle && (
         <div className={styles.resizer}>

@@ -18,7 +18,6 @@ const GridItem = ({ children, item }: GridItemProps) => {
       data-row-span={item.height}
       data-column-offset={item.x + 1}
       data-row-offset={item.y + 1}
-      data-item-id={!item.id.includes("awsui") ? item.id : undefined}
       className={styles.grid__item}
       style={{ gridRowStart: item.y + 1, gridRowEnd: `span ${item.height}` }}
     >
