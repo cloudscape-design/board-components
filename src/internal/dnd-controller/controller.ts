@@ -129,6 +129,10 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 // Controller is a singleton and is shared between all d&d elements.
 const controller = new DragAndDropController();
 
+export function useController() {
+  return controller;
+}
+
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
   useEffect(() => controller.on(event, handler), [event, handler]);
 }

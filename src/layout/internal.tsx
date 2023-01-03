@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
-import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
+import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
-import { LayoutShift } from "../internal/layout-engine/interfaces";
+import { useSelector } from "../internal/utils/async-store";
 import { Coordinates } from "../internal/utils/coordinates";
-import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import {
   createItemsLayout,
@@ -24,29 +23,13 @@ import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getHoveredRect } from "./calculations/collision";
 import { getNextItem } from "./calculations/grid-navigation";
-import {
-  appendMovePath,
-  appendResizePath,
-  createTransforms,
-  normalizeInsertionPath,
-  printLayoutDebug,
-} from "./calculations/shift-layout";
+import { appendMovePath, appendResizePath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
+import { Transition, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
-
-interface Transition {
-  operation: Operation;
-  insertionDirection: null | Direction;
-  draggableItem: DashboardItemBase<unknown>;
-  draggableElement: HTMLElement;
-  collisionIds: ItemId[];
-  engine: LayoutEngine;
-  layoutShift: null | LayoutShift;
-  path: Position[];
-}
 
 function getInsertionDirection(cursorOffset: Coordinates): Direction {
   if (cursorOffset.x < 0) {
@@ -76,8 +59,11 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const autoScrollHandlers = useAutoScroll();
 
-  const [transition, setTransition] = useState<null | Transition>(null);
-  const [acquiredItem, setAcquiredItem] = useState<null | DashboardItem<D>>(null);
+  const transitionStore = useTransition<D>();
+
+  const transition = useSelector(transitionStore, (s) => s);
+
+  const acquiredItem = useSelector(transitionStore, (state) => state?.acquiredItem ?? null);
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
@@ -115,35 +101,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function getLayoutShift(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
-    if (path.length === 0) {
-      return null;
-    }
-
-    switch (transition.operation) {
-      case "resize":
-        return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
-      case "reorder":
-        return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
-      case "insert":
-        return transition.engine
-          .insert({
-            itemId: transition.draggableItem.id,
-            width: getDefaultItemWidth(transition.draggableItem),
-            height: getDefaultItemHeight(transition.draggableItem),
-            path: normalizeInsertionPath(path, insertionDirection, columns, rows),
-          })
-          .getLayoutShift();
-    }
-  }
-
-  // The debounce makes UX smoother and ensures all state is propagated between transitions.
-  // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
-  const setTransitionDelayed = useMemo(
-    () => debounce((nextTransition: Transition) => setTransition(nextTransition), 10),
-    []
-  );
-
   useDragSubscription("start", ({ operation, draggableItem, draggableElement, collisionIds }) => {
     const layoutItem = layoutItemById.get(draggableItem.id) ?? null;
 
@@ -152,16 +109,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
     const path = layoutItem ? appendPath([], collisionRect) : [];
 
-    setTransition({
-      operation,
-      insertionDirection: null,
-      draggableItem,
-      draggableElement,
-      collisionIds: [],
-      engine: new LayoutEngine(itemsLayout),
-      layoutShift: null,
-      path,
-    });
+    transitionStore.init({ operation, draggableItem, draggableElement, itemsLayout, path });
 
     autoScrollHandlers.addPointerEventHandlers();
   });
@@ -178,7 +126,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const itemSize = itemWidth * itemHeight;
 
     if (operation !== "resize" && collisionIds.length < itemSize) {
-      setTransitionDelayed({ ...transition, collisionIds: [], layoutShift: null, insertionDirection: null });
+      transitionStore.clearShift();
       return;
     }
 
@@ -187,11 +135,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const path = appendPath(transition.path, collisionRect);
 
     const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
-    const layoutShift = getLayoutShift(transition, path, insertionDirection);
-
-    if (layoutShift) {
-      setTransitionDelayed({ ...transition, collisionIds, layoutShift, path, insertionDirection });
-    }
+    transitionStore.updateShift({ collisionIds: new Set(collisionIds), path, insertionDirection });
   });
 
   useDragSubscription("submit", () => {
@@ -200,9 +144,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
 
     // Discard state first so that if there is an exception in the code below it doesn't prevent state update.
-    setTransitionDelayed.cancel();
-    setTransition(null);
-    setAcquiredItem(null);
+    transitionStore.clear();
 
     if (transition.layoutShift) {
       printLayoutDebug(itemsLayout, transition.layoutShift);
@@ -229,9 +171,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       throw new Error("Invariant violation: no transition.");
     }
 
-    setTransitionDelayed.cancel();
-    setTransition(null);
-    setAcquiredItem(null);
+    transitionStore.clear();
 
     autoScrollHandlers.removePointerEventHandlers();
   });
@@ -249,15 +189,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function updateManualItemTransition(transition: Transition, path: Position[]) {
-    const layoutShift = getLayoutShift(transition, path);
-    if (layoutShift) {
-      setTransition({ ...transition, collisionIds: [], layoutShift, path });
-      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-    }
+  function updateManualItemTransition(path: Position[]) {
+    transitionStore.updateShift({ collisionIds: new Set(), path });
+    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
   }
 
-  function shiftItem(transition: Transition, direction: Direction) {
+  function shiftItem(transition: Transition<D>, direction: Direction) {
     switch (direction) {
       case "left":
         return shiftItemLeft(transition);
@@ -270,57 +207,45 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function shiftItemLeft(transition: Transition) {
+  function shiftItemLeft(transition: Transition<D>) {
     const lastPosition = transition.path[transition.path.length - 1];
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const position = layoutItem?.x ?? 0;
     const minSize = getMinItemSize(transition.draggableItem).width;
     if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
-      ]);
+      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x - 1, y: lastPosition.y })]);
     } else {
       // TODO: add announcement
     }
   }
 
-  function shiftItemRight(transition: Transition) {
+  function shiftItemRight(transition: Transition<D>) {
     const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
-      ]);
+      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x + 1, y: lastPosition.y })]);
     } else {
       // TODO: add announcement
     }
   }
 
-  function shiftItemUp(transition: Transition) {
+  function shiftItemUp(transition: Transition<D>) {
     const lastPosition = transition.path[transition.path.length - 1];
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const position = layoutItem?.y ?? 0;
     const minSize = getMinItemSize(transition.draggableItem).height;
     if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
-      ]);
+      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y - 1 })]);
     } else {
       // TODO: add announcement
     }
   }
 
-  function shiftItemDown(transition: Transition) {
+  function shiftItemDown(transition: Transition<D>) {
     const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
-      ]);
+      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y + 1 })]);
     } else {
       // TODO: add announcement
     }
@@ -348,17 +273,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const width = getDefaultItemWidth(transition.draggableItem);
     position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
-    const path = [...transition.path, position];
-    const layoutShift = getLayoutShift(transition, path, insertionDirection);
-
-    if (!layoutShift) {
-      throw new Error("Invariant violation: acquired item is not inserted into layout.");
-    }
-
-    // TODO: resolve "any" here.
-    // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
-    setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
-    setTransition({ ...transition, collisionIds: [], layoutShift, path });
+    transitionStore.acquire({ insertionDirection, path: [...transition.path, position] });
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
@@ -375,7 +290,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
             <Placeholder
               key={placeholder.id}
               id={placeholder.id}
-              state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+              state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
               acquire={() => acquireItem(new Position({ x: placeholder.x, y: placeholder.y }))}
             />
           ))}
