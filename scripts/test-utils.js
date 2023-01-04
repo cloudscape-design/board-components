@@ -3,7 +3,7 @@
 
 import path from "path";
 import { default as convertToSelectorUtil } from "@cloudscape-design/test-utils-converter";
-import { sync as execaSync } from "execa";
+import { execaSync } from "execa";
 import fs from "fs-extra";
 import globby from "globby";
 import lodash from "lodash";
