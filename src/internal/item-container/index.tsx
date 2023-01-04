@@ -10,6 +10,7 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -21,7 +22,6 @@ import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
-import { useRefState } from "../utils/use-ref-state";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
@@ -85,10 +85,15 @@ function ItemContainerComponent(
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
-  const [getInteractionType, interactionTypeState, setInteractionType] = useRefState<"pointer" | "keyboard">("pointer");
-  const [getIsBorrowed, isBorrowedState, setIsBorrowed] = useRefState(false);
-  const [transition, setTransition] = useState<null | Transition>(null);
+  const [interactionType, setInteractionType] = useState<"pointer" | "keyboard">("pointer");
+  const [isBorrowed, setIsBorrowed] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [transition, setTransition] = useState<null | Transition>(null);
+  const clearState = () => {
+    setIsBorrowed(false);
+    setDragActive(false);
+    setTransition(null);
+  };
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
   const eventHandlersRef = useRef({
@@ -127,32 +132,24 @@ function ItemContainerComponent(
     }
   }
 
-  useDragSubscription("start", (detail) => {
-    updateTransition(detail);
-
-    if (getInteractionType() === "pointer" && item.id === detail.draggableItem.id) {
-      window.addEventListener("pointermove", eventHandlersRef.current.onPointerMove);
-      window.addEventListener("pointerup", eventHandlersRef.current.onPointerUp);
-    }
-  });
-
+  useDragSubscription("start", (detail) => updateTransition(detail));
   useDragSubscription("update", (detail) => updateTransition(detail));
+  useDragSubscription("submit", () => clearState());
+  useDragSubscription("discard", () => clearState());
 
-  useDragSubscription("submit", () => {
-    setIsBorrowed(false);
-    setDragActive(false);
-    setTransition(null);
-    window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
-    window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
-  });
+  useEffect(() => {
+    const { onPointerMove, onPointerUp } = eventHandlersRef.current;
 
-  useDragSubscription("discard", () => {
-    setIsBorrowed(false);
-    setDragActive(false);
-    setTransition(null);
-    window.removeEventListener("pointermove", eventHandlersRef.current.onPointerMove);
-    window.removeEventListener("pointerup", eventHandlersRef.current.onPointerUp);
-  });
+    if (interactionType === "pointer" && transition && transition.itemId === item.id) {
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    }
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [item.id, transition, interactionType]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     // The acquired item is a copy and does not have the transition state.
@@ -235,7 +232,7 @@ function ItemContainerComponent(
     // When drag- or resize handle loses focus the transition must be discarded with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && getInteractionType() === "keyboard" && !getIsBorrowed()) {
+    if (transition && interactionType === "keyboard" && !isBorrowed) {
       draggableApi.discardTransition();
     }
   }
@@ -270,9 +267,9 @@ function ItemContainerComponent(
   // When there is a transition the item's placement and styles might need to be altered for the period of the transition.
   let style: CSSProperties = {};
 
-  if (transition && interactionTypeState === "pointer") {
+  if (transition && interactionType === "pointer") {
     style = getPointerDragStyles(transition);
-  } else if (isBorrowedState) {
+  } else if (isBorrowed) {
     style = getBorrowedItemStyles();
   } else {
     style = getLayoutShiftStyles();
