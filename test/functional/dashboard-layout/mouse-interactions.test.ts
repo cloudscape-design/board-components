@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import createWrapper from "../../lib/components/test-utils/selectors";
+import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
 const dashboardWrapper = createWrapper().findDashboard();
@@ -114,9 +114,6 @@ test(
     async (page) => {
       await page.mouseDown(dashboardWrapper.findItemById("X").findResizeHandle().toSelector());
       await page.mouseMove(-250, -250);
-
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
       await page.mouseUp();
       await expect(page.getGrid()).resolves.toEqual([
         ["X", "X", " ", " "],

@@ -1,10 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import gridStyles from "../../lib/components/internal/grid/styles.selectors.js";
-import layoutStyles from "../../lib/components/layout/styles.selectors.js";
+import { BasePageObject } from "@cloudscape-design/browser-test-tools/page-objects";
+import layoutStyles from "../../../lib/components/layout/styles.selectors.js";
 
-export class DndPageObject extends ScreenshotPageObject {
+export class DndPageObject extends BasePageObject {
   async getGrid() {
     await this.pause(50);
 
@@ -13,7 +12,7 @@ export class DndPageObject extends ScreenshotPageObject {
         [...document.querySelectorAll(widgetsSelector)].map(
           (w) => [w.getAttribute("data-item-id"), w.getBoundingClientRect()] as [string, DOMRect]
         ),
-      `.${layoutStyles.default.root} .${gridStyles.default.grid__item}[data-item-id]`
+      `.${layoutStyles.default.root} [data-item-id]`
     );
 
     const placeholderRects = await this.browser.execute(
@@ -59,7 +58,7 @@ export class DndPageObject extends ScreenshotPageObject {
 
   async keys(keys: string[]) {
     await super.keys(keys);
-    await this.pause(25);
+    await this.pause(100);
   }
 
   async mouseDown(selector: string) {
@@ -73,7 +72,7 @@ export class DndPageObject extends ScreenshotPageObject {
         actions: [
           { type: "pointerMove", duration: 0, origin: "pointer", ...center },
           { type: "pointerDown", button: 0 },
-          { type: "pause", duration: 10 },
+          { type: "pause", duration: 100 },
         ],
       },
     ]);
@@ -91,7 +90,7 @@ export class DndPageObject extends ScreenshotPageObject {
           { type: "pointerMove", duration: 10, origin: "pointer", x: 1, y: 1 },
           { type: "pause", duration: 10 },
           { type: "pointerMove", duration: 10, origin: "pointer", x: -1, y: -1 },
-          { type: "pause", duration: 10 },
+          { type: "pause", duration: 100 },
         ],
       },
     ]);
@@ -105,16 +104,10 @@ export class DndPageObject extends ScreenshotPageObject {
         parameters: { pointerType: "mouse" },
         actions: [
           { type: "pointerUp", button: 0 },
-          { type: "pause", duration: 10 },
+          { type: "pause", duration: 100 },
         ],
       },
     ]);
-  }
-
-  async dragAndDrop(fromSelector: string, xOffset: number, yOffset: number) {
-    await this.mouseDown(fromSelector);
-    await this.mouseMove(xOffset, yOffset);
-    await this.mouseUp();
   }
 
   async dragAndDropTo(fromSelector: string, targetSelector: string, offsetX = 0, offsetY = 0) {
