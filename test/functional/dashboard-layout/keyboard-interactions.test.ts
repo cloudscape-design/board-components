@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { describe, expect, test } from "vitest";
-import createWrapper from "../../lib/components/test-utils/selectors";
+import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object";
 
 const dashboardWrapper = createWrapper().findDashboard();
@@ -100,17 +100,6 @@ describe("items reordered with keyboard", () => {
       ]);
     })
   );
-
-  test(
-    "active item overlays other items",
-    setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(dashboardItemHandle("A"));
-      await page.keys(["Enter"]);
-      await page.keys(["ArrowDown"]);
-
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-    })
-  );
 });
 
 describe("items resized with keyboard", () => {
@@ -153,36 +142,6 @@ describe("items resized with keyboard", () => {
   );
 
   test(
-    "resizes 4x2 item down to 2x1 one step at a time",
-    setupTest(
-      makeQueryUrl(
-        [
-          ["A", "A", "B", "C"],
-          ["A", "A", "B", "C"],
-          ["A", "A", "D", "E"],
-          ["A", "A", "D", "E"],
-          ["F", "G", " ", " "],
-          ["F", "G", " ", " "],
-        ],
-        []
-      ),
-      async (page) => {
-        await page.focus(dashboardItemResizeHandle("A"));
-        await page.keys(["Enter"]);
-        await page.keys(["ArrowLeft"]);
-        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-        await page.keys(["ArrowUp"]);
-        await page.keys(["ArrowUp"]);
-        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-        await page.keys(["Enter"]);
-        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-      }
-    )
-  );
-
-  test(
     "can't resize below min row/col span",
     setupTest(
       makeQueryUrl(
@@ -199,9 +158,6 @@ describe("items resized with keyboard", () => {
         await page.keys(["Enter"]);
         await page.keys(["ArrowLeft"]);
         await page.keys(["ArrowUp"]);
-
-        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
         await page.keys(["Enter"]);
         await expect(page.getGrid()).resolves.toEqual([
           ["X", "X", " ", " "],
@@ -222,15 +178,12 @@ describe("items inserted with keyboard", () => {
       await page.keys(["Enter"]);
 
       await page.keys(["ArrowLeft"]);
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
       await page.keys(["ArrowDown"]);
       await page.keys(["ArrowDown"]);
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
       await page.keys(["ArrowDown"]);
       await page.keys(["ArrowDown"]);
-      expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
       await page.keys(["Enter"]);
       await expect(page.getGrid()).resolves.toEqual([

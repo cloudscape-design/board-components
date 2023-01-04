@@ -3,7 +3,7 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import { routes } from "../pages/pages";
+import { routes } from "../../pages/pages";
 
 function setupTest(testFn: (browser: ScreenshotPageObject["browser"]) => Promise<void>) {
   return useBrowser(async (browser) => {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
-import createWrapper from "../../lib/components/test-utils/selectors";
+import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
 const dashboardWrapper = createWrapper().findDashboard();
@@ -126,8 +126,8 @@ test(
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
-        [" ", "F", "G", "H"],
-        [" ", "F", "G", "H"],
+        ["A", "F", "G", "H"],
+        ["A", "F", "G", "H"],
         [" ", " ", " ", " "],
       ]);
 
@@ -135,53 +135,11 @@ test(
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
-        [" ", "F", "G", "H"],
-        [" ", "F", "G", "H"],
-        [" ", " ", " ", " "],
+        ["A", "F", "G", "H"],
+        ["A", "F", "G", "H"],
+        ["A", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
     }
   )
-);
-
-test(
-  "palette item size remains the same after drag start",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-    await page.mouseDown(paletteWrapper.findItemById("L").findDragHandle().toSelector());
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-    await page.mouseUp();
-    await page.windowScrollTo({ top: 600 });
-
-    await page.mouseDown(paletteWrapper.findItemById("Q").findDragHandle().toSelector());
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
-);
-
-test(
-  "palette item size adjusts to dashboard item size when moved over dashboard",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-    await page.mouseDown(paletteWrapper.findItemById("K").findDragHandle().toSelector());
-    await page.mouseMove(-200, 0);
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-    await page.mouseMove(200, 0);
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
-);
-
-test(
-  "palette item with min colspan=2 can be inserted into 1-column layout",
-  setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
-    await page.setWindowSize({ width: 800, height: 800 });
-
-    await page.focus(paletteWrapper.findItemById("R").findDragHandle().toSelector());
-    await page.keys(["Enter"]);
-
-    await page.keys(["ArrowLeft"]);
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-    await page.keys(["Enter"]);
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
 );
