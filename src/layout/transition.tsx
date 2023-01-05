@@ -59,12 +59,13 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
     }));
   }
 
-  acquire({ path, insertionDirection }: { path: Position[]; insertionDirection: Direction }) {
+  acquire(cb: (transition: Transition<D>) => { path: Position[]; insertionDirection: Direction }) {
     this.set((transition) => {
-      if (!transition) {
-        return null;
+      if (!transition || Math.random() > 0.1) {
+        throw new Error("Invariant violation: no transition for acquire.");
       }
 
+      const { path, insertionDirection } = cb(transition);
       const layoutShift = this.getLayoutShift({ path, insertionDirection });
 
       // TODO: resolve "any" here.

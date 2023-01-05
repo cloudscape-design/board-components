@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
@@ -255,22 +255,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }
 
-  function acquireItem(position: Position) {
-    if (!transition) {
-      throw new Error("Invariant violation: no transition for acquire.");
-    }
+  const acquireItem = useCallback(
+    (position: Position) => {
+      transitionStore.acquire((transition) => {
+        const layoutRect = containerAccessRef.current!.getBoundingClientRect();
+        const itemRect = transition.draggableElement.getBoundingClientRect();
+        const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
+        const insertionDirection = getInsertionDirection(offset);
 
-    const layoutRect = containerAccessRef.current!.getBoundingClientRect();
-    const itemRect = transition.draggableElement.getBoundingClientRect();
-    const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
-    const insertionDirection = getInsertionDirection(offset);
+        // Update original insertion position if the item can't fit into the layout by width.
+        const width = transition.draggableItemDefaultWidth;
+        position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
-    // Update original insertion position if the item can't fit into the layout by width.
-    const width = transition.draggableItemDefaultWidth;
-    position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
-
-    transitionStore.acquire({ insertionDirection, path: [...transition.path, position] });
-  }
+        return { insertionDirection, path: [...transition.path, position] };
+      });
+    },
+    [transitionStore, columns]
+  );
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
 
