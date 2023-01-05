@@ -61,7 +61,7 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
 
   acquire(cb: (transition: Transition<D>) => { path: Position[]; insertionDirection: Direction }) {
     this.set((transition) => {
-      if (!transition || Math.random() > 0.1) {
+      if (!transition) {
         throw new Error("Invariant violation: no transition for acquire.");
       }
 
