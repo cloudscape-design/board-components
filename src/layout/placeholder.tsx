@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { useDroppable } from "../internal/dnd-controller/controller";
 import { useGridContext } from "../internal/grid-context";
 import styles from "./styles.css.js";
@@ -14,7 +14,9 @@ export interface PlaceholderProps {
   acquire: () => void;
 }
 
-export default function Placeholder({ id, state, acquire }: PlaceholderProps) {
+export default memo(Placeholder);
+
+function Placeholder({ id, state, acquire }: PlaceholderProps) {
   const gridContext = useGridContext();
   if (!gridContext) {
     throw new Error("Invariant violation: droppable is used outside grid context.");

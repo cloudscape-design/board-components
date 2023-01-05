@@ -74,7 +74,7 @@ interface ItemContainerProps {
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
   transform: null | Transform;
-  onNavigate(direction: Direction): void;
+  onNavigate(itemId: ItemId, direction: Direction): void;
   children: ReactNode;
 }
 
@@ -207,7 +207,7 @@ function ItemContainerComponent(
       if (canInsert) {
         handleInsert(direction);
       } else if (canNavigate) {
-        onNavigate(direction);
+        onNavigate(item.id, direction);
       }
     };
 

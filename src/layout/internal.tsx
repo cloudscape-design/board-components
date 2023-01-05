@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
-import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import { ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { useSelector } from "../internal/utils/async-store";
 import { Coordinates } from "../internal/utils/coordinates";
@@ -25,6 +25,7 @@ import { getNextItem } from "./calculations/grid-navigation";
 import { appendMovePath, appendResizePath, createTransforms, printLayoutDebug } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
+import ItemContainerProxy from "./item-container-proxy";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 import { Transition, useTransition } from "./transition";
@@ -66,9 +67,9 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
-  items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = createItemsLayout(items, columns);
-  const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
+  items = useMemo(() => (acquiredItem ? [...items, acquiredItem] : items), [items, acquiredItem]);
+  const itemsLayout = useMemo(() => createItemsLayout(items, columns), [items, columns]);
+  const layoutItemById = useMemo(() => new Map(itemsLayout.items.map((item) => [item.id, item])), [itemsLayout]);
 
   // When the item gets acquired its drag handle needs to be focused to enable the keyboard handlers.
   useEffect(() => {
@@ -172,91 +173,96 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  const removeItemAction = (removedItem: DashboardItem<D>) => {
-    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
-  };
-
-  const focusItem = useCallback((item: null | GridLayoutItem) => {
-    if (item) {
-      itemContainerRef.current[item.id].focusDragHandle();
-    } else {
-      // TODO: add announcement
-    }
-  }, []);
-
-  const updateManualItemTransition = useCallback(
-    (path: Position[]) => {
-      transitionStore.updateShift({ collisionIds: new Set(), path });
-      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+  const removeItemAction = useCallback(
+    (removedItem: DashboardItem<D>) => {
+      const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+      onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
     },
-    [transitionStore, autoScrollHandlers]
+    [items, itemsLayout, onItemsChange]
   );
 
-  function shiftItem(transition: Transition<D>, direction: Direction) {
-    switch (direction) {
-      case "left":
-        return shiftItemLeft(transition);
-      case "right":
-        return shiftItemRight(transition);
-      case "up":
-        return shiftItemUp(transition);
-      case "down":
-        return shiftItemDown(transition);
-    }
-  }
+  const onItemNavigate = useCallback(
+    (itemId: ItemId, direction: Direction) => {
+      const transition = transitionStore.get();
 
-  function shiftItemLeft(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const position = layoutItem?.x ?? 0;
-    const minSize = getMinItemSize(transition.draggableItem).width;
-    if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x - 1, y: lastPosition.y })]);
-    } else {
-      // TODO: add announcement
-    }
-  }
+      if (transition) {
+        shiftItem(transition, direction);
+      } else {
+        focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
+      }
 
-  function shiftItemRight(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
-      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x + 1, y: lastPosition.y })]);
-    } else {
-      // TODO: add announcement
-    }
-  }
+      function shiftItem(transition: Transition<D>, direction: Direction) {
+        switch (direction) {
+          case "left":
+            return shiftItemLeft(transition);
+          case "right":
+            return shiftItemRight(transition);
+          case "up":
+            return shiftItemUp(transition);
+          case "down":
+            return shiftItemDown(transition);
+        }
+      }
 
-  function shiftItemUp(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const position = layoutItem?.y ?? 0;
-    const minSize = getMinItemSize(transition.draggableItem).height;
-    if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y - 1 })]);
-    } else {
-      // TODO: add announcement
-    }
-  }
+      function shiftItemLeft(transition: Transition<D>) {
+        const lastPosition = transition.path[transition.path.length - 1];
+        const layout = transition.layoutShift?.next ?? itemsLayout;
+        const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+        const position = layoutItem?.x ?? 0;
+        const minSize = getMinItemSize(transition.draggableItem).width;
+        if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
+          updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x - 1, y: lastPosition.y })]);
+        } else {
+          // TODO: add announcement
+        }
+      }
 
-  function shiftItemDown(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
-      updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y + 1 })]);
-    } else {
-      // TODO: add announcement
-    }
-  }
+      function shiftItemRight(transition: Transition<D>) {
+        const lastPosition = transition.path[transition.path.length - 1];
+        if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
+          updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x + 1, y: lastPosition.y })]);
+        } else {
+          // TODO: add announcement
+        }
+      }
 
-  function onItemNavigate(itemId: ItemId, direction: Direction) {
-    if (transition) {
-      shiftItem(transition, direction);
-    } else {
-      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
-    }
-  }
+      function shiftItemUp(transition: Transition<D>) {
+        const lastPosition = transition.path[transition.path.length - 1];
+        const layout = transition.layoutShift?.next ?? itemsLayout;
+        const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+        const position = layoutItem?.y ?? 0;
+        const minSize = getMinItemSize(transition.draggableItem).height;
+        if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
+          updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y - 1 })]);
+        } else {
+          // TODO: add announcement
+        }
+      }
+
+      function shiftItemDown(transition: Transition<D>) {
+        const lastPosition = transition.path[transition.path.length - 1];
+        if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
+          updateManualItemTransition([...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y + 1 })]);
+        } else {
+          // TODO: add announcement
+        }
+      }
+
+      function updateManualItemTransition(path: Position[]) {
+        transitionStore.updateShift({ collisionIds: new Set(), path });
+        autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+      }
+
+      function focusItem(item: null | GridLayoutItem) {
+        if (item) {
+          itemContainerRef.current[item.id].focusDragHandle();
+        } else {
+          // TODO: add announcement
+        }
+      }
+    },
+    [transitionStore, itemsLayout, columns, rows, layoutItemById, autoScrollHandlers]
+  );
 
   const acquireItem = useCallback(
     (position: Position) => {
@@ -308,8 +314,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
             return (
-              <ItemContainer
-                ref={(elem) => {
+              <ItemContainerProxy
+                itemRef={(elem) => {
                   if (elem) {
                     itemContainerRef.current[item.id] = elem;
                   } else {
@@ -322,10 +328,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
-                onNavigate={(direction) => onItemNavigate(item.id, direction)}
-              >
-                {renderItem(item, { removeItem: () => removeItemAction(item) })}
-              </ItemContainer>
+                onItemNavigate={onItemNavigate}
+                renderItem={renderItem}
+                removeItemAction={removeItemAction}
+              />
             );
           })}
         </Grid>

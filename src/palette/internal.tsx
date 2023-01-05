@@ -68,7 +68,7 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             itemSize={getDefaultItemSize(item)}
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
-            onNavigate={(direction) => onItemNavigate(index, direction)}
+            onNavigate={(_itemId, direction) => onItemNavigate(index, direction)}
           >
             <div data-item-id={item.id}>
               {renderItem(item, {
