@@ -264,7 +264,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       throw new Error("Invariant violation: no transition for acquire.");
     }
 
-    const layoutRect = transition.draggableElement.getBoundingClientRect();
+    const layoutRect = containerAccessRef.current!.getBoundingClientRect();
     const itemRect = transition.draggableElement.getBoundingClientRect();
     const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
     const insertionDirection = getInsertionDirection(offset);
