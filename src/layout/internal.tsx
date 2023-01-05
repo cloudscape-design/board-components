@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
+import { DashboardItem, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { useSelector } from "../internal/utils/async-store";
@@ -16,7 +16,6 @@ import {
   createItemsLayout,
   createPlaceholdersLayout,
   exportItemsLayout,
-  getDefaultItemSize,
   getMinItemSize,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
@@ -78,9 +77,6 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     }
   }, [acquiredItem]);
 
-  const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
-  const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
-
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   let rows = itemsLayout.rows || 1;
 
@@ -88,7 +84,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   if (transition) {
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const itemHeight = layoutItem?.height ?? getDefaultItemHeight(transition.draggableItem);
+    const itemHeight = layoutItem?.height ?? transition.draggableItemDefaultHeight;
     // Add extra row for resize when already at the bottom.
     if (transition.operation === "resize") {
       rows = Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
@@ -121,8 +117,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === draggableItem.id);
-    const itemWidth = layoutItem ? layoutItem.width : getDefaultItemWidth(transition.draggableItem);
-    const itemHeight = layoutItem ? layoutItem.height : getDefaultItemHeight(transition.draggableItem);
+    const itemWidth = layoutItem ? layoutItem.width : transition.draggableItemDefaultWidth;
+    const itemHeight = layoutItem ? layoutItem.height : transition.draggableItemDefaultHeight;
     const itemSize = itemWidth * itemHeight;
 
     if (operation !== "resize" && collisionIds.length < itemSize) {
@@ -270,7 +266,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const insertionDirection = getInsertionDirection(offset);
 
     // Update original insertion position if the item can't fit into the layout by width.
-    const width = getDefaultItemWidth(transition.draggableItem);
+    const width = transition.draggableItemDefaultWidth;
     position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
     transitionStore.acquire({ insertionDirection, path: [...transition.path, position] });
@@ -301,8 +297,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
             // Take item's layout size or item's definition defaults to be used for insert and reorder.
             const itemSize = layoutItem ?? {
-              width: getDefaultItemWidth(item),
-              height: getDefaultItemHeight(item),
+              width: transition?.draggableItemDefaultWidth ?? 1,
+              height: transition?.draggableItemDefaultHeight ?? 1,
             };
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;

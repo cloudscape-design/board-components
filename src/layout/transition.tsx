@@ -16,6 +16,8 @@ export interface Transition<D> {
   insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
+  draggableItemDefaultWidth: number;
+  draggableItemDefaultHeight: number;
   acquiredItem: null | DashboardItem<D>;
   collisionIds: Set<ItemId>;
   engine: LayoutEngine;
@@ -47,6 +49,8 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
       insertionDirection: null,
       draggableItem,
       draggableElement,
+      draggableItemDefaultWidth: Math.min(itemsLayout.columns, getDefaultItemSize(draggableItem).width),
+      draggableItemDefaultHeight: getDefaultItemSize(draggableItem).height,
       acquiredItem: null,
       collisionIds: new Set(),
       engine: new LayoutEngine(itemsLayout),
@@ -109,9 +113,6 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
     const currentLayoutShift = transition.engine.getLayoutShift().current;
     const { columns, rows } = currentLayoutShift;
 
-    const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
-    const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
-
     switch (transition.operation) {
       case "resize":
         return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
@@ -121,8 +122,8 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
         return transition.engine
           .insert({
             itemId: transition.draggableItem.id,
-            width: getDefaultItemWidth(transition.draggableItem),
-            height: getDefaultItemHeight(transition.draggableItem),
+            width: transition.draggableItemDefaultWidth,
+            height: transition.draggableItemDefaultHeight,
             path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
           })
           .getLayoutShift();
