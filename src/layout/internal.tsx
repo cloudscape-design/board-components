@@ -177,18 +177,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
   };
 
-  function focusItem(item: null | GridLayoutItem) {
+  const focusItem = useCallback((item: null | GridLayoutItem) => {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
     } else {
       // TODO: add announcement
     }
-  }
+  }, []);
 
-  function updateManualItemTransition(path: Position[]) {
-    transitionStore.updateShift({ collisionIds: new Set(), path });
-    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-  }
+  const updateManualItemTransition = useCallback(
+    (path: Position[]) => {
+      transitionStore.updateShift({ collisionIds: new Set(), path });
+      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+    },
+    [transitionStore, autoScrollHandlers]
+  );
 
   function shiftItem(transition: Transition<D>, direction: Direction) {
     switch (direction) {

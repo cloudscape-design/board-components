@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLastInteraction } from "../internal/utils/use-last-interaction";
 
 export function useAutoScroll() {
@@ -44,36 +44,34 @@ export function useAutoScroll() {
     setActiveAutoScroll("none");
   }, []);
 
-  const addPointerEventHandlers = useCallback(() => {
-    if (getLastInteraction() === "pointer") {
-      window.addEventListener("pointermove", onPointerMove);
-      window.addEventListener("pointerup", onPointerUp);
-    }
-  }, [getLastInteraction, onPointerMove, onPointerUp]);
-
-  const removePointerEventHandlers = useCallback(() => {
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-  }, [onPointerMove, onPointerUp]);
-
-  const scheduleActiveElementScrollIntoView = useCallback(
-    (delay: number) => {
-      scrollIntoViewTimerRef.current && clearTimeout(scrollIntoViewTimerRef.current);
-
-      const activeElementBeforeDelay = document.activeElement;
-
-      scrollIntoViewTimerRef.current = setTimeout(() => {
-        if (
-          document.activeElement &&
-          document.activeElement === activeElementBeforeDelay &&
-          getLastInteraction() === "keyboard"
-        ) {
-          document.activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  return useMemo(
+    () => ({
+      addPointerEventHandlers: () => {
+        if (getLastInteraction() === "pointer") {
+          window.addEventListener("pointermove", onPointerMove);
+          window.addEventListener("pointerup", onPointerUp);
         }
-      }, delay);
-    },
-    [getLastInteraction]
-  );
+      },
+      removePointerEventHandlers: () => {
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+      },
+      scheduleActiveElementScrollIntoView: (delay: number) => {
+        scrollIntoViewTimerRef.current && clearTimeout(scrollIntoViewTimerRef.current);
 
-  return { addPointerEventHandlers, removePointerEventHandlers, scheduleActiveElementScrollIntoView };
+        const activeElementBeforeDelay = document.activeElement;
+
+        scrollIntoViewTimerRef.current = setTimeout(() => {
+          if (
+            document.activeElement &&
+            document.activeElement === activeElementBeforeDelay &&
+            getLastInteraction() === "keyboard"
+          ) {
+            document.activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        }, delay);
+      },
+    }),
+    [getLastInteraction, onPointerMove, onPointerUp]
+  );
 }
