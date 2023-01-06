@@ -55,7 +55,13 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
 
   useDragSubscription("start", ({ draggableItem: { id } }) => {
     setDropState({ id, isExpanded: false });
-    setAnnouncement("");
+
+    // Announce only if the target item belongs to the palette.
+    if (items.some((it) => it.id === id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementDragStarted);
+    } else {
+      setAnnouncement("");
+    }
   });
   useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) => {
     setDropState({ id, isExpanded: !!dropTarget });
@@ -101,10 +107,10 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
             onBorrow={onBorrow}
-            dragHandleAriaLabel={(isDragging) => i18nStrings.itemDragHandleAriaLabel(isDragging, item)}
+            dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(item)}
             dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
-            resizeHandleAriaLabel={() => ""}
-            resizeHandleAriaDescription={""}
+            resizeHandleAriaLabel=""
+            resizeHandleAriaDescription=""
           >
             <div data-item-id={item.id}>
               {renderItem(item, {

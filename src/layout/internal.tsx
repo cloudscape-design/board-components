@@ -171,6 +171,12 @@ export default function DashboardLayout<D>({
     });
 
     autoScrollHandlers.addPointerEventHandlers();
+
+    if (items.some((it) => it.id === draggableItem.id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementOperationStarted(operation));
+    } else {
+      setAnnouncement("");
+    }
   });
 
   useDragSubscription("update", ({ operation, draggableItem, collisionIds, positionOffset }) => {
@@ -487,10 +493,6 @@ export default function DashboardLayout<D>({
               columns,
               rows,
             };
-            const dragHandleAriaLabel = (isDragging: boolean) =>
-              i18nStrings.itemDragHandleAriaLabel(isDragging, positionState);
-            const resizeHandleAriaLabel = (isDragging: boolean) =>
-              i18nStrings.itemResizeHandleAriaLabel(isDragging, positionState);
 
             return (
               <ItemContainer
@@ -508,9 +510,9 @@ export default function DashboardLayout<D>({
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
-                dragHandleAriaLabel={dragHandleAriaLabel}
+                dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(positionState)}
                 dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
-                resizeHandleAriaLabel={resizeHandleAriaLabel}
+                resizeHandleAriaLabel={i18nStrings.itemResizeHandleAriaLabel(positionState)}
                 resizeHandleAriaDescription={i18nStrings.itemResizeHandleAriaDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}

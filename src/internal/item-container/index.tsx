@@ -43,7 +43,6 @@ export interface ItemContext {
     ariaLabel: string;
     ariaDescription: string;
   };
-  dragActive: boolean;
 }
 
 const Context = createContext<ItemContext | null>(null);
@@ -82,9 +81,9 @@ interface ItemContainerProps {
   onNavigate(direction: Direction): void;
   onBorrow?(): void;
   children: ReactNode;
-  dragHandleAriaLabel: (isDragging: boolean) => string;
+  dragHandleAriaLabel: string;
   dragHandleAriaDescription: string;
-  resizeHandleAriaLabel: (isDragging: boolean) => string;
+  resizeHandleAriaLabel: string;
   resizeHandleAriaDescription: string;
 }
 
@@ -353,18 +352,17 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
             onKeyDown: onDragHandleKeyDown,
-            ariaLabel: dragHandleAriaLabel(!!transition),
+            ariaLabel: dragHandleAriaLabel,
             ariaDescription: dragHandleAriaDescription,
           },
           resizeHandle: gridContext
             ? {
                 onPointerDown: onResizeHandlePointerDown,
                 onKeyDown: onResizeHandleKeyDown,
-                ariaLabel: resizeHandleAriaLabel(!!transition),
+                ariaLabel: resizeHandleAriaLabel,
                 ariaDescription: resizeHandleAriaDescription,
               }
             : null,
-          dragActive: !!transition,
         }}
       >
         {children}

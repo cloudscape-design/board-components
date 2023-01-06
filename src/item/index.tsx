@@ -19,17 +19,12 @@ export default function DashboardItem({
   disableContentPaddings,
   footer,
 }: DashboardItemProps) {
-  const { dragHandle, resizeHandle, dragActive } = useItemContext();
-
-  // Both aria-label and aria-label-active have the same content.
-  // However, the IDs are swapped when dragActive state changes for screen-reader to re-announce it.
+  const { dragHandle, resizeHandle } = useItemContext();
 
   const dragHandleAriaLabelledBy = useUniqueId("drag-aria-label-");
-  const dragHandleAriaLabelledByActive = useUniqueId("drag-aria-label-active-");
   const dragHandleAriaDescribedBy = useUniqueId("drag-aria-description-");
 
   const resizeHandleAriaLabelledBy = useUniqueId("resize-aria-label-");
-  const resizeHandleAriaLabelledByActive = useUniqueId("resize-aria-label-active-");
   const resizeHandleAriaDescribedBy = useUniqueId("resize-aria-description-");
 
   return (
@@ -42,7 +37,7 @@ export default function DashboardItem({
             handle={
               <DragHandle
                 ref={dragHandle.ref}
-                ariaLabelledBy={dragActive ? dragHandleAriaLabelledByActive : dragHandleAriaLabelledBy}
+                ariaLabelledBy={dragHandleAriaLabelledBy}
                 ariaDescribedBy={dragHandleAriaDescribedBy}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
@@ -61,7 +56,7 @@ export default function DashboardItem({
       {resizeHandle && (
         <div className={styles.resizer}>
           <ResizeHandle
-            ariaLabelledBy={dragActive ? resizeHandleAriaLabelledByActive : resizeHandleAriaLabelledBy}
+            ariaLabelledBy={resizeHandleAriaLabelledBy}
             ariaDescribedBy={resizeHandleAriaDescribedBy}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
@@ -70,11 +65,9 @@ export default function DashboardItem({
       )}
 
       <ScreenreaderOnly id={dragHandleAriaLabelledBy}>{dragHandle.ariaLabel}</ScreenreaderOnly>
-      <ScreenreaderOnly id={dragHandleAriaLabelledByActive}>{dragHandle.ariaLabel}</ScreenreaderOnly>
       <ScreenreaderOnly id={dragHandleAriaDescribedBy}>{dragHandle.ariaDescription}</ScreenreaderOnly>
 
       <ScreenreaderOnly id={resizeHandleAriaLabelledBy}>{resizeHandle?.ariaLabel}</ScreenreaderOnly>
-      <ScreenreaderOnly id={resizeHandleAriaLabelledByActive}>{resizeHandle?.ariaLabel}</ScreenreaderOnly>
       <ScreenreaderOnly id={resizeHandleAriaDescribedBy}>{resizeHandle?.ariaDescription}</ScreenreaderOnly>
     </div>
   );

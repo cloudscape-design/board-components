@@ -41,6 +41,12 @@ export namespace DashboardPaletteProps {
      */
     liveAnnouncementNoNextItem: string;
     /**
+     * Specifies live announcement made when drag starts.
+     *
+     * Example: "Dragging".
+     */
+    liveAnnouncementDragStarted: string;
+    /**
      * Specifies live announcement made when palette item is dropped back to palette.
      *
      * Example: "Insertion discarded".
@@ -49,9 +55,9 @@ export namespace DashboardPaletteProps {
     /**
      * Specifies palette item's drag handle aria label.
      *
-     * Example: "Drag handle, Demo widget" or "Dragging Demo widget"
+     * Example: "Drag handle, Demo widget".
      */
-    itemDragHandleAriaLabel: (isDragging: boolean, item: Item<D>) => string;
+    itemDragHandleAriaLabel: (item: Item<D>) => string;
     /**
      * Specifies palette item's drag handle aria description.
      *
