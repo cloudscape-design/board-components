@@ -21,9 +21,9 @@ function render(jsx: ReactElement) {
             itemMaxSize={{ width: 1, height: 1 }}
             transform={null}
             onNavigate={() => undefined}
-            dragHandleAriaLabel={() => "Drag handle aria label"}
+            dragHandleAriaLabel="Drag handle aria label"
             dragHandleAriaDescription="Drag handle aria description"
-            resizeHandleAriaLabel={() => "Resize handle aria label"}
+            resizeHandleAriaLabel="Resize handle aria label"
             resizeHandleAriaDescription="Resize handle aria description"
           >
             {children}
