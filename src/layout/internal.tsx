@@ -281,6 +281,7 @@ export default function DashboardLayout<D>({
         rowOffset: 0,
         columns,
         rows,
+        direction: null,
         conflicts: [],
         disturbed: disturbed,
       })
@@ -294,19 +295,19 @@ export default function DashboardLayout<D>({
     setAnnouncement("");
   }
 
-  function updateManualItemTransition(transition: Transition, path: Position[]) {
+  function updateManualItemTransition(transition: Transition, path: Position[], direction: Direction) {
     const layoutShift = applyOperation(transition, path)?.getLayoutShift();
     const layoutShiftWithRefloat = applyOperation(transition, path)?.refloat()?.getLayoutShift();
     if (layoutShift) {
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
       autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-      setTransitionAnnouncement(layoutShiftWithRefloat!);
+      setTransitionAnnouncement(layoutShiftWithRefloat!, direction);
     } else {
       throw new Error("Invariant violation: no layout shift for manual transition.");
     }
   }
 
-  function setTransitionAnnouncement(layoutShift: LayoutShift) {
+  function setTransitionAnnouncement(layoutShift: LayoutShift, direction: null | Direction) {
     const [firstMove] = layoutShift.moves;
     const itemMoves = layoutShift.moves.filter((m) => m.itemId === firstMove.itemId);
     const lastMove = itemMoves[itemMoves.length - 1];
@@ -327,6 +328,7 @@ export default function DashboardLayout<D>({
       rowOffset: lastMove.y,
       columns,
       rows,
+      direction,
       conflicts,
       disturbed,
     };
@@ -363,10 +365,11 @@ export default function DashboardLayout<D>({
     const position = layoutItem?.x ?? 0;
     const minSize = getMinItemSize(transition.draggableItem).width;
     if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x - 1, y: lastPosition.y })],
+        "left"
+      );
     } else {
       // Reached edge or can't resize to below minimum size.
     }
@@ -375,10 +378,11 @@ export default function DashboardLayout<D>({
   function shiftItemRight(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x + 1, y: lastPosition.y })],
+        "right"
+      );
     } else {
       // Reached edge or can't resize to below minimum size.
     }
@@ -391,10 +395,11 @@ export default function DashboardLayout<D>({
     const position = layoutItem?.y ?? 0;
     const minSize = getMinItemSize(transition.draggableItem).height;
     if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y - 1 })],
+        "up"
+      );
     } else {
       // Reached edge or can't resize to below minimum size.
     }
@@ -403,10 +408,11 @@ export default function DashboardLayout<D>({
   function shiftItemDown(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y + 1 })],
+        "down"
+      );
     } else {
       // Reached edge or can't resize to below minimum size.
     }
@@ -447,7 +453,7 @@ export default function DashboardLayout<D>({
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
     setTransition({ ...transition, collisionIds: [], layoutShift, path });
 
-    setTransitionAnnouncement(layoutShiftWithRefloat!);
+    setTransitionAnnouncement(layoutShiftWithRefloat!, null);
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};

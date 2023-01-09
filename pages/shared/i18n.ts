@@ -28,13 +28,23 @@ export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = 
     const disturbedAnnouncement =
       operation.disturbed.length > 0 ? `Disturbed ${operation.disturbed.length} items.` : "";
 
+    const columnsAnnouncement = `column ${operation.columnOffset + 1}`;
+    const rowsAnnouncement = `row ${operation.rowOffset + 1}`;
+    let positionAnnouncement = `${columnsAnnouncement}, ${rowsAnnouncement}`;
+    if (operation.direction === "left" || operation.direction === "right") {
+      positionAnnouncement = columnsAnnouncement;
+    }
+    if (operation.direction === "up" || operation.direction === "down") {
+      positionAnnouncement = rowsAnnouncement;
+    }
+
     const operationAnnouncement = (() => {
       switch (operationType) {
         case "reorder":
-          return `Item moved to column ${operation.columnOffset + 1} row ${operation.rowOffset + 1}.`;
+          return `Item moved to ${positionAnnouncement}.`;
 
         case "insert":
-          return `Item inserted to column ${operation.columnOffset + 1} row ${operation.rowOffset + 1}.`;
+          return `Item inserted to ${positionAnnouncement}.`;
 
         case "resize": {
           const constraintColumns = operation.colspan === 1 ? "(minimal)" : "";

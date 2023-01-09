@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
-import { DashboardItem, DataFallbackType } from "../internal/interfaces";
+import { DashboardItem, DataFallbackType, Direction } from "../internal/interfaces";
 
 export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
@@ -112,6 +112,7 @@ export namespace DashboardLayoutProps {
   }
 
   export interface OperationState<D> extends PositionState<D> {
+    direction: null | Direction;
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];
   }
