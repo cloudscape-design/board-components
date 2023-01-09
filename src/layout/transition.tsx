@@ -6,66 +6,220 @@ import { DashboardItem, DashboardItemBase, Direction, GridLayout, ItemId } from 
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
 import AsyncStore from "../internal/utils/async-store";
+import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
-import { getDefaultItemSize } from "../internal/utils/layout";
+import { getDefaultItemSize, getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { normalizeInsertionPath } from "./calculations/shift-layout";
+import { getHoveredRect } from "./calculations/collision";
+import { appendMovePath, appendResizePath, normalizeInsertionPath } from "./calculations/shift-layout";
 
 export interface Transition<D> {
   operation: Operation;
   insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
-  draggableItemDefaultWidth: number;
-  draggableItemDefaultHeight: number;
+  draggableItemWidth: number;
+  draggableItemHeight: number;
   acquiredItem: null | DashboardItem<D>;
   collisionIds: Set<ItemId>;
-  engine: LayoutEngine;
   layoutShift: null | LayoutShift;
   path: Position[];
 }
 
 class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
-  clear() {
-    this.setDelayed.cancel();
-    this.set(() => null);
-  }
+  transitionProps: null | {
+    itemsLayout: GridLayout;
+    placeholdersLayout: GridLayout;
+    engine: LayoutEngine;
+  } = null;
 
-  init({
+  initTransition({
     operation,
     draggableItem,
     draggableElement,
+    collisionIds,
     itemsLayout,
-    path,
+    placeholdersLayout,
   }: {
     operation: Operation;
     draggableItem: DashboardItemBase<unknown>;
     draggableElement: HTMLElement;
+    collisionIds: ItemId[];
     itemsLayout: GridLayout;
-    path: Position[];
+    placeholdersLayout: GridLayout;
   }) {
+    this.transitionProps = { itemsLayout, placeholdersLayout, engine: new LayoutEngine(itemsLayout) };
+
+    const layoutItem = itemsLayout.items.find((it) => it.id === draggableItem.id);
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+    const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
+    const path = layoutItem ? appendPath([], collisionRect) : [];
+
     this.set(() => ({
       operation,
       insertionDirection: null,
       draggableItem,
       draggableElement,
-      draggableItemDefaultWidth: Math.min(itemsLayout.columns, getDefaultItemSize(draggableItem).width),
-      draggableItemDefaultHeight: getDefaultItemSize(draggableItem).height,
+      draggableItemWidth: Math.min(itemsLayout.columns, getDefaultItemSize(draggableItem).width),
+      draggableItemHeight: getDefaultItemSize(draggableItem).height,
       acquiredItem: null,
       collisionIds: new Set(),
-      engine: new LayoutEngine(itemsLayout),
       layoutShift: null,
       path,
     }));
   }
 
-  acquire(cb: (transition: Transition<D>) => { path: Position[]; insertionDirection: Direction }) {
+  hasTransition() {
+    return !!this.get();
+  }
+
+  clearTransition() {
+    const transition = this.get();
+    if (!transition) {
+      throw new Error("Invariant violation: no transition.");
+    }
+
+    this.transitionProps = null;
+    this.setDelayed.cancel();
+    this.set(() => null);
+
+    return transition;
+  }
+
+  updateWithPointer({ collisionIds, positionOffset }: { collisionIds: ItemId[]; positionOffset: Coordinates }) {
+    this.setDelayed((transition) => {
+      if (!transition) {
+        throw new Error("Invariant violation: no transition.");
+      }
+
+      const { itemsLayout, placeholdersLayout } = this.transitionProps!;
+
+      const layout = transition.layoutShift?.next ?? itemsLayout;
+      const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+      const itemWidth = layoutItem ? layoutItem.width : transition.draggableItemWidth;
+      const itemHeight = layoutItem ? layoutItem.height : transition.draggableItemHeight;
+      const itemSize = itemWidth * itemHeight;
+
+      if (transition.operation !== "resize" && collisionIds.length < itemSize) {
+        return { ...transition, collisionIds: new Set(), layoutShift: null, insertionDirection: null };
+      }
+
+      const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+      const appendPath = transition.operation === "resize" ? appendResizePath : appendMovePath;
+      const path = appendPath(transition.path, collisionRect);
+
+      const insertionDirection = transition.insertionDirection ?? this.getInsertionDirection(positionOffset);
+      const layoutShift = this.getLayoutShift({ path, insertionDirection });
+
+      return { ...transition, collisionIds: new Set(collisionIds), layoutShift, path, insertionDirection };
+    });
+  }
+
+  updateWithKeyboard(direction: Direction) {
+    const { itemsLayout } = this.transitionProps!;
+
+    const updateManualItemTransition = (transition: Transition<D>, path: Position[]) => {
+      const layoutShift = this.getLayoutShift({ path, insertionDirection: null });
+      return { ...transition, layoutShift, path };
+    };
+
+    function shiftItemLeft(transition: Transition<D>) {
+      const lastPosition = transition.path[transition.path.length - 1];
+      const layout = transition.layoutShift?.next ?? itemsLayout;
+      const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+      const position = layoutItem?.x ?? 0;
+      const minSize = getMinItemSize(transition.draggableItem).width;
+      if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
+        return updateManualItemTransition(transition, [
+          ...transition.path,
+          new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
+        ]);
+      } else {
+        // TODO: add announcement
+        return transition;
+      }
+    }
+
+    function shiftItemRight(transition: Transition<D>) {
+      const lastPosition = transition.path[transition.path.length - 1];
+      if (lastPosition.x < (transition.operation === "resize" ? itemsLayout.columns : itemsLayout.columns - 1)) {
+        return updateManualItemTransition(transition, [
+          ...transition.path,
+          new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
+        ]);
+      } else {
+        // TODO: add announcement
+        return transition;
+      }
+    }
+
+    function shiftItemUp(transition: Transition<D>) {
+      const lastPosition = transition.path[transition.path.length - 1];
+      const layout = transition.layoutShift?.next ?? itemsLayout;
+      const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+      const position = layoutItem?.y ?? 0;
+      const minSize = getMinItemSize(transition.draggableItem).height;
+      if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
+        return updateManualItemTransition(transition, [
+          ...transition.path,
+          new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
+        ]);
+      } else {
+        // TODO: add announcement
+        return transition;
+      }
+    }
+
+    function shiftItemDown(transition: Transition<D>) {
+      const lastPosition = transition.path[transition.path.length - 1];
+      if (lastPosition.y < (transition.operation === "resize" ? 999 : itemsLayout.rows - 1)) {
+        return updateManualItemTransition(transition, [
+          ...transition.path,
+          new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
+        ]);
+      } else {
+        // TODO: add announcement
+        return transition;
+      }
+    }
+
     this.set((transition) => {
+      if (!transition) {
+        throw new Error("Invariant violation: no transition.");
+      }
+
+      switch (direction) {
+        case "left":
+          return shiftItemLeft(transition);
+        case "right":
+          return shiftItemRight(transition);
+        case "up":
+          return shiftItemUp(transition);
+        case "down":
+          return shiftItemDown(transition);
+      }
+    });
+  }
+
+  acquireItem({ position, layoutElement }: { position: Position; layoutElement: HTMLElement }) {
+    this.set((transition) => {
+      const { columns } = this.transitionProps!.itemsLayout;
+
       if (!transition) {
         throw new Error("Invariant violation: no transition for acquire.");
       }
 
-      const { path, insertionDirection } = cb(transition);
+      const layoutRect = layoutElement.getBoundingClientRect();
+      const itemRect = transition.draggableElement.getBoundingClientRect();
+      const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
+      const insertionDirection = this.getInsertionDirection(offset);
+
+      // Update original insertion position if the item can't fit into the layout by width.
+      const width = transition.draggableItemWidth;
+      position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
+
+      const path = [...transition.path, position];
+
       const layoutShift = this.getLayoutShift({ path, insertionDirection });
 
       // TODO: resolve "any" here.
@@ -76,59 +230,46 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
     });
   }
 
-  clearShift() {
-    this.setDelayed(
-      (transition) =>
-        transition && { ...transition, collisionIds: new Set(), layoutShift: null, insertionDirection: null }
-    );
-  }
-
-  updateShift({
-    collisionIds,
-    path,
-    insertionDirection: direction,
-  }: {
-    collisionIds: Set<ItemId>;
-    path: Position[];
-    insertionDirection?: Direction;
-  }) {
-    this.setDelayed((transition) => {
-      if (!transition) {
-        return null;
-      }
-
-      const insertionDirection = direction ?? transition.insertionDirection;
-      const layoutShift = this.getLayoutShift({ path, insertionDirection });
-
-      return { ...transition, collisionIds, layoutShift, path, insertionDirection };
-    });
-  }
-
   private getLayoutShift({ path, insertionDirection }: { path: Position[]; insertionDirection: null | Direction }) {
     const transition = this.get();
 
     if (!transition || path.length === 0) {
-      return null;
+      throw new Error("Invariant violation: no transition.");
     }
 
-    const currentLayoutShift = transition.engine.getLayoutShift().current;
-    const { columns, rows } = currentLayoutShift;
+    const { itemsLayout, engine } = this.transitionProps!;
 
     switch (transition.operation) {
       case "resize":
-        return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+        return engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
       case "reorder":
-        return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+        return engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
       case "insert":
-        return transition.engine
+        return engine
           .insert({
             itemId: transition.draggableItem.id,
-            width: transition.draggableItemDefaultWidth,
-            height: transition.draggableItemDefaultHeight,
-            path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
+            width: transition.draggableItemWidth,
+            height: transition.draggableItemHeight,
+            path: normalizeInsertionPath(path, insertionDirection ?? "right", itemsLayout.columns, itemsLayout.rows),
           })
           .getLayoutShift();
     }
+  }
+
+  private getInsertionDirection(cursorOffset: Coordinates): Direction {
+    if (cursorOffset.x < 0) {
+      return "right";
+    }
+    if (cursorOffset.x > 0) {
+      return "left";
+    }
+    if (cursorOffset.y < 0) {
+      return "down";
+    }
+    if (cursorOffset.y > 0) {
+      return "up";
+    }
+    return "right";
   }
 
   // The delay makes UX smoother and ensures all state is propagated between transitions.
