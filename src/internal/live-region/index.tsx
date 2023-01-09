@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { memo, useEffect, useRef } from "react";
-import { ScreenreaderOnlyProps } from "../screenreader-only";
-import AriaLiveTag from "./aria-live-tag";
-import { updateLiveRegion } from "./utils";
+import ScreenreaderOnly, { ScreenreaderOnlyProps } from "../screenreader-only";
 
 export interface LiveRegionProps extends ScreenreaderOnlyProps {
   assertive?: boolean;
   delay?: number;
   visible?: boolean;
+  children: React.ReactNode;
 }
 
 /**
@@ -47,27 +46,38 @@ export interface LiveRegionProps extends ScreenreaderOnlyProps {
  */
 export default memo(LiveRegion);
 
-function LiveRegion({ delay = 10, children, ...restProps }: LiveRegionProps) {
+function LiveRegion({ assertive = false, delay = 10, visible = false, children, ...restProps }: LiveRegionProps) {
   const sourceRef = useRef<HTMLSpanElement>(null);
   const targetRef = useRef<HTMLSpanElement>(null);
 
   /*
     When React state changes, React often produces too many DOM updates, causing NVDA to
     issue many announcements for the same logical event (See https://github.com/nvaccess/nvda/issues/7996).
-
     The code below imitates a debouncing, scheduling a callback every time new React state
     update is detected. When a callback resolves, it copies content from a muted element
     to the live region, which is recognized by screen readers as an update.
-
     If the use case requires no announcement to be ignored, use delay = 0, but ensure it
     does not impact the performance. If it does, prefer using a string as children prop.
   */
   useEffect(() => {
+    function updateLiveRegion() {
+      if (targetRef.current && sourceRef.current) {
+        const sourceContent = extractInnerText(sourceRef.current);
+        const targetContent = extractInnerText(targetRef.current);
+        if (targetContent !== sourceContent) {
+          // The aria-atomic does not work properly in Voice Over, causing
+          // certain parts of the content to be ignored. To fix that,
+          // we assign the source text content as a single node.
+          targetRef.current.innerText = sourceContent;
+        }
+      }
+    }
+
     let timeoutId: null | number;
     if (delay) {
-      timeoutId = setTimeout(() => updateLiveRegion(targetRef, sourceRef), delay);
+      timeoutId = setTimeout(updateLiveRegion, delay);
     } else {
-      updateLiveRegion(targetRef, sourceRef);
+      updateLiveRegion();
     }
 
     return () => {
@@ -78,8 +88,25 @@ function LiveRegion({ delay = 10, children, ...restProps }: LiveRegionProps) {
   });
 
   return (
-    <AriaLiveTag targetRef={targetRef} sourceRef={sourceRef} {...restProps}>
-      {children}
-    </AriaLiveTag>
+    <>
+      {visible && <span ref={sourceRef}>{children}</span>}
+
+      <ScreenreaderOnly {...restProps} className={restProps.className}>
+        {!visible && (
+          <span ref={sourceRef} aria-hidden="true">
+            {children}
+          </span>
+        )}
+
+        <span ref={targetRef} aria-atomic="true" aria-live={assertive ? "assertive" : "polite"}></span>
+      </ScreenreaderOnly>
+    </>
   );
+}
+
+// This only extracts text content from the node including all its children which is enough for now.
+// To make it more powerful, it is possible to create a more sophisticated extractor with respect to
+// ARIA properties to ignore aria-hidden nodes and read ARIA labels from the live content.
+function extractInnerText(node: HTMLElement) {
+  return (node.innerText || "").replace(/\s+/g, " ").trim();
 }
