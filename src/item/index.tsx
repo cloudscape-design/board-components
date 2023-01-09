@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
+import { useId } from "react";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";
 import ScreenreaderOnly from "../internal/screenreader-only";
-import { useUniqueId } from "../internal/utils/use-unique-id";
 import WidgetContainerHeader from "./header";
 import type { DashboardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
@@ -21,11 +21,11 @@ export default function DashboardItem({
 }: DashboardItemProps) {
   const { dragHandle, resizeHandle } = useItemContext();
 
-  const dragHandleAriaLabelledBy = useUniqueId("drag-aria-label-");
-  const dragHandleAriaDescribedBy = useUniqueId("drag-aria-description-");
+  const dragHandleAriaLabelledBy = useId();
+  const dragHandleAriaDescribedBy = useId();
 
-  const resizeHandleAriaLabelledBy = useUniqueId("resize-aria-label-");
-  const resizeHandleAriaDescribedBy = useUniqueId("resize-aria-description-");
+  const resizeHandleAriaLabelledBy = useId();
+  const resizeHandleAriaDescribedBy = useId();
 
   return (
     <div className={styles.root}>
