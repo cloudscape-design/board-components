@@ -268,9 +268,9 @@ export default function DashboardLayout<D>({
 
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
 
-    const disturbed = [...new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId))].map(
-      (itemId) => items.find((it) => it.id === itemId)!
-    );
+    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
+    disturbedIds.delete(removedItem.id);
+    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
 
     setAnnouncement(
       i18nStrings.liveAnnouncementOperation("remove", {
@@ -315,9 +315,9 @@ export default function DashboardLayout<D>({
 
     const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
 
-    const disturbed = [...new Set(layoutShift.moves.map((move) => move.itemId))].map(
-      (itemId) => items.find((it) => it.id === itemId)!
-    );
+    const disturbedIds = new Set(layoutShift.moves.map((move) => move.itemId));
+    disturbedIds.delete(firstMove.itemId);
+    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
 
     const operationState = {
       item,
