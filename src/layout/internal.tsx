@@ -296,53 +296,55 @@ export default function DashboardLayout<D>({
   }
 
   function updateManualItemTransition(transition: Transition, path: Position[], direction: Direction) {
-    const layoutShift = applyOperation(transition, path)?.getLayoutShift();
-    const layoutShiftWithRefloat = applyOperation(transition, path)?.refloat()?.getLayoutShift();
-    if (layoutShift) {
+    const updatedEngine = applyOperation(transition, path);
+
+    if (updatedEngine) {
+      const layoutShift = updatedEngine?.getLayoutShift();
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
       autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-      setTransitionAnnouncement(layoutShiftWithRefloat!, direction);
+
+      const targetItem = layoutItemById.get(transition.draggableItem.id)!;
+      setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, direction);
     } else {
       throw new Error("Invariant violation: no layout shift for manual transition.");
     }
   }
 
-  function setTransitionAnnouncement(layoutShift: LayoutShift, direction: null | Direction) {
-    const [firstMove] = layoutShift.moves;
-    const itemMoves = layoutShift.moves.filter((m) => m.itemId === firstMove.itemId);
-    const lastMove = itemMoves[itemMoves.length - 1];
+  function setTransitionAnnouncement(
+    operation: Operation,
+    targetItem: GridLayoutItem,
+    layoutEngine: LayoutEngine,
+    direction: null | Direction
+  ) {
+    const layoutShift = layoutEngine.getLayoutShift();
+    const layoutShiftWithRefloat = layoutEngine.refloat().getLayoutShift();
 
-    const item = items.find((it) => it.id === firstMove.itemId)!;
+    const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetItem.id);
+    const lastItemMove = itemMoves[itemMoves.length - 1];
+    const placement = lastItemMove ?? targetItem;
+
+    const item = items.find((it) => it.id === targetItem.id)!;
 
     const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
 
-    const disturbedIds = new Set(layoutShift.moves.map((move) => move.itemId));
-    disturbedIds.delete(firstMove.itemId);
+    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
+    disturbedIds.delete(targetItem.id);
     const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
 
-    const operationState = {
-      item,
-      colspan: lastMove.width,
-      rowspan: lastMove.height,
-      columnOffset: lastMove.x,
-      rowOffset: lastMove.y,
-      columns,
-      rows,
-      direction,
-      conflicts,
-      disturbed,
-    };
-
-    switch (firstMove.type) {
-      case "MOVE":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("reorder", operationState));
-      case "INSERT":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("insert", operationState));
-      case "RESIZE":
-        return setAnnouncement(i18nStrings.liveAnnouncementOperation("resize", operationState));
-      default:
-        throw new Error("Invariant violation: unexpected first move type.");
-    }
+    setAnnouncement(
+      i18nStrings.liveAnnouncementOperation(operation, {
+        item,
+        colspan: placement.width,
+        rowspan: placement.height,
+        columnOffset: placement.x,
+        rowOffset: placement.y,
+        columns,
+        rows,
+        direction,
+        conflicts,
+        disturbed,
+      })
+    );
   }
 
   function shiftItem(transition: Transition, direction: Direction) {
@@ -441,19 +443,21 @@ export default function DashboardLayout<D>({
     position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
     const path = [...transition.path, position];
-    const layoutShift = applyOperation(transition, path, insertionDirection)?.getLayoutShift();
-    const layoutShiftWithRefloat = applyOperation(transition, path, insertionDirection)?.refloat().getLayoutShift();
+    const updatedEngine = applyOperation(transition, path, insertionDirection);
 
-    if (!layoutShift) {
+    if (!updatedEngine) {
       throw new Error("Invariant violation: acquired item is not inserted into layout.");
     }
+
+    const layoutShift = updatedEngine.getLayoutShift();
 
     // TODO: resolve "any" here.
     // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
     setTransition({ ...transition, collisionIds: [], layoutShift, path });
 
-    setTransitionAnnouncement(layoutShiftWithRefloat!, null);
+    const targetItem = layoutItemById.get(transition.draggableItem.id)!;
+    setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, null);
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};

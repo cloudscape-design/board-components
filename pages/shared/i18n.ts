@@ -28,30 +28,43 @@ export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = 
     const disturbedAnnouncement =
       operation.disturbed.length > 0 ? `Disturbed ${operation.disturbed.length} items.` : "";
 
-    const columnsAnnouncement = `column ${operation.columnOffset + 1}`;
-    const rowsAnnouncement = `row ${operation.rowOffset + 1}`;
-    let positionAnnouncement = `${columnsAnnouncement}, ${rowsAnnouncement}`;
-    if (operation.direction === "left" || operation.direction === "right") {
-      positionAnnouncement = columnsAnnouncement;
-    }
-    if (operation.direction === "up" || operation.direction === "down") {
-      positionAnnouncement = rowsAnnouncement;
-    }
+    const positionAnnouncement = (() => {
+      if (operationType === "resize") {
+        const constraintColumns = operation.colspan === 1 ? "(minimal)" : "";
+        const columnsAnnouncement = `columns ${operation.colspan} ${constraintColumns}`;
+
+        const constraintRows = operation.rowspan === 2 ? "(minimal)" : "";
+        const rowsAnnouncement = `rows ${operation.rowspan} ${constraintRows}`;
+
+        if (operation.direction === "left" || operation.direction === "right") {
+          return columnsAnnouncement;
+        }
+        if (operation.direction === "up" || operation.direction === "down") {
+          return rowsAnnouncement;
+        }
+        return `${columnsAnnouncement}, ${rowsAnnouncement}`;
+      }
+
+      const columnsAnnouncement = `column ${operation.columnOffset + 1}`;
+      const rowsAnnouncement = `row ${operation.rowOffset + 1}`;
+
+      if (operation.direction === "left" || operation.direction === "right") {
+        return columnsAnnouncement;
+      }
+      if (operation.direction === "up" || operation.direction === "down") {
+        return rowsAnnouncement;
+      }
+      return `${columnsAnnouncement}, ${rowsAnnouncement}`;
+    })();
 
     const operationAnnouncement = (() => {
       switch (operationType) {
         case "reorder":
           return `Item moved to ${positionAnnouncement}.`;
-
         case "insert":
           return `Item inserted to ${positionAnnouncement}.`;
-
-        case "resize": {
-          const constraintColumns = operation.colspan === 1 ? "(minimal)" : "";
-          const constraintRows = operation.rowspan === 2 ? "(minimal)" : "";
-          return `Item resized to columns ${operation.colspan} ${constraintColumns} rows ${operation.rowspan} ${constraintRows}.`;
-        }
-
+        case "resize":
+          return `Item resized to ${positionAnnouncement}.`;
         case "remove":
           return `Removed item ${operation.item.data.title}.`;
       }
