@@ -26,6 +26,7 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
     if (item) {
       focusItem(item.id);
     }
+    setAnnouncement("");
   }
 
   function navigateNextItem(index: number) {
@@ -34,6 +35,7 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
     if (item) {
       focusItem(item.id);
     }
+    setAnnouncement("");
   }
 
   function onItemNavigate(index: number, direction: Direction) {

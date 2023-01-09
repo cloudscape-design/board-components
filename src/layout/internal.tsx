@@ -303,7 +303,7 @@ export default function DashboardLayout<D>({
       setTransition({ ...transition, collisionIds: [], layoutShift, path });
       autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
 
-      const targetItem = layoutItemById.get(transition.draggableItem.id)!;
+      const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
       setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, direction);
     } else {
       throw new Error("Invariant violation: no layout shift for manual transition.");
@@ -312,10 +312,14 @@ export default function DashboardLayout<D>({
 
   function setTransitionAnnouncement(
     operation: Operation,
-    targetItem: GridLayoutItem,
+    targetItem: null | GridLayoutItem,
     layoutEngine: LayoutEngine,
     direction: null | Direction
   ) {
+    if (!targetItem) {
+      return;
+    }
+
     const layoutShift = layoutEngine.getLayoutShift();
     const layoutShiftWithRefloat = layoutEngine.refloat().getLayoutShift();
 
@@ -456,7 +460,7 @@ export default function DashboardLayout<D>({
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
     setTransition({ ...transition, collisionIds: [], layoutShift, path });
 
-    const targetItem = layoutItemById.get(transition.draggableItem.id)!;
+    const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
     setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, null);
   }
 
