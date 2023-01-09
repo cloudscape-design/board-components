@@ -4,13 +4,15 @@ import { DashboardLayoutProps, DashboardPaletteProps } from "../../lib/component
 import { ItemData } from "./interfaces";
 
 export const paletteI18nStrings: DashboardPaletteProps.I18nStrings<ItemData> = {
-  liveAnnouncementNoNextItem: "No next item",
-  liveAnnouncementNoPreviousItem: "No previous item",
-  itemDragHandleAriaLabel: (item) => "Drag handle, " + item.data.title,
+  itemDragHandleAriaLabel: (item, index, items) => {
+    const itemAnnouncement = "Drag handle, " + item.data.title;
+    const positionAnnouncement = index === 0 ? "first item" : index === items.length - 1 ? "last item" : "";
+    return [itemAnnouncement, positionAnnouncement].filter(Boolean).join(", ");
+  },
   itemDragHandleAriaDescription:
     "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
   liveAnnouncementDragStarted: "Dragging",
-  liveAnnouncementDragDiscarded: "Insert discarded",
+  liveAnnouncementDragDiscarded: "Insertion discarded",
 };
 
 export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = {

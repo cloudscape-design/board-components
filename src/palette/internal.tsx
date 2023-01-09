@@ -25,9 +25,6 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
 
     if (item) {
       focusItem(item.id);
-      setAnnouncement("");
-    } else {
-      setAnnouncement(i18nStrings.liveAnnouncementNoPreviousItem);
     }
   }
 
@@ -36,9 +33,6 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
 
     if (item) {
       focusItem(item.id);
-      setAnnouncement("");
-    } else {
-      setAnnouncement(i18nStrings.liveAnnouncementNoNextItem);
     }
   }
 
@@ -107,7 +101,7 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
             onBorrow={onBorrow}
-            dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(item)}
+            dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(item, index, items)}
             dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
             resizeHandleAriaLabel=""
             resizeHandleAriaDescription=""

@@ -29,18 +29,6 @@ export namespace DashboardPaletteProps {
 
   export interface I18nStrings<D> {
     /**
-     * Specifies live announcement made when user reaches the first item and tries to navigate further back.
-     *
-     * Example: "No previous item".
-     */
-    liveAnnouncementNoPreviousItem: string;
-    /**
-     * Specifies live announcement made when user reaches the last item and tries to navigate further forward.
-     *
-     * Example: "No next item".
-     */
-    liveAnnouncementNoNextItem: string;
-    /**
      * Specifies live announcement made when drag starts.
      *
      * Example: "Dragging".
@@ -57,7 +45,7 @@ export namespace DashboardPaletteProps {
      *
      * Example: "Drag handle, Demo widget".
      */
-    itemDragHandleAriaLabel: (item: Item<D>) => string;
+    itemDragHandleAriaLabel: (item: Item<D>, itemIndex: number, items: readonly Item<D>[]) => string;
     /**
      * Specifies palette item's drag handle aria description.
      *
