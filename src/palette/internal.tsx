@@ -70,7 +70,7 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
     setDropState(undefined);
 
     // Announce only if the target item belongs to the palette.
-    if (items.some((it) => it.id === dropState?.id)) {
+    if (dropState && items.some((it) => it.id === dropState.id)) {
       setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
     }
   });
