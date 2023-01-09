@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, Edge, GridLayoutItem, ItemId } from "../internal/interfaces";
+import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
@@ -287,14 +287,11 @@ export default function DashboardLayout<D>({
     );
   };
 
-  function focusItem(item: null | GridLayoutItem, direction: Direction) {
+  function focusItem(item: null | GridLayoutItem) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
-      setAnnouncement("");
-    } else {
-      const edge = directionToEdge(direction);
-      setAnnouncement(i18nStrings.liveAnnouncementNoItem(edge));
     }
+    setAnnouncement("");
   }
 
   function updateManualItemTransition(transition: Transition, path: Position[]) {
@@ -371,7 +368,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "left"));
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
@@ -383,7 +380,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "right"));
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
@@ -399,7 +396,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "top"));
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
@@ -411,7 +408,7 @@ export default function DashboardLayout<D>({
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      setAnnouncement(i18nStrings.liveAnnouncementReachedEdge(transition.operation, "bottom"));
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
@@ -419,7 +416,7 @@ export default function DashboardLayout<D>({
     if (transition) {
       shiftItem(transition, direction);
     } else {
-      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction), direction);
+      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
     }
   }
 
@@ -527,17 +524,4 @@ export default function DashboardLayout<D>({
       <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
-}
-
-function directionToEdge(direction: Direction): Edge {
-  switch (direction) {
-    case "left":
-      return "left";
-    case "right":
-      return "right";
-    case "up":
-      return "top";
-    case "down":
-      return "bottom";
-  }
 }

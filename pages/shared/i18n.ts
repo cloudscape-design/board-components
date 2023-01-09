@@ -16,16 +16,6 @@ export const paletteI18nStrings: DashboardPaletteProps.I18nStrings<ItemData> = {
 };
 
 export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = {
-  liveAnnouncementNoItem: (edge) => `No item to the ${edge}`,
-  liveAnnouncementReachedEdge(operationType, edge) {
-    if (operationType === "resize" && edge === "top") {
-      return "Reached minimal height";
-    }
-    if (operationType === "resize" && edge === "left") {
-      return "Reached minimal width";
-    }
-    return `Reached ${edge} edge`;
-  },
   liveAnnouncementOperationStarted(operationType) {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },
@@ -42,10 +32,16 @@ export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = 
       switch (operationType) {
         case "reorder":
           return `Item moved to column ${operation.columnOffset + 1} row ${operation.rowOffset + 1}.`;
+
         case "insert":
           return `Item inserted to column ${operation.columnOffset + 1} row ${operation.rowOffset + 1}.`;
-        case "resize":
-          return `Item resized to columns ${operation.colspan} rows ${operation.rowspan}.`;
+
+        case "resize": {
+          const constraintColumns = operation.colspan === 1 ? "(minimal)" : "";
+          const constraintRows = operation.rowspan === 2 ? "(minimal)" : "";
+          return `Item resized to columns ${operation.colspan} ${constraintColumns} rows ${operation.rowspan} ${constraintRows}.`;
+        }
+
         case "remove":
           return `Removed item ${operation.item.data.title}.`;
       }

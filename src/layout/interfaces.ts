@@ -46,18 +46,6 @@ export namespace DashboardLayoutProps {
 
   export interface I18nStrings<D> {
     /**
-     * Specifies live announcement made when user reaches the last item in the particular direction and tries to move further.
-     *
-     * Example: "No item to the right".
-     */
-    liveAnnouncementNoItem: (edge: Edge) => string;
-    /**
-     * Specifies live announcement made when d&d operation can't be performed.
-     *
-     * Example: "Reached bottom edge" or "Reached minimal width".
-     */
-    liveAnnouncementReachedEdge: (operationType: DragOperationType, edge: Edge) => string;
-    /**
      * Specifies live announcement made when operation starts.
      *
      * Example: "Dragging".
