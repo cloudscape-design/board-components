@@ -48,10 +48,10 @@ export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = 
       const columnsAnnouncement = `column ${operation.columnOffset + 1}`;
       const rowsAnnouncement = `row ${operation.rowOffset + 1}`;
 
-      if (operation.direction === "left" || operation.direction === "right") {
+      if (operationType === "reorder" && (operation.direction === "left" || operation.direction === "right")) {
         return columnsAnnouncement;
       }
-      if (operation.direction === "up" || operation.direction === "down") {
+      if (operationType === "reorder" && (operation.direction === "up" || operation.direction === "down")) {
         return rowsAnnouncement;
       }
       return `${columnsAnnouncement}, ${rowsAnnouncement}`;

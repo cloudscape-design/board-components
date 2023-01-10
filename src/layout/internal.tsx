@@ -316,23 +316,25 @@ export default function DashboardLayout<D>({
     layoutEngine: LayoutEngine,
     direction: null | Direction
   ) {
-    if (!targetItem) {
-      return;
-    }
-
     const layoutShift = layoutEngine.getLayoutShift();
     const layoutShiftWithRefloat = layoutEngine.refloat().getLayoutShift();
 
-    const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetItem.id);
+    const firstMove = layoutShift.moves[0];
+    const targetId = firstMove?.itemId ?? targetItem?.id;
+    if (!targetId) {
+      return null;
+    }
+
+    const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetId);
     const lastItemMove = itemMoves[itemMoves.length - 1];
     const placement = lastItemMove ?? targetItem;
 
-    const item = items.find((it) => it.id === targetItem.id)!;
+    const item = items.find((it) => it.id === targetId)!;
 
     const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
 
     const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-    disturbedIds.delete(targetItem.id);
+    disturbedIds.delete(targetId);
     const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
 
     setAnnouncement(
