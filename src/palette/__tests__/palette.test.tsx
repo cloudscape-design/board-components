@@ -37,8 +37,6 @@ function render(jsx: ReactElement) {
 
 const defaultProps: DashboardPaletteProps = {
   i18nStrings: {
-    liveAnnouncementNoNextItem: "No next item",
-    liveAnnouncementNoPreviousItem: "No previous item",
     itemDragHandleAriaLabel: (item) => "" + item.data.title,
     itemDragHandleAriaDescription:
       "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
