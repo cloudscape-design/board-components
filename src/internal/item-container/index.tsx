@@ -1,6 +1,5 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import {
   CSSProperties,
   KeyboardEvent,
@@ -15,10 +14,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { TRANSITION_DURATION_MS } from "../constants";
 import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
-import { DashboardItemBase, Direction, ItemId, Transform } from "../interfaces";
+import { DashboardItemBase, Direction, ItemId } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
@@ -77,7 +75,6 @@ interface ItemContainerProps {
   acquired?: boolean;
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
-  transform: null | Transform;
   onNavigate(direction: Direction): void;
   onBorrow?(): void;
   children: ReactNode;
@@ -95,7 +92,6 @@ function ItemContainerComponent(
     acquired,
     itemSize,
     itemMaxSize,
-    transform,
     onNavigate,
     onBorrow,
     children,
@@ -109,11 +105,9 @@ function ItemContainerComponent(
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
   const [interactionType, setInteractionType] = useState<"pointer" | "keyboard">("pointer");
   const [isBorrowed, setIsBorrowed] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
   const [transition, setTransition] = useState<null | Transition>(null);
   const clearState = () => {
     setIsBorrowed(false);
-    setDragActive(false);
     setTransition(null);
   };
   const itemRef = useRef<HTMLDivElement>(null);
@@ -125,8 +119,6 @@ function ItemContainerComponent(
   const gridContext = useGridContext();
 
   function updateTransition({ operation, draggableItem, collisionRect, coordinates, dropTarget }: DragAndDropData) {
-    setDragActive(true);
-
     if (item.id === draggableItem.id) {
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
       const pointerOffset = pointerOffsetRef.current;
@@ -294,8 +286,6 @@ function ItemContainerComponent(
     style = getPointerDragStyles(transition);
   } else if (isBorrowed) {
     style = getBorrowedItemStyles();
-  } else {
-    style = getLayoutShiftStyles();
   }
 
   function getPointerDragStyles(transition: Transition): CSSProperties {
@@ -311,32 +301,6 @@ function ItemContainerComponent(
 
   function getBorrowedItemStyles(): CSSProperties {
     return { opacity: 0.5 };
-  }
-
-  function getLayoutShiftStyles(): CSSProperties {
-    const transitionStyle = dragActive
-      ? CSSUtil.Transition.toString({ property: "transform", duration: TRANSITION_DURATION_MS, easing: "ease" })
-      : undefined;
-
-    if (!transform || !gridContext) {
-      return { transition: transitionStyle };
-    }
-
-    const shouldTransformSize = transform.width !== itemSize.width || transform.height !== itemSize.height;
-
-    return {
-      transform: CSSUtil.Transform.toString({
-        x: gridContext.getColOffset(transform.x),
-        y: gridContext.getRowOffset(transform.y),
-        scaleX: 1,
-        scaleY: 1,
-      }),
-      zIndex: transition && transition.itemId === item.id ? 1 : undefined,
-      position: shouldTransformSize ? "absolute" : undefined,
-      width: shouldTransformSize ? gridContext.getWidth(transform.width) : undefined,
-      height: shouldTransformSize ? gridContext.getHeight(transform.height) : undefined,
-      transition: transitionStyle,
-    };
   }
 
   const dragHandleRef = useRef<HTMLButtonElement>(null);
