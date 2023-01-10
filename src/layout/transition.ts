@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useMemo, useReducer } from "react";
+import { Dispatch, useMemo, useReducer, useRef } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import { DashboardItem, DashboardItemBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
@@ -23,10 +23,11 @@ export interface Transition<D> {
   acquiredItem: null | DashboardItem<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
+  layoutShiftWithRefloat: null | LayoutShift;
   path: Position[];
 }
 
-type Action = InitAction | ClearAction | UpdateWithPointerAction | UpdateWithKeyboardAction | AcquireItemAction;
+export type Action = InitAction | ClearAction | UpdateWithPointerAction | UpdateWithKeyboardAction | AcquireItemAction;
 
 interface InitAction {
   type: "init";
@@ -56,8 +57,11 @@ interface AcquireItemAction {
   layoutElement: HTMLElement;
 }
 
-export function useTransition() {
-  const [state, dispatch] = useReducer(transitionReducer, null);
+export function useTransition<D>(
+  onAction?: (state: null | Transition<D>, action: Action) => void
+): [null | Transition<D>, Dispatch<Action>] {
+  const transitionReducerRef = useRef(createTransitionReducer(onAction));
+  const [state, dispatch] = useReducer(transitionReducerRef.current, null);
 
   // Debounces pointer actions to resolve race condition between layout and items.
   const decoratedDispatch = useMemo(() => {
@@ -73,22 +77,30 @@ export function useTransition() {
     };
   }, []);
 
-  return [state, decoratedDispatch];
+  return [state as null | Transition<D>, decoratedDispatch];
 }
 
-function transitionReducer<D>(state: null | Transition<D>, action: Action): null | Transition<D> {
-  switch (action.type) {
-    case "init":
-      return initTransition(action);
-    case "clear":
-      return null;
-    case "update-with-pointer":
-      return updateTransitionWithPointerEvent(state, action);
-    case "update-with-keyboard":
-      return updateTransitionWithKeyboardEvent(state, action);
-    case "acquire-item":
-      return acquireTransitionItem(state, action);
-  }
+function createTransitionReducer<D>(onAction?: (state: null | Transition<D>, action: Action) => void) {
+  const reducer = (state: null | Transition<D>, action: Action): null | Transition<D> => {
+    switch (action.type) {
+      case "init":
+        return initTransition(action);
+      case "clear":
+        return null;
+      case "update-with-pointer":
+        return updateTransitionWithPointerEvent(state, action);
+      case "update-with-keyboard":
+        return updateTransitionWithKeyboardEvent(state, action);
+      case "acquire-item":
+        return acquireTransitionItem(state, action);
+    }
+  };
+
+  return (state: null | Transition<D>, action: Action): null | Transition<D> => {
+    const nextState = reducer(state, action);
+    onAction?.(nextState, action);
+    return nextState;
+  };
 }
 
 function initTransition<D>({
@@ -115,6 +127,7 @@ function initTransition<D>({
     acquiredItem: null,
     collisionIds: new Set(),
     layoutShift: null,
+    layoutShiftWithRefloat: null,
     path,
   };
 }
@@ -144,7 +157,7 @@ function updateTransitionWithPointerEvent<D>(
   const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
-  return { ...transition, collisionIds: new Set(collisionIds), layoutShift, path, insertionDirection };
+  return { ...transition, collisionIds: new Set(collisionIds), ...layoutShift, path, insertionDirection };
 }
 
 function updateTransitionWithKeyboardEvent<D>(
@@ -159,7 +172,7 @@ function updateTransitionWithKeyboardEvent<D>(
 
   const updateManualItemTransition = (transition: Transition<D>, path: Position[]) => {
     const layoutShift = getLayoutShift(transition, path);
-    return { ...transition, layoutShift, path };
+    return { ...transition, ...layoutShift, path };
   };
 
   function shiftItemLeft(transition: Transition<D>) {
@@ -174,7 +187,6 @@ function updateTransitionWithKeyboardEvent<D>(
         new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
       ]);
     } else {
-      // TODO: add announcement
       return transition;
     }
   }
@@ -187,7 +199,6 @@ function updateTransitionWithKeyboardEvent<D>(
         new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
       ]);
     } else {
-      // TODO: add announcement
       return transition;
     }
   }
@@ -204,7 +215,6 @@ function updateTransitionWithKeyboardEvent<D>(
         new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
       ]);
     } else {
-      // TODO: add announcement
       return transition;
     }
   }
@@ -217,7 +227,6 @@ function updateTransitionWithKeyboardEvent<D>(
         new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
       ]);
     } else {
-      // TODO: add announcement
       return transition;
     }
   }
@@ -261,7 +270,7 @@ function acquireTransitionItem<D>(
   // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
   const acquiredItem = { ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
-  return { ...transition, collisionIds: new Set(), layoutShift, path, acquiredItem };
+  return { ...transition, collisionIds: new Set(), ...layoutShift, path, acquiredItem };
 }
 
 function getItemSize<D>(transition: Transition<D>) {
@@ -289,26 +298,31 @@ function getInsertionDirection(cursorOffset: Coordinates): Direction {
 
 function getLayoutShift<D>(transition: Transition<D>, path: readonly Position[], insertionDirection?: Direction) {
   if (path.length === 0) {
-    return null;
+    return { layoutShift: null, layoutShiftWithRefloat: null };
   }
 
-  const engine = new LayoutEngine(transition.itemsLayout);
+  let engine = new LayoutEngine(transition.itemsLayout);
   const { columns, rows } = transition.itemsLayout;
   const { width, height } = getItemSize(transition);
 
   switch (transition.operation) {
     case "resize":
-      return engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      engine = engine.resize({ itemId: transition.draggableItem.id, path });
+      break;
     case "reorder":
-      return engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      engine = engine.move({ itemId: transition.draggableItem.id, path });
+      break;
     case "insert":
-      return engine
-        .insert({
-          itemId: transition.draggableItem.id,
-          width,
-          height,
-          path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
-        })
-        .getLayoutShift();
+      engine = engine.insert({
+        itemId: transition.draggableItem.id,
+        width,
+        height,
+        path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
+      });
+      break;
   }
+
+  const layoutShift = engine.getLayoutShift();
+  const layoutShiftWithRefloat = engine.refloat().getLayoutShift();
+  return { layoutShift, layoutShiftWithRefloat };
 }
