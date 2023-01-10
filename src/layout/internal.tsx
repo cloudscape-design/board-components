@@ -30,7 +30,6 @@ import {
   appendResizePath,
   createTransforms,
   normalizeInsertionPath,
-  printLayoutDebug,
 } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
@@ -220,8 +219,6 @@ export default function DashboardLayout<D>({
     setAcquiredItem(null);
 
     if (transition.layoutShift) {
-      printLayoutDebug(itemsLayout, transition.layoutShift);
-
       if (transition.layoutShift.conflicts.length === 0) {
         // Commit new layout for insert case.
         if (transition.operation === "insert") {

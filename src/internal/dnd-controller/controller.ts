@@ -8,6 +8,8 @@ import { EventEmitter } from "./event-emitter";
 
 export type Operation = "reorder" | "resize" | "insert";
 
+export type InteractionType = "pointer" | "keyboard";
+
 /**
  * Represents the relations between droppables and draggables.
  *
@@ -23,6 +25,7 @@ export interface DropTargetContext {
 
 export interface DragAndDropData {
   operation: Operation;
+  interactionType: InteractionType;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
   positionOffset: Coordinates;
@@ -39,6 +42,7 @@ export interface Droppable {
 
 interface DragDetail {
   operation: Operation;
+  interactionType: InteractionType;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
 }
@@ -60,12 +64,14 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 
   public start(
     operation: Operation,
+    interactionType: InteractionType,
     draggableItem: DashboardItemBase<unknown>,
     draggableElement: HTMLElement,
     startCoordinates: Coordinates
   ) {
     this.transition = {
       operation,
+      interactionType,
       draggableItem,
       draggableElement,
       startCoordinates,
@@ -141,8 +147,8 @@ export function useDraggable({
   getElement: () => HTMLElement;
 }) {
   return {
-    start(operation: Operation, startCoordinates: Coordinates) {
-      controller.start(operation, item, getElement(), startCoordinates);
+    start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates) {
+      controller.start(operation, interactionType, item, getElement(), startCoordinates);
     },
     updateTransition(coordinates: Coordinates) {
       controller.update(coordinates);
