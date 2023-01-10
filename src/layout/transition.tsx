@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Operation } from "../internal/dnd-controller/controller";
 import { DashboardItem, DashboardItemBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
-import AsyncStore from "../internal/utils/async-store";
 import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
 import { getDefaultItemSize, getMinItemSize } from "../internal/utils/layout";
@@ -26,12 +25,20 @@ export interface Transition<D> {
   path: Position[];
 }
 
-class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
-  transitionProps: null | {
+type SetCallback<D> = (data: null | D) => null | D;
+
+class LayoutTransitionActions<D> {
+  private set: (callback: SetCallback<Transition<D>>) => void;
+
+  private transitionProps: null | {
     itemsLayout: GridLayout;
     placeholdersLayout: GridLayout;
     engine: LayoutEngine;
   } = null;
+
+  constructor(set: (callback: SetCallback<Transition<D>>) => void) {
+    this.set = set;
+  }
 
   initTransition({
     operation,
@@ -69,21 +76,10 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
     }));
   }
 
-  hasTransition() {
-    return !!this.get();
-  }
-
   clearTransition() {
-    const transition = this.get();
-    if (!transition) {
-      throw new Error("Invariant violation: no transition.");
-    }
-
     this.transitionProps = null;
     this.setDelayed.cancel();
     this.set(() => null);
-
-    return transition;
   }
 
   updateWithPointer({ collisionIds, positionOffset }: { collisionIds: ItemId[]; positionOffset: Coordinates }) {
@@ -109,7 +105,7 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
       const path = appendPath(transition.path, collisionRect);
 
       const insertionDirection = transition.insertionDirection ?? this.getInsertionDirection(positionOffset);
-      const layoutShift = this.getLayoutShift({ path, insertionDirection });
+      const layoutShift = this.getLayoutShift(transition, { path, insertionDirection });
 
       return { ...transition, collisionIds: new Set(collisionIds), layoutShift, path, insertionDirection };
     });
@@ -119,7 +115,7 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
     const { itemsLayout } = this.transitionProps!;
 
     const updateManualItemTransition = (transition: Transition<D>, path: Position[]) => {
-      const layoutShift = this.getLayoutShift({ path, insertionDirection: null });
+      const layoutShift = this.getLayoutShift(transition, { path, insertionDirection: null });
       return { ...transition, layoutShift, path };
     };
 
@@ -220,7 +216,7 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
 
       const path = [...transition.path, position];
 
-      const layoutShift = this.getLayoutShift({ path, insertionDirection });
+      const layoutShift = this.getLayoutShift(transition, { path, insertionDirection });
 
       // TODO: resolve "any" here.
       // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
@@ -230,11 +226,12 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
     });
   }
 
-  private getLayoutShift({ path, insertionDirection }: { path: Position[]; insertionDirection: null | Direction }) {
-    const transition = this.get();
-
-    if (!transition || path.length === 0) {
-      throw new Error("Invariant violation: no transition.");
+  private getLayoutShift(
+    transition: Transition<D>,
+    { path, insertionDirection }: { path: Position[]; insertionDirection: null | Direction }
+  ) {
+    if (path.length === 0) {
+      return null;
     }
 
     const { itemsLayout, engine } = this.transitionProps!;
@@ -274,11 +271,13 @@ class LayoutTransitionStore<D> extends AsyncStore<null | Transition<D>> {
 
   // The delay makes UX smoother and ensures all state is propagated between transitions.
   // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
-  private setDelayed = debounce((callback: (transition: null | Transition<D>) => null | Transition<D>) => {
+  private setDelayed = debounce((callback: SetCallback<Transition<D>>) => {
     this.set(callback);
   }, 10);
 }
 
-export function useTransition<D>() {
-  return useMemo(() => new LayoutTransitionStore<D>(null), []);
+export function useTransition<D>(): [null | Transition<D>, LayoutTransitionActions<D>] {
+  const [transition, setTransition] = useState<null | Transition<D>>(null);
+  const transitionActions = useMemo(() => new LayoutTransitionActions(setTransition), []);
+  return [transition, transitionActions];
 }

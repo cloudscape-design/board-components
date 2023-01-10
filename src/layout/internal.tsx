@@ -9,7 +9,6 @@ import Grid from "../internal/grid";
 import { DashboardItem, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
-import { useSelector } from "../internal/utils/async-store";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
@@ -35,11 +34,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const autoScrollHandlers = useAutoScroll();
 
-  const transitionStore = useTransition<D>();
-
-  const transition = useSelector(transitionStore, (s) => s);
-
-  const acquiredItem = useSelector(transitionStore, (state) => state?.acquiredItem ?? null);
+  const [transition, transitionActions] = useTransition<D>();
+  const acquiredItem = transition?.acquiredItem ?? null;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
@@ -75,7 +71,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   useDragSubscription("start", ({ operation, draggableItem, draggableElement, collisionIds }) => {
-    transitionStore.initTransition({
+    transitionActions.initTransition({
       operation,
       draggableItem,
       draggableElement,
@@ -88,12 +84,15 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   });
 
   useDragSubscription("update", ({ collisionIds, positionOffset }) => {
-    transitionStore.updateWithPointer({ collisionIds, positionOffset });
+    transitionActions.updateWithPointer({ collisionIds, positionOffset });
   });
 
   useDragSubscription("submit", () => {
-    // Discard state immediately to ensure cleanup if the code below throws an error.
-    const transition = transitionStore.clearTransition();
+    if (!transition) {
+      throw new Error("Invariant violation: no transition.");
+    }
+
+    transitionActions.clearTransition();
 
     if (transition.layoutShift) {
       // Commit new layout for insert case.
@@ -114,7 +113,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   });
 
   useDragSubscription("discard", () => {
-    transitionStore.clearTransition();
+    transitionActions.clearTransition();
 
     autoScrollHandlers.removePointerEventHandlers();
   });
@@ -133,12 +132,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   };
 
   function shiftItem(direction: Direction) {
-    transitionStore.updateWithKeyboard(direction);
+    transitionActions.updateWithKeyboard(direction);
     autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
   }
 
   function onItemNavigate(itemId: ItemId, direction: Direction) {
-    if (transitionStore.hasTransition()) {
+    if (transition) {
       shiftItem(direction);
     } else {
       focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
@@ -146,7 +145,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
   }
 
   const acquireItem = (position: Position) => {
-    transitionStore.acquireItem({ position, layoutElement: containerAccessRef.current! });
+    transitionActions.acquireItem({ position, layoutElement: containerAccessRef.current! });
   };
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
