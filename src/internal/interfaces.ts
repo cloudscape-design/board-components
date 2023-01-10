@@ -55,3 +55,5 @@ export interface Transform {
 }
 
 export type Direction = "up" | "right" | "down" | "left";
+
+export type Edge = "top" | "right" | "bottom" | "left";

@@ -5,33 +5,37 @@ import { useRef, useState } from "react";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import LiveRegion from "../internal/live-region";
 import { getDefaultItemSize } from "../internal/utils/layout";
 import { DashboardPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export default function DashboardPalette<D>({ items, renderItem }: DashboardPaletteProps<D>) {
+export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: DashboardPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
+  const [announcement, setAnnouncement] = useState("");
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();
   }
 
   function navigatePreviousItem(index: number) {
-    if (index > 0) {
-      focusItem(items[index - 1].id);
-    } else {
-      // TODO: add announcement
+    const item = items[index - 1];
+
+    if (item) {
+      focusItem(item.id);
     }
+    setAnnouncement("");
   }
 
   function navigateNextItem(index: number) {
-    if (index < items.length - 1) {
-      focusItem(items[index + 1].id);
-    } else {
-      // TODO: add announcement
+    const item = items[index + 1];
+
+    if (item) {
+      focusItem(item.id);
     }
+    setAnnouncement("");
   }
 
   function onItemNavigate(index: number, direction: Direction) {
@@ -45,11 +49,40 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
     }
   }
 
-  useDragSubscription("update", ({ draggableItem, dropTarget }) =>
-    setDropState({ id: draggableItem.id, isExpanded: !!dropTarget })
-  );
-  useDragSubscription("submit", () => setDropState(undefined));
-  useDragSubscription("discard", () => setDropState(undefined));
+  useDragSubscription("start", ({ draggableItem: { id } }) => {
+    setDropState({ id, isExpanded: false });
+
+    // Announce only if the target item belongs to the palette.
+    if (items.some((it) => it.id === id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementDragStarted);
+    } else {
+      setAnnouncement("");
+    }
+  });
+  useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) => {
+    setDropState({ id, isExpanded: !!dropTarget });
+  });
+  useDragSubscription("submit", () => {
+    setDropState(undefined);
+
+    // Announce only if the target item belongs to the palette.
+    if (dropState && items.some((it) => it.id === dropState.id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
+    }
+  });
+  useDragSubscription("discard", () => {
+    setDropState(undefined);
+
+    // Announce only if the target item belongs to the palette.
+    if (items.some((it) => it.id === dropState?.id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
+    }
+  });
+
+  // "Disconnect" target item from the palette if borrowed.
+  const onBorrow = () => {
+    setDropState(undefined);
+  };
 
   return (
     <div ref={paletteRef} className={styles.root}>
@@ -69,6 +102,11 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
             itemMaxSize={getDefaultItemSize(item)}
             transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
+            onBorrow={onBorrow}
+            dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(item, index, items)}
+            dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
+            resizeHandleAriaLabel=""
+            resizeHandleAriaDescription=""
           >
             <div data-item-id={item.id}>
               {renderItem(item, {
@@ -78,6 +116,8 @@ export default function DashboardPalette<D>({ items, renderItem }: DashboardPale
           </ItemContainer>
         ))}
       </SpaceBetween>
+
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }

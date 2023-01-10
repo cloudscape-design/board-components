@@ -10,6 +10,7 @@ import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } f
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
+import LiveRegion from "../internal/live-region";
 import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
@@ -64,7 +65,15 @@ function getInsertionDirection(cursorOffset: Coordinates): Direction {
   return "right";
 }
 
-export default function DashboardLayout<D>({ items, renderItem, onItemsChange, empty }: DashboardLayoutProps<D>) {
+export default function DashboardLayout<D>({
+  items,
+  renderItem,
+  onItemsChange,
+  empty,
+  i18nStrings,
+}: DashboardLayoutProps<D>) {
+  const [announcement, setAnnouncement] = useState("");
+
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -115,25 +124,23 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function getLayoutShift(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
+  function applyOperation(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
     if (path.length === 0) {
       return null;
     }
 
     switch (transition.operation) {
       case "resize":
-        return transition.engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+        return transition.engine.resize({ itemId: transition.draggableItem.id, path });
       case "reorder":
-        return transition.engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+        return transition.engine.move({ itemId: transition.draggableItem.id, path });
       case "insert":
-        return transition.engine
-          .insert({
-            itemId: transition.draggableItem.id,
-            width: getDefaultItemWidth(transition.draggableItem),
-            height: getDefaultItemHeight(transition.draggableItem),
-            path: normalizeInsertionPath(path, insertionDirection, columns, rows),
-          })
-          .getLayoutShift();
+        return transition.engine.insert({
+          itemId: transition.draggableItem.id,
+          width: getDefaultItemWidth(transition.draggableItem),
+          height: getDefaultItemHeight(transition.draggableItem),
+          path: normalizeInsertionPath(path, insertionDirection, columns, rows),
+        });
     }
   }
 
@@ -164,6 +171,12 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     });
 
     autoScrollHandlers.addPointerEventHandlers();
+
+    if (items.some((it) => it.id === draggableItem.id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementOperationStarted(operation));
+    } else {
+      setAnnouncement("");
+    }
   });
 
   useDragSubscription("update", ({ operation, draggableItem, collisionIds, positionOffset }) => {
@@ -187,7 +200,7 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const path = appendPath(transition.path, collisionRect);
 
     const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
-    const layoutShift = getLayoutShift(transition, path, insertionDirection);
+    const layoutShift = applyOperation(transition, path, insertionDirection)?.getLayoutShift();
 
     if (layoutShift) {
       setTransitionDelayed({ ...transition, collisionIds, layoutShift, path, insertionDirection });
@@ -207,18 +220,26 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     if (transition.layoutShift) {
       printLayoutDebug(itemsLayout, transition.layoutShift);
 
-      // Commit new layout for insert case.
-      if (transition.operation === "insert") {
-        // TODO: resolve "any" here.
-        // It is not quite clear yet how to ensure the addedItem matches generic D type.
-        const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
-        const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
-        onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+      if (transition.layoutShift.conflicts.length === 0) {
+        // Commit new layout for insert case.
+        if (transition.operation === "insert") {
+          // TODO: resolve "any" here.
+          // It is not quite clear yet how to ensure the addedItem matches generic D type.
+          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
+          const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
+          onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+        }
+        // Commit new layout for reorder/resize case.
+        else {
+          onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
+        }
+
+        setAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
       }
-      // Commit new layout for reorder/resize case.
-      else {
-        onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
-      }
+    }
+
+    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
+      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
     }
 
     autoScrollHandlers.removePointerEventHandlers();
@@ -234,27 +255,102 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     setAcquiredItem(null);
 
     autoScrollHandlers.removePointerEventHandlers();
+
+    // Announce only if the target item belongs to the layout.
+    if (items.some((it) => it.id === transition.draggableItem.id)) {
+      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
+    }
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    const layoutShiftWithRefloat = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
+
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
+
+    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
+    disturbedIds.delete(removedItem.id);
+    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
+
+    setAnnouncement(
+      i18nStrings.liveAnnouncementOperation("remove", {
+        item: removedItem,
+        colspan: 0,
+        rowspan: 0,
+        columnOffset: 0,
+        rowOffset: 0,
+        columns,
+        rows,
+        direction: null,
+        conflicts: [],
+        disturbed: disturbed,
+      })
+    );
   };
 
   function focusItem(item: null | GridLayoutItem) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
+    }
+    setAnnouncement("");
+  }
+
+  function updateManualItemTransition(transition: Transition, path: Position[], direction: Direction) {
+    const updatedEngine = applyOperation(transition, path);
+
+    if (updatedEngine) {
+      const layoutShift = updatedEngine?.getLayoutShift();
+      setTransition({ ...transition, collisionIds: [], layoutShift, path });
+      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+
+      const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
+      setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, direction);
     } else {
-      // TODO: add announcement
+      throw new Error("Invariant violation: no layout shift for manual transition.");
     }
   }
 
-  function updateManualItemTransition(transition: Transition, path: Position[]) {
-    const layoutShift = getLayoutShift(transition, path);
-    if (layoutShift) {
-      setTransition({ ...transition, collisionIds: [], layoutShift, path });
-      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+  function setTransitionAnnouncement(
+    operation: Operation,
+    targetItem: null | GridLayoutItem,
+    layoutEngine: LayoutEngine,
+    direction: null | Direction
+  ) {
+    const layoutShift = layoutEngine.getLayoutShift();
+    const layoutShiftWithRefloat = layoutEngine.refloat().getLayoutShift();
+
+    const firstMove = layoutShift.moves[0];
+    const targetId = firstMove?.itemId ?? targetItem?.id;
+    if (!targetId) {
+      return null;
     }
+
+    const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetId);
+    const lastItemMove = itemMoves[itemMoves.length - 1];
+    const placement = lastItemMove ?? targetItem;
+
+    const item = items.find((it) => it.id === targetId)!;
+
+    const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
+
+    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
+    disturbedIds.delete(targetId);
+    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
+
+    setAnnouncement(
+      i18nStrings.liveAnnouncementOperation(operation, {
+        item,
+        colspan: placement.width,
+        rowspan: placement.height,
+        columnOffset: placement.x,
+        rowOffset: placement.y,
+        columns,
+        rows,
+        direction,
+        conflicts,
+        disturbed,
+      })
+    );
   }
 
   function shiftItem(transition: Transition, direction: Direction) {
@@ -277,24 +373,26 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const position = layoutItem?.x ?? 0;
     const minSize = getMinItemSize(transition.draggableItem).width;
     if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x - 1, y: lastPosition.y }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x - 1, y: lastPosition.y })],
+        "left"
+      );
     } else {
-      // TODO: add announcement
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
   function shiftItemRight(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x + 1, y: lastPosition.y }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x + 1, y: lastPosition.y })],
+        "right"
+      );
     } else {
-      // TODO: add announcement
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
@@ -305,24 +403,26 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     const position = layoutItem?.y ?? 0;
     const minSize = getMinItemSize(transition.draggableItem).height;
     if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x, y: lastPosition.y - 1 }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y - 1 })],
+        "up"
+      );
     } else {
-      // TODO: add announcement
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
   function shiftItemDown(transition: Transition) {
     const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
-      updateManualItemTransition(transition, [
-        ...transition.path,
-        new Position({ x: lastPosition.x, y: lastPosition.y + 1 }),
-      ]);
+      updateManualItemTransition(
+        transition,
+        [...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y + 1 })],
+        "down"
+      );
     } else {
-      // TODO: add announcement
+      // Reached edge or can't resize to below minimum size.
     }
   }
 
@@ -349,16 +449,21 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
     position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
     const path = [...transition.path, position];
-    const layoutShift = getLayoutShift(transition, path, insertionDirection);
+    const updatedEngine = applyOperation(transition, path, insertionDirection);
 
-    if (!layoutShift) {
+    if (!updatedEngine) {
       throw new Error("Invariant violation: acquired item is not inserted into layout.");
     }
+
+    const layoutShift = updatedEngine.getLayoutShift();
 
     // TODO: resolve "any" here.
     // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
     setTransition({ ...transition, collisionIds: [], layoutShift, path });
+
+    const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
+    setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, null);
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
@@ -392,6 +497,16 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
+            const positionState = {
+              item,
+              colspan: layoutItem?.width ?? 0,
+              rowspan: layoutItem?.height ?? 0,
+              columnOffset: layoutItem?.x ?? 0,
+              rowOffset: layoutItem?.y ?? 0,
+              columns,
+              rows,
+            };
+
             return (
               <ItemContainer
                 ref={(elem) => {
@@ -408,6 +523,10 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
                 itemMaxSize={itemMaxSize}
                 transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
+                dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(positionState)}
+                dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
+                resizeHandleAriaLabel={i18nStrings.itemResizeHandleAriaLabel(positionState)}
+                resizeHandleAriaDescription={i18nStrings.itemResizeHandleAriaDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>
@@ -417,6 +536,8 @@ export default function DashboardLayout<D>({ items, renderItem, onItemsChange, e
       ) : (
         empty
       )}
+
+      <LiveRegion>{announcement}</LiveRegion>
     </div>
   );
 }

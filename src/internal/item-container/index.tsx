@@ -34,10 +34,14 @@ export interface ItemContext {
     ref: React.RefObject<HTMLButtonElement>;
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    ariaLabel: string;
+    ariaDescription: string;
   };
   resizeHandle: null | {
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    ariaLabel: string;
+    ariaDescription: string;
   };
 }
 
@@ -75,13 +79,31 @@ interface ItemContainerProps {
   itemMaxSize: { width: number; height: number };
   transform: null | Transform;
   onNavigate(direction: Direction): void;
+  onBorrow?(): void;
   children: ReactNode;
+  dragHandleAriaLabel: string;
+  dragHandleAriaDescription: string;
+  resizeHandleAriaLabel: string;
+  resizeHandleAriaDescription: string;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, transform, onNavigate, children }: ItemContainerProps,
+  {
+    item,
+    acquired,
+    itemSize,
+    itemMaxSize,
+    transform,
+    onNavigate,
+    onBorrow,
+    children,
+    dragHandleAriaLabel,
+    dragHandleAriaDescription,
+    resizeHandleAriaLabel,
+    resizeHandleAriaDescription,
+  }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -196,6 +218,7 @@ function ItemContainerComponent(
     nextDroppable.context.acquire();
 
     setIsBorrowed(true);
+    onBorrow?.();
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -329,11 +352,15 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
             onKeyDown: onDragHandleKeyDown,
+            ariaLabel: dragHandleAriaLabel,
+            ariaDescription: dragHandleAriaDescription,
           },
           resizeHandle: gridContext
             ? {
                 onPointerDown: onResizeHandlePointerDown,
                 onKeyDown: onResizeHandleKeyDown,
+                ariaLabel: resizeHandleAriaLabel,
+                ariaDescription: resizeHandleAriaDescription,
               }
             : null,
         }}

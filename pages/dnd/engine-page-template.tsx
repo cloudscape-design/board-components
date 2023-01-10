@@ -3,22 +3,13 @@
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import {
-  DashboardItem,
-  DashboardItemProps,
-  DashboardLayout,
-  DashboardLayoutProps,
-  DashboardPalette,
-} from "../../lib/components";
-import { PaletteProps } from "../../src/palette/interfaces";
+import { DashboardItem, DashboardLayout, DashboardLayoutProps, DashboardPalette } from "../../lib/components";
+import { DashboardPaletteProps } from "../../src/palette/interfaces";
 import PageLayout from "../app/page-layout";
+import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
+import { ItemData } from "../shared/interfaces";
 import classnames from "./engine.module.css";
-import { ItemData, ItemWidgets } from "./items";
-
-const itemStrings: DashboardItemProps["i18nStrings"] = {
-  dragHandleLabel: "Drag me",
-  resizeLabel: "Resize me",
-};
+import { ItemWidgets } from "./items";
 
 export function EnginePageTemplate({
   initialLayoutItems,
@@ -27,7 +18,7 @@ export function EnginePageTemplate({
   layout = "grid",
 }: {
   initialLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[];
-  initialPaletteItems: readonly PaletteProps.Item<ItemData>[];
+  initialPaletteItems: readonly DashboardPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
 }) {
@@ -38,12 +29,12 @@ export function EnginePageTemplate({
     <PageLayout header={<Header variant="h1">Configurable dashboard demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
         <DashboardLayout
+          i18nStrings={dashboardI18nStrings}
           items={items}
           renderItem={(item, actions) => (
             <DashboardItem
               header={<Header>{item.data.title}</Header>}
               footer={item.data.footer}
-              i18nStrings={itemStrings}
               settings={
                 <ButtonDropdown
                   items={[{ id: "remove", text: "Remove widget" }]}
@@ -77,12 +68,10 @@ export function EnginePageTemplate({
             renderItem={(item) => {
               const widgetConfig = widgets[item.id]!.data;
               return (
-                <DashboardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={itemStrings}>
-                  {widgetConfig.description}
-                </DashboardItem>
+                <DashboardItem header={<Header>{widgetConfig.title}</Header>}>{widgetConfig.description}</DashboardItem>
               );
             }}
-            i18nStrings={{}}
+            i18nStrings={paletteI18nStrings}
           />
         </div>
       </div>

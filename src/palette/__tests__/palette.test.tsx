@@ -36,7 +36,13 @@ function render(jsx: ReactElement) {
 }
 
 const defaultProps: DashboardPaletteProps = {
-  i18nStrings: {},
+  i18nStrings: {
+    itemDragHandleAriaLabel: (item) => "" + item.data.title,
+    itemDragHandleAriaDescription:
+      "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
+    liveAnnouncementDragStarted: "Dragging",
+    liveAnnouncementDragDiscarded: "Insertion discarded",
+  },
   items: [
     { id: "first", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },
     { id: "second", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },

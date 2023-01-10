@@ -6,6 +6,7 @@ import { DashboardItem, DashboardLayout } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
+import { ItemData } from "../shared/interfaces";
 
 const fullWidthItem = {
   columnOffset: 0,
@@ -21,8 +22,9 @@ export default function WidgetContainerPermutations() {
   return (
     <ScreenshotArea>
       <PageLayout header={<h1>Widget Container</h1>}>
-        <DashboardLayout<JSX.Element>
-          renderItem={(item) => item.data}
+        <DashboardLayout<ItemData>
+          i18nStrings={i18nStrings.dashboardI18nStrings}
+          renderItem={(item) => <>{item.data.content}</>}
           onItemsChange={() => {
             /*readonly grid*/
           }}
@@ -30,132 +32,146 @@ export default function WidgetContainerPermutations() {
             {
               id: "1",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  header={<Header variant="h2">Text Header</Header>}
-                />
-              ),
+              data: {
+                title: "Text header",
+                description: "",
+                content: <DashboardItem header={<Header variant="h2">Text Header</Header>} />,
+              },
             },
             {
               id: "2",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  header={<Header variant="h2">Text Header with Settings</Header>}
-                  settings={
-                    <ButtonDropdown
-                      items={[
-                        { id: "one", text: "One" },
-                        { id: "two", text: "Two" },
-                      ]}
-                      variant="icon"
-                    />
-                  }
-                />
-              ),
+              data: {
+                title: "Text header with settings",
+                description: "",
+                content: (
+                  <DashboardItem
+                    header={<Header variant="h2">Text Header with Settings</Header>}
+                    settings={
+                      <ButtonDropdown
+                        items={[
+                          { id: "one", text: "One" },
+                          { id: "two", text: "Two" },
+                        ]}
+                        variant="icon"
+                      />
+                    }
+                  />
+                ),
+              },
             },
             {
               id: "3",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  header={
-                    <Header
-                      variant="h2"
-                      actions={
-                        <SpaceBetween direction="horizontal" size="s">
-                          <Button variant="normal">Normal</Button>
-                          <Button variant="primary">Primary</Button>
-                        </SpaceBetween>
-                      }
-                    >
-                      Text Header with actions
-                    </Header>
-                  }
-                  settings={
-                    <ButtonDropdown
-                      items={[
-                        { id: "one", text: "One" },
-                        { id: "two", text: "Two" },
-                      ]}
-                      variant="icon"
-                    />
-                  }
-                />
-              ),
+              data: {
+                title: "Text header with actions",
+                description: "",
+                content: (
+                  <DashboardItem
+                    header={
+                      <Header
+                        variant="h2"
+                        actions={
+                          <SpaceBetween direction="horizontal" size="s">
+                            <Button variant="normal">Normal</Button>
+                            <Button variant="primary">Primary</Button>
+                          </SpaceBetween>
+                        }
+                      >
+                        Text Header with actions
+                      </Header>
+                    }
+                    settings={
+                      <ButtonDropdown
+                        items={[
+                          { id: "one", text: "One" },
+                          { id: "two", text: "Two" },
+                        ]}
+                        variant="icon"
+                      />
+                    }
+                  />
+                ),
+              },
             },
             {
               id: "4",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  header={
-                    <Header variant="h2">
-                      Text Header wraps - I will make this a long title that wraps into the next line so that I can test
-                      the wrapping behavior of the title. I hope this is a enough test to show the behavior.
-                    </Header>
-                  }
-                  settings={
-                    <ButtonDropdown
-                      items={[
-                        { id: "one", text: "One" },
-                        { id: "two", text: "Two" },
-                      ]}
-                      variant="icon"
-                    />
-                  }
-                />
-              ),
+              data: {
+                title: "Text header wraps",
+                description: "",
+                content: (
+                  <DashboardItem
+                    header={
+                      <Header variant="h2">
+                        Text Header wraps - I will make this a long title that wraps into the next line so that I can
+                        test the wrapping behavior of the title. I hope this is a enough test to show the behavior.
+                      </Header>
+                    }
+                    settings={
+                      <ButtonDropdown
+                        items={[
+                          { id: "one", text: "One" },
+                          { id: "two", text: "Two" },
+                        ]}
+                        variant="icon"
+                      />
+                    }
+                  />
+                ),
+              },
             },
             {
               id: "5",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  header={
-                    <Header
-                      variant="h2"
-                      actions={
-                        <SpaceBetween direction="horizontal" size="s">
-                          <Button variant="normal">Normal</Button>
-                          <Button variant="primary">Primary</Button>
-                        </SpaceBetween>
-                      }
-                    >
-                      Text Header with actions
-                    </Header>
-                  }
-                />
-              ),
+              data: {
+                title: "Text header with actions",
+                description: "",
+                content: (
+                  <DashboardItem
+                    header={
+                      <Header
+                        variant="h2"
+                        actions={
+                          <SpaceBetween direction="horizontal" size="s">
+                            <Button variant="normal">Normal</Button>
+                            <Button variant="primary">Primary</Button>
+                          </SpaceBetween>
+                        }
+                      >
+                        Text Header with actions
+                      </Header>
+                    }
+                  />
+                ),
+              },
             },
             {
               id: "6",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  disableContentPaddings={true}
-                  header={<Header variant="h2">Text Header</Header>}
-                >
-                  <Box textAlign="center">Content without paddings</Box>
-                </DashboardItem>
-              ),
+              data: {
+                title: "Text header",
+                description: "",
+                content: (
+                  <DashboardItem disableContentPaddings={true} header={<Header variant="h2">Text Header</Header>}>
+                    <Box textAlign="center">Content without paddings</Box>
+                  </DashboardItem>
+                ),
+              },
             },
             {
               id: "7",
               ...fullWidthItem,
-              data: (
-                <DashboardItem
-                  i18nStrings={i18nStrings.dashboardItem}
-                  header={<Header variant="h2">Footer Content</Header>}
-                  footer={<Box textAlign="center">More</Box>}
-                />
-              ),
+              data: {
+                title: "Text header",
+                description: "",
+                content: (
+                  <DashboardItem
+                    header={<Header variant="h2">Footer Content</Header>}
+                    footer={<Box textAlign="center">More</Box>}
+                  />
+                ),
+              },
             },
           ]}
           empty="No items"

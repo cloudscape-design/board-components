@@ -6,6 +6,7 @@ import { useState } from "react";
 import { DashboardItem, DashboardLayout, DashboardPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
+import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
 
 export default function () {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
@@ -34,6 +35,7 @@ export default function () {
             }
           >
             <DashboardLayout
+              i18nStrings={dashboardI18nStrings}
               empty={"No widgets"}
               items={layoutWidgets}
               onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
@@ -52,10 +54,6 @@ export default function () {
                 <DashboardItem
                   header={<Header>{item.data.title}</Header>}
                   footer={item.data.footer}
-                  i18nStrings={{
-                    dragHandleLabel: "Drag me",
-                    resizeLabel: "Resize me",
-                  }}
                   settings={
                     <ButtonDropdown
                       items={[{ id: "remove", text: "Remove widget" }]}
@@ -92,17 +90,9 @@ export default function () {
               {paletteWidgets.length > 0 ? (
                 <DashboardPalette
                   items={paletteWidgets}
-                  i18nStrings={{
-                    dragHandleLabel: "Drag me",
-                    resizeLabel: "Resize me",
-                  }}
+                  i18nStrings={paletteI18nStrings}
                   renderItem={(item) => (
-                    <DashboardItem
-                      header={<Header>{item.data.title}</Header>}
-                      i18nStrings={{ dragHandleLabel: "Drag me", resizeLabel: "Resize me" }}
-                    >
-                      {item.data.description}
-                    </DashboardItem>
+                    <DashboardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</DashboardItem>
                   )}
                 />
               ) : (

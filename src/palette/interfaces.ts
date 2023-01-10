@@ -7,26 +7,50 @@ export interface DashboardPaletteProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the palette. The content of each item is controlled by the `renderItem` property.
    */
-  items: readonly PaletteProps.Item<D>[];
+  items: readonly DashboardPaletteProps.Item<D>[];
 
   /**
    * Specifies a function to render a palette item content. The return value must include dashboard item component.
    */
-  renderItem(item: PaletteProps.Item<D>, context: PaletteProps.ItemContext): JSX.Element;
+  renderItem(item: DashboardPaletteProps.Item<D>, context: DashboardPaletteProps.ItemContext): JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
    */
-  i18nStrings: PaletteProps.I18nStrings;
+  i18nStrings: DashboardPaletteProps.I18nStrings<D>;
 }
 
-export namespace PaletteProps {
+export namespace DashboardPaletteProps {
   export type Item<D = DataFallbackType> = DashboardItemBase<D>;
 
   export interface ItemContext {
     showPreview: boolean;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  export interface I18nStrings {}
+  export interface I18nStrings<D> {
+    /**
+     * Specifies live announcement made when drag starts.
+     *
+     * Example: "Dragging".
+     */
+    liveAnnouncementDragStarted: string;
+    /**
+     * Specifies live announcement made when palette item is dropped back to palette.
+     *
+     * Example: "Insertion discarded".
+     */
+    liveAnnouncementDragDiscarded: string;
+    /**
+     * Specifies palette item's drag handle aria label.
+     *
+     * Example: "Drag handle, Demo widget".
+     */
+    itemDragHandleAriaLabel: (item: Item<D>, itemIndex: number, items: readonly Item<D>[]) => string;
+    /**
+     * Specifies palette item's drag handle aria description.
+     *
+     * Example: "Use drag handle to ...".
+     */
+    itemDragHandleAriaDescription: string;
+  }
 }

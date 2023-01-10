@@ -3,6 +3,7 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
+import createWrapper from "../../../lib/components/test-utils/selectors";
 
 function setupTest(testFn: (browser: ScreenshotPageObject) => Promise<void>) {
   return useBrowser(async (browser) => {
@@ -19,8 +20,10 @@ test(
   setupTest(async (page) => {
     await page.click("h1");
 
+    const firstItem = createWrapper().findDashboardItem();
+
     await page.focusNextElement();
-    expect(await page.isFocused('[aria-label="Drag handle"]')).toBeTruthy();
+    expect(await page.isFocused(firstItem.findDragHandle().toSelector())).toBeTruthy();
 
     await page.focusNextElement();
     expect(await page.isFocused('[data-testid="header"]')).toBeTruthy();
@@ -35,6 +38,6 @@ test(
     expect(await page.isFocused('[data-testid="footer"]')).toBeTruthy();
 
     await page.focusNextElement();
-    expect(await page.isFocused('[aria-label="Resize handle"]')).toBeTruthy();
+    expect(await page.isFocused(firstItem.findResizeHandle().toSelector())).toBeTruthy();
   })
 );
