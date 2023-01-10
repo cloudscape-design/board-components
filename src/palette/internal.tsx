@@ -100,7 +100,6 @@ export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: 
             item={item}
             itemSize={getDefaultItemSize(item)}
             itemMaxSize={getDefaultItemSize(item)}
-            transform={null}
             onNavigate={(direction) => onItemNavigate(index, direction)}
             onBorrow={onBorrow}
             dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(item, index, items)}

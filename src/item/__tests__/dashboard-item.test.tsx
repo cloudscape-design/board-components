@@ -12,14 +12,11 @@ function render(jsx: ReactElement) {
   return libRender(jsx, {
     wrapper: function ItemContextWrapper({ children }) {
       return (
-        <GridContextProvider
-          value={{ getWidth: () => 1, getHeight: () => 1, getColOffset: () => 1, getRowOffset: () => 1 }}
-        >
+        <GridContextProvider value={{ getWidth: () => 1, getHeight: () => 1 }}>
           <ItemContainer
             item={{ id: "1", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: null }}
             itemSize={{ width: 1, height: 1 }}
             itemMaxSize={{ width: 1, height: 1 }}
-            transform={null}
             onNavigate={() => undefined}
             dragHandleAriaLabel="Drag handle aria label"
             dragHandleAriaDescription="Drag handle aria description"

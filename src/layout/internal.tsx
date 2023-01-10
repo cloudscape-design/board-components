@@ -40,6 +40,7 @@ import { useAutoScroll } from "./use-auto-scroll";
 
 interface Transition {
   operation: Operation;
+  interactionType: "pointer" | "keyboard";
   insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
@@ -161,6 +162,7 @@ export default function DashboardLayout<D>({
 
     setTransition({
       operation,
+      interactionType: "pointer",
       insertionDirection: null,
       draggableItem,
       draggableElement,
@@ -300,7 +302,7 @@ export default function DashboardLayout<D>({
 
     if (updatedEngine) {
       const layoutShift = updatedEngine?.getLayoutShift();
-      setTransition({ ...transition, collisionIds: [], layoutShift, path });
+      setTransition({ ...transition, collisionIds: [], layoutShift, path, interactionType: "keyboard" });
       autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
 
       const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
@@ -460,13 +462,16 @@ export default function DashboardLayout<D>({
     // TODO: resolve "any" here.
     // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
     setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
-    setTransition({ ...transition, collisionIds: [], layoutShift, path });
+    setTransition({ ...transition, collisionIds: [], layoutShift, path, interactionType: "keyboard" });
 
     const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
     setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, null);
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
+  if (transition && transition.interactionType === "pointer") {
+    delete transforms[transition.draggableItem.id];
+  }
 
   const showGrid = items.length > 0 || transition;
 
@@ -475,7 +480,12 @@ export default function DashboardLayout<D>({
   return (
     <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
       {showGrid ? (
-        <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+        <Grid
+          columns={columns}
+          rows={rows}
+          layout={[...placeholdersLayout.items, ...itemsLayout.items]}
+          transforms={transforms}
+        >
           {placeholdersLayout.items.map((placeholder) => (
             <Placeholder
               key={placeholder.id}
@@ -521,7 +531,6 @@ export default function DashboardLayout<D>({
                 acquired={item.id === acquiredItem?.id}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
-                transform={transforms[item.id] ?? null}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
                 dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(positionState)}
                 dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
