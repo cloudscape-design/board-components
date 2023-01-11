@@ -2,4 +2,4 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export { default as default } from "./internal";
-export type { DashboardPaletteProps } from "./interfaces";
+export type { BoardProps } from "./interfaces";

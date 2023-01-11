@@ -4,7 +4,7 @@ import clsx from "clsx";
 import Grid from "../../lib/components/internal/grid";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
-import { chess, cross, dashboard, jenga } from "./layouts";
+import { board, chess, cross, jenga } from "./layouts";
 
 import classnames from "./permutations.module.css";
 
@@ -38,8 +38,8 @@ export default function GridPage() {
             </Grid>
           </TestBed>
           <TestBed>
-            <Grid layout={dashboard} columns={4} rows={16}>
-              {dashboard.map((dummy) => (
+            <Grid layout={board} columns={4} rows={16}>
+              {board.map((dummy) => (
                 <Dummy key={dummy.id} />
               ))}
             </Grid>

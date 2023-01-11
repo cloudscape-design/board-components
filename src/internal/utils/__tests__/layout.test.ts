@@ -3,7 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { fromMatrix, toString } from "../../debug-tools";
-import { DashboardItem } from "../../interfaces";
+import { BoardItemDefinition } from "../../interfaces";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../layout";
 
 function makeItem(
@@ -13,7 +13,7 @@ function makeItem(
   rowSpan: number,
   minColumnSpan = 1,
   minRowSpan = 1
-): DashboardItem<unknown> {
+): BoardItemDefinition<unknown> {
   return {
     id,
     columnOffset,
@@ -73,7 +73,7 @@ describe("createItemsLayout", () => {
         ["B", "B", "B"],
       ],
     ],
-  ])("Transforms dashboard items to internal grid layout", (items, columns, expectation) => {
+  ])("Transforms board items to internal grid layout", (items, columns, expectation) => {
     expect(toString(createItemsLayout(items, columns))).toBe(toString(expectation));
   });
 });
@@ -92,7 +92,7 @@ describe("createPlaceholdersLayout", () => {
 });
 
 describe("exportItemsLayout", () => {
-  test("Transforms internal grid layout to dashboard items", () => {
+  test("Transforms internal grid layout to board items", () => {
     const exported = exportItemsLayout(
       fromMatrix([
         ["A", "A", " "],

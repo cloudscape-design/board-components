@@ -3,9 +3,9 @@
 import { cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement } from "react";
 import { afterEach, describe, expect, test } from "vitest";
+import BoardItem from "../../../lib/components/board-item";
 import { GridContextProvider } from "../../../lib/components/internal/grid-context";
 import { ItemContainer } from "../../../lib/components/internal/item-container";
-import DashboardItem from "../../../lib/components/item";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
 function render(jsx: ReactElement) {
@@ -37,15 +37,15 @@ describe("WidgetContainer", () => {
   });
   test("renders slots", () => {
     render(
-      <DashboardItem
+      <BoardItem
         header={<span data-testid="header" />}
         footer={<span data-testid="footer" />}
         settings={<span data-testid="settings"></span>}
       >
         <span data-testid="content" />
-      </DashboardItem>
+      </BoardItem>
     );
-    const itemWrapper = createWrapper().findDashboardItem()!;
+    const itemWrapper = createWrapper().findBoardItem()!;
     expect(itemWrapper.find('[data-testid="header"]')).toBeDefined();
     expect(itemWrapper.find('[data-testid="content"]')).toBeDefined();
     expect(itemWrapper.find('[data-testid="footer"]')).toBeDefined();
@@ -53,7 +53,7 @@ describe("WidgetContainer", () => {
   });
 
   test("renders handle aria labels", () => {
-    const { getByLabelText } = render(<DashboardItem />);
+    const { getByLabelText } = render(<BoardItem />);
 
     expect(getByLabelText("Drag handle aria label")).toBeDefined();
     expect(getByLabelText("Resize handle aria label")).toBeDefined();

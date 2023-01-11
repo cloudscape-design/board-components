@@ -3,8 +3,8 @@
 import { Dispatch, useMemo, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import {
-  DashboardItem,
-  DashboardItemBase,
+  BoardItemDefinition,
+  BoardItemDefinitionBase,
   Direction,
   GridLayout,
   GridLayoutItem,
@@ -29,9 +29,9 @@ export interface Transition<D> {
   interactionType: InteractionType;
   itemsLayout: GridLayout;
   insertionDirection: null | Direction;
-  draggableItem: DashboardItemBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<unknown>;
   draggableElement: HTMLElement;
-  acquiredItem: null | DashboardItem<D>;
+  acquiredItem: null | BoardItemDefinition<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
   layoutShiftWithRefloat: null | LayoutShift;
@@ -89,7 +89,7 @@ interface InitAction {
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  draggableItem: DashboardItemBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<unknown>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
 }

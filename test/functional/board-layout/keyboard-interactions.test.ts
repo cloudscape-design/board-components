@@ -5,11 +5,11 @@ import { describe, expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object";
 
-const dashboardWrapper = createWrapper().findDashboard();
-const paletteWrapper = createWrapper().findPalette();
-const dashboardItemHandle = (id: string) => dashboardWrapper.findItemById(id).findDragHandle().toSelector();
-const dashboardItemResizeHandle = (id: string) => dashboardWrapper.findItemById(id).findResizeHandle().toSelector();
-const paletteItemHandle = (id: string) => paletteWrapper.findItemById(id).findDragHandle().toSelector();
+const boardWrapper = createWrapper().findBoard();
+const itemsPaletteWrapper = createWrapper().findItemsPalette();
+const boardItemHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
+const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
+const paletteItemHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
@@ -45,20 +45,20 @@ test(
 );
 
 test(
-  "navigates items in the dashboard",
+  "navigates items in the board",
   setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
-    await page.focus(dashboardItemHandle("F"));
+    await page.focus(boardItemHandle("F"));
     await page.keys(["ArrowRight", "ArrowRight"]);
-    await expect(page.isFocused(dashboardItemHandle("H"))).resolves.toBe(true);
+    await expect(page.isFocused(boardItemHandle("H"))).resolves.toBe(true);
 
     await page.keys(["ArrowDown", "ArrowDown"]);
-    await expect(page.isFocused(dashboardItemHandle("P"))).resolves.toBe(true);
+    await expect(page.isFocused(boardItemHandle("P"))).resolves.toBe(true);
 
     await page.keys(["ArrowLeft", "ArrowLeft"]);
-    await expect(page.isFocused(dashboardItemHandle("N"))).resolves.toBe(true);
+    await expect(page.isFocused(boardItemHandle("N"))).resolves.toBe(true);
 
     await page.keys(["ArrowUp", "ArrowUp"]);
-    await expect(page.isFocused(dashboardItemHandle("F"))).resolves.toBe(true);
+    await expect(page.isFocused(boardItemHandle("F"))).resolves.toBe(true);
   })
 );
 
@@ -66,7 +66,7 @@ describe("items reordered with keyboard", () => {
   test(
     "item move can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(dashboardItemHandle("A"));
+      await page.focus(boardItemHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
       await page.keys(["ArrowRight"]);
@@ -87,7 +87,7 @@ describe("items reordered with keyboard", () => {
   test(
     "item move can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(dashboardItemHandle("A"));
+      await page.focus(boardItemHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
       await page.keys(["Escape"]);
@@ -106,7 +106,7 @@ describe("items resized with keyboard", () => {
   test(
     "item resize can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(dashboardItemResizeHandle("A"));
+      await page.focus(boardItemResizeHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
       await page.keys(["ArrowDown"]);
@@ -126,7 +126,7 @@ describe("items resized with keyboard", () => {
   test(
     "item resize can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(dashboardItemResizeHandle("A"));
+      await page.focus(boardItemResizeHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
       await page.keys(["ArrowDown"]);
@@ -154,7 +154,7 @@ describe("items resized with keyboard", () => {
         []
       ),
       async (page) => {
-        await page.focus(dashboardItemResizeHandle("X"));
+        await page.focus(boardItemResizeHandle("X"));
         await page.keys(["Enter"]);
         await page.keys(["ArrowLeft"]);
         await page.keys(["ArrowUp"]);

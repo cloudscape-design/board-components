@@ -1,27 +1,27 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { DashboardItemBase, DataFallbackType } from "../internal/interfaces";
+import { BoardItemDefinitionBase, DataFallbackType } from "../internal/interfaces";
 
-export interface DashboardPaletteProps<D = DataFallbackType> {
+export interface ItemsPaletteProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the palette. The content of each item is controlled by the `renderItem` property.
    */
-  items: readonly DashboardPaletteProps.Item<D>[];
+  items: readonly ItemsPaletteProps.Item<D>[];
 
   /**
-   * Specifies a function to render a palette item content. The return value must include dashboard item component.
+   * Specifies a function to render a palette item content. The return value must include board item component.
    */
-  renderItem(item: DashboardPaletteProps.Item<D>, context: DashboardPaletteProps.ItemContext): JSX.Element;
+  renderItem(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext): JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
    */
-  i18nStrings: DashboardPaletteProps.I18nStrings<D>;
+  i18nStrings: ItemsPaletteProps.I18nStrings<D>;
 }
 
-export namespace DashboardPaletteProps {
-  export type Item<D = DataFallbackType> = DashboardItemBase<D>;
+export namespace ItemsPaletteProps {
+  export type Item<D = DataFallbackType> = BoardItemDefinitionBase<D>;
 
   export interface ItemContext {
     showPreview: boolean;

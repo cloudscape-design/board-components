@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
 
-export interface DashboardItemProps {
+export interface BoardItemProps {
   /**
    * Heading element of the item. Use the [header component](/components/header/).
    */

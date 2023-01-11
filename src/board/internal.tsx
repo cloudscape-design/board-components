@@ -6,7 +6,13 @@ import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
+import {
+  BoardItemDefinition,
+  BoardItemDefinitionBase,
+  Direction,
+  GridLayoutItem,
+  ItemId,
+} from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
@@ -22,19 +28,13 @@ import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getNextItem } from "./calculations/grid-navigation";
 import { createTransforms } from "./calculations/shift-layout";
 
-import { DashboardLayoutProps } from "./interfaces";
+import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
 
-export default function DashboardLayout<D>({
-  items,
-  renderItem,
-  onItemsChange,
-  empty,
-  i18nStrings,
-}: DashboardLayoutProps<D>) {
+export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -64,8 +64,9 @@ export default function DashboardLayout<D>({
     }
   }, [acquiredItem]);
 
-  const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
-  const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
+  const getDefaultItemWidth = (item: BoardItemDefinitionBase<unknown>) =>
+    Math.min(columns, getDefaultItemSize(item).width);
+  const getDefaultItemHeight = (item: BoardItemDefinitionBase<unknown>) => getDefaultItemSize(item).height;
 
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows || 1;
@@ -126,7 +127,7 @@ export default function DashboardLayout<D>({
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  const removeItemAction = (removedItem: DashboardItem<D>) => {
+  const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
 
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));

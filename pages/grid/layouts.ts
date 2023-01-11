@@ -63,7 +63,7 @@ export const cross: GridLayoutItem[] = [
   { ...crossTemplate, id: "4-4", x: 3, y: 3 },
 ];
 
-export const dashboard: GridLayoutItem[] = [
+export const board: GridLayoutItem[] = [
   { id: "extralarge-1", x: 0, width: 4, height: 1, y: 0 },
   { id: "large-1", x: 0, width: 3, height: 3, y: 1 },
   { id: "small-1", x: 4, width: 1, height: 3, y: 1 },

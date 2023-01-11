@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode } from "react";
-import { DashboardLayout, DashboardLayoutProps } from "../../lib/components";
+import { Board, BoardProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
-import { dashboardI18nStrings } from "../shared/i18n";
+import { boardI18nStrings } from "../shared/i18n";
 import classnames from "./layouts.module.css";
 
-const singleItem: DashboardLayoutProps.Item<any>[] = [
+const singleItem: BoardProps.Item<any>[] = [
   {
     id: "1-1",
     columnSpan: 1,
@@ -19,7 +19,7 @@ const singleItem: DashboardLayoutProps.Item<any>[] = [
   },
 ];
 
-const spacedOutItems: DashboardLayoutProps.Item<any>[] = [
+const spacedOutItems: BoardProps.Item<any>[] = [
   {
     id: "2-1",
     columnSpan: 1,
@@ -38,7 +38,7 @@ const spacedOutItems: DashboardLayoutProps.Item<any>[] = [
   },
 ];
 
-const nextRowItems: DashboardLayoutProps.Item<any>[] = [
+const nextRowItems: BoardProps.Item<any>[] = [
   {
     id: "3-1",
     columnSpan: 2,
@@ -61,34 +61,34 @@ const noop = () => {
   /* readonly demos */
 };
 
-export default function DashboardLayoutPage() {
+export default function BoardPage() {
   return (
     <ScreenshotArea>
-      <h1>Dashboard layout</h1>
+      <h1>Board</h1>
       <main>
         <TestBed>
-          <DashboardLayout
-            i18nStrings={dashboardI18nStrings}
+          <Board
+            i18nStrings={boardI18nStrings}
             items={singleItem}
-            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
           />
         </TestBed>
         <TestBed>
-          <DashboardLayout
-            i18nStrings={dashboardI18nStrings}
+          <Board
+            i18nStrings={boardI18nStrings}
             items={spacedOutItems}
-            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
           />
         </TestBed>
         <TestBed>
-          <DashboardLayout
-            i18nStrings={dashboardI18nStrings}
+          <Board
+            i18nStrings={boardI18nStrings}
             items={nextRowItems}
-            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
           />
@@ -98,6 +98,6 @@ export default function DashboardLayoutPage() {
   );
 }
 
-function CustomDashboardItem({ children }: { children: ReactNode }) {
+function CustomBoardItem({ children }: { children: ReactNode }) {
   return <div className={classnames.block}>{children}</div>;
 }

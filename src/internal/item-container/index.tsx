@@ -22,7 +22,7 @@ import {
   useDraggable,
 } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
-import { DashboardItemBase, Direction, ItemId } from "../interfaces";
+import { BoardItemDefinitionBase, Direction, ItemId } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
@@ -54,7 +54,7 @@ const Context = createContext<ItemContext | null>(null);
 export function useItemContext() {
   const ctx = useContext(Context);
   if (!ctx) {
-    throw new Error("Unable to find DashboardItem context");
+    throw new Error("Unable to find BoardItem context");
   }
   return ctx;
 }
@@ -70,7 +70,7 @@ interface Transition {
 /**
  * Defines item's parameters and its relation with the layout.
  *
- * `item` - the unique dashboard item base object to be used in d&d context.
+ * `item` - the unique board item base object to be used in d&d context.
  * `acquired` - specifies if the item is essentially a copy temporarily acquired by a droppable but not submitted yet.
  * `itemSize` - the actual item's size in units.
  * `itemMaxSize` - the item's size in units it is allowed to grow to.
@@ -78,7 +78,7 @@ interface Transition {
  * `onNavigate` - a callback to fire when arrow keys are pressed on drag handle.
  */
 interface ItemContainerProps {
-  item: DashboardItemBase<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   acquired?: boolean;
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };

@@ -3,10 +3,10 @@
 import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
-import { DashboardItem, DashboardLayout, DashboardPalette } from "../../lib/components";
+import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
-import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
+import { boardI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 
 export default function () {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
@@ -34,8 +34,8 @@ export default function () {
               </Box>
             }
           >
-            <DashboardLayout
-              i18nStrings={dashboardI18nStrings}
+            <Board
+              i18nStrings={boardI18nStrings}
               empty={"No widgets"}
               items={layoutWidgets}
               onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
@@ -51,7 +51,7 @@ export default function () {
                 }
               }}
               renderItem={(item, actions) => (
-                <DashboardItem
+                <BoardItem
                   header={<Header>{item.data.title}</Header>}
                   footer={item.data.footer}
                   settings={
@@ -64,7 +64,7 @@ export default function () {
                   }
                 >
                   {item.data.content}
-                </DashboardItem>
+                </BoardItem>
               )}
             />
           </ContentLayout>
@@ -88,11 +88,11 @@ export default function () {
               }}
             >
               {paletteWidgets.length > 0 ? (
-                <DashboardPalette
+                <ItemsPalette
                   items={paletteWidgets}
-                  i18nStrings={paletteI18nStrings}
+                  i18nStrings={itemsPaletteI18nStrings}
                   renderItem={(item) => (
-                    <DashboardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</DashboardItem>
+                    <BoardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</BoardItem>
                   )}
                 />
               ) : (

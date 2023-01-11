@@ -5,8 +5,8 @@ import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
-const dashboardWrapper = createWrapper().findDashboard();
-const paletteWrapper = createWrapper().findPalette();
+const boardWrapper = createWrapper().findBoard();
+const itemsPaletteWrapper = createWrapper().findItemsPalette();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
@@ -27,8 +27,8 @@ test(
   "item reorder with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
     await page.dragAndDropTo(
-      dashboardWrapper.findItemById("A").findDragHandle().toSelector(),
-      dashboardWrapper.findItemById("B").findDragHandle().toSelector()
+      boardWrapper.findItemById("A").findDragHandle().toSelector(),
+      boardWrapper.findItemById("B").findDragHandle().toSelector()
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["B", "A", "C", "D"],
@@ -43,8 +43,8 @@ test(
   "item insert with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
     await page.dragAndDropTo(
-      paletteWrapper.findItemById("K").findDragHandle().toSelector(),
-      dashboardWrapper.findItemById("H").findDragHandle().toSelector()
+      itemsPaletteWrapper.findItemById("K").findDragHandle().toSelector(),
+      boardWrapper.findItemById("H").findDragHandle().toSelector()
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "B", "C", "D"],
@@ -61,8 +61,8 @@ test(
   "item resize with pointer",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
     await page.dragAndDropTo(
-      dashboardWrapper.findItemById("A").findResizeHandle().toSelector(),
-      dashboardWrapper.findItemById("B").findResizeHandle().toSelector()
+      boardWrapper.findItemById("A").findResizeHandle().toSelector(),
+      boardWrapper.findItemById("B").findResizeHandle().toSelector()
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "A", "B", "C"],
@@ -88,7 +88,7 @@ test(
       []
     ),
     async (page) => {
-      await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
+      await page.mouseDown(boardWrapper.findItemById("A").findResizeHandle().toSelector());
       await page.mouseMove(-250, -250);
       await page.mouseUp();
       await expect(page.getGrid()).resolves.toEqual([
@@ -112,7 +112,7 @@ test(
       []
     ),
     async (page) => {
-      await page.mouseDown(dashboardWrapper.findItemById("X").findResizeHandle().toSelector());
+      await page.mouseDown(boardWrapper.findItemById("X").findResizeHandle().toSelector());
       await page.mouseMove(-250, -250);
       await page.mouseUp();
       await expect(page.getGrid()).resolves.toEqual([

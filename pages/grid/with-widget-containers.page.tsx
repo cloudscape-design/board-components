@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Header } from "@cloudscape-design/components";
-import { DashboardItem, DashboardLayout } from "../../lib/components";
+import { Board, BoardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
@@ -13,8 +13,8 @@ export default function GridWithWidgetContainerPage() {
     <ScreenshotArea>
       <PageLayout header={<h1>Grid with Widget Container</h1>}>
         <TestBed>
-          <DashboardLayout<ItemData>
-            i18nStrings={i18nStrings.dashboardI18nStrings}
+          <Board<ItemData>
+            i18nStrings={i18nStrings.boardI18nStrings}
             items={[
               {
                 id: "1",
@@ -77,15 +77,13 @@ export default function GridWithWidgetContainerPage() {
               },
             ]}
             renderItem={(item) => (
-              <DashboardItem header={<Header variant="h2">{item.data.title}</Header>}>
-                {item.data.content}
-              </DashboardItem>
+              <BoardItem header={<Header variant="h2">{item.data.title}</Header>}>{item.data.content}</BoardItem>
             )}
             onItemsChange={() => {
               /*readonly grid*/
             }}
             empty="No items"
-          ></DashboardLayout>
+          ></Board>
         </TestBed>
       </PageLayout>
     </ScreenshotArea>

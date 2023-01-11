@@ -7,10 +7,10 @@ import { Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { getDefaultItemSize } from "../internal/utils/layout";
-import { DashboardPaletteProps } from "./interfaces";
+import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export default function DashboardPalette<D>({ items, renderItem, i18nStrings }: DashboardPaletteProps<D>) {
+export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: ItemsPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();

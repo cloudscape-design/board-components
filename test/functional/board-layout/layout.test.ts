@@ -5,8 +5,8 @@ import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
-const dashboardWrapper = createWrapper().findDashboard();
-const paletteWrapper = createWrapper().findPalette();
+const boardWrapper = createWrapper().findBoard();
+const itemsPaletteWrapper = createWrapper().findItemsPalette();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
@@ -36,7 +36,7 @@ test(
       []
     ),
     async (page) => {
-      await page.mouseDown(dashboardWrapper.findItemById("A").findDragHandle().toSelector());
+      await page.mouseDown(boardWrapper.findItemById("A").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
@@ -47,7 +47,7 @@ test(
       ]);
       await page.mouseUp();
 
-      await page.mouseDown(dashboardWrapper.findItemById("B").findDragHandle().toSelector());
+      await page.mouseDown(boardWrapper.findItemById("B").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
@@ -75,7 +75,7 @@ test(
       ["I", "X"]
     ),
     async (page) => {
-      await page.mouseDown(paletteWrapper.findItemById("I").findDragHandle().toSelector());
+      await page.mouseDown(itemsPaletteWrapper.findItemById("I").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
@@ -86,7 +86,7 @@ test(
       ]);
       await page.mouseUp();
 
-      await page.mouseDown(paletteWrapper.findItemById("X").findDragHandle().toSelector());
+      await page.mouseDown(itemsPaletteWrapper.findItemById("X").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
@@ -114,7 +114,7 @@ test(
       []
     ),
     async (page) => {
-      await page.mouseDown(dashboardWrapper.findItemById("A").findResizeHandle().toSelector());
+      await page.mouseDown(boardWrapper.findItemById("A").findResizeHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
