@@ -63,15 +63,15 @@ export function normalizeInsertionPath(
   return path.slice(edgeIndex);
 }
 
-export function appendMovePath(prevPath: Position[], collisionRect: Rect): Position[] {
+export function appendMovePath(prevPath: readonly Position[], collisionRect: Rect): Position[] {
   return appendPath(prevPath, new Position({ x: collisionRect.left, y: collisionRect.top }));
 }
 
-export function appendResizePath(prevPath: Position[], collisionRect: Rect): Position[] {
+export function appendResizePath(prevPath: readonly Position[], collisionRect: Rect): Position[] {
   return appendPath(prevPath, new Position({ x: collisionRect.right, y: collisionRect.bottom }));
 }
 
-function appendPath(prevPath: Position[], nextPosition: Position): Position[] {
+function appendPath(prevPath: readonly Position[], nextPosition: Position): Position[] {
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
 

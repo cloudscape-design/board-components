@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
@@ -25,7 +25,7 @@ import { createTransforms } from "./calculations/shift-layout";
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
-import { Action, Transition, useTransition } from "./transition";
+import { useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
 
 export default function DashboardLayout<D>({
@@ -35,8 +35,6 @@ export default function DashboardLayout<D>({
   empty,
   i18nStrings,
 }: DashboardLayoutProps<D>) {
-  const [announcement, setAnnouncement] = useState("");
-
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -48,15 +46,10 @@ export default function DashboardLayout<D>({
 
   const autoScrollHandlers = useAutoScroll();
 
-  const [transition, dispatch] = useTransition<D>(onTransitionAction);
+  const [transitionState, dispatch] = useTransition<D>();
+  const transition = transitionState.transition;
+  const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
-
-  function onTransitionAction(transition: null | Transition<D>, action: Action) {
-    if (transition && (action.type === "update-with-keyboard" || action.type === "acquire-item")) {
-      const direction = action.type === "update-with-keyboard" ? action.direction : null;
-      setTransitionAnnouncement(transition, direction);
-    }
-  }
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
@@ -107,12 +100,6 @@ export default function DashboardLayout<D>({
     });
 
     autoScrollHandlers.addPointerEventHandlers();
-
-    if (items.some((it) => it.id === draggableItem.id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementOperationStarted(operation));
-    } else {
-      setAnnouncement("");
-    }
   });
 
   useDragSubscription("update", ({ collisionIds, positionOffset }) => {
@@ -124,7 +111,7 @@ export default function DashboardLayout<D>({
       throw new Error("Invariant violation: no transition.");
     }
 
-    dispatch({ type: "clear" });
+    dispatch({ type: "submit" });
 
     if (transition.layoutShift) {
       if (transition.layoutShift.conflicts.length === 0) {
@@ -140,13 +127,7 @@ export default function DashboardLayout<D>({
         else {
           onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
         }
-
-        setAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
       }
-    }
-
-    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
-      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
     }
 
     autoScrollHandlers.removePointerEventHandlers();
@@ -157,47 +138,23 @@ export default function DashboardLayout<D>({
       throw new Error("Invariant violation: no transition.");
     }
 
-    dispatch({ type: "clear" });
+    dispatch({ type: "discard" });
 
     autoScrollHandlers.removePointerEventHandlers();
-
-    // Announce only if the target item belongs to the layout.
-    if (items.some((it) => it.id === transition.draggableItem.id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
-    }
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const layoutShiftWithRefloat = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
 
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
 
-    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-    disturbedIds.delete(removedItem.id);
-    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
-
-    setAnnouncement(
-      i18nStrings.liveAnnouncementOperation("remove", {
-        item: removedItem,
-        colspan: 0,
-        rowspan: 0,
-        columnOffset: 0,
-        rowOffset: 0,
-        columns,
-        rows,
-        direction: null,
-        conflicts: [],
-        disturbed: disturbed,
-      })
-    );
+    dispatch({ type: "remove-item", itemsLayout, itemId: removedItem.id });
   };
 
   function focusItem(item: null | GridLayoutItem) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
     }
-    setAnnouncement("");
   }
 
   function shiftItem(direction: Direction) {
@@ -217,52 +174,56 @@ export default function DashboardLayout<D>({
     dispatch({ type: "acquire-item", position, layoutElement: containerAccessRef.current! });
   }
 
-  function setTransitionAnnouncement(transition: Transition<D>, direction: null | Direction) {
-    const { operation, layoutShift, layoutShiftWithRefloat } = transition;
-    const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
-
-    if (!layoutShift || !layoutShiftWithRefloat) {
-      return;
-    }
-
-    const firstMove = layoutShift.moves[0];
-    const targetId = firstMove?.itemId ?? targetItem?.id;
-    if (!targetId) {
-      return;
-    }
-
-    const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetId);
-    const lastItemMove = itemMoves[itemMoves.length - 1];
-    const placement = lastItemMove ?? targetItem;
-
-    const item = items.find((it) => it.id === targetId)!;
-
-    const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
-
-    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-    disturbedIds.delete(targetId);
-    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
-
-    setAnnouncement(
-      i18nStrings.liveAnnouncementOperation(operation, {
-        item,
-        colspan: placement.width,
-        rowspan: placement.height,
-        columnOffset: placement.x,
-        rowOffset: placement.y,
-        columns,
-        rows,
-        direction,
-        conflicts,
-        disturbed,
-      })
-    );
-  }
-
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
   if (transition && transition.interactionType === "pointer") {
     delete transforms[transition.draggableItem.id];
   }
+
+  const announcement = (() => {
+    if (!transitionAnnouncement) {
+      return "";
+    }
+    if (!items.some((it) => it.id === transitionAnnouncement.itemId)) {
+      return "";
+    }
+
+    const toItem = (id: ItemId) => items.find((it) => it.id === id)!;
+
+    switch (transitionAnnouncement.type) {
+      case "operation-started":
+        return i18nStrings.liveAnnouncementOperationStarted(transitionAnnouncement.operation);
+      case "operation-performed":
+        return i18nStrings.liveAnnouncementOperation(transitionAnnouncement.operation, {
+          item: toItem(transitionAnnouncement.targetItem.id),
+          colspan: transitionAnnouncement.targetItem.width,
+          rowspan: transitionAnnouncement.targetItem.height,
+          columnOffset: transitionAnnouncement.targetItem.x,
+          rowOffset: transitionAnnouncement.targetItem.y,
+          columns,
+          rows,
+          direction: transitionAnnouncement.direction ?? null,
+          conflicts: [...transitionAnnouncement.conflicts].map(toItem),
+          disturbed: [...transitionAnnouncement.disturbed].map(toItem),
+        });
+      case "operation-committed":
+        return i18nStrings.liveAnnouncementOperationCommitted(transitionAnnouncement.operation);
+      case "operation-discarded":
+        return i18nStrings.liveAnnouncementOperationDiscarded(transitionAnnouncement.operation);
+      case "item-removed":
+        return i18nStrings.liveAnnouncementOperation("remove", {
+          item: toItem(transitionAnnouncement.itemId),
+          colspan: 0,
+          rowspan: 0,
+          columnOffset: 0,
+          rowOffset: 0,
+          columns,
+          rows,
+          direction: null,
+          conflicts: [],
+          disturbed: [...transitionAnnouncement.disturbed].map(toItem),
+        });
+    }
+  })();
 
   const showGrid = items.length > 0 || transition;
 
