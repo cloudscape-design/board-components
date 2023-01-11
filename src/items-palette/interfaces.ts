@@ -10,7 +10,7 @@ export interface ItemsPaletteProps<D = DataFallbackType> {
   items: readonly ItemsPaletteProps.Item<D>[];
 
   /**
-   * Specifies a function to render a palette item content. The return value must include dashboard item component.
+   * Specifies a function to render a palette item content. The return value must include board item component.
    */
   renderItem(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext): JSX.Element;
 

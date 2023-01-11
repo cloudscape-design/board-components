@@ -9,7 +9,7 @@ export default function KeyboardPage() {
   return (
     <PageLayout header={<h1>Widget Container - Keyboard</h1>}>
       <Board<ItemData>
-        i18nStrings={i18nStrings.dashboardI18nStrings}
+        i18nStrings={i18nStrings.boardI18nStrings}
         items={[
           {
             id: "1",

@@ -70,7 +70,7 @@ interface Transition {
 /**
  * Defines item's parameters and its relation with the layout.
  *
- * `item` - the unique dashboard item base object to be used in d&d context.
+ * `item` - the unique board item base object to be used in d&d context.
  * `acquired` - specifies if the item is essentially a copy temporarily acquired by a droppable but not submitted yet.
  * `itemSize` - the actual item's size in units.
  * `itemMaxSize` - the item's size in units it is allowed to grow to.

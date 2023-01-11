@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 import { Board, BoardProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
-import { dashboardI18nStrings } from "../shared/i18n";
+import { boardI18nStrings } from "../shared/i18n";
 import classnames from "./layouts.module.css";
 
 const singleItem: BoardProps.Item<any>[] = [
@@ -64,31 +64,31 @@ const noop = () => {
 export default function BoardPage() {
   return (
     <ScreenshotArea>
-      <h1>Dashboard layout</h1>
+      <h1>Board</h1>
       <main>
         <TestBed>
           <Board
-            i18nStrings={dashboardI18nStrings}
+            i18nStrings={boardI18nStrings}
             items={singleItem}
-            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
           />
         </TestBed>
         <TestBed>
           <Board
-            i18nStrings={dashboardI18nStrings}
+            i18nStrings={boardI18nStrings}
             items={spacedOutItems}
-            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
           />
         </TestBed>
         <TestBed>
           <Board
-            i18nStrings={dashboardI18nStrings}
+            i18nStrings={boardI18nStrings}
             items={nextRowItems}
-            renderItem={(item) => <CustomDashboardItem>{item.id}</CustomDashboardItem>}
+            renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
           />
@@ -98,6 +98,6 @@ export default function BoardPage() {
   );
 }
 
-function CustomDashboardItem({ children }: { children: ReactNode }) {
+function CustomBoardItem({ children }: { children: ReactNode }) {
   return <div className={classnames.block}>{children}</div>;
 }

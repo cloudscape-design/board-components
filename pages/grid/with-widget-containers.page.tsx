@@ -14,7 +14,7 @@ export default function GridWithWidgetContainerPage() {
       <PageLayout header={<h1>Grid with Widget Container</h1>}>
         <TestBed>
           <Board<ItemData>
-            i18nStrings={i18nStrings.dashboardI18nStrings}
+            i18nStrings={i18nStrings.boardI18nStrings}
             items={[
               {
                 id: "1",

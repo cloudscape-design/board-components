@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Board, BoardItem, BoardProps, ItemsPalette } from "../../lib/components";
 import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
 import PageLayout from "../app/page-layout";
-import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
+import { boardI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
@@ -26,10 +26,10 @@ export function EnginePageTemplate({
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
-    <PageLayout header={<Header variant="h1">Configurable dashboard demo</Header>}>
+    <PageLayout header={<Header variant="h1">Configurable board demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
         <Board
-          i18nStrings={dashboardI18nStrings}
+          i18nStrings={boardI18nStrings}
           items={items}
           renderItem={(item, actions) => (
             <BoardItem
@@ -69,7 +69,7 @@ export function EnginePageTemplate({
               const widgetConfig = widgets[item.id]!.data;
               return <BoardItem header={<Header>{widgetConfig.title}</Header>}>{widgetConfig.description}</BoardItem>;
             }}
-            i18nStrings={paletteI18nStrings}
+            i18nStrings={itemsPaletteI18nStrings}
           />
         </div>
       </div>

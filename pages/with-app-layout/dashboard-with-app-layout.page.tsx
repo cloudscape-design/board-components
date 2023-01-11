@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
-import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
+import { boardI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 
 export default function () {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
@@ -35,7 +35,7 @@ export default function () {
             }
           >
             <Board
-              i18nStrings={dashboardI18nStrings}
+              i18nStrings={boardI18nStrings}
               empty={"No widgets"}
               items={layoutWidgets}
               onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
@@ -90,7 +90,7 @@ export default function () {
               {paletteWidgets.length > 0 ? (
                 <ItemsPalette
                   items={paletteWidgets}
-                  i18nStrings={paletteI18nStrings}
+                  i18nStrings={itemsPaletteI18nStrings}
                   renderItem={(item) => (
                     <BoardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</BoardItem>
                   )}

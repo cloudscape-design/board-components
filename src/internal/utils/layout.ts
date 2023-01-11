@@ -65,11 +65,11 @@ export function exportItemsLayout<D>(
     return a.x > b.x ? 1 : -1;
   });
 
-  const dashboardItems: BoardItemDefinition<D>[] = [];
+  const boardItems: BoardItemDefinition<D>[] = [];
   for (const { id, x, width, height } of sortedLayout) {
-    dashboardItems.push({ ...getItem(id), columnOffset: x, columnSpan: width, rowSpan: height });
+    boardItems.push({ ...getItem(id), columnOffset: x, columnSpan: width, rowSpan: height });
   }
-  return dashboardItems;
+  return boardItems;
 }
 
 export function getMinItemSize(item: BoardItemDefinitionBase<unknown>) {

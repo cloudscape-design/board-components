@@ -23,7 +23,7 @@ export default function WidgetContainerPermutations() {
     <ScreenshotArea>
       <PageLayout header={<h1>Widget Container</h1>}>
         <Board<ItemData>
-          i18nStrings={i18nStrings.dashboardI18nStrings}
+          i18nStrings={i18nStrings.boardI18nStrings}
           renderItem={(item) => <>{item.data.content}</>}
           onItemsChange={() => {
             /*readonly grid*/

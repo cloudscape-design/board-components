@@ -24,7 +24,7 @@ export default function WidgetContainerPermutations() {
     <ScreenshotArea>
       <PageLayout header={<h1>Widget container: Content permutations</h1>}>
         <Board
-          i18nStrings={i18nStrings.dashboardI18nStrings}
+          i18nStrings={i18nStrings.boardI18nStrings}
           renderItem={(item) => <BoardItem header={<Header>{item.data.title}</Header>}>{item.data.content}</BoardItem>}
           items={[
             // simple 1x1

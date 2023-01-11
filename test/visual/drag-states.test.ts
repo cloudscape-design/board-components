@@ -5,10 +5,10 @@ import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
 import createWrapper from "../../lib/components/test-utils/selectors";
 
-const dashboardWrapper = createWrapper().findDashboard();
-const paletteWrapper = createWrapper().findPalette();
-const dashboardItemHandle = (id: string) => dashboardWrapper.findItemById(id).findDragHandle().toSelector();
-const dashboardItemResizeHandle = (id: string) => dashboardWrapper.findItemById(id).findResizeHandle().toSelector();
+const boardWrapper = createWrapper().findBoard();
+const itemsPaletteWrapper = createWrapper().findItemsPalette();
+const boardItemHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
+const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 
 class DndPageObject extends ScreenshotPageObject {
   async focus(selector: string) {
@@ -92,12 +92,12 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
 test(
   "active item overlays other items",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-    await page.focus(dashboardItemHandle("A"));
+    await page.focus(boardItemHandle("A"));
     await page.keys(["Enter"]);
     test(
       "active item overlays other items",
       setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-        await page.focus(dashboardItemHandle("A"));
+        await page.focus(boardItemHandle("A"));
         await page.keys(["Enter"]);
         await page.keys(["ArrowDown"]);
 
@@ -125,7 +125,7 @@ test(
       []
     ),
     async (page) => {
-      await page.focus(dashboardItemResizeHandle("A"));
+      await page.focus(boardItemResizeHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowLeft"]);
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
@@ -143,21 +143,21 @@ test(
 test(
   "palette item size remains the same after drag start",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-    await page.mouseDown(paletteWrapper.findItemById("L").findDragHandle().toSelector());
+    await page.mouseDown(itemsPaletteWrapper.findItemById("L").findDragHandle().toSelector());
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
     await page.mouseUp();
     await page.windowScrollTo({ top: 600 });
 
-    await page.mouseDown(paletteWrapper.findItemById("Q").findDragHandle().toSelector());
+    await page.mouseDown(itemsPaletteWrapper.findItemById("Q").findDragHandle().toSelector());
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
 
 test(
-  "palette item size adjusts to dashboard item size when moved over dashboard",
+  "palette item size adjusts to board item size when moved over board",
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-    await page.mouseDown(paletteWrapper.findItemById("K").findDragHandle().toSelector());
+    await page.mouseDown(itemsPaletteWrapper.findItemById("K").findDragHandle().toSelector());
     await page.mouseMove(-200, 0);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
@@ -171,7 +171,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
     await page.setWindowSize({ width: 800, height: 800 });
 
-    await page.focus(paletteWrapper.findItemById("R").findDragHandle().toSelector());
+    await page.focus(itemsPaletteWrapper.findItemById("R").findDragHandle().toSelector());
     await page.keys(["Enter"]);
 
     await page.keys(["ArrowLeft"]);

@@ -5,13 +5,13 @@ import { BoardItemDefinition, DataFallbackType, Direction } from "../internal/in
 
 export interface BoardProps<D = DataFallbackType> {
   /**
-   * Specifies the items displayed in the dashboard. Each item is includes its position on the dashboard and
+   * Specifies the items displayed in the board. Each item is includes its position on the board and
    * attached data. The content of an item is controlled by the `renderItem` property.
    */
   items: readonly BoardProps.Item<D>[];
 
   /**
-   * Specifies a function to render a dashboard item content. The return value must include dashboard item component.
+   * Specifies a function to render a board item content. The return value must include board item component.
    */
   renderItem(item: BoardProps.Item<D>, actions: BoardProps.ItemActions): JSX.Element;
 
@@ -21,7 +21,7 @@ export interface BoardProps<D = DataFallbackType> {
   i18nStrings: BoardProps.I18nStrings<D>;
 
   /**
-   * Fired when a user interaction changes size or position of dashboard items.
+   * Fired when a user interaction changes size or position of board items.
    */
   onItemsChange: (event: CustomEvent<BoardProps.ItemsChangeDetail<D>>) => void;
 

@@ -3,7 +3,7 @@
 import { BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { ItemData } from "./interfaces";
 
-export const paletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = {
+export const itemsPaletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = {
   itemDragHandleAriaLabel: (item, index, items) => {
     const itemAnnouncement = "Drag handle, " + item.data.title;
     const positionAnnouncement = index === 0 ? "first item" : index === items.length - 1 ? "last item" : "";
@@ -15,7 +15,7 @@ export const paletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = {
   liveAnnouncementDragDiscarded: "Insertion discarded",
 };
 
-export const dashboardI18nStrings: BoardProps.I18nStrings<ItemData> = {
+export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementOperationStarted(operationType) {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },
