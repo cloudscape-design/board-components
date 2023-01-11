@@ -25,7 +25,7 @@ import { createTransforms } from "./calculations/shift-layout";
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
-import { useTransition } from "./transition";
+import { selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
 
 export default function DashboardLayout<D>({
@@ -68,23 +68,7 @@ export default function DashboardLayout<D>({
   const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
 
   // Rows can't be 0 as it would prevent placing the first item to the layout.
-  let rows = itemsLayout.rows || 1;
-
-  // The rows can be overridden during transition to create more drop targets at the bottom.
-  if (transition) {
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const itemHeight = layoutItem?.height ?? getDefaultItemHeight(transition.draggableItem);
-    // Add extra row for resize when already at the bottom.
-    if (transition.operation === "resize") {
-      rows = Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
-    }
-    // Add extra row(s) for reorder/insert based on item's height.
-    else {
-      rows = itemsLayout.rows + itemHeight;
-    }
-  }
-
+  const rows = selectTransitionRows(transitionState) || itemsLayout.rows || 1;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
@@ -93,7 +77,6 @@ export default function DashboardLayout<D>({
       operation,
       interactionType,
       itemsLayout,
-      placeholdersLayout,
       draggableItem,
       draggableElement,
       collisionIds,

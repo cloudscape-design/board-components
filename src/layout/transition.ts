@@ -14,7 +14,7 @@ import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
-import { getDefaultItemSize, getMinItemSize } from "../internal/utils/layout";
+import { createPlaceholdersLayout, getDefaultItemSize, getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { getHoveredRect } from "./calculations/collision";
 import { appendMovePath, appendResizePath, normalizeInsertionPath } from "./calculations/shift-layout";
@@ -28,7 +28,6 @@ export interface Transition<D> {
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  placeholdersLayout: GridLayout;
   insertionDirection: null | Direction;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
@@ -90,7 +89,6 @@ interface InitAction {
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  placeholdersLayout: GridLayout;
   draggableItem: DashboardItemBase<unknown>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
@@ -141,6 +139,10 @@ export function useTransition<D>(): [TransitionState<D>, Dispatch<Action>] {
   return [state as TransitionState<D>, decoratedDispatch];
 }
 
+export function selectTransitionRows<D>(state: TransitionState<D>) {
+  return state.transition ? getLayoutRows(state.transition) : 0;
+}
+
 function transitionReducer<D>(state: TransitionState<D>, action: Action): TransitionState<D> {
   switch (action.type) {
     case "init":
@@ -164,30 +166,33 @@ function initTransition<D>({
   operation,
   interactionType,
   itemsLayout,
-  placeholdersLayout,
   draggableItem,
   draggableElement,
   collisionIds,
 }: InitAction): TransitionState<D> {
+  const transition: Transition<D> = {
+    operation,
+    interactionType,
+    itemsLayout,
+    insertionDirection: null,
+    draggableItem,
+    draggableElement,
+    acquiredItem: null,
+    collisionIds: new Set(),
+    layoutShift: null,
+    layoutShiftWithRefloat: null,
+    path: [],
+  };
+
+  const placeholdersLayout = getLayoutPlaceholders(transition);
+
   const layoutItem = itemsLayout.items.find((it) => it.id === draggableItem.id);
   const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
   const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
   const path = layoutItem ? appendPath([], collisionRect) : [];
+
   return {
-    transition: {
-      operation,
-      interactionType,
-      itemsLayout,
-      placeholdersLayout,
-      insertionDirection: null,
-      draggableItem,
-      draggableElement,
-      acquiredItem: null,
-      collisionIds: new Set(),
-      layoutShift: null,
-      layoutShiftWithRefloat: null,
-      path,
-    },
+    transition: { ...transition, path },
     announcement: { type: "operation-started", itemId: draggableItem.id, operation },
   };
 }
@@ -236,8 +241,8 @@ function updateTransitionWithPointerEvent<D>(
 
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemWidth = layoutItem ? layoutItem.width : getItemSize(transition).width;
-  const itemHeight = layoutItem ? layoutItem.height : getItemSize(transition).height;
+  const itemWidth = layoutItem ? layoutItem.width : getItemWidth(transition);
+  const itemHeight = layoutItem ? layoutItem.height : getItemHeight(transition);
   const itemSize = itemWidth * itemHeight;
 
   if (transition.operation !== "resize" && collisionIds.length < itemSize) {
@@ -247,7 +252,8 @@ function updateTransitionWithPointerEvent<D>(
     };
   }
 
-  const collisionRect = getHoveredRect(collisionIds, transition.placeholdersLayout.items);
+  const placeholdersLayout = getLayoutPlaceholders(transition);
+  const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
   const appendPath = transition.operation === "resize" ? appendResizePath : appendMovePath;
   const path = appendPath(transition.path, collisionRect);
 
@@ -271,6 +277,8 @@ function updateTransitionWithKeyboardEvent<D>(
   }
 
   const { itemsLayout } = transition;
+  const columns = getLayoutColumns(transition);
+  const rows = getLayoutRows(transition);
 
   const updateManualItemTransition = (transition: Transition<D>, direction: Direction): TransitionState<D> => {
     const xDelta = direction === "left" ? -1 : direction === "right" ? 1 : 0;
@@ -298,7 +306,7 @@ function updateTransitionWithKeyboardEvent<D>(
 
   function shiftItemRight(transition: Transition<D>) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x < (transition.operation === "resize" ? itemsLayout.columns : itemsLayout.columns - 1)) {
+    if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
       return updateManualItemTransition(transition, "right");
     } else {
       return state;
@@ -320,7 +328,7 @@ function updateTransitionWithKeyboardEvent<D>(
 
   function shiftItemDown(transition: Transition<D>) {
     const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y < (transition.operation === "resize" ? 999 : itemsLayout.rows - 1)) {
+    if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
       return updateManualItemTransition(transition, "down");
     } else {
       return state;
@@ -357,7 +365,7 @@ function acquireTransitionItem<D>(
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.
-  const width = getItemSize(transition).width;
+  const width = getItemWidth(transition);
   position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
   const path = [...transition.path, position];
@@ -381,11 +389,37 @@ function removeTransitionItem<D>({ itemId, itemsLayout }: RemoveItemAction): Tra
   return { transition: null, announcement: { type: "item-removed", itemId, disturbed } };
 }
 
-function getItemSize<D>(transition: Transition<D>) {
-  return {
-    width: Math.min(transition.itemsLayout.columns, getDefaultItemSize(transition.draggableItem).width),
-    height: getDefaultItemSize(transition.draggableItem).height,
-  };
+function getItemWidth<D>(transition: Transition<D>) {
+  return Math.min(transition.itemsLayout.columns, getDefaultItemSize(transition.draggableItem).width);
+}
+
+function getItemHeight<D>(transition: Transition<D>) {
+  return getDefaultItemSize(transition.draggableItem).height;
+}
+
+function getLayoutColumns<D>(transition: Transition<D>) {
+  return transition.itemsLayout.columns;
+}
+
+// The rows can be overridden during transition to create more drop targets at the bottom.
+function getLayoutRows<D>(transition: Transition<D>) {
+  const layout = transition.layoutShift?.next ?? transition.itemsLayout;
+  const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+  const itemHeight = layoutItem?.height ?? getItemHeight(transition);
+  // Add extra row for resize when already at the bottom.
+  if (transition.operation === "resize") {
+    return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
+  }
+  // Add extra row(s) for reorder/insert based on item's height.
+  else {
+    return transition.itemsLayout.rows + itemHeight;
+  }
+}
+
+function getLayoutPlaceholders<D>(transition: Transition<D>) {
+  const rows = getLayoutRows(transition);
+  const columns = getLayoutColumns(transition);
+  return createPlaceholdersLayout(rows, columns);
 }
 
 function getInsertionDirection(cursorOffset: Coordinates): Direction {
@@ -410,8 +444,10 @@ function getLayoutShift<D>(transition: Transition<D>, path: readonly Position[],
   }
 
   let engine = new LayoutEngine(transition.itemsLayout);
-  const { columns, rows } = transition.itemsLayout;
-  const { width, height } = getItemSize(transition);
+  const width = getItemWidth(transition);
+  const height = getItemHeight(transition);
+  const rows = getLayoutRows(transition);
+  const columns = getLayoutColumns(transition);
 
   switch (transition.operation) {
     case "resize":
