@@ -14,7 +14,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { DragAndDropData, Operation, useDragSubscription, useDraggable } from "../dnd-controller/controller";
+import {
+  DragAndDropData,
+  InteractionType,
+  Operation,
+  useDragSubscription,
+  useDraggable,
+} from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
 import { DashboardItemBase, Direction, ItemId } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
@@ -56,6 +62,7 @@ export function useItemContext() {
 interface Transition {
   itemId: ItemId;
   operation: Operation;
+  interactionType: InteractionType;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
 }
@@ -103,7 +110,6 @@ function ItemContainerComponent(
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
-  const [interactionType, setInteractionType] = useState<"pointer" | "keyboard">("pointer");
   const [isBorrowed, setIsBorrowed] = useState(false);
   const [transition, setTransition] = useState<null | Transition>(null);
   const clearState = () => {
@@ -118,7 +124,14 @@ function ItemContainerComponent(
   });
   const gridContext = useGridContext();
 
-  function updateTransition({ operation, draggableItem, collisionRect, coordinates, dropTarget }: DragAndDropData) {
+  function updateTransition({
+    operation,
+    interactionType,
+    draggableItem,
+    collisionRect,
+    coordinates,
+    dropTarget,
+  }: DragAndDropData) {
     if (item.id === draggableItem.id) {
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
       const pointerOffset = pointerOffsetRef.current;
@@ -128,6 +141,7 @@ function ItemContainerComponent(
         const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
         setTransition({
           operation,
+          interactionType,
           itemId: draggableItem.id,
           sizeTransform: {
             width: Math.max(minWidth, Math.min(maxWidth, width - pointerOffset.x)),
@@ -138,6 +152,7 @@ function ItemContainerComponent(
       } else {
         setTransition({
           operation,
+          interactionType,
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
@@ -154,7 +169,7 @@ function ItemContainerComponent(
   useEffect(() => {
     const { onPointerMove, onPointerUp } = eventHandlersRef.current;
 
-    if (interactionType === "pointer" && transition && transition.itemId === item.id) {
+    if (transition && transition.interactionType === "pointer" && transition.itemId === item.id) {
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
     }
@@ -163,7 +178,7 @@ function ItemContainerComponent(
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [item.id, transition, interactionType]);
+  }, [item.id, transition]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     // The acquired item is a copy and does not have the transition state.
@@ -180,14 +195,12 @@ function ItemContainerComponent(
         y: operation === "drag" ? rect.top : rect.bottom,
       });
 
-      setInteractionType("keyboard");
-
       if (operation === "drag" && !gridContext) {
-        draggableApi.start("insert", coordinates);
+        draggableApi.start("insert", "keyboard", coordinates);
       } else if (operation === "drag") {
-        draggableApi.start("reorder", coordinates);
+        draggableApi.start("reorder", "keyboard", coordinates);
       } else {
-        draggableApi.start("resize", coordinates);
+        draggableApi.start("resize", "keyboard", coordinates);
       }
     }
     // Submit a transition if existing.
@@ -247,7 +260,7 @@ function ItemContainerComponent(
     // When drag- or resize handle loses focus the transition must be discarded with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && interactionType === "keyboard" && !isBorrowed) {
+    if (transition && transition.interactionType === "keyboard" && !isBorrowed) {
       draggableApi.discardTransition();
     }
   }
@@ -257,8 +270,7 @@ function ItemContainerComponent(
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.left, y: event.clientY - rect.top });
 
-    setInteractionType("pointer");
-    draggableApi.start(!gridContext ? "insert" : "reorder", Coordinates.fromEvent(event));
+    draggableApi.start(!gridContext ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -270,8 +282,7 @@ function ItemContainerComponent(
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.right, y: event.clientY - rect.bottom });
 
-    setInteractionType("pointer");
-    draggableApi.start("resize", Coordinates.fromEvent(event));
+    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {
@@ -282,7 +293,7 @@ function ItemContainerComponent(
   // When there is a transition the item's placement and styles might need to be altered for the period of the transition.
   let style: CSSProperties = {};
 
-  if (transition && interactionType === "pointer") {
+  if (transition && transition.interactionType === "pointer") {
     style = getPointerDragStyles(transition);
   } else if (isBorrowed) {
     style = getBorrowedItemStyles();

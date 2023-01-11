@@ -2,69 +2,31 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
-import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
+import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
-import { LayoutShift } from "../internal/layout-engine/interfaces";
 import LiveRegion from "../internal/live-region";
-import { Coordinates } from "../internal/utils/coordinates";
-import { debounce } from "../internal/utils/debounce";
 import { createCustomEvent } from "../internal/utils/events";
 import {
   createItemsLayout,
   createPlaceholdersLayout,
   exportItemsLayout,
   getDefaultItemSize,
-  getMinItemSize,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
-import { getHoveredRect } from "./calculations/collision";
 import { getNextItem } from "./calculations/grid-navigation";
-import {
-  appendMovePath,
-  appendResizePath,
-  createTransforms,
-  normalizeInsertionPath,
-  printLayoutDebug,
-} from "./calculations/shift-layout";
+import { createTransforms } from "./calculations/shift-layout";
 
 import { DashboardLayoutProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
+import { selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
-
-interface Transition {
-  operation: Operation;
-  interactionType: "pointer" | "keyboard";
-  insertionDirection: null | Direction;
-  draggableItem: DashboardItemBase<unknown>;
-  draggableElement: HTMLElement;
-  collisionIds: ItemId[];
-  engine: LayoutEngine;
-  layoutShift: null | LayoutShift;
-  path: Position[];
-}
-
-function getInsertionDirection(cursorOffset: Coordinates): Direction {
-  if (cursorOffset.x < 0) {
-    return "right";
-  }
-  if (cursorOffset.x > 0) {
-    return "left";
-  }
-  if (cursorOffset.y < 0) {
-    return "down";
-  }
-  if (cursorOffset.y > 0) {
-    return "up";
-  }
-  return "right";
-}
 
 export default function DashboardLayout<D>({
   items,
@@ -73,8 +35,6 @@ export default function DashboardLayout<D>({
   empty,
   i18nStrings,
 }: DashboardLayoutProps<D>) {
-  const [announcement, setAnnouncement] = useState("");
-
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -86,8 +46,10 @@ export default function DashboardLayout<D>({
 
   const autoScrollHandlers = useAutoScroll();
 
-  const [transition, setTransition] = useState<null | Transition>(null);
-  const [acquiredItem, setAcquiredItem] = useState<null | DashboardItem<D>>(null);
+  const [transitionState, dispatch] = useTransition<D>();
+  const transition = transitionState.transition;
+  const transitionAnnouncement = transitionState.announcement;
+  const acquiredItem = transition?.acquiredItem ?? null;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
@@ -106,107 +68,25 @@ export default function DashboardLayout<D>({
   const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
 
   // Rows can't be 0 as it would prevent placing the first item to the layout.
-  let rows = itemsLayout.rows || 1;
-
-  // The rows can be overridden during transition to create more drop targets at the bottom.
-  if (transition) {
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const itemHeight = layoutItem?.height ?? getDefaultItemHeight(transition.draggableItem);
-    // Add extra row for resize when already at the bottom.
-    if (transition.operation === "resize") {
-      rows = Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
-    }
-    // Add extra row(s) for reorder/insert based on item's height.
-    else {
-      rows = itemsLayout.rows + itemHeight;
-    }
-  }
-
+  const rows = selectTransitionRows(transitionState) || itemsLayout.rows || 1;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function applyOperation(transition: Transition, path: Position[], insertionDirection: Direction = "right") {
-    if (path.length === 0) {
-      return null;
-    }
-
-    switch (transition.operation) {
-      case "resize":
-        return transition.engine.resize({ itemId: transition.draggableItem.id, path });
-      case "reorder":
-        return transition.engine.move({ itemId: transition.draggableItem.id, path });
-      case "insert":
-        return transition.engine.insert({
-          itemId: transition.draggableItem.id,
-          width: getDefaultItemWidth(transition.draggableItem),
-          height: getDefaultItemHeight(transition.draggableItem),
-          path: normalizeInsertionPath(path, insertionDirection, columns, rows),
-        });
-    }
-  }
-
-  // The debounce makes UX smoother and ensures all state is propagated between transitions.
-  // W/o it the item's position between layout and item subscriptions can be out of sync for a short time.
-  const setTransitionDelayed = useMemo(
-    () => debounce((nextTransition: Transition) => setTransition(nextTransition), 10),
-    []
-  );
-
-  useDragSubscription("start", ({ operation, draggableItem, draggableElement, collisionIds }) => {
-    const layoutItem = layoutItemById.get(draggableItem.id) ?? null;
-
-    // Define starting path.
-    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-    const path = layoutItem ? appendPath([], collisionRect) : [];
-
-    setTransition({
+  useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
+    dispatch({
+      type: "init",
       operation,
-      interactionType: "pointer",
-      insertionDirection: null,
+      interactionType,
+      itemsLayout,
       draggableItem,
       draggableElement,
-      collisionIds: [],
-      engine: new LayoutEngine(itemsLayout),
-      layoutShift: null,
-      path,
+      collisionIds,
     });
 
     autoScrollHandlers.addPointerEventHandlers();
-
-    if (items.some((it) => it.id === draggableItem.id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementOperationStarted(operation));
-    } else {
-      setAnnouncement("");
-    }
   });
 
-  useDragSubscription("update", ({ operation, draggableItem, collisionIds, positionOffset }) => {
-    if (!transition) {
-      throw new Error("Invariant violation: no transition.");
-    }
-
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === draggableItem.id);
-    const itemWidth = layoutItem ? layoutItem.width : getDefaultItemWidth(transition.draggableItem);
-    const itemHeight = layoutItem ? layoutItem.height : getDefaultItemHeight(transition.draggableItem);
-    const itemSize = itemWidth * itemHeight;
-
-    if (operation !== "resize" && collisionIds.length < itemSize) {
-      setTransitionDelayed({ ...transition, collisionIds: [], layoutShift: null, insertionDirection: null });
-      return;
-    }
-
-    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-    const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-    const path = appendPath(transition.path, collisionRect);
-
-    const insertionDirection = transition.insertionDirection ?? getInsertionDirection(positionOffset);
-    const layoutShift = applyOperation(transition, path, insertionDirection)?.getLayoutShift();
-
-    if (layoutShift) {
-      setTransitionDelayed({ ...transition, collisionIds, layoutShift, path, insertionDirection });
-    }
+  useDragSubscription("update", ({ collisionIds, positionOffset }) => {
+    dispatch({ type: "update-with-pointer", collisionIds, positionOffset });
   });
 
   useDragSubscription("submit", () => {
@@ -214,14 +94,9 @@ export default function DashboardLayout<D>({
       throw new Error("Invariant violation: no transition.");
     }
 
-    // Discard state first so that if there is an exception in the code below it doesn't prevent state update.
-    setTransitionDelayed.cancel();
-    setTransition(null);
-    setAcquiredItem(null);
+    dispatch({ type: "submit" });
 
     if (transition.layoutShift) {
-      printLayoutDebug(itemsLayout, transition.layoutShift);
-
       if (transition.layoutShift.conflicts.length === 0) {
         // Commit new layout for insert case.
         if (transition.operation === "insert") {
@@ -235,13 +110,7 @@ export default function DashboardLayout<D>({
         else {
           onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
         }
-
-        setAnnouncement(i18nStrings.liveAnnouncementOperationCommitted(transition.operation));
       }
-    }
-
-    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
-      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
     }
 
     autoScrollHandlers.removePointerEventHandlers();
@@ -252,226 +121,92 @@ export default function DashboardLayout<D>({
       throw new Error("Invariant violation: no transition.");
     }
 
-    setTransitionDelayed.cancel();
-    setTransition(null);
-    setAcquiredItem(null);
+    dispatch({ type: "discard" });
 
     autoScrollHandlers.removePointerEventHandlers();
-
-    // Announce only if the target item belongs to the layout.
-    if (items.some((it) => it.id === transition.draggableItem.id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementOperationDiscarded(transition.operation));
-    }
   });
 
   const removeItemAction = (removedItem: DashboardItem<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const layoutShiftWithRefloat = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
 
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
 
-    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-    disturbedIds.delete(removedItem.id);
-    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
-
-    setAnnouncement(
-      i18nStrings.liveAnnouncementOperation("remove", {
-        item: removedItem,
-        colspan: 0,
-        rowspan: 0,
-        columnOffset: 0,
-        rowOffset: 0,
-        columns,
-        rows,
-        direction: null,
-        conflicts: [],
-        disturbed: disturbed,
-      })
-    );
+    dispatch({ type: "remove-item", itemsLayout, itemId: removedItem.id });
   };
 
   function focusItem(item: null | GridLayoutItem) {
     if (item) {
       itemContainerRef.current[item.id].focusDragHandle();
     }
-    setAnnouncement("");
   }
 
-  function updateManualItemTransition(transition: Transition, path: Position[], direction: Direction) {
-    const updatedEngine = applyOperation(transition, path);
-
-    if (updatedEngine) {
-      const layoutShift = updatedEngine?.getLayoutShift();
-      setTransition({ ...transition, collisionIds: [], layoutShift, path, interactionType: "keyboard" });
-      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-
-      const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
-      setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, direction);
-    } else {
-      throw new Error("Invariant violation: no layout shift for manual transition.");
-    }
-  }
-
-  function setTransitionAnnouncement(
-    operation: Operation,
-    targetItem: null | GridLayoutItem,
-    layoutEngine: LayoutEngine,
-    direction: null | Direction
-  ) {
-    const layoutShift = layoutEngine.getLayoutShift();
-    const layoutShiftWithRefloat = layoutEngine.refloat().getLayoutShift();
-
-    const firstMove = layoutShift.moves[0];
-    const targetId = firstMove?.itemId ?? targetItem?.id;
-    if (!targetId) {
-      return null;
-    }
-
-    const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetId);
-    const lastItemMove = itemMoves[itemMoves.length - 1];
-    const placement = lastItemMove ?? targetItem;
-
-    const item = items.find((it) => it.id === targetId)!;
-
-    const conflicts = layoutShift.conflicts.map((conflictId) => items.find((it) => it.id === conflictId)!);
-
-    const disturbedIds = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-    disturbedIds.delete(targetId);
-    const disturbed = [...disturbedIds].map((itemId) => items.find((it) => it.id === itemId)!);
-
-    setAnnouncement(
-      i18nStrings.liveAnnouncementOperation(operation, {
-        item,
-        colspan: placement.width,
-        rowspan: placement.height,
-        columnOffset: placement.x,
-        rowOffset: placement.y,
-        columns,
-        rows,
-        direction,
-        conflicts,
-        disturbed,
-      })
-    );
-  }
-
-  function shiftItem(transition: Transition, direction: Direction) {
-    switch (direction) {
-      case "left":
-        return shiftItemLeft(transition);
-      case "right":
-        return shiftItemRight(transition);
-      case "up":
-        return shiftItemUp(transition);
-      case "down":
-        return shiftItemDown(transition);
-    }
-  }
-
-  function shiftItemLeft(transition: Transition) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const position = layoutItem?.x ?? 0;
-    const minSize = getMinItemSize(transition.draggableItem).width;
-    if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(
-        transition,
-        [...transition.path, new Position({ x: lastPosition.x - 1, y: lastPosition.y })],
-        "left"
-      );
-    } else {
-      // Reached edge or can't resize to below minimum size.
-    }
-  }
-
-  function shiftItemRight(transition: Transition) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
-      updateManualItemTransition(
-        transition,
-        [...transition.path, new Position({ x: lastPosition.x + 1, y: lastPosition.y })],
-        "right"
-      );
-    } else {
-      // Reached edge or can't resize to below minimum size.
-    }
-  }
-
-  function shiftItemUp(transition: Transition) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const position = layoutItem?.y ?? 0;
-    const minSize = getMinItemSize(transition.draggableItem).height;
-    if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
-      updateManualItemTransition(
-        transition,
-        [...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y - 1 })],
-        "up"
-      );
-    } else {
-      // Reached edge or can't resize to below minimum size.
-    }
-  }
-
-  function shiftItemDown(transition: Transition) {
-    const lastPosition = transition.path[transition.path.length - 1];
-    if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
-      updateManualItemTransition(
-        transition,
-        [...transition.path, new Position({ x: lastPosition.x, y: lastPosition.y + 1 })],
-        "down"
-      );
-    } else {
-      // Reached edge or can't resize to below minimum size.
-    }
+  function shiftItem(direction: Direction) {
+    dispatch({ type: "update-with-keyboard", direction });
+    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
   }
 
   function onItemNavigate(itemId: ItemId, direction: Direction) {
     if (transition) {
-      shiftItem(transition, direction);
+      shiftItem(direction);
     } else {
       focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
     }
   }
 
   function acquireItem(position: Position) {
-    if (!transition) {
-      throw new Error("Invariant violation: no transition for acquire.");
-    }
-
-    const layoutRect = transition.draggableElement.getBoundingClientRect();
-    const itemRect = transition.draggableElement.getBoundingClientRect();
-    const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
-    const insertionDirection = getInsertionDirection(offset);
-
-    // Update original insertion position if the item can't fit into the layout by width.
-    const width = getDefaultItemWidth(transition.draggableItem);
-    position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
-
-    const path = [...transition.path, position];
-    const updatedEngine = applyOperation(transition, path, insertionDirection);
-
-    if (!updatedEngine) {
-      throw new Error("Invariant violation: acquired item is not inserted into layout.");
-    }
-
-    const layoutShift = updatedEngine.getLayoutShift();
-
-    // TODO: resolve "any" here.
-    // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
-    setAcquiredItem({ ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 });
-    setTransition({ ...transition, collisionIds: [], layoutShift, path, interactionType: "keyboard" });
-
-    const targetItem = layoutItemById.get(transition.draggableItem.id) ?? null;
-    setTransitionAnnouncement(transition.operation, targetItem, updatedEngine, null);
+    dispatch({ type: "acquire-item", position, layoutElement: containerAccessRef.current! });
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
   if (transition && transition.interactionType === "pointer") {
     delete transforms[transition.draggableItem.id];
   }
+
+  const announcement = (() => {
+    if (!transitionAnnouncement) {
+      return "";
+    }
+    if (!items.some((it) => it.id === transitionAnnouncement.itemId)) {
+      return "";
+    }
+
+    const toItem = (id: ItemId) => items.find((it) => it.id === id)!;
+
+    switch (transitionAnnouncement.type) {
+      case "operation-started":
+        return i18nStrings.liveAnnouncementOperationStarted(transitionAnnouncement.operation);
+      case "operation-performed":
+        return i18nStrings.liveAnnouncementOperation(transitionAnnouncement.operation, {
+          item: toItem(transitionAnnouncement.targetItem.id),
+          colspan: transitionAnnouncement.targetItem.width,
+          rowspan: transitionAnnouncement.targetItem.height,
+          columnOffset: transitionAnnouncement.targetItem.x,
+          rowOffset: transitionAnnouncement.targetItem.y,
+          columns,
+          rows,
+          direction: transitionAnnouncement.direction ?? null,
+          conflicts: [...transitionAnnouncement.conflicts].map(toItem),
+          disturbed: [...transitionAnnouncement.disturbed].map(toItem),
+        });
+      case "operation-committed":
+        return i18nStrings.liveAnnouncementOperationCommitted(transitionAnnouncement.operation);
+      case "operation-discarded":
+        return i18nStrings.liveAnnouncementOperationDiscarded(transitionAnnouncement.operation);
+      case "item-removed":
+        return i18nStrings.liveAnnouncementOperation("remove", {
+          item: toItem(transitionAnnouncement.itemId),
+          colspan: 0,
+          rowspan: 0,
+          columnOffset: 0,
+          rowOffset: 0,
+          columns,
+          rows,
+          direction: null,
+          conflicts: [],
+          disturbed: [...transitionAnnouncement.disturbed].map(toItem),
+        });
+    }
+  })();
 
   const showGrid = items.length > 0 || transition;
 
@@ -490,7 +225,7 @@ export default function DashboardLayout<D>({
             <Placeholder
               key={placeholder.id}
               id={placeholder.id}
-              state={transition ? (transition.collisionIds?.includes(placeholder.id) ? "hover" : "active") : "default"}
+              state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
               acquire={() => acquireItem(new Position({ x: placeholder.x, y: placeholder.y }))}
             />
           ))}
