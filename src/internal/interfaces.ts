@@ -6,20 +6,18 @@ export type ItemId = string;
 
 export type DataFallbackType = Record<string, unknown>;
 
-export interface DashboardItemBase<D = DataFallbackType> {
+export interface BoardItemDefinitionBase<D = DataFallbackType> {
   id: ItemId;
-  definition: DashboardItemDefinition;
+  definition: {
+    minRowSpan?: number;
+    minColumnSpan?: number;
+    defaultRowSpan: number;
+    defaultColumnSpan: number;
+  };
   data: D;
 }
 
-export interface DashboardItemDefinition {
-  minRowSpan?: number;
-  minColumnSpan?: number;
-  defaultRowSpan: number;
-  defaultColumnSpan: number;
-}
-
-export interface DashboardItem<D = DataFallbackType> extends DashboardItemBase<D> {
+export interface BoardItemDefinition<D = DataFallbackType> extends BoardItemDefinitionBase<D> {
   columnOffset: number;
   rowSpan: number;
   columnSpan: number;

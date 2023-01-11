@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
 import { DashboardLayoutProps } from "../../lib/components";
-import { DashboardItemDefinition } from "../../lib/components/internal/interfaces";
 import { fromMatrix } from "../../src/internal/debug-tools";
-import { DashboardItemBase } from "../../src/internal/interfaces";
+import { BoardItemDefinitionBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
 import { DashboardPaletteProps } from "../../src/palette/interfaces";
 import { ItemData } from "../shared/interfaces";
@@ -219,7 +218,7 @@ export const demoPaletteItems: readonly DashboardPaletteProps.Item<ItemData>[] =
   }));
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
-  const definitions: { [letter: string]: DashboardItemDefinition } = {
+  const definitions: { [letter: string]: BoardItemDefinitionBase["definition"] } = {
     R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
     S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
     T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
@@ -240,7 +239,7 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
     },
   };
   return acc;
-}, {} as { [id: string]: DashboardItemBase<ItemData> });
+}, {} as { [id: string]: BoardItemDefinitionBase<ItemData> });
 
 export function createLetterItems(grid: null | string[][], palette?: string[]) {
   if (!grid) {

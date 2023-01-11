@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { DashboardItemBase, DataFallbackType } from "../internal/interfaces";
+import { BoardItemDefinitionBase, DataFallbackType } from "../internal/interfaces";
 
 export interface DashboardPaletteProps<D = DataFallbackType> {
   /**
@@ -21,7 +21,7 @@ export interface DashboardPaletteProps<D = DataFallbackType> {
 }
 
 export namespace DashboardPaletteProps {
-  export type Item<D = DataFallbackType> = DashboardItemBase<D>;
+  export type Item<D = DataFallbackType> = BoardItemDefinitionBase<D>;
 
   export interface ItemContext {
     showPreview: boolean;

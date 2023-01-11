@@ -6,7 +6,13 @@ import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { DashboardItem, DashboardItemBase, Direction, GridLayoutItem, ItemId } from "../internal/interfaces";
+import {
+  BoardItemDefinition,
+  BoardItemDefinitionBase,
+  Direction,
+  GridLayoutItem,
+  ItemId,
+} from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
@@ -64,8 +70,9 @@ export default function DashboardLayout<D>({
     }
   }, [acquiredItem]);
 
-  const getDefaultItemWidth = (item: DashboardItemBase<unknown>) => Math.min(columns, getDefaultItemSize(item).width);
-  const getDefaultItemHeight = (item: DashboardItemBase<unknown>) => getDefaultItemSize(item).height;
+  const getDefaultItemWidth = (item: BoardItemDefinitionBase<unknown>) =>
+    Math.min(columns, getDefaultItemSize(item).width);
+  const getDefaultItemHeight = (item: BoardItemDefinitionBase<unknown>) => getDefaultItemSize(item).height;
 
   // Rows can't be 0 as it would prevent placing the first item to the layout.
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows || 1;
@@ -126,7 +133,7 @@ export default function DashboardLayout<D>({
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  const removeItemAction = (removedItem: DashboardItem<D>) => {
+  const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
 
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
-import { DashboardItem, DataFallbackType, Direction } from "../internal/interfaces";
+import { BoardItemDefinition, DataFallbackType, Direction } from "../internal/interfaces";
 
 export interface DashboardLayoutProps<D = DataFallbackType> {
   /**
@@ -32,7 +32,7 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
 }
 
 export namespace DashboardLayoutProps {
-  export type Item<D = DataFallbackType> = DashboardItem<D>;
+  export type Item<D = DataFallbackType> = BoardItemDefinition<D>;
 
   export interface ItemActions {
     removeItem(): void;

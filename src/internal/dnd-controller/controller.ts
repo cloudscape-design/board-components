@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
-import { DashboardItemBase, ItemId, Rect } from "../interfaces";
+import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getCollisionRect, getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
@@ -26,7 +26,7 @@ export interface DropTargetContext {
 export interface DragAndDropData {
   operation: Operation;
   interactionType: InteractionType;
-  draggableItem: DashboardItemBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<unknown>;
   draggableElement: HTMLElement;
   positionOffset: Coordinates;
   coordinates: Coordinates;
@@ -43,7 +43,7 @@ export interface Droppable {
 interface DragDetail {
   operation: Operation;
   interactionType: InteractionType;
-  draggableItem: DashboardItemBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<unknown>;
   draggableElement: HTMLElement;
 }
 
@@ -65,7 +65,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   public start(
     operation: Operation,
     interactionType: InteractionType,
-    draggableItem: DashboardItemBase<unknown>,
+    draggableItem: BoardItemDefinitionBase<unknown>,
     draggableElement: HTMLElement,
     startCoordinates: Coordinates
   ) {
@@ -143,7 +143,7 @@ export function useDraggable({
   item,
   getElement,
 }: {
-  item: DashboardItemBase<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   getElement: () => HTMLElement;
 }) {
   return {

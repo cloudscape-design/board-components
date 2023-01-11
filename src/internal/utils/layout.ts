@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MIN_ROW_SPAN } from "../constants";
-import { DashboardItem, DashboardItemBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
+import { BoardItemDefinition, BoardItemDefinitionBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
-export function createItemsLayout(items: readonly DashboardItem<unknown>[], columns: number): GridLayout {
+export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[], columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
   const colAffordance = Array(columns).fill(-1);
 
@@ -47,8 +47,8 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 
 export function exportItemsLayout<D>(
   grid: GridLayout,
-  sourceItems: readonly DashboardItem<D>[]
-): readonly DashboardItem<D>[] {
+  sourceItems: readonly BoardItemDefinition<D>[]
+): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
     const item = itemById.get(itemId);
@@ -65,21 +65,21 @@ export function exportItemsLayout<D>(
     return a.x > b.x ? 1 : -1;
   });
 
-  const dashboardItems: DashboardItem<D>[] = [];
+  const dashboardItems: BoardItemDefinition<D>[] = [];
   for (const { id, x, width, height } of sortedLayout) {
     dashboardItems.push({ ...getItem(id), columnOffset: x, columnSpan: width, rowSpan: height });
   }
   return dashboardItems;
 }
 
-export function getMinItemSize(item: DashboardItemBase<unknown>) {
+export function getMinItemSize(item: BoardItemDefinitionBase<unknown>) {
   return {
     width: Math.max(1, item.definition.minColumnSpan ?? 1),
     height: Math.max(MIN_ROW_SPAN, item.definition.minRowSpan ?? 1),
   };
 }
 
-export function getDefaultItemSize(item: DashboardItemBase<unknown>) {
+export function getDefaultItemSize(item: BoardItemDefinitionBase<unknown>) {
   return {
     width: Math.max(getMinItemSize(item).width, item.definition.defaultColumnSpan),
     height: Math.max(getMinItemSize(item).height, item.definition.defaultRowSpan),

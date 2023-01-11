@@ -20,7 +20,7 @@ test(
   setupTest(async (page) => {
     await page.click("h1");
 
-    const firstItem = createWrapper().findDashboardItem();
+    const firstItem = createWrapper().findBoardItem();
 
     await page.focusNextElement();
     expect(await page.isFocused(firstItem.findDragHandle().toSelector())).toBeTruthy();
