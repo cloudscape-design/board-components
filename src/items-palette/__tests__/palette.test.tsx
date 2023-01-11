@@ -3,11 +3,11 @@
 import { act, cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement, forwardRef } from "react";
 import { afterEach, expect, test, vi } from "vitest";
+import itemStyles from "../../../lib/components/board-item/styles.css.js";
 import { DragAndDropEvents, useDragSubscription } from "../../../lib/components/internal/dnd-controller/controller";
 import { EventEmitter } from "../../../lib/components/internal/dnd-controller/event-emitter";
-import itemStyles from "../../../lib/components/item/styles.css.js";
-import DashboardPalette, { DashboardPaletteProps } from "../../../lib/components/palette";
-import createWrapper, { PaletteWrapper } from "../../../lib/components/test-utils/dom";
+import ItemsPalette, { ItemsPaletteProps } from "../../../lib/components/items-palette";
+import createWrapper, { ItemsPaletteWrapper } from "../../../lib/components/test-utils/dom";
 
 afterEach(cleanup);
 
@@ -32,10 +32,10 @@ class FakeEmitter extends EventEmitter<DragAndDropEvents> {
 
 function render(jsx: ReactElement) {
   libRender(jsx);
-  return createWrapper().findPalette()!;
+  return createWrapper().findItemsPalette()!;
 }
 
-const defaultProps: DashboardPaletteProps = {
+const defaultProps: ItemsPaletteProps = {
   i18nStrings: {
     itemDragHandleAriaLabel: (item) => "" + item.data.title,
     itemDragHandleAriaDescription:
@@ -55,18 +55,18 @@ const defaultProps: DashboardPaletteProps = {
   ),
 };
 
-function getPreviewState(wrapper: PaletteWrapper) {
+function getPreviewState(wrapper: ItemsPaletteWrapper) {
   return wrapper.findItems().map((item) => item.find('[data-testid="showPreview"]')!.getElement().textContent);
 }
 
 test("renders palette and items", () => {
-  const wrapper = render(<DashboardPalette {...defaultProps} />);
+  const wrapper = render(<ItemsPalette {...defaultProps} />);
   expect(wrapper.findItems()).toHaveLength(2);
 });
 
 test("updates preview state when drop target changes", () => {
   const fakeEmitter = new FakeEmitter();
-  const wrapper = render(<DashboardPalette {...defaultProps} />);
+  const wrapper = render(<ItemsPalette {...defaultProps} />);
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
   act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: {} } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
@@ -76,7 +76,7 @@ test("updates preview state when drop target changes", () => {
 
 test("updates preview state when operation submits", () => {
   const fakeEmitter = new FakeEmitter();
-  const wrapper = render(<DashboardPalette {...defaultProps} />);
+  const wrapper = render(<ItemsPalette {...defaultProps} />);
   act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: {} } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
   act(() => fakeEmitter.emit("submit"));
@@ -85,7 +85,7 @@ test("updates preview state when operation submits", () => {
 
 test("updates preview state when operation discards", () => {
   const fakeEmitter = new FakeEmitter();
-  const wrapper = render(<DashboardPalette {...defaultProps} />);
+  const wrapper = render(<ItemsPalette {...defaultProps} />);
   act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: {} } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
   act(() => fakeEmitter.emit("discard"));

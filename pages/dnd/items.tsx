@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
-import { DashboardLayoutProps } from "../../lib/components";
+import { BoardProps } from "../../lib/components";
 import { fromMatrix } from "../../src/internal/debug-tools";
 import { BoardItemDefinitionBase } from "../../src/internal/interfaces";
 import { exportItemsLayout } from "../../src/internal/utils/layout";
-import { DashboardPaletteProps } from "../../src/palette/interfaces";
+import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
 import { ItemData } from "../shared/interfaces";
 import { Counter } from "./commons";
 import {
@@ -22,7 +22,7 @@ import { RevenueChart } from "./revenue-chart";
 
 export type ItemWidgets = Record<
   string,
-  { data: ItemData; definition?: DashboardPaletteProps.Item["definition"] } | undefined
+  { data: ItemData; definition?: ItemsPaletteProps.Item["definition"] } | undefined
 >;
 
 const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
@@ -200,7 +200,7 @@ export const storedPositions = [
   { id: "10", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
 ];
 
-export const demoLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[] = storedPositions.map((pos) => {
+export const demoLayoutItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
   const config = demoWidgets[pos.id];
   return {
     ...pos,
@@ -209,7 +209,7 @@ export const demoLayoutItems: readonly DashboardLayoutProps.Item<ItemData>[] = s
   };
 });
 
-export const demoPaletteItems: readonly DashboardPaletteProps.Item<ItemData>[] = Object.entries(demoWidgets)
+export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Object.entries(demoWidgets)
   .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
   .map(([key, widget]) => ({
     id: key,

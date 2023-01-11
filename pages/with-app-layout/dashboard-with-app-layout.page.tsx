@@ -3,7 +3,7 @@
 import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
-import { BoardItem, DashboardLayout, DashboardPalette } from "../../lib/components";
+import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
@@ -34,7 +34,7 @@ export default function () {
               </Box>
             }
           >
-            <DashboardLayout
+            <Board
               i18nStrings={dashboardI18nStrings}
               empty={"No widgets"}
               items={layoutWidgets}
@@ -88,7 +88,7 @@ export default function () {
               }}
             >
               {paletteWidgets.length > 0 ? (
-                <DashboardPalette
+                <ItemsPalette
                   items={paletteWidgets}
                   i18nStrings={paletteI18nStrings}
                   renderItem={(item) => (

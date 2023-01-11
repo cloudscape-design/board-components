@@ -28,19 +28,13 @@ import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { getNextItem } from "./calculations/grid-navigation";
 import { createTransforms } from "./calculations/shift-layout";
 
-import { DashboardLayoutProps } from "./interfaces";
+import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
 
-export default function DashboardLayout<D>({
-  items,
-  renderItem,
-  onItemsChange,
-  empty,
-  i18nStrings,
-}: DashboardLayoutProps<D>) {
+export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),

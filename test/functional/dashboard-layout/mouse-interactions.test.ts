@@ -5,8 +5,8 @@ import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
-const dashboardWrapper = createWrapper().findDashboard();
-const paletteWrapper = createWrapper().findPalette();
+const dashboardWrapper = createWrapper().findBoard();
+const paletteWrapper = createWrapper().findItemsPalette();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;

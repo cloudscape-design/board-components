@@ -5,8 +5,8 @@ import { describe, expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object";
 
-const dashboardWrapper = createWrapper().findDashboard();
-const paletteWrapper = createWrapper().findPalette();
+const dashboardWrapper = createWrapper().findBoard();
+const paletteWrapper = createWrapper().findItemsPalette();
 const dashboardItemHandle = (id: string) => dashboardWrapper.findItemById(id).findDragHandle().toSelector();
 const dashboardItemResizeHandle = (id: string) => dashboardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemHandle = (id: string) => paletteWrapper.findItemById(id).findDragHandle().toSelector();

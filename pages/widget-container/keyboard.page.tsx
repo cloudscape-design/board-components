@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { BoardItem, DashboardLayout } from "../../lib/components";
+import { Board, BoardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
@@ -8,7 +8,7 @@ import { ItemData } from "../shared/interfaces";
 export default function KeyboardPage() {
   return (
     <PageLayout header={<h1>Widget Container - Keyboard</h1>}>
-      <DashboardLayout<ItemData>
+      <Board<ItemData>
         i18nStrings={i18nStrings.dashboardI18nStrings}
         items={[
           {

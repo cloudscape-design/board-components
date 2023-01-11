@@ -3,27 +3,27 @@
 import { ReactNode } from "react";
 import { BoardItemDefinition, DataFallbackType, Direction } from "../internal/interfaces";
 
-export interface DashboardLayoutProps<D = DataFallbackType> {
+export interface BoardProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the dashboard. Each item is includes its position on the dashboard and
    * attached data. The content of an item is controlled by the `renderItem` property.
    */
-  items: readonly DashboardLayoutProps.Item<D>[];
+  items: readonly BoardProps.Item<D>[];
 
   /**
    * Specifies a function to render a dashboard item content. The return value must include dashboard item component.
    */
-  renderItem(item: DashboardLayoutProps.Item<D>, actions: DashboardLayoutProps.ItemActions): JSX.Element;
+  renderItem(item: BoardProps.Item<D>, actions: BoardProps.ItemActions): JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
    */
-  i18nStrings: DashboardLayoutProps.I18nStrings<D>;
+  i18nStrings: BoardProps.I18nStrings<D>;
 
   /**
    * Fired when a user interaction changes size or position of dashboard items.
    */
-  onItemsChange: (event: CustomEvent<DashboardLayoutProps.ItemsChangeDetail<D>>) => void;
+  onItemsChange: (event: CustomEvent<BoardProps.ItemsChangeDetail<D>>) => void;
 
   /**
    * Rendered when no items provided.
@@ -31,7 +31,7 @@ export interface DashboardLayoutProps<D = DataFallbackType> {
   empty: ReactNode;
 }
 
-export namespace DashboardLayoutProps {
+export namespace BoardProps {
   export type Item<D = DataFallbackType> = BoardItemDefinition<D>;
 
   export interface ItemActions {

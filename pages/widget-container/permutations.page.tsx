@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Button, ButtonDropdown, SpaceBetween } from "@cloudscape-design/components";
 import Header from "@cloudscape-design/components/header";
-import { BoardItem, DashboardLayout } from "../../lib/components";
+import { Board, BoardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
@@ -22,7 +22,7 @@ export default function WidgetContainerPermutations() {
   return (
     <ScreenshotArea>
       <PageLayout header={<h1>Widget Container</h1>}>
-        <DashboardLayout<ItemData>
+        <Board<ItemData>
           i18nStrings={i18nStrings.dashboardI18nStrings}
           renderItem={(item) => <>{item.data.content}</>}
           onItemsChange={() => {

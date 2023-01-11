@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { DashboardLayoutProps, DashboardPaletteProps } from "../../lib/components";
+import { BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { ItemData } from "./interfaces";
 
-export const paletteI18nStrings: DashboardPaletteProps.I18nStrings<ItemData> = {
+export const paletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = {
   itemDragHandleAriaLabel: (item, index, items) => {
     const itemAnnouncement = "Drag handle, " + item.data.title;
     const positionAnnouncement = index === 0 ? "first item" : index === items.length - 1 ? "last item" : "";
@@ -15,7 +15,7 @@ export const paletteI18nStrings: DashboardPaletteProps.I18nStrings<ItemData> = {
   liveAnnouncementDragDiscarded: "Insertion discarded",
 };
 
-export const dashboardI18nStrings: DashboardLayoutProps.I18nStrings<ItemData> = {
+export const dashboardI18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementOperationStarted(operationType) {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },

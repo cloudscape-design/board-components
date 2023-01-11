@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { BasePageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import layoutStyles from "../../../lib/components/layout/styles.selectors.js";
+import layoutStyles from "../../../lib/components/board/styles.selectors.js";
 
 export class DndPageObject extends BasePageObject {
   async getGrid() {

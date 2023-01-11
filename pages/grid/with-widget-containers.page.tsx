@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Header } from "@cloudscape-design/components";
-import { BoardItem, DashboardLayout } from "../../lib/components";
+import { Board, BoardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
@@ -13,7 +13,7 @@ export default function GridWithWidgetContainerPage() {
     <ScreenshotArea>
       <PageLayout header={<h1>Grid with Widget Container</h1>}>
         <TestBed>
-          <DashboardLayout<ItemData>
+          <Board<ItemData>
             i18nStrings={i18nStrings.dashboardI18nStrings}
             items={[
               {
@@ -83,7 +83,7 @@ export default function GridWithWidgetContainerPage() {
               /*readonly grid*/
             }}
             empty="No items"
-          ></DashboardLayout>
+          ></Board>
         </TestBed>
       </PageLayout>
     </ScreenshotArea>
