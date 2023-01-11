@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Button, ButtonDropdown, SpaceBetween } from "@cloudscape-design/components";
 import Header from "@cloudscape-design/components/header";
-import { DashboardItem, DashboardLayout } from "../../lib/components";
+import { BoardItem, DashboardLayout } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
@@ -35,7 +35,7 @@ export default function WidgetContainerPermutations() {
               data: {
                 title: "Text header",
                 description: "",
-                content: <DashboardItem header={<Header variant="h2">Text Header</Header>} />,
+                content: <BoardItem header={<Header variant="h2">Text Header</Header>} />,
               },
             },
             {
@@ -45,7 +45,7 @@ export default function WidgetContainerPermutations() {
                 title: "Text header with settings",
                 description: "",
                 content: (
-                  <DashboardItem
+                  <BoardItem
                     header={<Header variant="h2">Text Header with Settings</Header>}
                     settings={
                       <ButtonDropdown
@@ -67,7 +67,7 @@ export default function WidgetContainerPermutations() {
                 title: "Text header with actions",
                 description: "",
                 content: (
-                  <DashboardItem
+                  <BoardItem
                     header={
                       <Header
                         variant="h2"
@@ -101,7 +101,7 @@ export default function WidgetContainerPermutations() {
                 title: "Text header wraps",
                 description: "",
                 content: (
-                  <DashboardItem
+                  <BoardItem
                     header={
                       <Header variant="h2">
                         Text Header wraps - I will make this a long title that wraps into the next line so that I can
@@ -128,7 +128,7 @@ export default function WidgetContainerPermutations() {
                 title: "Text header with actions",
                 description: "",
                 content: (
-                  <DashboardItem
+                  <BoardItem
                     header={
                       <Header
                         variant="h2"
@@ -153,9 +153,9 @@ export default function WidgetContainerPermutations() {
                 title: "Text header",
                 description: "",
                 content: (
-                  <DashboardItem disableContentPaddings={true} header={<Header variant="h2">Text Header</Header>}>
+                  <BoardItem disableContentPaddings={true} header={<Header variant="h2">Text Header</Header>}>
                     <Box textAlign="center">Content without paddings</Box>
-                  </DashboardItem>
+                  </BoardItem>
                 ),
               },
             },
@@ -166,7 +166,7 @@ export default function WidgetContainerPermutations() {
                 title: "Text header",
                 description: "",
                 content: (
-                  <DashboardItem
+                  <BoardItem
                     header={<Header variant="h2">Footer Content</Header>}
                     footer={<Box textAlign="center">More</Box>}
                   />

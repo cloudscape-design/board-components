@@ -7,18 +7,12 @@ import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";
 import ScreenreaderOnly from "../internal/screenreader-only";
 import WidgetContainerHeader from "./header";
-import type { DashboardItemProps } from "./interfaces";
+import type { BoardItemProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export type { DashboardItemProps };
+export type { BoardItemProps };
 
-export default function DashboardItem({
-  children,
-  header,
-  settings,
-  disableContentPaddings,
-  footer,
-}: DashboardItemProps) {
+export default function BoardItem({ children, header, settings, disableContentPaddings, footer }: BoardItemProps) {
   const { dragHandle, resizeHandle } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();

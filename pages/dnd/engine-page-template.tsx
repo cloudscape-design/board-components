@@ -3,7 +3,7 @@
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import { DashboardItem, DashboardLayout, DashboardLayoutProps, DashboardPalette } from "../../lib/components";
+import { BoardItem, DashboardLayout, DashboardLayoutProps, DashboardPalette } from "../../lib/components";
 import { DashboardPaletteProps } from "../../src/palette/interfaces";
 import PageLayout from "../app/page-layout";
 import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
@@ -32,7 +32,7 @@ export function EnginePageTemplate({
           i18nStrings={dashboardI18nStrings}
           items={items}
           renderItem={(item, actions) => (
-            <DashboardItem
+            <BoardItem
               header={<Header>{item.data.title}</Header>}
               footer={item.data.footer}
               settings={
@@ -45,7 +45,7 @@ export function EnginePageTemplate({
               }
             >
               {item.data.content}
-            </DashboardItem>
+            </BoardItem>
           )}
           onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
             setItems(items);
@@ -67,9 +67,7 @@ export function EnginePageTemplate({
             items={paletteItems}
             renderItem={(item) => {
               const widgetConfig = widgets[item.id]!.data;
-              return (
-                <DashboardItem header={<Header>{widgetConfig.title}</Header>}>{widgetConfig.description}</DashboardItem>
-              );
+              return <BoardItem header={<Header>{widgetConfig.title}</Header>}>{widgetConfig.description}</BoardItem>;
             }}
             i18nStrings={paletteI18nStrings}
           />

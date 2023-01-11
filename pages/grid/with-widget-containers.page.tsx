@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Header } from "@cloudscape-design/components";
-import { DashboardItem, DashboardLayout } from "../../lib/components";
+import { BoardItem, DashboardLayout } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
@@ -77,9 +77,7 @@ export default function GridWithWidgetContainerPage() {
               },
             ]}
             renderItem={(item) => (
-              <DashboardItem header={<Header variant="h2">{item.data.title}</Header>}>
-                {item.data.content}
-              </DashboardItem>
+              <BoardItem header={<Header variant="h2">{item.data.title}</Header>}>{item.data.content}</BoardItem>
             )}
             onItemsChange={() => {
               /*readonly grid*/

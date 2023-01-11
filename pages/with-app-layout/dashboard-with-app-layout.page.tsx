@@ -3,7 +3,7 @@
 import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
-import { DashboardItem, DashboardLayout, DashboardPalette } from "../../lib/components";
+import { BoardItem, DashboardLayout, DashboardPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import { dashboardI18nStrings, paletteI18nStrings } from "../shared/i18n";
@@ -51,7 +51,7 @@ export default function () {
                 }
               }}
               renderItem={(item, actions) => (
-                <DashboardItem
+                <BoardItem
                   header={<Header>{item.data.title}</Header>}
                   footer={item.data.footer}
                   settings={
@@ -64,7 +64,7 @@ export default function () {
                   }
                 >
                   {item.data.content}
-                </DashboardItem>
+                </BoardItem>
               )}
             />
           </ContentLayout>
@@ -92,7 +92,7 @@ export default function () {
                   items={paletteWidgets}
                   i18nStrings={paletteI18nStrings}
                   renderItem={(item) => (
-                    <DashboardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</DashboardItem>
+                    <BoardItem header={<Header>{item.data.title}</Header>}>{item.data.description}</BoardItem>
                   )}
                 />
               ) : (

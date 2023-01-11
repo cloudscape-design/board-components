@@ -5,7 +5,7 @@ import dragHandleStyles from "../../../internal/drag-handle/styles.selectors.js"
 import resizeHandleStyles from "../../../internal/resize-handle/styles.selectors.js";
 import itemStyles from "../../../item/styles.selectors.js";
 
-export default class DashboardItemWrapper extends ComponentWrapper {
+export default class BoardItemWrapper extends ComponentWrapper {
   static rootSelector: string = itemStyles.root;
 
   findDragHandle(): ComponentWrapper {

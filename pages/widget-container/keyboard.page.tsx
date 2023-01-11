@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { DashboardItem, DashboardLayout } from "../../lib/components";
+import { BoardItem, DashboardLayout } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
@@ -28,7 +28,7 @@ export default function KeyboardPage() {
           },
         ]}
         renderItem={() => (
-          <DashboardItem
+          <BoardItem
             header={
               <span tabIndex={0} data-testid="header">
                 Header
@@ -48,7 +48,7 @@ export default function KeyboardPage() {
             <span tabIndex={0} data-testid="content">
               Content
             </span>
-          </DashboardItem>
+          </BoardItem>
         )}
         onItemsChange={() => {
           /*readonly grid*/

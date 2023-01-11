@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Header from "@cloudscape-design/components/header";
-import { DashboardItem, DashboardLayout } from "../../lib/components";
+import { BoardItem, DashboardLayout } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { demoWidgets } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
@@ -25,9 +25,7 @@ export default function WidgetContainerPermutations() {
       <PageLayout header={<h1>Widget container: Content permutations</h1>}>
         <DashboardLayout
           i18nStrings={i18nStrings.dashboardI18nStrings}
-          renderItem={(item) => (
-            <DashboardItem header={<Header>{item.data.title}</Header>}>{item.data.content}</DashboardItem>
-          )}
+          renderItem={(item) => <BoardItem header={<Header>{item.data.title}</Header>}>{item.data.content}</BoardItem>}
           items={[
             // simple 1x1
             { id: "responsive-11", ...responsive, ...position(0, 1, 1) },
