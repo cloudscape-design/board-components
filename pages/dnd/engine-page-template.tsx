@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Board, BoardItem, BoardProps, ItemsPalette } from "../../lib/components";
 import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
 import PageLayout from "../app/page-layout";
-import { boardI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
+import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
@@ -43,6 +43,7 @@ export function EnginePageTemplate({
                   onItemClick={() => actions.removeItem()}
                 />
               }
+              i18nStrings={boardItemI18nStrings}
             >
               {item.data.content}
             </BoardItem>
@@ -67,7 +68,11 @@ export function EnginePageTemplate({
             items={paletteItems}
             renderItem={(item) => {
               const widgetConfig = widgets[item.id]!.data;
-              return <BoardItem header={<Header>{widgetConfig.title}</Header>}>{widgetConfig.description}</BoardItem>;
+              return (
+                <BoardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={boardItemI18nStrings}>
+                  {widgetConfig.description}
+                </BoardItem>
+              );
             }}
             i18nStrings={itemsPaletteI18nStrings}
           />

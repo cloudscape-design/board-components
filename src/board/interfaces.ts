@@ -70,29 +70,23 @@ export namespace BoardProps {
      */
     liveAnnouncementOperationDiscarded: (operationType: DragOperationType) => string;
     /**
-     * Specifies layout item's drag handle aria label.
+     * Specifies ARIA-label for screen-reader board navigation.
      *
-     * Example: "Drag handle, Demo widget, columns 2-4 of 4, rows 1-2 or 12".
+     * Example: "Board navigation".
      */
-    itemDragHandleAriaLabel: (placement: PositionState<D>) => string;
+    navigationAriaLabel: string;
     /**
-     * Specifies layout item's drag handle aria description.
+     * Specifies ARIA-description for screen-reader board navigation.
      *
-     * Example: "Use drag handle to ..."
+     * Example: "Click on non-empty item to move focus over."
      */
-    itemDragHandleAriaDescription: string;
+    navigationAriaDescription?: string;
     /**
-     * Specifies layout item's resize handle aria label.
+     * Specifies ARIA-label for navigated grid item. Includes empty cells.
      *
-     * Example: "Resize handle, Demo widget, columns 2-4 of 4, rows 1-2 or 12".
+     * Example: "Widget 1" or "Empty".
      */
-    itemResizeHandleAriaLabel: (placement: PositionState<D>) => string;
-    /**
-     * Specifies layout item's resize handle aria description.
-     *
-     * Example: "Use resize handle to ..."
-     */
-    itemResizeHandleAriaDescription: string;
+    navigationItemAriaLabel: (item: null | BoardProps.Item<D>) => string;
   }
 
   export type DragOperationType = "reorder" | "resize" | "insert";
@@ -101,17 +95,17 @@ export namespace BoardProps {
 
   export type Edge = "left" | "right" | "top" | "bottom";
 
-  export interface PositionState<D> {
-    item: Item<D>;
-    colspan: number;
-    rowspan: number;
-    columnOffset: number;
-    rowOffset: number;
-    columns: number;
-    rows: number;
+  export interface ItemPlacement {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   }
 
-  export interface OperationState<D> extends PositionState<D> {
+  // TODO: use union type per operation.
+  export interface OperationState<D> {
+    item: Item<D>;
+    placement: null | ItemPlacement;
     direction: null | Direction;
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];

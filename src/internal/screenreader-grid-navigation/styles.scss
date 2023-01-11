@@ -1,0 +1,12 @@
+.screen-reader-navigation-hidden {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+.screen-reader-navigation-visible {
+  position: fixed;
+  background: white;
+  padding: 8px;
+  border: 1px solid black;
+  z-index: 10001;
+}

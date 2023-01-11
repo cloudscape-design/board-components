@@ -44,6 +44,7 @@ export default function KeyboardPage() {
                 Footer
               </span>
             }
+            i18nStrings={i18nStrings.boardItemI18nStrings}
           >
             <span tabIndex={0} data-testid="content">
               Content

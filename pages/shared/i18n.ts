@@ -1,18 +1,23 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { BoardProps, ItemsPaletteProps } from "../../lib/components";
+import { BoardItemProps, BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { ItemData } from "./interfaces";
 
+export const boardItemI18nStrings: BoardItemProps.I18nStrings = {
+  dragHandleAriaLabel: "Drag handle",
+  dragHandleAriaDescription:
+    "Use Space or Enter to activate drag, arrow keys to move, Space or Enter to submit, or Escape to discard.",
+  resizeHandleAriaLabel: "Resize handle",
+  resizeHandleAriaDescription:
+    "Use Space or Enter to activate resize, arrow keys to move, Space or Enter to submit, or Escape to discard.",
+};
+
 export const itemsPaletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = {
-  itemDragHandleAriaLabel: (item, index, items) => {
-    const itemAnnouncement = "Drag handle, " + item.data.title;
-    const positionAnnouncement = index === 0 ? "first item" : index === items.length - 1 ? "last item" : "";
-    return [itemAnnouncement, positionAnnouncement].filter(Boolean).join(", ");
-  },
-  itemDragHandleAriaDescription:
-    "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
   liveAnnouncementDragStarted: "Dragging",
   liveAnnouncementDragDiscarded: "Insertion discarded",
+  navigationAriaLabel: "Items palette navigation",
+  navigationAriaDescription: "Click on an item to move focus over",
+  navigationItemAriaLabel: (item) => item.data.title,
 };
 
 export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
@@ -30,11 +35,11 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
 
     const positionAnnouncement = (() => {
       if (operationType === "resize") {
-        const constraintColumns = operation.colspan === 1 ? "(minimal)" : "";
-        const columnsAnnouncement = `columns ${operation.colspan} ${constraintColumns}`;
+        const constraintColumns = operation.placement!.width === 1 ? "(minimal)" : "";
+        const columnsAnnouncement = `columns ${operation.placement!.width} ${constraintColumns}`;
 
-        const constraintRows = operation.rowspan === 2 ? "(minimal)" : "";
-        const rowsAnnouncement = `rows ${operation.rowspan} ${constraintRows}`;
+        const constraintRows = operation.placement!.height === 2 ? "(minimal)" : "";
+        const rowsAnnouncement = `rows ${operation.placement!.height} ${constraintRows}`;
 
         if (operation.direction === "left" || operation.direction === "right") {
           return columnsAnnouncement;
@@ -45,8 +50,8 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
         return `${columnsAnnouncement}, ${rowsAnnouncement}`;
       }
 
-      const columnsAnnouncement = `column ${operation.columnOffset + 1}`;
-      const rowsAnnouncement = `row ${operation.rowOffset + 1}`;
+      const columnsAnnouncement = `column ${operation.placement!.x + 1}`;
+      const rowsAnnouncement = `row ${operation.placement!.y + 1}`;
 
       if (operationType === "reorder" && (operation.direction === "left" || operation.direction === "right")) {
         return columnsAnnouncement;
@@ -78,18 +83,7 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementOperationDiscarded(operationType) {
     return `${operationType} discarded`;
   },
-  itemDragHandleAriaLabel({ item, columnOffset, colspan, rowOffset, rowspan, columns, rows }) {
-    const columnsDescription = `columns ${columnOffset + 1} - ${columnOffset + colspan} of ${columns}`;
-    const rowsDescription = `rows ${rowOffset + 1} - ${rowOffset + rowspan} of ${rows}`;
-    return ["Drag handle", item.data.title, columnsDescription, rowsDescription].filter(Boolean).join(", ");
-  },
-  itemDragHandleAriaDescription:
-    "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to move, Space key to submit, and Esc key to discard operation.",
-  itemResizeHandleAriaLabel: ({ item, columnOffset, colspan, rowOffset, rowspan, columns, rows }) => {
-    const columnsDescription = `columns ${columnOffset + 1} - ${columnOffset + colspan} of ${columns}`;
-    const rowsDescription = `rows ${rowOffset + 1} - ${rowOffset + rowspan} of ${rows}`;
-    return ["Resize handle", item.data.title, columnsDescription, rowsDescription].filter(Boolean).join(", ");
-  },
-  itemResizeHandleAriaDescription:
-    "When not dragging, use arrow keys for navigation and Space key to activate drag. When dragging, use arrow keys to resize, Space key to submit, and Esc key to discard operation.",
+  navigationAriaLabel: "Board navigation",
+  navigationAriaDescription: "Click on non-empty item to move focus over",
+  navigationItemAriaLabel: (item) => (item ? item.data.title : "Empty"),
 };

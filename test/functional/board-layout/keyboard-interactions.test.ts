@@ -26,42 +26,6 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
   });
 }
 
-test(
-  "navigates items in the palette",
-  setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
-    await page.focus(paletteItemHandle("R"));
-    await page.keys(["ArrowDown", "ArrowDown"]);
-    await expect(page.isFocused(paletteItemHandle("T"))).resolves.toBe(true);
-
-    await page.keys(["ArrowRight", "ArrowRight"]);
-    await expect(page.isFocused(paletteItemHandle("V"))).resolves.toBe(true);
-
-    await page.keys(["ArrowLeft", "ArrowLeft"]);
-    await expect(page.isFocused(paletteItemHandle("T"))).resolves.toBe(true);
-
-    await page.keys(["ArrowUp", "ArrowUp"]);
-    await expect(page.isFocused(paletteItemHandle("R"))).resolves.toBe(true);
-  })
-);
-
-test(
-  "navigates items in the board",
-  setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
-    await page.focus(boardItemHandle("F"));
-    await page.keys(["ArrowRight", "ArrowRight"]);
-    await expect(page.isFocused(boardItemHandle("H"))).resolves.toBe(true);
-
-    await page.keys(["ArrowDown", "ArrowDown"]);
-    await expect(page.isFocused(boardItemHandle("P"))).resolves.toBe(true);
-
-    await page.keys(["ArrowLeft", "ArrowLeft"]);
-    await expect(page.isFocused(boardItemHandle("N"))).resolves.toBe(true);
-
-    await page.keys(["ArrowUp", "ArrowUp"]);
-    await expect(page.isFocused(boardItemHandle("F"))).resolves.toBe(true);
-  })
-);
-
 describe("items reordered with keyboard", () => {
   test(
     "item move can be submitted",

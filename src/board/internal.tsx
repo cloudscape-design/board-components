@@ -6,16 +6,11 @@ import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import {
-  BoardItemDefinition,
-  BoardItemDefinitionBase,
-  Direction,
-  GridLayoutItem,
-  ItemId,
-} from "../internal/interfaces";
+import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
+import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
 import {
   createItemsLayout,
@@ -25,7 +20,6 @@ import {
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
-import { getNextItem } from "./calculations/grid-navigation";
 import { createTransforms } from "./calculations/shift-layout";
 
 import { BoardProps } from "./interfaces";
@@ -135,9 +129,9 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     dispatch({ type: "remove-item", itemsLayout, itemId: removedItem.id });
   };
 
-  function focusItem(item: null | GridLayoutItem) {
-    if (item) {
-      itemContainerRef.current[item.id].focusDragHandle();
+  function focusItem(itemId?: ItemId) {
+    if (itemId) {
+      itemContainerRef.current[itemId].focusDragHandle();
     }
   }
 
@@ -149,8 +143,6 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
   function onItemNavigate(itemId: ItemId, direction: Direction) {
     if (transition) {
       shiftItem(direction);
-    } else {
-      focusItem(getNextItem(itemsLayout, layoutItemById.get(itemId)!, direction));
     }
   }
 
@@ -178,14 +170,9 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
         return i18nStrings.liveAnnouncementOperationStarted(transitionAnnouncement.operation);
       case "operation-performed":
         return i18nStrings.liveAnnouncementOperation(transitionAnnouncement.operation, {
-          item: toItem(transitionAnnouncement.targetItem.id),
-          colspan: transitionAnnouncement.targetItem.width,
-          rowspan: transitionAnnouncement.targetItem.height,
-          columnOffset: transitionAnnouncement.targetItem.x,
-          rowOffset: transitionAnnouncement.targetItem.y,
-          columns,
-          rows,
-          direction: transitionAnnouncement.direction ?? null,
+          item: toItem(transitionAnnouncement.itemId),
+          placement: { ...transitionAnnouncement.targetItem },
+          direction: transitionAnnouncement.direction,
           conflicts: [...transitionAnnouncement.conflicts].map(toItem),
           disturbed: [...transitionAnnouncement.disturbed].map(toItem),
         });
@@ -196,12 +183,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       case "item-removed":
         return i18nStrings.liveAnnouncementOperation("remove", {
           item: toItem(transitionAnnouncement.itemId),
-          colspan: 0,
-          rowspan: 0,
-          columnOffset: 0,
-          rowOffset: 0,
-          columns,
-          rows,
+          placement: null,
           direction: null,
           conflicts: [],
           disturbed: [...transitionAnnouncement.disturbed].map(toItem),
@@ -215,6 +197,15 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
 
   return (
     <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
+      <ScreenReaderGridNavigation
+        items={items}
+        itemsLayout={itemsLayout}
+        ariaLabel={i18nStrings.navigationAriaLabel}
+        ariaDescription={i18nStrings.navigationAriaDescription}
+        itemAriaLabel={i18nStrings.navigationItemAriaLabel}
+        onFocusItem={focusItem}
+      />
+
       {showGrid ? (
         <Grid
           columns={columns}
@@ -243,16 +234,6 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
 
             const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
-            const positionState = {
-              item,
-              colspan: layoutItem?.width ?? 0,
-              rowspan: layoutItem?.height ?? 0,
-              columnOffset: layoutItem?.x ?? 0,
-              rowOffset: layoutItem?.y ?? 0,
-              columns,
-              rows,
-            };
-
             return (
               <ItemContainer
                 ref={(elem) => {
@@ -268,10 +249,6 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
                 onNavigate={(direction) => onItemNavigate(item.id, direction)}
-                dragHandleAriaLabel={i18nStrings.itemDragHandleAriaLabel(positionState)}
-                dragHandleAriaDescription={i18nStrings.itemDragHandleAriaDescription}
-                resizeHandleAriaLabel={i18nStrings.itemResizeHandleAriaLabel(positionState)}
-                resizeHandleAriaDescription={i18nStrings.itemResizeHandleAriaDescription}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>

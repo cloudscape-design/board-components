@@ -77,7 +77,12 @@ export default function GridWithWidgetContainerPage() {
               },
             ]}
             renderItem={(item) => (
-              <BoardItem header={<Header variant="h2">{item.data.title}</Header>}>{item.data.content}</BoardItem>
+              <BoardItem
+                header={<Header variant="h2">{item.data.title}</Header>}
+                i18nStrings={i18nStrings.boardItemI18nStrings}
+              >
+                {item.data.content}
+              </BoardItem>
             )}
             onItemsChange={() => {
               /*readonly grid*/

@@ -35,7 +35,12 @@ export default function WidgetContainerPermutations() {
               data: {
                 title: "Text header",
                 description: "",
-                content: <BoardItem header={<Header variant="h2">Text Header</Header>} />,
+                content: (
+                  <BoardItem
+                    header={<Header variant="h2">Text Header</Header>}
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
+                  />
+                ),
               },
             },
             {
@@ -56,6 +61,7 @@ export default function WidgetContainerPermutations() {
                         variant="icon"
                       />
                     }
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
                   />
                 ),
               },
@@ -90,6 +96,7 @@ export default function WidgetContainerPermutations() {
                         variant="icon"
                       />
                     }
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
                   />
                 ),
               },
@@ -117,6 +124,7 @@ export default function WidgetContainerPermutations() {
                         variant="icon"
                       />
                     }
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
                   />
                 ),
               },
@@ -142,6 +150,7 @@ export default function WidgetContainerPermutations() {
                         Text Header with actions
                       </Header>
                     }
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
                   />
                 ),
               },
@@ -153,7 +162,11 @@ export default function WidgetContainerPermutations() {
                 title: "Text header",
                 description: "",
                 content: (
-                  <BoardItem disableContentPaddings={true} header={<Header variant="h2">Text Header</Header>}>
+                  <BoardItem
+                    disableContentPaddings={true}
+                    header={<Header variant="h2">Text Header</Header>}
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
+                  >
                     <Box textAlign="center">Content without paddings</Box>
                   </BoardItem>
                 ),
@@ -169,6 +182,7 @@ export default function WidgetContainerPermutations() {
                   <BoardItem
                     header={<Header variant="h2">Footer Content</Header>}
                     footer={<Box textAlign="center">More</Box>}
+                    i18nStrings={i18nStrings.boardItemI18nStrings}
                   />
                 ),
               },
