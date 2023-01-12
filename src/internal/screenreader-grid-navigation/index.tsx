@@ -27,7 +27,8 @@ export function ScreenReaderGridNavigation<Item extends { id: string }>({
     ? styles["screen-reader-navigation-visible"]
     : styles["screen-reader-navigation-hidden"];
 
-  const ariaDescribedBy = useId();
+  const tableId = useId();
+  const navigationDescriptionId = useId();
 
   const getItem = useMemo(() => {
     const itemById = new Map(items.map((it) => [it.id, it]));
@@ -52,12 +53,17 @@ export function ScreenReaderGridNavigation<Item extends { id: string }>({
   }
 
   return (
-    <>
+    <div
+      role="navigation"
+      aria-labelledby={tableId}
+      aria-describedby={ariaDescription ? navigationDescriptionId : undefined}
+      className={className}
+    >
       <table
+        id={tableId}
         role="grid"
         aria-label={ariaLabel}
-        aria-describedby={ariaDescription ? ariaDescribedBy : undefined}
-        className={className}
+        aria-describedby={ariaDescription ? navigationDescriptionId : undefined}
       >
         <tbody>
           {layout.map((row, rowIndex) => (
@@ -79,7 +85,7 @@ export function ScreenReaderGridNavigation<Item extends { id: string }>({
         </tbody>
       </table>
 
-      {ariaDescription && <ScreenreaderOnly id={ariaDescribedBy}>{ariaDescription}</ScreenreaderOnly>}
-    </>
+      {ariaDescription && <ScreenreaderOnly id={navigationDescriptionId}>{ariaDescription}</ScreenreaderOnly>}
+    </div>
   );
 }
