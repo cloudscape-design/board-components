@@ -56,7 +56,7 @@ export namespace BoardProps {
      *
      * Example: "Moved Demo widget to column 2, row 3. Conflicts with Second widget. Disturbed 2 items."
      */
-    liveAnnouncementOperation: (operationType: OperationType, operation: OperationState<D>) => string;
+    liveAnnouncementOperation: (operation: OperationState<D>) => string;
     /**
      * Specifies live announcement made when operation is committed.
      *
@@ -102,12 +102,40 @@ export namespace BoardProps {
     height: number;
   }
 
-  // TODO: use union type per operation.
-  export interface OperationState<D> {
+  export type OperationState<D> =
+    | OperationStateReorder<D>
+    | OperationStateInsert<D>
+    | OperationStateResize<D>
+    | OperationStateRemove<D>;
+
+  export interface OperationStateReorder<D> {
+    operationType: "reorder";
     item: Item<D>;
-    placement: null | ItemPlacement;
-    direction: null | "horizontal" | "vertical";
+    placement: ItemPlacement;
+    direction: "horizontal" | "vertical";
     conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
+  }
+  export interface OperationStateInsert<D> {
+    operationType: "insert";
+    item: Item<D>;
+    placement: ItemPlacement;
+    conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
+  }
+  export interface OperationStateResize<D> {
+    operationType: "resize";
+    item: Item<D>;
+    placement: ItemPlacement;
+    direction: "horizontal" | "vertical";
+    isMinimalColumnsReached: boolean;
+    isMinimalRowsReached: boolean;
+    conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
+  }
+  export interface OperationStateRemove<D> {
+    operationType: "remove";
+    item: Item<D>;
     disturbed: readonly Item<D>[];
   }
 }

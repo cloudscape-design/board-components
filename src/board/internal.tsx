@@ -3,7 +3,13 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
+import {
+  BREAKPOINT_SMALL,
+  COLUMNS_FULL,
+  COLUMNS_SMALL,
+  MIN_ROW_SPAN,
+  TRANSITION_DURATION_MS,
+} from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
@@ -25,7 +31,7 @@ import { createTransforms } from "./calculations/shift-layout";
 import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
-import { selectTransitionRows, useTransition } from "./transition";
+import { OperationPerformedAnnouncement, selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
 
 export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
@@ -169,27 +175,45 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       return direction === "left" || direction === "right" ? "horizontal" : "vertical";
     };
 
+    function getOperationState(announcement: OperationPerformedAnnouncement): BoardProps.OperationState<D> {
+      const item = toItem(announcement.itemId);
+      const placement = { ...announcement.targetItem };
+      const direction = formatDirection(announcement.direction);
+      const conflicts = [...announcement.conflicts].map(toItem);
+      const disturbed = [...announcement.disturbed].map(toItem);
+
+      switch (announcement.operation) {
+        case "reorder":
+          return { operationType: "reorder", item, placement, direction: direction!, conflicts, disturbed };
+        case "insert":
+          return { operationType: "insert", item, placement, conflicts, disturbed };
+        case "resize":
+          return {
+            operationType: "resize",
+            item,
+            placement,
+            direction: direction!,
+            isMinimalColumnsReached: placement.width === (item.definition.minColumnSpan ?? 1),
+            isMinimalRowsReached: placement.height === (item.definition.minRowSpan ?? MIN_ROW_SPAN),
+            conflicts,
+            disturbed,
+          };
+      }
+    }
+
     switch (transitionAnnouncement.type) {
       case "operation-started":
         return i18nStrings.liveAnnouncementOperationStarted(transitionAnnouncement.operation);
       case "operation-performed":
-        return i18nStrings.liveAnnouncementOperation(transitionAnnouncement.operation, {
-          item: toItem(transitionAnnouncement.itemId),
-          placement: { ...transitionAnnouncement.targetItem },
-          direction: formatDirection(transitionAnnouncement.direction),
-          conflicts: [...transitionAnnouncement.conflicts].map(toItem),
-          disturbed: [...transitionAnnouncement.disturbed].map(toItem),
-        });
+        return i18nStrings.liveAnnouncementOperation(getOperationState(transitionAnnouncement));
       case "operation-committed":
         return i18nStrings.liveAnnouncementOperationCommitted(transitionAnnouncement.operation);
       case "operation-discarded":
         return i18nStrings.liveAnnouncementOperationDiscarded(transitionAnnouncement.operation);
       case "item-removed":
-        return i18nStrings.liveAnnouncementOperation("remove", {
+        return i18nStrings.liveAnnouncementOperation({
+          operationType: "remove",
           item: toItem(transitionAnnouncement.itemId),
-          placement: null,
-          direction: null,
-          conflicts: [],
           disturbed: [...transitionAnnouncement.disturbed].map(toItem),
         });
     }
