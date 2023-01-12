@@ -12,7 +12,6 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
   return useBrowser(async (browser) => {
     await browser.url(url);
     const page = new DndPageObject(browser);
-    await page.setWindowSize({ width: 1200, height: 800 });
     await page.waitForVisible("main");
     await testFn(page, browser);
   });
@@ -90,6 +89,18 @@ describe("items removal", () => {
       await page.keys(["Tab", "Tab", "Tab"]);
 
       await expect(page.isFocused(boardItemHandle("J"))).resolves.toBe(true);
+    })
+  );
+
+  test(
+    "focus is transitioned correctly when delete confirmation dialog is required",
+    setupTest("index.html#/with-app-layout/dashboard-with-app-layout", async (page) => {
+      // Remove Widget 5.
+      await page.focus(boardItemHandle("5"));
+      await page.keys(["Tab", "Enter", "Enter", "Tab", "Tab", "Enter"]);
+
+      await expect(page.isExisting(boardItemHandle("5"))).resolves.toBe(false);
+      await expect(page.isFocused(boardItemHandle("8"))).resolves.toBe(true);
     })
   );
 });

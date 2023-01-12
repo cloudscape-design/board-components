@@ -1,6 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
+import {
+  AppLayout,
+  Box,
+  Button,
+  ContentLayout,
+  Form,
+  Header,
+  Modal,
+  SpaceBetween,
+  SplitPanel,
+} from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
@@ -12,6 +22,7 @@ export default function () {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
   const [paletteWidgets, setPaletteWidgets] = useState(demoPaletteItems);
   const [splitPanelOpen, setSplitPanelOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<null | string>(null);
 
   return (
     <ScreenshotArea>
@@ -51,21 +62,33 @@ export default function () {
                 }
               }}
               renderItem={(item, actions) => (
-                <BoardItem
-                  header={<Header>{item.data.title}</Header>}
-                  footer={item.data.footer}
-                  settings={
-                    <ButtonDropdown
-                      items={[{ id: "remove", text: "Remove widget" }]}
-                      ariaLabel="Widget settings"
-                      variant="icon"
-                      onItemClick={() => actions.removeItem()}
-                    />
-                  }
-                  i18nStrings={boardItemI18nStrings}
-                >
-                  {item.data.content}
-                </BoardItem>
+                <>
+                  <BoardItem
+                    header={<Header>{item.data.title}</Header>}
+                    footer={item.data.footer}
+                    settings={
+                      <ButtonDropdown
+                        items={[{ id: "remove", text: "Remove widget" }]}
+                        ariaLabel="Widget settings"
+                        variant="icon"
+                        onItemClick={() => setDeleteConfirmation(item.id)}
+                      />
+                    }
+                    i18nStrings={boardItemI18nStrings}
+                  >
+                    {item.data.content}
+                  </BoardItem>
+
+                  <DeleteConfirmationModal
+                    title={item.data.title}
+                    visible={deleteConfirmation === item.id}
+                    onDismiss={() => setDeleteConfirmation(null)}
+                    onConfirm={() => {
+                      actions.removeItem();
+                      setDeleteConfirmation(null);
+                    }}
+                  />
+                </>
               )}
             />
           </ContentLayout>
@@ -120,5 +143,36 @@ export default function () {
         }}
       />
     </ScreenshotArea>
+  );
+}
+
+function DeleteConfirmationModal({
+  title,
+  visible,
+  onDismiss,
+  onConfirm,
+}: {
+  title: string;
+  visible: boolean;
+  onDismiss: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Modal visible={visible} onDismiss={onDismiss} header="Delete confirmation">
+      <Form
+        actions={
+          <SpaceBetween size="s" direction="horizontal">
+            <Button variant="normal" onClick={onDismiss}>
+              No
+            </Button>
+            <Button variant="primary" onClick={onConfirm}>
+              Yes
+            </Button>
+          </SpaceBetween>
+        }
+      >
+        Remove {title}?
+      </Form>
+    </Modal>
   );
 }

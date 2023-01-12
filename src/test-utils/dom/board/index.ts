@@ -8,6 +8,6 @@ export default class BoardWrapper extends ComponentWrapper {
   static rootSelector: string = boardStyles.root;
 
   findItemById(itemId: string): null | BoardItemWrapper {
-    return this.findComponent(`[data-item-id=${itemId}]`, BoardItemWrapper);
+    return this.findComponent(`[data-item-id="${itemId}"]`, BoardItemWrapper);
   }
 }
