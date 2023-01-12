@@ -25,57 +25,42 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },
   liveAnnouncementOperation(operationType, operation) {
-    const conflictsAnnouncement =
-      operation.conflicts.length > 0
-        ? `Conflicts with ${operation.conflicts.map((c) => c.data.title).join(", ")}.`
-        : "";
+    const conflicts = operation.conflicts.map((c) => c.data.title).join(", ");
+    const conflictsAnnouncement = operation.conflicts.length > 0 ? `Conflicts with ${conflicts}.` : "";
 
-    const disturbedAnnouncement =
-      operation.disturbed.length > 0 ? `Disturbed ${operation.disturbed.length} items.` : "";
+    const totalDisturbed = operation.disturbed.length;
+    const disturbedAnnouncement = totalDisturbed > 0 ? `Disturbed ${totalDisturbed} items.` : "";
 
-    const positionAnnouncement = (() => {
-      if (operationType === "resize") {
-        const constraintColumns = operation.placement!.width === 1 ? "(minimal)" : "";
-        const columnsAnnouncement = `columns ${operation.placement!.width} ${constraintColumns}`;
+    const isHorizontal = operation.direction === "horizontal";
+    const currentColumn = `column ${operation.placement?.x || 0 + 1}`;
+    const currentRow = `row ${operation.placement?.y || 0 + 1}`;
 
-        const constraintRows = operation.placement!.height === 2 ? "(minimal)" : "";
-        const rowsAnnouncement = `rows ${operation.placement!.height} ${constraintRows}`;
-
-        if (operation.direction === "left" || operation.direction === "right") {
-          return columnsAnnouncement;
-        }
-        if (operation.direction === "up" || operation.direction === "down") {
-          return rowsAnnouncement;
-        }
-        return `${columnsAnnouncement}, ${rowsAnnouncement}`;
+    const resizeAnnouncement = () => {
+      if (isHorizontal) {
+        const minColumns = operation.item.definition.minColumnSpan ?? 1;
+        const constraintColumns = operation.placement!.width === minColumns ? "(minimal)" : "";
+        return `columns ${operation.placement!.width} ${constraintColumns}`;
+      } else {
+        const minRows = operation.item.definition.minRowSpan ?? 2;
+        const constraintRows = operation.placement!.height === minRows ? "(minimal)" : "";
+        return `rows ${operation.placement!.height} ${constraintRows}`;
       }
+    };
 
-      const columnsAnnouncement = `column ${operation.placement!.x + 1}`;
-      const rowsAnnouncement = `row ${operation.placement!.y + 1}`;
-
-      if (operationType === "reorder" && (operation.direction === "left" || operation.direction === "right")) {
-        return columnsAnnouncement;
-      }
-      if (operationType === "reorder" && (operation.direction === "up" || operation.direction === "down")) {
-        return rowsAnnouncement;
-      }
-      return `${columnsAnnouncement}, ${rowsAnnouncement}`;
-    })();
-
-    const operationAnnouncement = (() => {
+    const operationAnnouncement = () => {
       switch (operationType) {
         case "reorder":
-          return `Item moved to ${positionAnnouncement}.`;
+          return `Item moved to ${isHorizontal ? currentColumn : currentRow}.`;
         case "insert":
-          return `Item inserted to ${positionAnnouncement}.`;
+          return `Item inserted to ${currentColumn}, ${currentRow}.`;
         case "resize":
-          return `Item resized to ${positionAnnouncement}.`;
+          return `Item resized to ${resizeAnnouncement()}.`;
         case "remove":
           return `Removed item ${operation.item.data.title}.`;
       }
-    })();
+    };
 
-    return [operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
+    return [operationAnnouncement(), conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
   },
   liveAnnouncementOperationCommitted(operationType) {
     return `${operationType} committed`;

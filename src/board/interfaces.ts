@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
-import { BoardItemDefinition, DataFallbackType, Direction } from "../internal/interfaces";
+import { BoardItemDefinition, DataFallbackType } from "../internal/interfaces";
 
 export interface BoardProps<D = DataFallbackType> {
   /**
@@ -106,7 +106,7 @@ export namespace BoardProps {
   export interface OperationState<D> {
     item: Item<D>;
     placement: null | ItemPlacement;
-    direction: null | Direction;
+    direction: null | "horizontal" | "vertical";
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];
   }

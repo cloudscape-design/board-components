@@ -129,10 +129,8 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     dispatch({ type: "remove-item", itemsLayout, itemId: removedItem.id });
   };
 
-  function focusItem(itemId?: ItemId) {
-    if (itemId) {
-      itemContainerRef.current[itemId].focusDragHandle();
-    }
+  function focusItem(itemId: ItemId) {
+    itemContainerRef.current[itemId].focusDragHandle();
   }
 
   function shiftItem(direction: Direction) {
@@ -164,6 +162,12 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     }
 
     const toItem = (id: ItemId) => items.find((it) => it.id === id)!;
+    const formatDirection = (direction: null | Direction) => {
+      if (!direction) {
+        return null;
+      }
+      return direction === "left" || direction === "right" ? "horizontal" : "vertical";
+    };
 
     switch (transitionAnnouncement.type) {
       case "operation-started":
@@ -172,7 +176,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
         return i18nStrings.liveAnnouncementOperation(transitionAnnouncement.operation, {
           item: toItem(transitionAnnouncement.itemId),
           placement: { ...transitionAnnouncement.targetItem },
-          direction: transitionAnnouncement.direction,
+          direction: formatDirection(transitionAnnouncement.direction),
           conflicts: [...transitionAnnouncement.conflicts].map(toItem),
           disturbed: [...transitionAnnouncement.disturbed].map(toItem),
         });
