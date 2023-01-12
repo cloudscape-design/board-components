@@ -116,9 +116,9 @@ function ItemContainerComponent(
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
       const pointerOffset = pointerOffsetRef.current;
 
-      if (operation === "resize") {
-        const { width: minWidth, height: minHeight } = dropTarget!.scale(getMinItemSize(draggableItem));
-        const { width: maxWidth } = dropTarget!.scale(itemMaxSize);
+      if (operation === "resize" && dropTarget) {
+        const { width: minWidth, height: minHeight } = dropTarget.scale(getMinItemSize(draggableItem));
+        const { width: maxWidth } = dropTarget.scale(itemMaxSize);
         setTransition({
           operation,
           interactionType,
@@ -129,7 +129,7 @@ function ItemContainerComponent(
           },
           positionTransform: null,
         });
-      } else {
+      } else if (operation === "insert" || operation === "reorder") {
         setTransition({
           operation,
           interactionType,

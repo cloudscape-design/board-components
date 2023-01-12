@@ -124,3 +124,33 @@ test(
     }
   )
 );
+
+test(
+  "no errors in the console when trying to resize below item's baseline",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["B", "B", " ", " "],
+        ["B", "B", " ", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(boardWrapper.findItemById("B").findResizeHandle().toSelector());
+      await page.mouseMove(0, -300);
+      await page.mouseUp();
+      await expect(page.getGrid().then((grid) => grid.map((r) => r.join(" ")).join("\n"))).resolves.toEqual(
+        [
+          ["A", "A", " ", " "],
+          ["A", "A", " ", " "],
+          ["B", "B", " ", " "],
+          ["B", "B", " ", " "],
+        ]
+          .map((r) => r.join(" "))
+          .join("\n")
+      );
+    }
+  )
+);

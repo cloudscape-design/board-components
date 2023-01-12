@@ -245,7 +245,10 @@ function updateTransitionWithPointerEvent<D>(
   const itemHeight = layoutItem ? layoutItem.height : getItemHeight(transition);
   const itemSize = itemWidth * itemHeight;
 
-  if (transition.operation !== "resize" && collisionIds.length < itemSize) {
+  const isOutOfBoundaries =
+    transition.operation !== "resize" ? collisionIds.length < itemSize : collisionIds.length === 0;
+
+  if (isOutOfBoundaries) {
     return {
       transition: { ...transition, collisionIds: new Set(), layoutShift: null, insertionDirection: null },
       announcement: null,
