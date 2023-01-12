@@ -25,7 +25,11 @@ export default function WidgetContainerPermutations() {
       <PageLayout header={<h1>Widget container: Content permutations</h1>}>
         <Board
           i18nStrings={i18nStrings.boardI18nStrings}
-          renderItem={(item) => <BoardItem header={<Header>{item.data.title}</Header>}>{item.data.content}</BoardItem>}
+          renderItem={(item) => (
+            <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={i18nStrings.boardItemI18nStrings}>
+              {item.data.content}
+            </BoardItem>
+          )}
           items={[
             // simple 1x1
             { id: "responsive-11", ...responsive, ...position(0, 1, 1) },

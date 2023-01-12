@@ -41,16 +41,22 @@ export namespace ItemsPaletteProps {
      */
     liveAnnouncementDragDiscarded: string;
     /**
-     * Specifies palette item's drag handle aria label.
+     * Specifies ARIA-label for screen-reader items palette navigation.
      *
-     * Example: "Drag handle, Demo widget".
+     * Example: "Board navigation".
      */
-    itemDragHandleAriaLabel: (item: Item<D>, itemIndex: number, items: readonly Item<D>[]) => string;
+    navigationAriaLabel: string;
     /**
-     * Specifies palette item's drag handle aria description.
+     * Specifies ARIA-description for screen-reader items palette navigation.
      *
-     * Example: "Use drag handle to ...".
+     * Example: "Click on an item to move focus over."
      */
-    itemDragHandleAriaDescription: string;
+    navigationAriaDescription?: string;
+    /**
+     * Specifies ARIA-label for navigated palette item.
+     *
+     * Example: "Widget 1".
+     */
+    navigationItemAriaLabel: (item: ItemsPaletteProps.Item<D>) => string;
   }
 }

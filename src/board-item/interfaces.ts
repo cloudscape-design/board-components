@@ -28,4 +28,18 @@ export interface BoardItemProps {
    * Additional slot next to the heading. Use it to render an overflow actions menu in the form of a button dropdown.
    */
   settings?: ReactNode;
+
+  /**
+   * An object containing all the necessary localized strings required by the component.
+   */
+  i18nStrings: BoardItemProps.I18nStrings;
+}
+
+export namespace BoardItemProps {
+  export interface I18nStrings {
+    dragHandleAriaLabel: string;
+    dragHandleAriaDescription?: string;
+    resizeHandleAriaLabel: string;
+    resizeHandleAriaDescription?: string;
+  }
 }

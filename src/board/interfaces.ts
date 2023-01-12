@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
-import { BoardItemDefinition, DataFallbackType, Direction } from "../internal/interfaces";
+import { BoardItemDefinition, DataFallbackType } from "../internal/interfaces";
 
 export interface BoardProps<D = DataFallbackType> {
   /**
@@ -56,7 +56,7 @@ export namespace BoardProps {
      *
      * Example: "Moved Demo widget to column 2, row 3. Conflicts with Second widget. Disturbed 2 items."
      */
-    liveAnnouncementOperation: (operationType: OperationType, operation: OperationState<D>) => string;
+    liveAnnouncementOperation: (operation: OperationState<D>) => string;
     /**
      * Specifies live announcement made when operation is committed.
      *
@@ -70,29 +70,23 @@ export namespace BoardProps {
      */
     liveAnnouncementOperationDiscarded: (operationType: DragOperationType) => string;
     /**
-     * Specifies layout item's drag handle aria label.
+     * Specifies ARIA-label for screen-reader board navigation.
      *
-     * Example: "Drag handle, Demo widget, columns 2-4 of 4, rows 1-2 or 12".
+     * Example: "Board navigation".
      */
-    itemDragHandleAriaLabel: (placement: PositionState<D>) => string;
+    navigationAriaLabel: string;
     /**
-     * Specifies layout item's drag handle aria description.
+     * Specifies ARIA-description for screen-reader board navigation.
      *
-     * Example: "Use drag handle to ..."
+     * Example: "Click on non-empty item to move focus over."
      */
-    itemDragHandleAriaDescription: string;
+    navigationAriaDescription?: string;
     /**
-     * Specifies layout item's resize handle aria label.
+     * Specifies ARIA-label for navigated grid item. Includes empty cells.
      *
-     * Example: "Resize handle, Demo widget, columns 2-4 of 4, rows 1-2 or 12".
+     * Example: "Widget 1" or "Empty".
      */
-    itemResizeHandleAriaLabel: (placement: PositionState<D>) => string;
-    /**
-     * Specifies layout item's resize handle aria description.
-     *
-     * Example: "Use resize handle to ..."
-     */
-    itemResizeHandleAriaDescription: string;
+    navigationItemAriaLabel: (item: null | BoardProps.Item<D>) => string;
   }
 
   export type DragOperationType = "reorder" | "resize" | "insert";
@@ -101,19 +95,47 @@ export namespace BoardProps {
 
   export type Edge = "left" | "right" | "top" | "bottom";
 
-  export interface PositionState<D> {
-    item: Item<D>;
-    colspan: number;
-    rowspan: number;
-    columnOffset: number;
-    rowOffset: number;
-    columns: number;
-    rows: number;
+  export interface ItemPlacement {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   }
 
-  export interface OperationState<D> extends PositionState<D> {
-    direction: null | Direction;
+  export type OperationState<D> =
+    | OperationStateReorder<D>
+    | OperationStateInsert<D>
+    | OperationStateResize<D>
+    | OperationStateRemove<D>;
+
+  export interface OperationStateReorder<D> {
+    operationType: "reorder";
+    item: Item<D>;
+    placement: ItemPlacement;
+    direction: "horizontal" | "vertical";
     conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
+  }
+  export interface OperationStateInsert<D> {
+    operationType: "insert";
+    item: Item<D>;
+    placement: ItemPlacement;
+    conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
+  }
+  export interface OperationStateResize<D> {
+    operationType: "resize";
+    item: Item<D>;
+    placement: ItemPlacement;
+    direction: "horizontal" | "vertical";
+    isMinimalColumnsReached: boolean;
+    isMinimalRowsReached: boolean;
+    conflicts: readonly Item<D>[];
+    disturbed: readonly Item<D>[];
+  }
+  export interface OperationStateRemove<D> {
+    operationType: "remove";
+    item: Item<D>;
     disturbed: readonly Item<D>[];
   }
 }

@@ -45,12 +45,12 @@ export type Announcement =
   | OperationDiscardedAnnouncement
   | ItemRemovedAnnouncement;
 
-interface OperationStartedAnnouncement {
+export interface OperationStartedAnnouncement {
   type: "operation-started";
   itemId: ItemId;
   operation: Operation;
 }
-interface OperationPerformedAnnouncement {
+export interface OperationPerformedAnnouncement {
   type: "operation-performed";
   itemId: ItemId;
   operation: Operation;
@@ -59,17 +59,17 @@ interface OperationPerformedAnnouncement {
   conflicts: Set<ItemId>;
   disturbed: Set<ItemId>;
 }
-interface OperationCommittedAnnouncement {
+export interface OperationCommittedAnnouncement {
   type: "operation-committed";
   itemId: ItemId;
   operation: Operation;
 }
-interface OperationDiscardedAnnouncement {
+export interface OperationDiscardedAnnouncement {
   type: "operation-discarded";
   itemId: ItemId;
   operation: Operation;
 }
-interface ItemRemovedAnnouncement {
+export interface ItemRemovedAnnouncement {
   type: "item-removed";
   itemId: ItemId;
   disturbed: Set<ItemId>;

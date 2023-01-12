@@ -12,7 +12,14 @@ import styles from "./styles.css.js";
 
 export type { BoardItemProps };
 
-export default function BoardItem({ children, header, settings, disableContentPaddings, footer }: BoardItemProps) {
+export default function BoardItem({
+  children,
+  header,
+  settings,
+  disableContentPaddings,
+  footer,
+  i18nStrings,
+}: BoardItemProps) {
   const { dragHandle, resizeHandle } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();
@@ -58,11 +65,11 @@ export default function BoardItem({ children, header, settings, disableContentPa
         </div>
       )}
 
-      <ScreenreaderOnly id={dragHandleAriaLabelledBy}>{dragHandle.ariaLabel}</ScreenreaderOnly>
-      <ScreenreaderOnly id={dragHandleAriaDescribedBy}>{dragHandle.ariaDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragHandleAriaLabelledBy}>{i18nStrings.dragHandleAriaLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={dragHandleAriaDescribedBy}>{i18nStrings.dragHandleAriaDescription}</ScreenreaderOnly>
 
-      <ScreenreaderOnly id={resizeHandleAriaLabelledBy}>{resizeHandle?.ariaLabel}</ScreenreaderOnly>
-      <ScreenreaderOnly id={resizeHandleAriaDescribedBy}>{resizeHandle?.ariaDescription}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeHandleAriaLabelledBy}>{i18nStrings.resizeHandleAriaLabel}</ScreenreaderOnly>
+      <ScreenreaderOnly id={resizeHandleAriaDescribedBy}>{i18nStrings.resizeHandleAriaDescription}</ScreenreaderOnly>
     </div>
   );
 }

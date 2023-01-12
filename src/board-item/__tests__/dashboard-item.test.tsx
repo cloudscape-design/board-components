@@ -8,6 +8,11 @@ import { GridContextProvider } from "../../../lib/components/internal/grid-conte
 import { ItemContainer } from "../../../lib/components/internal/item-container";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
+const i18nStrings = {
+  dragHandleAriaLabel: "Drag handle",
+  resizeHandleAriaLabel: "Resize handle",
+};
+
 function render(jsx: ReactElement) {
   return libRender(jsx, {
     wrapper: function ItemContextWrapper({ children }) {
@@ -17,11 +22,6 @@ function render(jsx: ReactElement) {
             item={{ id: "1", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: null }}
             itemSize={{ width: 1, height: 1 }}
             itemMaxSize={{ width: 1, height: 1 }}
-            onNavigate={() => undefined}
-            dragHandleAriaLabel="Drag handle aria label"
-            dragHandleAriaDescription="Drag handle aria description"
-            resizeHandleAriaLabel="Resize handle aria label"
-            resizeHandleAriaDescription="Resize handle aria description"
           >
             {children}
           </ItemContainer>
@@ -41,6 +41,7 @@ describe("WidgetContainer", () => {
         header={<span data-testid="header" />}
         footer={<span data-testid="footer" />}
         settings={<span data-testid="settings"></span>}
+        i18nStrings={i18nStrings}
       >
         <span data-testid="content" />
       </BoardItem>
@@ -53,9 +54,9 @@ describe("WidgetContainer", () => {
   });
 
   test("renders handle aria labels", () => {
-    const { getByLabelText } = render(<BoardItem />);
+    const { getByLabelText } = render(<BoardItem i18nStrings={i18nStrings} />);
 
-    expect(getByLabelText("Drag handle aria label")).toBeDefined();
-    expect(getByLabelText("Resize handle aria label")).toBeDefined();
+    expect(getByLabelText("Drag handle")).toBeDefined();
+    expect(getByLabelText("Resize handle")).toBeDefined();
   });
 });
