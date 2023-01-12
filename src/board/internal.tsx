@@ -56,13 +56,23 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
   items = acquiredItem ? [...items, acquiredItem] : items;
   const itemsLayout = createItemsLayout(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
+  const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
-  // When the item gets acquired its drag handle needs to be focused to enable the keyboard handlers.
+  // Items and layout items must maintain the same order visually, in the DOM and in the data
+  // to ensure on-change events and tab order work as expected.
+  items = [...items].sort((a, b) => (layoutItemIndexById.get(a.id) ?? -1) - (layoutItemIndexById.get(b.id) ?? -1));
+
+  // When an item gets acquired or removed the focus needs to be dispatched on the next render.
+  const focusNextRenderIndexRef = useRef<null | number>(null);
+  const focusNextRenderIdRef = useRef<null | ItemId>(null);
   useEffect(() => {
-    if (acquiredItem) {
-      itemContainerRef.current[acquiredItem.id].focusDragHandle();
+    const focusTarget = focusNextRenderIdRef.current ?? items[focusNextRenderIndexRef.current ?? -1]?.id;
+    if (focusTarget) {
+      itemContainerRef.current[focusTarget].focusDragHandle();
     }
-  }, [acquiredItem]);
+    focusNextRenderIndexRef.current = null;
+    focusNextRenderIdRef.current = null;
+  });
 
   const getDefaultItemWidth = (item: BoardItemDefinitionBase<unknown>) =>
     Math.min(columns, getDefaultItemSize(item).width);
@@ -133,6 +143,10 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
 
     dispatch({ type: "remove-item", itemsLayout, itemId: removedItem.id });
+
+    const removedItemIndex = items.findIndex((it) => it === removedItem);
+    const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
+    focusNextRenderIndexRef.current = nextIndexToFocus;
   };
 
   function focusItem(itemId: ItemId) {
@@ -144,7 +158,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
   }
 
-  function onItemNavigate(itemId: ItemId, direction: Direction) {
+  function onItemNavigate(direction: Direction) {
     if (transition) {
       shiftItem(direction);
     }
@@ -152,6 +166,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
 
   function acquireItem(position: Position) {
     dispatch({ type: "acquire-item", position, layoutElement: containerAccessRef.current! });
+    focusNextRenderIdRef.current = transition?.draggableItem.id ?? null;
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
@@ -276,7 +291,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
                 acquired={item.id === acquiredItem?.id}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
-                onNavigate={(direction) => onItemNavigate(item.id, direction)}
+                onNavigate={onItemNavigate}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>
