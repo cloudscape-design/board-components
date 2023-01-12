@@ -70,14 +70,18 @@ export function ScreenReaderGridNavigation<Item extends { id: string }>({
             <tr role="row" key={rowIndex}>
               {row.map((itemId, cellIndex) => (
                 <td role="gridcell" key={cellIndex}>
-                  <button
-                    tabIndex={-1}
-                    onClick={() => itemId && onFocusItem(itemId)}
-                    onFocus={() => setIsNavigationFocused(true)}
-                    onBlur={() => setIsNavigationFocused(false)}
-                  >
-                    {itemAriaLabel(getItem(itemId))}
-                  </button>
+                  {itemId ? (
+                    <button
+                      tabIndex={-1}
+                      onClick={() => itemId && onFocusItem(itemId)}
+                      onFocus={() => setIsNavigationFocused(true)}
+                      onBlur={() => setIsNavigationFocused(false)}
+                    >
+                      {itemAriaLabel(getItem(itemId))}
+                    </button>
+                  ) : (
+                    itemAriaLabel(getItem(itemId))
+                  )}
                 </td>
               ))}
             </tr>
