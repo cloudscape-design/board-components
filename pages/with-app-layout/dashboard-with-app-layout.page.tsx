@@ -12,6 +12,7 @@ export default function () {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
   const [paletteWidgets, setPaletteWidgets] = useState(demoPaletteItems);
   const [splitPanelOpen, setSplitPanelOpen] = useState(false);
+  const [splitPanelPosition, setSpitPanelPosition] = useState<"side" | "bottom">("side");
 
   return (
     <ScreenshotArea>
@@ -74,7 +75,6 @@ export default function () {
           splitPanelOpen && (
             <SplitPanel
               header="Add widgets"
-              hidePreferencesButton={true}
               i18nStrings={{
                 preferencesTitle: "Split panel preferences",
                 preferencesPositionLabel: "Split panel position",
@@ -106,9 +106,10 @@ export default function () {
         }
         navigationHide={true}
         toolsHide={true}
-        splitPanelPreferences={{ position: "side" }}
+        splitPanelPreferences={{ position: splitPanelPosition }}
         splitPanelOpen={splitPanelOpen}
         onSplitPanelToggle={({ detail }) => setSplitPanelOpen(detail.open)}
+        onSplitPanelPreferencesChange={({ detail }) => setSpitPanelPosition(detail.position)}
         ariaLabels={{
           navigation: "Side navigation",
           navigationToggle: "Open side navigation",
