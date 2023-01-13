@@ -6,6 +6,10 @@ import { BoardItemDefinitionBase, DataFallbackType } from "../internal/interface
 export interface ItemsPaletteProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the palette. The content of each item is controlled by the `renderItem` property.
+   *
+   * If the `items` array is empty consider rendering an empty or loading state indicator.
+   *
+   * Hint: the loading state must be announced for screen-reader users.
    */
   items: ReadonlyArray<ItemsPaletteProps.Item<D>>;
 

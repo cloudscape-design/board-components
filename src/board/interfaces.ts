@@ -27,7 +27,11 @@ export interface BoardProps<D = DataFallbackType> {
   onItemsChange: NonCancelableEventHandler<BoardProps.ItemsChangeDetail<D>>;
 
   /**
-   * Rendered when no items provided.
+   * Rendered when the `items` array is empty.
+   *
+   * When items are loading the slot can be used to render the loading indicator.
+   *
+   * Hint: the loading state must be announced for screen-reader users.
    */
   empty: ReactNode;
 }

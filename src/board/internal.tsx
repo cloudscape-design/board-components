@@ -237,8 +237,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
 
   const showGrid = items.length > 0 || transition;
 
-  // TODO: make sure empty / finished states announcements are considered.
-
   return (
     <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
       <ScreenReaderGridNavigation
