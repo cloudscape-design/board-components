@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
+import gridStyles from "../../../lib/components/internal/grid/styles.selectors.js";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { DndPageObject } from "./dnd-page-object.js";
 
@@ -140,6 +141,39 @@ test(
         ["A", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
+    }
+  )
+);
+
+test(
+  "creates extra rows when disturbed item moves partially outside the grid",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", "A", "B"],
+        ["A", "A", "A", "B"],
+        ["C", "C", "C", "B"],
+        ["C", "C", "C", "B"],
+        ["C", "C", "C", "B"],
+        ["C", "C", "C", "B"],
+        ["D", "D", "E", "E"],
+        ["D", "D", "E", "E"],
+        ["D", "D", "E", "E"],
+        ["D", "D", "E", "E"],
+      ],
+      []
+    ),
+    async (page) => {
+      const placeholderSelector = `.${gridStyles.default.grid__item}[data-row-span="1"]`;
+
+      await page.setWindowSize({ width: 1200, height: 1800 });
+      await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(10 * 4);
+
+      await page.mouseDown(boardWrapper.findItemById("A").findDragHandle().toSelector());
+      await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(12 * 4);
+
+      await page.mouseMove(0, 900);
+      await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(14 * 4);
     }
   )
 );
