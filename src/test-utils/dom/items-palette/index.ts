@@ -14,6 +14,6 @@ export default class ItemsPaletteWrapper extends ComponentWrapper {
   }
 
   findItemById(itemId: string): null | PaletteItemWrapper {
-    return this.findComponent(`[data-item-id=${itemId}]`, PaletteItemWrapper);
+    return this.findComponent(`[data-item-id="${itemId}"]`, PaletteItemWrapper);
   }
 }

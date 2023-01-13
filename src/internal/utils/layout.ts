@@ -30,6 +30,8 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
 
   const rows = Math.max(...colAffordance) + 1;
 
+  layoutItems.sort(itemComparator);
+
   return { items: layoutItems, columns, rows };
 }
 
@@ -58,12 +60,7 @@ export function exportItemsLayout<D>(
     return item;
   };
 
-  const sortedLayout = grid.items.slice().sort((a, b) => {
-    if (a.y !== b.y) {
-      return a.y > b.y ? 1 : -1;
-    }
-    return a.x > b.x ? 1 : -1;
-  });
+  const sortedLayout = grid.items.slice().sort(itemComparator);
 
   const boardItems: BoardItemDefinition<D>[] = [];
   for (const { id, x, width, height } of sortedLayout) {
@@ -84,4 +81,11 @@ export function getDefaultItemSize(item: BoardItemDefinitionBase<unknown>) {
     width: Math.max(getMinItemSize(item).width, item.definition.defaultColumnSpan),
     height: Math.max(getMinItemSize(item).height, item.definition.defaultRowSpan),
   };
+}
+
+function itemComparator(a: GridLayoutItem, b: GridLayoutItem) {
+  if (a.y !== b.y) {
+    return a.y > b.y ? 1 : -1;
+  }
+  return a.x > b.x ? 1 : -1;
 }
