@@ -407,6 +407,7 @@ function getLayoutColumns<D>(transition: Transition<D>) {
 // The rows can be overridden during transition to create more drop targets at the bottom.
 function getLayoutRows<D>(transition: Transition<D>) {
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
+
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
   const itemHeight = layoutItem?.height ?? getItemHeight(transition);
   // Add extra row for resize when already at the bottom.
@@ -415,7 +416,7 @@ function getLayoutRows<D>(transition: Transition<D>) {
   }
   // Add extra row(s) for reorder/insert based on item's height.
   else {
-    return transition.itemsLayout.rows + itemHeight;
+    return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
   }
 }
 
