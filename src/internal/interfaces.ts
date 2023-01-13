@@ -45,11 +45,16 @@ export interface Rect {
   bottom: number;
 }
 
-export interface Transform {
+export type Transform = TransformMove | TransformRemove;
+export interface TransformMove {
+  type: "move";
   x: number;
   y: number;
   width: number;
   height: number;
+}
+export interface TransformRemove {
+  type: "remove";
 }
 
 export type Direction = "up" | "right" | "down" | "left";
