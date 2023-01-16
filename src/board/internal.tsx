@@ -246,7 +246,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
         ariaLabel={i18nStrings.navigationAriaLabel}
         ariaDescription={i18nStrings.navigationAriaDescription}
         itemAriaLabel={i18nStrings.navigationItemAriaLabel}
-        onFocusItem={focusItem}
+        onActivateItem={focusItem}
       />
 
       {showGrid ? (

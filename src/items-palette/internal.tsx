@@ -70,7 +70,7 @@ export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: Item
         ariaLabel={i18nStrings.navigationAriaLabel}
         ariaDescription={i18nStrings.navigationAriaDescription}
         itemAriaLabel={(item) => i18nStrings.navigationItemAriaLabel(item!)}
-        onFocusItem={focusItem}
+        onActivateItem={focusItem}
       />
 
       <SpaceBetween size="l">
