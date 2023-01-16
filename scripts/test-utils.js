@@ -1,19 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { default as convertToSelectorUtil } from "@cloudscape-design/test-utils-converter";
 import { execaSync } from "execa";
-import fs from "fs-extra";
-import globby from "globby";
-import lodash from "lodash";
-import prettier from "prettier";
+import { globbySync } from "globby";
+import { pascalCase, writeSourceFile } from "./utils.js";
 
-const prettierOptions = prettier.resolveConfig.sync(".prettierrc");
-
-const components = globby
-  .sync(["src/test-utils/dom/**/index.ts", "!src/test-utils/dom/index.ts"])
-  .map((fileName) => fileName.replace("src/test-utils/dom/", "").replace("/index.ts", ""));
+const components = globbySync(["src/test-utils/dom/**/index.ts", "!src/test-utils/dom/index.ts"]).map((fileName) =>
+  fileName.replace("src/test-utils/dom/", "").replace("/index.ts", "")
+);
 
 generateSelectorUtils();
 generateDomIndexFile();
@@ -86,21 +82,4 @@ function generateIndexFileContent({ testUtilType, buildFinderInterface }) {
 function compileTypescript() {
   const config = path.resolve("src/test-utils/tsconfig.json");
   execaSync("tsc", ["-p", config, "--sourceMap"], { stdio: "inherit" });
-}
-
-function writeSourceFile(filepath, content) {
-  fs.ensureDirSync(filepath.replace(/\/index.ts/, ""));
-  fs.writeFileSync(filepath, prettify(filepath, content));
-}
-
-function prettify(filepath, content) {
-  return prettier.format(content, { ...prettierOptions, filepath });
-}
-
-function pascalCase(text) {
-  return capitalize(lodash.camelCase(text));
-}
-
-function capitalize(text) {
-  return text[0].toUpperCase() + text.slice(1);
 }

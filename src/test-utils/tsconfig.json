@@ -8,7 +8,8 @@
     "declaration": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "../../lib/components/test-utils",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "tsBuildInfoFile": "../../.cache/test-utils.tsbuildinfo"
   },
   "include": ["./", "../../types"]
 }
