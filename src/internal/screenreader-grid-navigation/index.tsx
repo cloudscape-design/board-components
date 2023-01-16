@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useId, useMemo, useState } from "react";
+import React, { useId, useMemo, useState } from "react";
 import { GridLayout, ItemId } from "../interfaces";
 import ScreenreaderOnly from "../screenreader-only";
 

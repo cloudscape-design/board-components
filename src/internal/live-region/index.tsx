@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { memo, useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import ScreenreaderOnly, { ScreenreaderOnlyProps } from "../screenreader-only";
 
 export interface LiveRegionProps extends ScreenreaderOnlyProps {

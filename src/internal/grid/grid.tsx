@@ -3,7 +3,7 @@
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
-import { Children } from "react";
+import React, { Children } from "react";
 import { GridContextProvider } from "../grid-context";
 
 import { GridProps } from "./interfaces";

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import clsx from "clsx";
-import { ReactNode, memo } from "react";
+import React, { ReactNode, memo } from "react";
 import { GridLayoutItem } from "../interfaces";
 import styles from "./styles.css.js";
 

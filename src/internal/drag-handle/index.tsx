@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ForwardedRef, KeyboardEvent, PointerEvent, forwardRef } from "react";
+import React, { ForwardedRef, KeyboardEvent, PointerEvent, forwardRef } from "react";
 
 import Handle from "../handle";
 import DragHandleIcon from "./icon";

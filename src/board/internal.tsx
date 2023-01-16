@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   BREAKPOINT_SMALL,
   COLUMNS_FULL,

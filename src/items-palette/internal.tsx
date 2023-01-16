@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";

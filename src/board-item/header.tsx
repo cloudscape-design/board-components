@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import styles from "./styles.css.js";
 
 export interface WidgetContainerHeaderProps {

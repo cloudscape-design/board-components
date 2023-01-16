@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
-import { useId } from "react";
+import React, { useId } from "react";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";

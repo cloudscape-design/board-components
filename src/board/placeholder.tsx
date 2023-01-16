@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { useDroppable } from "../internal/dnd-controller/controller";
 import { useGridContext } from "../internal/grid-context";
 import styles from "./styles.css.js";

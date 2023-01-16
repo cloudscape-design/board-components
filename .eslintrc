@@ -4,7 +4,6 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
-    "plugin:react/jsx-runtime",
     "plugin:prettier/recommended",
     "plugin:no-unsanitized/DOM"
   ],
@@ -56,18 +55,6 @@
       "line",
       [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"]
     ],
-    "no-restricted-imports": [
-      "warn",
-      {
-        "paths": [
-          {
-            "name": "react",
-            "importNames": ["default"],
-            "message": "Prefer named imports."
-          }
-        ]
-      }
-    ],
     "sort-imports": ["error", { "ignoreDeclarationSort": true }],
     "import/order": ["error", { "alphabetize": { "order": "asc" } }],
     "import/no-useless-path-segments": [
@@ -87,6 +74,26 @@
     "es6": true
   },
   "overrides": [
+    {
+      // vite and vitest files can use newer JSX runtime
+      "files": ["pages/**", "**/__tests__/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "importNames": ["default"],
+                "message": "Prefer named imports."
+              }
+            ]
+          }
+        ],
+        "react/react-in-jsx-scope": 0,
+        "react/jsx-uses-react": 0
+      }
+    },
     {
       "files": ["**/__integ__/**", "./test/**"],
       "rules": {
