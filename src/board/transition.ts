@@ -31,7 +31,7 @@ export interface Transition<D> {
   interactionType: InteractionType;
   itemsLayout: GridLayout;
   insertionDirection: null | Direction;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
   acquiredItem: null | BoardItemDefinition<D>;
   collisionIds: Set<ItemId>;
@@ -84,7 +84,7 @@ export interface ItemRemovedAnnouncement {
 }
 
 export type Action<D> =
-  | InitAction
+  | InitAction<D>
   | InitRemoveAction<D>
   | SubmitAction
   | DiscardAction
@@ -92,12 +92,12 @@ export type Action<D> =
   | UpdateWithKeyboardAction
   | AcquireItemAction;
 
-interface InitAction {
+interface InitAction<D> {
   type: "init";
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
 }
@@ -182,7 +182,7 @@ function initTransition<D>({
   draggableItem,
   draggableElement,
   collisionIds,
-}: InitAction): TransitionState<D> {
+}: InitAction<D>): TransitionState<D> {
   const transition: Transition<D> = {
     operation,
     interactionType,
@@ -237,8 +237,16 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
   const { operation, draggableItem: item } = transition;
 
   return transition.layoutShift?.conflicts.length === 0
-    ? { transition: null, removeTransition: null, announcement: { type: "operation-committed", item, operation } }
-    : { transition: null, removeTransition: null, announcement: { type: "operation-discarded", item, operation } };
+    ? {
+        transition: null,
+        removeTransition: null,
+        announcement: { type: "operation-committed", item, operation },
+      }
+    : {
+        transition: null,
+        removeTransition: null,
+        announcement: { type: "operation-discarded", item, operation },
+      };
 }
 
 function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
@@ -253,7 +261,11 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
 
   const { operation, draggableItem: item } = transition;
 
-  return { transition: null, removeTransition: null, announcement: { type: "operation-discarded", item, operation } };
+  return {
+    transition: null,
+    removeTransition: null,
+    announcement: { type: "operation-discarded", item, operation },
+  };
 }
 
 function updateTransitionWithPointerEvent<D>(
@@ -408,9 +420,8 @@ function acquireTransitionItem<D>(
 
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
-  // TODO: resolve "any" here.
   // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
-  const acquiredItem = { ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 };
+  const acquiredItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
   const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), ...layoutShift, path, acquiredItem };
   return {

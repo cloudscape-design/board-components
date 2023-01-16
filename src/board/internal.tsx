@@ -108,7 +108,10 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       operation,
       interactionType,
       itemsLayout,
-      draggableItem,
+      // TODO: resolve any
+      // The code only works assuming the board can take any draggable.
+      // If draggables can be of different types a check of some sort is required here.
+      draggableItem: draggableItem as any,
       draggableElement,
       collisionIds,
     });
@@ -131,11 +134,9 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       if (transition.layoutShift.conflicts.length === 0) {
         // Commit new layout for insert case.
         if (transition.operation === "insert") {
-          // TODO: resolve "any" here.
-          // It is not quite clear yet how to ensure the addedItem matches generic D type.
-          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
+          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
           const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
-          onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+          onItemsChange(createCustomEvent({ items: newLayout, addedItem }));
         }
         // Commit new layout for reorder/resize case.
         else {
@@ -195,7 +196,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     }
     const item = transitionAnnouncement.item as BoardProps.Item<D>;
 
-    const toItem = (id: ItemId) => items.find((it) => it.id === id)!;
+    const toItem = (id: ItemId) => items.find((it) => it?.id === id)!;
     const formatDirection = (direction: null | Direction) => {
       if (!direction) {
         return null;

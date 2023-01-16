@@ -246,10 +246,7 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
     return null;
   }
 
-  const layoutItems = exportItemsLayout(
-    fromMatrix(grid),
-    Object.values(letterWidgets).map((item) => ({ ...item, columnOffset: 0, columnSpan: 0, rowSpan: 0 }))
-  );
+  const layoutItems = exportItemsLayout(fromMatrix(grid), Object.values(letterWidgets));
 
   const usedLetterItems = new Set(layoutItems.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(
