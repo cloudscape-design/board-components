@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect } from "react";
 import { pagesMap } from "../pages";
 
 interface ExtendedWindow extends Window {
@@ -13,7 +13,6 @@ export interface PageProps {
 }
 
 export default function Page({ pageId }: PageProps) {
-  const pageRef = useRef<HTMLDivElement>(null);
   const Component = pagesMap[pageId];
 
   // Collect page's live announcements to window.__liveAnnouncements.
@@ -34,16 +33,14 @@ export default function Page({ pageId }: PageProps) {
       }
     });
 
-    observer.observe(pageRef.current!, { attributes: false, childList: true, subtree: true });
+    observer.observe(document.body, { attributes: false, childList: true, subtree: true });
 
     return () => observer.disconnect();
   }, []);
 
   return (
-    <div ref={pageRef}>
-      <Suspense fallback="Loading">
-        <Component />
-      </Suspense>
-    </div>
+    <Suspense fallback="Loading">
+      <Component />
+    </Suspense>
   );
 }
