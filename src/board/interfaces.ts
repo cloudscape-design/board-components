@@ -4,6 +4,13 @@ import { ReactNode } from "react";
 import { BoardItemDefinition, DataFallbackType } from "../internal/interfaces";
 import { NonCancelableEventHandler } from "../internal/utils/events";
 
+/*
+  Note:
+  The component does not provide handling of items state (loading, error, loaded).
+  It is the responsibility of the client to control it and provide the necessary
+  ARIA-live announcements.
+*/
+
 export interface BoardProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the board. Each item is includes its position on the board and
@@ -30,8 +37,6 @@ export interface BoardProps<D = DataFallbackType> {
    * Rendered when the `items` array is empty.
    *
    * When items are loading the slot can be used to render the loading indicator.
-   *
-   * Hint: the loading state must be announced for screen-reader users.
    */
   empty: ReactNode;
 }
