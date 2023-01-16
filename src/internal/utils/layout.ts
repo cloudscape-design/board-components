@@ -49,7 +49,7 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 
 export function exportItemsLayout<D>(
   grid: GridLayout,
-  sourceItems: readonly BoardItemDefinition<D>[]
+  sourceItems: readonly BoardItemDefinitionBase<D>[]
 ): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {

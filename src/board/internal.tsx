@@ -114,9 +114,8 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       if (transition.layoutShift.conflicts.length === 0) {
         // Commit new layout for insert case.
         if (transition.operation === "insert") {
-          let addedItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
-          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, addedItem]);
-          addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
+          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
+          const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
           onItemsChange(createCustomEvent({ items: newLayout, addedItem }));
         }
         // Commit new layout for reorder/resize case.
