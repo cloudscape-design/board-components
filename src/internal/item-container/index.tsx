@@ -26,6 +26,7 @@ import { BoardItemDefinitionBase, Direction, ItemId } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
+import { throttle } from "../utils/throttle";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
@@ -98,10 +99,15 @@ function ItemContainerComponent(
   };
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
-  const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-    onPointerUp: () => draggableApi.submitTransition(),
+
+  const onPointerMoveRef = useRef(
+    throttle((event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)), 10)
+  );
+  const onPointerUpRef = useRef(() => {
+    onPointerMoveRef.current.cancel();
+    draggableApi.submitTransition();
   });
+
   const gridContext = useGridContext();
 
   function updateTransition({
@@ -146,10 +152,13 @@ function ItemContainerComponent(
   useDragSubscription("submit", () => clearState());
   useDragSubscription("discard", () => clearState());
 
+  const transitionInteractionType = transition?.interactionType ?? null;
+  const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
-    const { onPointerMove, onPointerUp } = eventHandlersRef.current;
+    const onPointerMove = onPointerMoveRef.current;
+    const onPointerUp = onPointerUpRef.current;
 
-    if (transition && transition.interactionType === "pointer" && transition.itemId === item.id) {
+    if (transitionInteractionType === "pointer" && transitionItemId === item.id) {
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
     }
@@ -158,7 +167,7 @@ function ItemContainerComponent(
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [item.id, transition]);
+  }, [item.id, transitionInteractionType, transitionItemId]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     // The acquired item is a copy and does not have the transition state.
