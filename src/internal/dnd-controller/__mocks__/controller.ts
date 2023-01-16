@@ -30,10 +30,14 @@ export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K,
   useEffect(() => mockController.on(event, handler), [event, handler]);
 }
 
-export function useDraggable() {
-  return vi.fn();
-}
+export const mockDraggable = {
+  start: vi.fn(),
+  updateTransition: vi.fn(),
+  submitTransition: vi.fn(),
+  discardTransition: vi.fn(),
+  getDroppables: vi.fn(),
+};
 
-export function useDroppable() {
-  return vi.fn();
+export function useDraggable() {
+  return mockDraggable;
 }

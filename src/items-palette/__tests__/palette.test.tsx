@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { act, cleanup, render as libRender } from "@testing-library/react";
-import { ReactElement } from "react";
+import { ReactElement, ReactNode, Ref, forwardRef } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import itemStyles from "../../../lib/components/board-item/styles.css.js";
 import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
+import { ItemContainerRef } from "../../../lib/components/internal/item-container";
 import ItemsPalette, { ItemsPaletteProps } from "../../../lib/components/items-palette";
 import createWrapper, { ItemsPaletteWrapper } from "../../../lib/components/test-utils/dom";
 
@@ -12,7 +13,10 @@ afterEach(cleanup);
 
 vi.mock("../../../lib/components/internal/dnd-controller/controller");
 vi.mock("../../../lib/components/internal/item-container", () => ({
-  ItemContainer: ({ children }: { children: ReactElement }) => <div>{children}</div>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ItemContainer: forwardRef(({ children }: { children: ReactNode }, ref: Ref<ItemContainerRef>) => (
+    <div>{children}</div>
+  )),
 }));
 
 function render(jsx: ReactElement) {
