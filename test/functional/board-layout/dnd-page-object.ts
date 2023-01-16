@@ -9,6 +9,27 @@ interface ExtendedWindow extends Window {
 declare const window: ExtendedWindow;
 
 export class DndPageObject extends BasePageObject {
+  async useLiveAnnouncements() {
+    await this.browser.execute(() => {
+      const observer = new MutationObserver((mutationList) => {
+        for (const mutation of mutationList) {
+          if (
+            mutation.type === "childList" &&
+            mutation.target instanceof HTMLElement &&
+            mutation.target.hasAttribute("aria-live") &&
+            mutation.target.textContent
+          ) {
+            if (!window.__liveAnnouncements) {
+              window.__liveAnnouncements = [];
+            }
+            window.__liveAnnouncements.push(mutation.target.textContent);
+          }
+        }
+      });
+      observer.observe(document.body, { attributes: false, childList: true, subtree: true });
+    });
+  }
+
   async getGrid() {
     await this.pause(50);
 

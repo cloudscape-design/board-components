@@ -16,6 +16,7 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
     await browser.url(url);
     const page = new DndPageObject(browser);
     await page.waitForVisible("main");
+    await page.useLiveAnnouncements();
     await testFn(page, browser);
   });
 }
