@@ -49,7 +49,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
   const [transitionState, dispatch] = useTransition<D>();
   const transition = transitionState.transition;
   const transitionAnnouncement = transitionState.announcement;
-  const acquiredItem = transition?.acquiredItem ?? null;
+  const acquiredItem = transition && transitionState.acquiredItem;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
@@ -88,7 +88,10 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       operation,
       interactionType,
       itemsLayout,
-      draggableItem,
+      // TODO: resolve any
+      // The code only works assuming the board can take any draggable.
+      // If draggables can be of different types a check of some sort is required here.
+      draggableItem: draggableItem as any,
       draggableElement,
       collisionIds,
     });
@@ -111,11 +114,9 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
       if (transition.layoutShift.conflicts.length === 0) {
         // Commit new layout for insert case.
         if (transition.operation === "insert") {
-          // TODO: resolve "any" here.
-          // It is not quite clear yet how to ensure the addedItem matches generic D type.
-          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem] as any);
+          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
           const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
-          onItemsChange(createCustomEvent({ items: newLayout, addedItem } as any));
+          onItemsChange(createCustomEvent({ items: newLayout, addedItem }));
         }
         // Commit new layout for reorder/resize case.
         else {
@@ -178,11 +179,11 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     if (!transitionAnnouncement) {
       return "";
     }
-    if (!items.some((it) => it.id === transitionAnnouncement.itemId)) {
+    if (!transitionState.acquiredItem && !items.some((it) => it.id === transitionAnnouncement.itemId)) {
       return "";
     }
 
-    const toItem = (id: ItemId) => items.find((it) => it.id === id)!;
+    const toItem = (id: ItemId) => [...items, transitionState.acquiredItem].find((it) => it?.id === id)!;
     const formatDirection = (direction: null | Direction) => {
       if (!direction) {
         return null;

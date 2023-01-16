@@ -22,6 +22,7 @@ import { appendMovePath, appendResizePath, normalizeInsertionPath } from "./calc
 export interface TransitionState<D> {
   transition: null | Transition<D>;
   announcement: null | Announcement;
+  acquiredItem: null | BoardItemDefinition<D>;
 }
 
 export interface Transition<D> {
@@ -29,9 +30,8 @@ export interface Transition<D> {
   interactionType: InteractionType;
   itemsLayout: GridLayout;
   insertionDirection: null | Direction;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
-  acquiredItem: null | BoardItemDefinition<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
   layoutShiftWithRefloat: null | LayoutShift;
@@ -75,8 +75,8 @@ export interface ItemRemovedAnnouncement {
   disturbed: Set<ItemId>;
 }
 
-export type Action =
-  | InitAction
+export type Action<D> =
+  | InitAction<D>
   | SubmitAction
   | DiscardAction
   | UpdateWithPointerAction
@@ -84,12 +84,12 @@ export type Action =
   | AcquireItemAction
   | RemoveItemAction;
 
-interface InitAction {
+interface InitAction<D> {
   type: "init";
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
 }
@@ -119,14 +119,14 @@ interface RemoveItemAction {
   itemId: ItemId;
 }
 
-export function useTransition<D>(): [TransitionState<D>, Dispatch<Action>] {
-  const [state, dispatch] = useReducer(transitionReducer, { transition: null, announcement: null });
+export function useTransition<D>(): [TransitionState<D>, Dispatch<Action<D>>] {
+  const [state, dispatch] = useReducer(transitionReducer, { transition: null, announcement: null, acquiredItem: null });
 
   // Debounces pointer actions to resolve race condition between layout and items.
   const decoratedDispatch = useMemo(() => {
     const debouncedDispatch = debounce(dispatch, 10);
 
-    return (action: Action) => {
+    return (action: Action<D>) => {
       if (action.type === "update-with-pointer") {
         debouncedDispatch(action);
       } else {
@@ -143,7 +143,7 @@ export function selectTransitionRows<D>(state: TransitionState<D>) {
   return state.transition ? getLayoutRows(state.transition) : 0;
 }
 
-function transitionReducer<D>(state: TransitionState<D>, action: Action): TransitionState<D> {
+function transitionReducer<D>(state: TransitionState<D>, action: Action<D>): TransitionState<D> {
   switch (action.type) {
     case "init":
       return initTransition(action);
@@ -169,7 +169,7 @@ function initTransition<D>({
   draggableItem,
   draggableElement,
   collisionIds,
-}: InitAction): TransitionState<D> {
+}: InitAction<D>): TransitionState<D> {
   const transition: Transition<D> = {
     operation,
     interactionType,
@@ -177,7 +177,6 @@ function initTransition<D>({
     insertionDirection: null,
     draggableItem,
     draggableElement,
-    acquiredItem: null,
     collisionIds: new Set(),
     layoutShift: null,
     layoutShiftWithRefloat: null,
@@ -194,6 +193,7 @@ function initTransition<D>({
   return {
     transition: { ...transition, path },
     announcement: { type: "operation-started", itemId: draggableItem.id, operation },
+    acquiredItem: null,
   };
 }
 
@@ -210,8 +210,8 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
   } = transition;
 
   return transition.layoutShift?.conflicts.length === 0
-    ? { transition: null, announcement: { type: "operation-committed", itemId, operation } }
-    : { transition: null, announcement: { type: "operation-discarded", itemId, operation } };
+    ? { ...state, transition: null, announcement: { type: "operation-committed", itemId, operation } }
+    : { ...state, transition: null, announcement: { type: "operation-discarded", itemId, operation } };
 }
 
 function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
@@ -226,7 +226,7 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
     draggableItem: { id: itemId },
   } = transition;
 
-  return { transition: null, announcement: { type: "operation-discarded", itemId, operation } };
+  return { ...state, transition: null, announcement: { type: "operation-discarded", itemId, operation } };
 }
 
 function updateTransitionWithPointerEvent<D>(
@@ -250,6 +250,7 @@ function updateTransitionWithPointerEvent<D>(
 
   if (isOutOfBoundaries) {
     return {
+      ...state,
       transition: { ...transition, collisionIds: new Set(), layoutShift: null, insertionDirection: null },
       announcement: null,
     };
@@ -264,6 +265,7 @@ function updateTransitionWithPointerEvent<D>(
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
   return {
+    ...state,
     transition: { ...transition, collisionIds: new Set(collisionIds), ...layoutShift, path, insertionDirection },
     announcement: null,
   };
@@ -291,7 +293,11 @@ function updateTransitionWithKeyboardEvent<D>(
     const nextPath = [...transition.path, nextPosition];
     const layoutShift = getLayoutShift(transition, nextPath);
     const nextTransition = { ...transition, ...layoutShift, path: nextPath };
-    return { transition: nextTransition, announcement: createOperationAnnouncement(nextTransition, direction) };
+    return {
+      ...state,
+      transition: nextTransition,
+      announcement: createOperationAnnouncement(nextTransition, direction),
+    };
   };
 
   function shiftItemLeft(transition: Transition<D>) {
@@ -375,12 +381,15 @@ function acquireTransitionItem<D>(
 
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
-  // TODO: resolve "any" here.
   // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
-  const acquiredItem = { ...(transition.draggableItem as any), columnOffset: 0, columnSpan: 1, rowSpan: 1 };
+  const acquiredItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
-  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), ...layoutShift, path, acquiredItem };
-  return { transition: nextTransition, announcement: createOperationAnnouncement(nextTransition, null) };
+  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), ...layoutShift, path };
+  return {
+    transition: nextTransition,
+    announcement: createOperationAnnouncement(nextTransition, null),
+    acquiredItem,
+  };
 }
 
 function removeTransitionItem<D>({ itemId, itemsLayout }: RemoveItemAction): TransitionState<D> {
@@ -389,7 +398,7 @@ function removeTransitionItem<D>({ itemId, itemsLayout }: RemoveItemAction): Tra
   const disturbed = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
   disturbed.delete(itemId);
 
-  return { transition: null, announcement: { type: "item-removed", itemId, disturbed } };
+  return { transition: null, announcement: { type: "item-removed", itemId, disturbed }, acquiredItem: null };
 }
 
 function getItemWidth<D>(transition: Transition<D>) {
