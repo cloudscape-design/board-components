@@ -72,6 +72,11 @@ class DndPageObject extends ScreenshotPageObject {
       },
     ]);
   }
+
+  async fullPageScreenshot() {
+    await this.pause(100);
+    return super.fullPageScreenshot();
+  }
 }
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
@@ -94,18 +99,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
     await page.focus(boardItemHandle("A"));
     await page.keys(["Enter"]);
-    test(
-      "active item overlays other items",
-      setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-        await page.focus(boardItemHandle("A"));
-        await page.keys(["Enter"]);
-        await page.keys(["ArrowDown"]);
-
-        expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-      })
-    );
     await page.keys(["ArrowDown"]);
-
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
