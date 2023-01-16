@@ -1,7 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { BasePageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import layoutStyles from "../../../lib/components/board/styles.selectors.js";
+import boardStyles from "../../../lib/components/board/styles.selectors.js";
+
+interface ExtendedWindow extends Window {
+  __liveAnnouncements?: string[];
+}
+declare const window: ExtendedWindow;
 
 export class DndPageObject extends BasePageObject {
   async getGrid() {
@@ -12,13 +17,13 @@ export class DndPageObject extends BasePageObject {
         [...document.querySelectorAll(widgetsSelector)].map(
           (w) => [w.getAttribute("data-item-id"), w.getBoundingClientRect()] as [string, DOMRect]
         ),
-      `.${layoutStyles.default.root} [data-item-id]`
+      `.${boardStyles.default.root} [data-item-id]`
     );
 
     const placeholderRects = await this.browser.execute(
       (placeholderSelector) =>
         [...document.querySelectorAll(placeholderSelector)].map((p) => p.getBoundingClientRect()),
-      `.${layoutStyles.default.placeholder}`
+      `.${boardStyles.default.placeholder}`
     );
 
     function matchWidget(placeholderIndex: number): null | string {
@@ -126,5 +131,10 @@ export class DndPageObject extends BasePageObject {
     const x = Math.round(targetRect.left + targetRect.width / 2);
     const y = Math.round(targetRect.top + targetRect.height / 2);
     return { x, y };
+  }
+
+  async getLiveAnnouncements() {
+    const liveAnnouncements = await this.browser.execute(() => window.__liveAnnouncements ?? []);
+    return liveAnnouncements;
   }
 }
