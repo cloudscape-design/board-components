@@ -25,13 +25,13 @@ import {
   getDefaultItemSize,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 
 import { BoardProps, OperationPerformedAnnouncement } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
-import { useAutoScroll } from "./use-auto-scroll";
 import { createTransforms } from "./utils/create-transforms";
 
 export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
