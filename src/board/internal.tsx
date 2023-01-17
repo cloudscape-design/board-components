@@ -26,13 +26,13 @@ import {
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
-import { createTransforms } from "./calculations/shift-layout";
 
-import { BoardProps } from "./interfaces";
+import { BoardProps, OperationPerformedAnnouncement } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
-import { OperationPerformedAnnouncement, selectTransitionRows, useTransition } from "./transition";
+import { selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
+import { createTransforms } from "./utils/create-transforms";
 
 export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
@@ -154,14 +154,10 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     itemContainerRef.current[itemId].focusDragHandle();
   }
 
-  function shiftItem(direction: Direction) {
-    dispatch({ type: "update-with-keyboard", direction });
-    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-  }
-
   function onItemNavigate(direction: Direction) {
     if (transition) {
-      shiftItem(direction);
+      dispatch({ type: "update-with-keyboard", direction });
+      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
     }
   }
 

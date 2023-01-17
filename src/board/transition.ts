@@ -2,77 +2,30 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, useMemo, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
-import {
-  BoardItemDefinition,
-  BoardItemDefinitionBase,
-  Direction,
-  GridLayout,
-  GridLayoutItem,
-  ItemId,
-} from "../internal/interfaces";
+import { BoardItemDefinition, BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
-import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { Coordinates } from "../internal/utils/coordinates";
 import { debounce } from "../internal/utils/debounce";
-import { createPlaceholdersLayout, getDefaultItemSize, getMinItemSize } from "../internal/utils/layout";
+import { getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { getHoveredRect } from "./calculations/collision";
-import { appendMovePath, appendResizePath, normalizeInsertionPath } from "./calculations/shift-layout";
+import { Transition, TransitionAnnouncement } from "./interfaces";
+import { createOperationAnnouncement } from "./utils/announcements";
+import { getHoveredRect } from "./utils/get-hovered-rect";
+import {
+  getInsertionDirection,
+  getItemHeight,
+  getItemWidth,
+  getLayoutColumns,
+  getLayoutPlaceholders,
+  getLayoutRows,
+  getLayoutShift,
+} from "./utils/layout";
+import { appendMovePath, appendResizePath } from "./utils/path";
 
 export interface TransitionState<D> {
   transition: null | Transition<D>;
-  announcement: null | Announcement;
+  announcement: null | TransitionAnnouncement;
   acquiredItem: null | BoardItemDefinition<D>;
-}
-
-export interface Transition<D> {
-  operation: Operation;
-  interactionType: InteractionType;
-  itemsLayout: GridLayout;
-  insertionDirection: null | Direction;
-  draggableItem: BoardItemDefinitionBase<D>;
-  draggableElement: HTMLElement;
-  collisionIds: Set<ItemId>;
-  layoutShift: null | LayoutShift;
-  layoutShiftWithRefloat: null | LayoutShift;
-  path: readonly Position[];
-}
-
-export type Announcement =
-  | OperationStartedAnnouncement
-  | OperationPerformedAnnouncement
-  | OperationCommittedAnnouncement
-  | OperationDiscardedAnnouncement
-  | ItemRemovedAnnouncement;
-
-export interface OperationStartedAnnouncement {
-  type: "operation-started";
-  itemId: ItemId;
-  operation: Operation;
-}
-export interface OperationPerformedAnnouncement {
-  type: "operation-performed";
-  itemId: ItemId;
-  operation: Operation;
-  targetItem: GridLayoutItem;
-  direction: null | Direction;
-  conflicts: Set<ItemId>;
-  disturbed: Set<ItemId>;
-}
-export interface OperationCommittedAnnouncement {
-  type: "operation-committed";
-  itemId: ItemId;
-  operation: Operation;
-}
-export interface OperationDiscardedAnnouncement {
-  type: "operation-discarded";
-  itemId: ItemId;
-  operation: Operation;
-}
-export interface ItemRemovedAnnouncement {
-  type: "item-removed";
-  itemId: ItemId;
-  disturbed: Set<ItemId>;
 }
 
 export type Action<D> =
@@ -399,125 +352,4 @@ function removeTransitionItem<D>({ itemId, itemsLayout }: RemoveItemAction): Tra
   disturbed.delete(itemId);
 
   return { transition: null, announcement: { type: "item-removed", itemId, disturbed }, acquiredItem: null };
-}
-
-function getItemWidth<D>(transition: Transition<D>) {
-  return Math.min(transition.itemsLayout.columns, getDefaultItemSize(transition.draggableItem).width);
-}
-
-function getItemHeight<D>(transition: Transition<D>) {
-  return getDefaultItemSize(transition.draggableItem).height;
-}
-
-function getLayoutColumns<D>(transition: Transition<D>) {
-  return transition.itemsLayout.columns;
-}
-
-// The rows can be overridden during transition to create more drop targets at the bottom.
-function getLayoutRows<D>(transition: Transition<D>) {
-  const layout = transition.layoutShift?.next ?? transition.itemsLayout;
-
-  const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemHeight = layoutItem?.height ?? getItemHeight(transition);
-  // Add extra row for resize when already at the bottom.
-  if (transition.operation === "resize") {
-    return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
-  }
-  // Add extra row(s) for reorder/insert based on item's height.
-  else {
-    return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
-  }
-}
-
-function getLayoutPlaceholders<D>(transition: Transition<D>) {
-  const rows = getLayoutRows(transition);
-  const columns = getLayoutColumns(transition);
-  return createPlaceholdersLayout(rows, columns);
-}
-
-function getInsertionDirection(cursorOffset: Coordinates): Direction {
-  if (cursorOffset.x < 0) {
-    return "right";
-  }
-  if (cursorOffset.x > 0) {
-    return "left";
-  }
-  if (cursorOffset.y < 0) {
-    return "down";
-  }
-  if (cursorOffset.y > 0) {
-    return "up";
-  }
-  return "right";
-}
-
-function getLayoutShift<D>(transition: Transition<D>, path: readonly Position[], insertionDirection?: Direction) {
-  if (path.length === 0) {
-    return { layoutShift: null, layoutShiftWithRefloat: null };
-  }
-
-  let engine = new LayoutEngine(transition.itemsLayout);
-  const width = getItemWidth(transition);
-  const height = getItemHeight(transition);
-  const rows = getLayoutRows(transition);
-  const columns = getLayoutColumns(transition);
-
-  switch (transition.operation) {
-    case "resize":
-      engine = engine.resize({ itemId: transition.draggableItem.id, path });
-      break;
-    case "reorder":
-      engine = engine.move({ itemId: transition.draggableItem.id, path });
-      break;
-    case "insert":
-      engine = engine.insert({
-        itemId: transition.draggableItem.id,
-        width,
-        height,
-        path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
-      });
-      break;
-  }
-
-  return { layoutShift: engine.getLayoutShift(), layoutShiftWithRefloat: engine.refloat().getLayoutShift() };
-}
-
-function createOperationAnnouncement<D>(transition: Transition<D>, direction: null | Direction): null | Announcement {
-  const { operation, layoutShift, layoutShiftWithRefloat, itemsLayout } = transition;
-  const targetItem = itemsLayout.items.find((it) => it.id === transition.draggableItem.id) ?? null;
-
-  if (!layoutShift || !layoutShiftWithRefloat) {
-    return null;
-  }
-
-  const firstMove = layoutShift.moves[0];
-  const targetId = firstMove?.itemId ?? targetItem?.id;
-  if (!targetId) {
-    return null;
-  }
-
-  const itemMoves = layoutShift.moves.filter((m) => m.itemId === targetId);
-  const lastItemMove = itemMoves[itemMoves.length - 1];
-  const placement = lastItemMove ?? targetItem;
-
-  const conflicts = new Set(layoutShift.conflicts);
-
-  const disturbed = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-  disturbed.delete(targetId);
-
-  return {
-    type: "operation-performed",
-    itemId: targetId,
-    operation,
-    targetItem: {
-      id: targetId,
-      x: placement.x,
-      y: placement.y,
-      width: placement.width,
-      height: placement.height,
-    },
-    direction,
-    conflicts,
-    disturbed,
-  };
 }

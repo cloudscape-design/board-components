@@ -1,7 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
-import { BoardItemDefinition, DataFallbackType } from "../internal/interfaces";
+import { InteractionType, Operation } from "../internal/dnd-controller/controller";
+import {
+  BoardItemDefinition,
+  BoardItemDefinitionBase,
+  DataFallbackType,
+  Direction,
+  GridLayout,
+  GridLayoutItem,
+  ItemId,
+} from "../internal/interfaces";
+import { LayoutShift } from "../internal/layout-engine/interfaces";
+import { Position } from "../internal/utils/position";
 
 export interface BoardProps<D = DataFallbackType> {
   /**
@@ -138,4 +149,54 @@ export namespace BoardProps {
     item: Item<D>;
     disturbed: readonly Item<D>[];
   }
+}
+
+export interface Transition<D> {
+  operation: Operation;
+  interactionType: InteractionType;
+  itemsLayout: GridLayout;
+  insertionDirection: null | Direction;
+  draggableItem: BoardItemDefinitionBase<D>;
+  draggableElement: HTMLElement;
+  collisionIds: Set<ItemId>;
+  layoutShift: null | LayoutShift;
+  layoutShiftWithRefloat: null | LayoutShift;
+  path: readonly Position[];
+}
+
+export type TransitionAnnouncement =
+  | OperationStartedAnnouncement
+  | OperationPerformedAnnouncement
+  | OperationCommittedAnnouncement
+  | OperationDiscardedAnnouncement
+  | ItemRemovedAnnouncement;
+
+export interface OperationStartedAnnouncement {
+  type: "operation-started";
+  itemId: ItemId;
+  operation: Operation;
+}
+export interface OperationPerformedAnnouncement {
+  type: "operation-performed";
+  itemId: ItemId;
+  operation: Operation;
+  targetItem: GridLayoutItem;
+  direction: null | Direction;
+  conflicts: Set<ItemId>;
+  disturbed: Set<ItemId>;
+}
+export interface OperationCommittedAnnouncement {
+  type: "operation-committed";
+  itemId: ItemId;
+  operation: Operation;
+}
+export interface OperationDiscardedAnnouncement {
+  type: "operation-discarded";
+  itemId: ItemId;
+  operation: Operation;
+}
+export interface ItemRemovedAnnouncement {
+  type: "item-removed";
+  itemId: ItemId;
+  disturbed: Set<ItemId>;
 }
