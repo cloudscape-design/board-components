@@ -1,117 +1,86 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
+import { Header } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
+import { ClientAppLayout } from "./app-layout";
 import { DeleteConfirmationModal } from "./delete-confirmation-modal";
-import { appLayoutI18nStrings, splitPanelI18nStrings } from "./i18n";
 
-export default function () {
+export default function Page() {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
   const [paletteWidgets, setPaletteWidgets] = useState(demoPaletteItems);
-  const [splitPanelOpen, setSplitPanelOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<null | string>(null);
-  const [splitPanelPosition, setSpitPanelPosition] = useState<"side" | "bottom">("side");
 
   return (
     <ScreenshotArea>
-      <AppLayout
-        contentType="default"
+      <ClientAppLayout
         content={
-          <ContentLayout
-            header={
-              <Box margin={{ top: "s" }}>
-                <Header
-                  variant="h1"
-                  actions={
-                    <Button iconName="add-plus" onClick={() => setSplitPanelOpen(true)}>
-                      Add widget
-                    </Button>
+          <Board
+            i18nStrings={boardI18nStrings}
+            empty={"No widgets"}
+            items={layoutWidgets}
+            onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
+              setLayoutWidgets(items);
+              if (addedItem) {
+                setPaletteWidgets((paletteWidgets) => paletteWidgets.filter((item) => item.id !== addedItem.id));
+              }
+              if (removedItem) {
+                setLayoutWidgets((prev) => prev.filter((prevItem) => prevItem.id !== removedItem.id));
+                setPaletteWidgets((prev) =>
+                  [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title))
+                );
+              }
+            }}
+            renderItem={(item, actions) => (
+              <>
+                <BoardItem
+                  header={<Header>{item.data.title}</Header>}
+                  footer={item.data.footer}
+                  settings={
+                    <ButtonDropdown
+                      items={[{ id: "remove", text: "Remove widget" }]}
+                      ariaLabel="Widget settings"
+                      variant="icon"
+                      onItemClick={() => setDeleteConfirmation(item.id)}
+                    />
                   }
+                  i18nStrings={boardItemI18nStrings}
                 >
-                  Service Dashboard
-                </Header>
-              </Box>
-            }
-          >
-            <Board
-              i18nStrings={boardI18nStrings}
-              empty={"No widgets"}
-              items={layoutWidgets}
-              onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-                setLayoutWidgets(items);
-                if (addedItem) {
-                  setPaletteWidgets((paletteWidgets) => paletteWidgets.filter((item) => item.id !== addedItem.id));
-                }
-                if (removedItem) {
-                  setLayoutWidgets((prev) => prev.filter((prevItem) => prevItem.id !== removedItem.id));
-                  setPaletteWidgets((prev) =>
-                    [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title))
-                  );
-                }
-              }}
-              renderItem={(item, actions) => (
-                <>
-                  <BoardItem
-                    header={<Header>{item.data.title}</Header>}
-                    footer={item.data.footer}
-                    settings={
-                      <ButtonDropdown
-                        items={[{ id: "remove", text: "Remove widget" }]}
-                        ariaLabel="Widget settings"
-                        variant="icon"
-                        onItemClick={() => setDeleteConfirmation(item.id)}
-                      />
-                    }
-                    i18nStrings={boardItemI18nStrings}
-                  >
-                    {item.data.content}
-                  </BoardItem>
+                  {item.data.content}
+                </BoardItem>
 
-                  <DeleteConfirmationModal
-                    title={item.data.title}
-                    visible={deleteConfirmation === item.id}
-                    onDismiss={() => setDeleteConfirmation(null)}
-                    onConfirm={() => {
-                      actions.removeItem();
-                      setDeleteConfirmation(null);
-                    }}
-                  />
-                </>
+                <DeleteConfirmationModal
+                  title={item.data.title}
+                  visible={deleteConfirmation === item.id}
+                  onDismiss={() => setDeleteConfirmation(null)}
+                  onConfirm={() => {
+                    actions.removeItem();
+                    setDeleteConfirmation(null);
+                  }}
+                />
+              </>
+            )}
+          />
+        }
+        splitPanelContent={
+          paletteWidgets.length > 0 ? (
+            <ItemsPalette
+              items={paletteWidgets}
+              i18nStrings={itemsPaletteI18nStrings}
+              renderItem={(item) => (
+                <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={boardItemI18nStrings}>
+                  {item.data.description}
+                </BoardItem>
               )}
             />
-          </ContentLayout>
-        }
-        splitPanel={
-          splitPanelOpen && (
-            <SplitPanel header="Add widgets" i18nStrings={splitPanelI18nStrings}>
-              {paletteWidgets.length > 0 ? (
-                <ItemsPalette
-                  items={paletteWidgets}
-                  i18nStrings={itemsPaletteI18nStrings}
-                  renderItem={(item) => (
-                    <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={boardItemI18nStrings}>
-                      {item.data.description}
-                    </BoardItem>
-                  )}
-                />
-              ) : (
-                "No widgets"
-              )}
-            </SplitPanel>
+          ) : (
+            "No widgets"
           )
         }
-        navigationHide={true}
-        toolsHide={true}
-        splitPanelPreferences={{ position: splitPanelPosition }}
-        splitPanelOpen={splitPanelOpen}
-        onSplitPanelToggle={({ detail }) => setSplitPanelOpen(detail.open)}
-        onSplitPanelPreferencesChange={({ detail }) => setSpitPanelPosition(detail.position)}
-        ariaLabels={appLayoutI18nStrings}
       />
     </ScreenshotArea>
   );

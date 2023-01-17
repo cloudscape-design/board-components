@@ -25,6 +25,11 @@ export const splitPanelI18nStrings = {
 };
 
 export const clientI18nStrings = {
+  appLayout: {
+    header: "Service Dashboard",
+    addWidgetButton: "Add widget",
+    addWidgetsHeader: "Add widgets",
+  },
   deleteConfirmation: {
     header: "Delete confirmation",
     confirm: "Yes",
