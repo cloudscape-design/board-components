@@ -1,0 +1,28 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import { Header } from "@cloudscape-design/components";
+import { BoardItem, ItemsPalette, ItemsPaletteProps } from "../../lib/components";
+import { boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
+import { ItemData } from "../shared/interfaces";
+import { clientI18nStrings } from "./i18n";
+
+interface WidgetsPaletteProps {
+  widgets: readonly ItemsPaletteProps.Item<ItemData>[];
+}
+
+export function WidgetsPalette({ widgets }: WidgetsPaletteProps) {
+  return widgets.length > 0 ? (
+    <ItemsPalette
+      items={widgets}
+      i18nStrings={itemsPaletteI18nStrings}
+      renderItem={(item) => (
+        <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={boardItemI18nStrings}>
+          {item.data.description}
+        </BoardItem>
+      )}
+    />
+  ) : (
+    <>{clientI18nStrings.widgetsPalette.widgetsEmpty}</>
+  );
+}

@@ -30,6 +30,14 @@ export const clientI18nStrings = {
     addWidgetButton: "Add widget",
     addWidgetsHeader: "Add widgets",
   },
+  widgetsBoard: {
+    widgetsEmpty: "No widgets",
+    removeWidgetAction: "Remove widget",
+    widgetSettings: "Widget settings",
+  },
+  widgetsPalette: {
+    widgetsEmpty: "No widgets",
+  },
   deleteConfirmation: {
     header: "Delete confirmation",
     confirm: "Yes",
