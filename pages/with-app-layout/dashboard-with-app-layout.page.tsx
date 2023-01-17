@@ -1,22 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import {
-  AppLayout,
-  Box,
-  Button,
-  ContentLayout,
-  Form,
-  Header,
-  Modal,
-  SpaceBetween,
-  SplitPanel,
-} from "@cloudscape-design/components";
+import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
+import { DeleteConfirmationModal } from "./delete-confirmation-modal";
+import { appLayoutI18nStrings, splitPanelI18nStrings } from "./i18n";
 
 export default function () {
   const [layoutWidgets, setLayoutWidgets] = useState(demoLayoutItems);
@@ -96,21 +88,7 @@ export default function () {
         }
         splitPanel={
           splitPanelOpen && (
-            <SplitPanel
-              header="Add widgets"
-              i18nStrings={{
-                preferencesTitle: "Split panel preferences",
-                preferencesPositionLabel: "Split panel position",
-                preferencesPositionDescription: "Choose the default split panel position for the service.",
-                preferencesPositionSide: "Side",
-                preferencesPositionBottom: "Bottom",
-                preferencesConfirm: "Confirm",
-                preferencesCancel: "Cancel",
-                closeButtonAriaLabel: "Close panel",
-                openButtonAriaLabel: "Open panel",
-                resizeHandleAriaLabel: "Resize split panel",
-              }}
-            >
+            <SplitPanel header="Add widgets" i18nStrings={splitPanelI18nStrings}>
               {paletteWidgets.length > 0 ? (
                 <ItemsPalette
                   items={paletteWidgets}
@@ -133,47 +111,8 @@ export default function () {
         splitPanelOpen={splitPanelOpen}
         onSplitPanelToggle={({ detail }) => setSplitPanelOpen(detail.open)}
         onSplitPanelPreferencesChange={({ detail }) => setSpitPanelPosition(detail.position)}
-        ariaLabels={{
-          navigation: "Side navigation",
-          navigationToggle: "Open side navigation",
-          navigationClose: "Close side navigation",
-          notifications: "Notifications",
-          tools: "Help panel",
-          toolsToggle: "Open help panel",
-          toolsClose: "Close help panel",
-        }}
+        ariaLabels={appLayoutI18nStrings}
       />
     </ScreenshotArea>
-  );
-}
-
-function DeleteConfirmationModal({
-  title,
-  visible,
-  onDismiss,
-  onConfirm,
-}: {
-  title: string;
-  visible: boolean;
-  onDismiss: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <Modal visible={visible} onDismiss={onDismiss} header="Delete confirmation">
-      <Form
-        actions={
-          <SpaceBetween size="s" direction="horizontal">
-            <Button variant="normal" onClick={onDismiss}>
-              No
-            </Button>
-            <Button variant="primary" onClick={onConfirm}>
-              Yes
-            </Button>
-          </SpaceBetween>
-        }
-      >
-        Remove {title}?
-      </Form>
-    </Modal>
   );
 }
