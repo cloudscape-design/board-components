@@ -3,15 +3,17 @@
 
 import { Header } from "@cloudscape-design/components";
 import { BoardItem, ItemsPalette, ItemsPaletteProps } from "../../lib/components";
+import LiveRegion from "../../lib/components/internal/live-region";
 import { boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import { clientI18nStrings } from "./i18n";
 
 interface WidgetsPaletteProps {
+  loading: boolean;
   widgets: readonly ItemsPaletteProps.Item<ItemData>[];
 }
 
-export function WidgetsPalette({ widgets }: WidgetsPaletteProps) {
+export function WidgetsPalette({ loading, widgets }: WidgetsPaletteProps) {
   return widgets.length > 0 ? (
     <ItemsPalette
       items={widgets}
@@ -23,6 +25,12 @@ export function WidgetsPalette({ widgets }: WidgetsPaletteProps) {
       )}
     />
   ) : (
-    <>{clientI18nStrings.widgetsPalette.widgetsEmpty}</>
+    <>
+      {loading ? (
+        <LiveRegion visible={true}>{clientI18nStrings.widgetsPalette.widgetsLoading}</LiveRegion>
+      ) : (
+        clientI18nStrings.widgetsPalette.widgetsEmpty
+      )}
+    </>
   );
 }

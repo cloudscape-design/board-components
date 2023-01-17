@@ -1,26 +1,36 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Header } from "@cloudscape-design/components";
+import { Box, Header } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
 import { Board, BoardItem, BoardProps } from "../../lib/components";
+import LiveRegion from "../../lib/components/internal/live-region";
 import { boardI18nStrings, boardItemI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import { DeleteConfirmationModal } from "./delete-confirmation-modal";
 import { clientI18nStrings } from "./i18n";
 
 interface WidgetsBoardProps {
+  loading: boolean;
   widgets: readonly BoardProps.Item<ItemData>[];
   onWidgetsChange: (detail: BoardProps.ItemsChangeDetail<ItemData>) => void;
 }
 
-export function WidgetsBoard({ widgets, onWidgetsChange }: WidgetsBoardProps) {
+export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoardProps) {
   const [deleteConfirmation, setDeleteConfirmation] = useState<null | string>(null);
   return (
     <Board
       i18nStrings={boardI18nStrings}
-      empty={clientI18nStrings.widgetsBoard.widgetsEmpty}
+      empty={
+        <Box margin={{ top: "xxxl" }}>
+          {loading ? (
+            <LiveRegion visible={true}>{clientI18nStrings.widgetsBoard.widgetsLoading}</LiveRegion>
+          ) : (
+            clientI18nStrings.widgetsBoard.widgetsEmpty
+          )}
+        </Box>
+      }
       items={widgets}
       onItemsChange={({ detail }) => onWidgetsChange(detail)}
       renderItem={(item, actions) => (

@@ -27,16 +27,19 @@ export const splitPanelI18nStrings = {
 export const clientI18nStrings = {
   appLayout: {
     header: "Service Dashboard",
+    reloadButton: "Reload",
     addWidgetButton: "Add widget",
     addWidgetsHeader: "Add widgets",
   },
   widgetsBoard: {
     widgetsEmpty: "No widgets",
+    widgetsLoading: "Loading board widgets",
     removeWidgetAction: "Remove widget",
     widgetSettings: "Widget settings",
   },
   widgetsPalette: {
     widgetsEmpty: "No widgets",
+    widgetsLoading: "Loading palette widgets",
   },
   deleteConfirmation: {
     header: "Delete confirmation",

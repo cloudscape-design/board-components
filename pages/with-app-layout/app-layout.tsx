@@ -1,11 +1,17 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
+import { AppLayout, Box, Button, ContentLayout, Header, SpaceBetween, SplitPanel } from "@cloudscape-design/components";
 import { ReactNode, useState } from "react";
 import { appLayoutI18nStrings, clientI18nStrings, splitPanelI18nStrings } from "./i18n";
 
-export function ClientAppLayout({ content, splitPanelContent }: { content: ReactNode; splitPanelContent: ReactNode }) {
+interface ClientAppLayoutProps {
+  content: ReactNode;
+  splitPanelContent: ReactNode;
+  onReload: () => void;
+}
+
+export function ClientAppLayout({ content, splitPanelContent, onReload }: ClientAppLayoutProps) {
   const [splitPanelOpen, setSplitPanelOpen] = useState(false);
   const [splitPanelPosition, setSpitPanelPosition] = useState<"side" | "bottom">("side");
   return (
@@ -18,9 +24,14 @@ export function ClientAppLayout({ content, splitPanelContent }: { content: React
               <Header
                 variant="h1"
                 actions={
-                  <Button iconName="add-plus" onClick={() => setSplitPanelOpen(true)}>
-                    {clientI18nStrings.appLayout.addWidgetButton}
-                  </Button>
+                  <SpaceBetween size="s" direction="horizontal">
+                    <Button variant="icon" iconName="refresh" onClick={onReload}>
+                      {clientI18nStrings.appLayout.reloadButton}
+                    </Button>
+                    <Button iconName="add-plus" onClick={() => setSplitPanelOpen(true)}>
+                      {clientI18nStrings.appLayout.addWidgetButton}
+                    </Button>
+                  </SpaceBetween>
                 }
               >
                 {clientI18nStrings.appLayout.header}
