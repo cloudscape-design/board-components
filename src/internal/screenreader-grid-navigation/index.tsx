@@ -7,21 +7,23 @@ import ScreenreaderOnly from "../screenreader-only";
 
 import styles from "./styles.css.js";
 
+export interface ScreenReaderGridNavigationProps<Item> {
+  items: readonly Item[];
+  itemsLayout: GridLayout;
+  ariaLabel: string;
+  ariaDescription?: string;
+  itemAriaLabel: (item: null | Item) => string;
+  onActivateItem: (itemId: ItemId) => void;
+}
+
 export function ScreenReaderGridNavigation<Item extends { id: string }>({
   items,
   itemsLayout,
   ariaLabel,
   ariaDescription,
   itemAriaLabel,
-  onFocusItem,
-}: {
-  items: readonly Item[];
-  itemsLayout: GridLayout;
-  ariaLabel: string;
-  ariaDescription?: string;
-  itemAriaLabel: (item: null | Item) => string;
-  onFocusItem: (itemId: ItemId) => void;
-}) {
+  onActivateItem,
+}: ScreenReaderGridNavigationProps<Item>) {
   const [isNavigationFocused, setIsNavigationFocused] = useState(false);
   const className = isNavigationFocused
     ? styles["screen-reader-navigation-visible"]
@@ -73,7 +75,7 @@ export function ScreenReaderGridNavigation<Item extends { id: string }>({
                   {itemId ? (
                     <button
                       tabIndex={-1}
-                      onClick={() => itemId && onFocusItem(itemId)}
+                      onClick={() => itemId && onActivateItem(itemId)}
                       onFocus={() => setIsNavigationFocused(true)}
                       onBlur={() => setIsNavigationFocused(false)}
                     >
