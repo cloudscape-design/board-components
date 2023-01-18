@@ -74,6 +74,7 @@ class DndPageObject extends ScreenshotPageObject {
   }
 
   async fullPageScreenshot() {
+    // Necessary for animations to complete.
     await this.pause(100);
     return super.fullPageScreenshot();
   }
