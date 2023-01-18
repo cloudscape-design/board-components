@@ -33,14 +33,14 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
       const conflictsAnnouncement =
         conflicts.length > 0 ? `Conflicts with ${conflicts.map((c) => c.data.title).join(", ")}.` : "";
       const disturbedAnnouncement = disturbed.length > 0 ? `Disturbed ${disturbed.length} items.` : "";
-      return [operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(". ");
+      return [operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
     }
 
     function reorderAnnouncement(op: BoardProps.OperationStateReorder<ItemData>): string {
       const columns = `column ${op.placement.x + 1}`;
       const rows = `row ${op.placement.y + 1}`;
       return createAnnouncement(
-        `Item moved to ${op.direction === "horizontal" ? columns : rows}`,
+        `Item moved to ${op.direction === "horizontal" ? columns : rows}.`,
         op.conflicts,
         op.disturbed
       );
@@ -49,21 +49,21 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
     function insertAnnouncement(op: BoardProps.OperationStateInsert<ItemData>): string {
       const columns = `column ${op.placement.x + 1}`;
       const rows = `row ${op.placement.y + 1}`;
-      return createAnnouncement(`Item inserted to ${columns}, ${rows}`, op.conflicts, op.disturbed);
+      return createAnnouncement(`Item inserted to ${columns}, ${rows}.`, op.conflicts, op.disturbed);
     }
 
     function resizeAnnouncement(op: BoardProps.OperationStateResize<ItemData>): string {
-      const columnsConstraint = op.isMinimalColumnsReached ? "(minimal)" : "";
-      const rowsConstraint = op.isMinimalRowsReached ? "(minimal)" : "";
+      const columnsConstraint = op.isMinimalColumnsReached ? " (minimal)" : "";
+      const rowsConstraint = op.isMinimalRowsReached ? " (minimal)" : "";
       const sizeAnnouncement =
         op.direction === "horizontal"
-          ? `columns ${op.placement.width} ${columnsConstraint}`
-          : `rows ${op.placement.height} ${rowsConstraint}`;
-      return createAnnouncement(`Item resized to ${sizeAnnouncement}`, op.conflicts, op.disturbed);
+          ? `columns ${op.placement.width}${columnsConstraint}`
+          : `rows ${op.placement.height}${rowsConstraint}`;
+      return createAnnouncement(`Item resized to ${sizeAnnouncement}.`, op.conflicts, op.disturbed);
     }
 
     function removeAnnouncement(op: BoardProps.OperationStateRemove<ItemData>): string {
-      return createAnnouncement(`Removed item ${op.item.data.title}`, [], op.disturbed);
+      return createAnnouncement(`Removed item ${op.item.data.title}.`, [], op.disturbed);
     }
 
     switch (operation.operationType) {
