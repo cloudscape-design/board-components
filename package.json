@@ -37,7 +37,8 @@
     ".": "./index.js",
     "./board": "./board/index.js",
     "./board-item": "./board-item/index.js",
-    "./items-palette": "./items-palette/index.js"
+    "./items-palette": "./items-palette/index.js",
+    "./internal/api-docs/*.js": "./internal/api-docs/*.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",

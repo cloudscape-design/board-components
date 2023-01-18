@@ -23,6 +23,7 @@ export function listPublicDirs(baseDir) {
       (elem) =>
         !elem.startsWith("__") &&
         !elem.startsWith(".") &&
+        elem !== "api-docs" &&
         elem !== "internal" &&
         elem !== "index.tsx" &&
         elem !== "index.ts" &&
