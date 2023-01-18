@@ -183,10 +183,12 @@ function initTransition<D>({
   const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
   const path = layoutItem ? appendPath([], collisionRect) : [];
 
+  const itemBelongsToBoard = itemsLayout.items.some((it) => it.id === draggableItem.id);
+
   return {
     transition: { ...transition, path },
     removeTransition: null,
-    announcement: { type: "operation-started", item: draggableItem, operation },
+    announcement: itemBelongsToBoard ? { type: "operation-started", item: draggableItem, operation } : null,
   };
 }
 
@@ -213,18 +215,19 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
     throw new Error("Invariant violation: no transition.");
   }
 
-  const { operation, draggableItem: item } = transition;
+  const { operation, itemsLayout, draggableItem: item, acquiredItem } = transition;
+  const itemBelongsToBoard = item.id === acquiredItem?.id || itemsLayout.items.some((it) => it.id === item.id);
 
   return transition.layoutShift?.conflicts.length === 0
     ? {
         transition: null,
         removeTransition: null,
-        announcement: { type: "operation-committed", item, operation },
+        announcement: itemBelongsToBoard ? { type: "operation-committed", item, operation } : null,
       }
     : {
         transition: null,
         removeTransition: null,
-        announcement: { type: "operation-discarded", item, operation },
+        announcement: itemBelongsToBoard ? { type: "operation-discarded", item, operation } : null,
       };
 }
 
@@ -238,12 +241,13 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
     throw new Error("Invariant violation: no transition.");
   }
 
-  const { operation, draggableItem: item } = transition;
+  const { operation, itemsLayout, draggableItem: item, acquiredItem } = transition;
+  const itemBelongsToBoard = item.id === acquiredItem?.id || itemsLayout.items.some((it) => it.id === item.id);
 
   return {
     transition: null,
     removeTransition: null,
-    announcement: { type: "operation-discarded", item, operation },
+    announcement: itemBelongsToBoard ? { type: "operation-discarded", item, operation } : null,
   };
 }
 
