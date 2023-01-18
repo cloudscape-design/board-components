@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLastInteraction } from "../internal/utils/use-last-interaction";
+import { useLastInteraction } from "./use-last-interaction";
 
 export function useAutoScroll() {
   const [activeAutoScroll, setActiveAutoScroll] = useState<"up" | "down" | "none">("none");

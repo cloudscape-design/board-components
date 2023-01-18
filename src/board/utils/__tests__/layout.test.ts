@@ -1,11 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, test } from "vitest";
-import { fromMatrix } from "../../internal/debug-tools";
-import { Operation } from "../../internal/dnd-controller/controller";
-import { GridLayout } from "../../internal/interfaces";
-import { LayoutShift } from "../../internal/layout-engine/interfaces";
-import { Transition, selectTransitionRows } from "../transition";
+import { fromMatrix } from "../../../internal/debug-tools";
+import { Operation } from "../../../internal/dnd-controller/controller";
+import { GridLayout } from "../../../internal/interfaces";
+import { LayoutShift } from "../../../internal/layout-engine/interfaces";
+import { Transition } from "../../interfaces";
+import { getLayoutRows } from "../layout";
 
 function createMockTransition(
   operation: Operation,
@@ -19,7 +20,6 @@ function createMockTransition(
     insertionDirection: null,
     draggableItem: { id: "X", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: null },
     draggableElement: null as unknown as HTMLElement,
-    acquiredItem: null,
     collisionIds: new Set(),
     layoutShift,
     layoutShiftWithRefloat: null,
@@ -27,13 +27,7 @@ function createMockTransition(
   };
 }
 
-describe("selectTransitionRows", () => {
-  test("returns 0 if no transition", () => {
-    const transition = null;
-    const rows = selectTransitionRows({ transition, announcement: null });
-    expect(rows).toBe(0);
-  });
-
+describe("getLayoutRows", () => {
   test("returns original amount of rows for resize when not reached bottom", () => {
     const transition = createMockTransition(
       "resize",
@@ -54,7 +48,7 @@ describe("selectTransitionRows", () => {
         conflicts: [],
       }
     );
-    const rows = selectTransitionRows({ transition, announcement: null });
+    const rows = getLayoutRows(transition);
     expect(rows).toBe(2);
   });
 
@@ -78,7 +72,7 @@ describe("selectTransitionRows", () => {
         conflicts: [],
       }
     );
-    const rows = selectTransitionRows({ transition, announcement: null });
+    const rows = getLayoutRows(transition);
     expect(rows).toBe(3);
   });
 
@@ -90,11 +84,9 @@ describe("selectTransitionRows", () => {
     ]);
     const layoutShift = { current: itemsLayout, next: itemsLayout, moves: [], conflicts: [] };
 
-    const reorderTransition = createMockTransition("reorder", itemsLayout, layoutShift);
-    expect(selectTransitionRows({ transition: reorderTransition, announcement: null })).toBe(5);
+    expect(getLayoutRows(createMockTransition("reorder", itemsLayout, layoutShift))).toBe(5);
 
-    const insertTransition = createMockTransition("reorder", itemsLayout, layoutShift);
-    expect(selectTransitionRows({ transition: insertTransition, announcement: null })).toBe(5);
+    expect(getLayoutRows(createMockTransition("reorder", itemsLayout, layoutShift))).toBe(5);
   });
 
   test("returns next layout amount of rows if it is bigger", () => {
@@ -110,12 +102,12 @@ describe("selectTransitionRows", () => {
     ]);
 
     const resizeTransition = createMockTransition("resize", current, { current, next, moves: [], conflicts: [] });
-    expect(selectTransitionRows({ transition: resizeTransition, announcement: null })).toBe(4);
+    expect(getLayoutRows(resizeTransition)).toBe(4);
 
     const reorderTransition = createMockTransition("reorder", current, { current, next, moves: [], conflicts: [] });
-    expect(selectTransitionRows({ transition: reorderTransition, announcement: null })).toBe(4);
+    expect(getLayoutRows(reorderTransition)).toBe(4);
 
     const insertTransition = createMockTransition("insert", current, { current, next, moves: [], conflicts: [] });
-    expect(selectTransitionRows({ transition: insertTransition, announcement: null })).toBe(4);
+    expect(getLayoutRows(insertTransition)).toBe(4);
   });
 });

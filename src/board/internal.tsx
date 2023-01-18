@@ -3,13 +3,7 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
-import {
-  BREAKPOINT_SMALL,
-  COLUMNS_FULL,
-  COLUMNS_SMALL,
-  MIN_ROW_SPAN,
-  TRANSITION_DURATION_MS,
-} from "../internal/constants";
+import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
@@ -24,14 +18,15 @@ import {
   getDefaultItemSize,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
-import { createTransforms } from "./calculations/shift-layout";
 
 import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import styles from "./styles.css.js";
-import { OperationPerformedAnnouncement, selectTransitionRows, useTransition } from "./transition";
-import { useAutoScroll } from "./use-auto-scroll";
+import { selectTransitionRows, useTransition } from "./transition";
+import { announcementToString } from "./utils/announcements";
+import { createTransforms } from "./utils/create-transforms";
 
 export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
@@ -185,14 +180,10 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     itemContainerRef.current[itemId].focusDragHandle();
   }
 
-  function shiftItem(direction: Direction) {
-    dispatch({ type: "update-with-keyboard", direction });
-    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
-  }
-
   function onItemNavigate(direction: Direction) {
     if (transition) {
-      shiftItem(direction);
+      dispatch({ type: "update-with-keyboard", direction });
+      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
     }
   }
 
@@ -202,63 +193,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     delete transforms[transition.draggableItem.id];
   }
 
-  const announcement = (() => {
-    if (!transitionAnnouncement) {
-      return "";
-    }
-    const item = transitionAnnouncement.item as BoardProps.Item<D>;
-
-    const toItem = (id: ItemId) => items.find((it) => it?.id === id)!;
-    const formatDirection = (direction: null | Direction) => {
-      if (!direction) {
-        return null;
-      }
-      return direction === "left" || direction === "right" ? "horizontal" : "vertical";
-    };
-
-    function getOperationState(announcement: OperationPerformedAnnouncement): BoardProps.OperationState<D> {
-      const placement = announcement.placement;
-      const direction = formatDirection(announcement.direction);
-      const conflicts = [...announcement.conflicts].map(toItem);
-      const disturbed = [...announcement.disturbed].map(toItem);
-
-      switch (announcement.operation) {
-        case "reorder":
-          return { operationType: "reorder", item, placement, direction: direction!, conflicts, disturbed };
-        case "insert":
-          return { operationType: "insert", item, placement, conflicts, disturbed };
-        case "resize":
-          return {
-            operationType: "resize",
-            item,
-            placement,
-            direction: direction!,
-            isMinimalColumnsReached: placement.width === (item.definition.minColumnSpan ?? 1),
-            isMinimalRowsReached: placement.height === (item.definition.minRowSpan ?? MIN_ROW_SPAN),
-            conflicts,
-            disturbed,
-          };
-      }
-    }
-
-    switch (transitionAnnouncement.type) {
-      case "operation-started":
-        return i18nStrings.liveAnnouncementOperationStarted(transitionAnnouncement.operation);
-      case "operation-performed":
-        return i18nStrings.liveAnnouncementOperation(getOperationState(transitionAnnouncement));
-      case "operation-committed":
-        return i18nStrings.liveAnnouncementOperationCommitted(transitionAnnouncement.operation);
-      case "operation-discarded":
-        return i18nStrings.liveAnnouncementOperationDiscarded(transitionAnnouncement.operation);
-      case "item-removed":
-        return i18nStrings.liveAnnouncementOperation({
-          operationType: "remove",
-          item,
-          disturbed: [...transitionAnnouncement.disturbed].map(toItem),
-        });
-    }
-  })();
-
+  const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
   const showGrid = items.length > 0 || transition;
 
   return (

@@ -1,8 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
-import { BoardItemDefinition, DataFallbackType } from "../internal/interfaces";
+import { InteractionType, Operation } from "../internal/dnd-controller/controller";
+import {
+  BoardItemDefinition,
+  BoardItemDefinitionBase,
+  DataFallbackType,
+  Direction,
+  GridLayout,
+  GridLayoutItem,
+  ItemId,
+} from "../internal/interfaces";
+import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { NonCancelableEventHandler } from "../internal/utils/events";
+import { Position } from "../internal/utils/position";
 
 /*
   Note:
@@ -148,4 +159,61 @@ export namespace BoardProps {
     item: Item<D>;
     disturbed: readonly Item<D>[];
   }
+}
+
+export interface Transition<D> {
+  operation: Operation;
+  interactionType: InteractionType;
+  itemsLayout: GridLayout;
+  insertionDirection: null | Direction;
+  draggableItem: BoardItemDefinitionBase<D>;
+  draggableElement: HTMLElement;
+  acquiredItem: null | BoardItemDefinition<D>;
+  collisionIds: Set<ItemId>;
+  layoutShift: null | LayoutShift;
+  layoutShiftWithRefloat: null | LayoutShift;
+  path: readonly Position[];
+}
+
+export interface RemoveTransition<D> {
+  items: readonly BoardProps.Item<D>[];
+  removedItem: BoardItemDefinitionBase<D>;
+  layoutShift: LayoutShift;
+}
+
+export type TransitionAnnouncement =
+  | OperationStartedAnnouncement
+  | OperationPerformedAnnouncement
+  | OperationCommittedAnnouncement
+  | OperationDiscardedAnnouncement
+  | ItemRemovedAnnouncement;
+
+export interface OperationStartedAnnouncement {
+  type: "operation-started";
+  item: BoardItemDefinitionBase<unknown>;
+  operation: Operation;
+}
+export interface OperationPerformedAnnouncement {
+  type: "operation-performed";
+  item: BoardItemDefinitionBase<unknown>;
+  operation: Operation;
+  placement: Omit<GridLayoutItem, "id">;
+  direction: null | Direction;
+  conflicts: Set<ItemId>;
+  disturbed: Set<ItemId>;
+}
+export interface OperationCommittedAnnouncement {
+  type: "operation-committed";
+  item: BoardItemDefinitionBase<unknown>;
+  operation: Operation;
+}
+export interface OperationDiscardedAnnouncement {
+  type: "operation-discarded";
+  item: BoardItemDefinitionBase<unknown>;
+  operation: Operation;
+}
+export interface ItemRemovedAnnouncement {
+  type: "item-removed";
+  item: BoardItemDefinitionBase<unknown>;
+  disturbed: Set<ItemId>;
 }

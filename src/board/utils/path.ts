@@ -1,32 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Direction, GridLayout, ItemId, Transform } from "../../internal/interfaces";
+import { Direction } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
-import { CommittedMove } from "../../internal/layout-engine/interfaces";
 import { Position } from "../../internal/utils/position";
 
-export function createTransforms(grid: GridLayout, moves: readonly CommittedMove[]) {
-  const transforms: Record<ItemId, Transform> = {};
-
-  for (const move of moves) {
-    const item = grid.items.find((prev) => prev.id === move.itemId);
-
-    if (move.type === "REMOVE") {
-      transforms[move.itemId] = { type: "remove" };
-    } else if (item) {
-      transforms[item.id] = {
-        type: "move",
-        x: move.x - item.x,
-        y: move.y - item.y,
-        width: move.width,
-        height: move.height,
-      };
-    }
-  }
-
-  return transforms;
-}
-
+/**
+ * The insertion operation is similar to reorder yet the first path entry is treated differently.
+ * The normalization removes leading path entries if on the same edge to optimize UX.
+ */
 export function normalizeInsertionPath(
   path: readonly Position[],
   insertionDirection: Direction,
@@ -73,6 +54,12 @@ export function appendResizePath(prevPath: readonly Position[], collisionRect: R
   return appendPath(prevPath, new Position({ x: collisionRect.right, y: collisionRect.bottom }));
 }
 
+/**
+ * The operation path must be strictly incremental (each dx + dy == 1). However, the actual collisions
+ * data can have gaps due to pointer events throttling or other factors.
+ *
+ * The function produces next path from previous path and the target position by incrementally adding steps.
+ */
 function appendPath(prevPath: readonly Position[], nextPosition: Position): Position[] {
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];
