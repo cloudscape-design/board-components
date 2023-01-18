@@ -8,6 +8,7 @@ export interface GridProps {
   layout: GridLayoutItem[];
   columns: number;
   rows: number;
+  inTransition?: boolean;
   transforms?: { [id: ItemId]: Transform };
   children?: ReactNode;
 }

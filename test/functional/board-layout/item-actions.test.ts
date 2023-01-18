@@ -24,15 +24,19 @@ describe("items removal", () => {
       // Remove Widget F.
       await page.focus(boardItemHandle("F"));
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget J.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget N.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget G.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
@@ -53,18 +57,23 @@ describe("items removal", () => {
       // Remove Widget P.
       await page.focus(boardItemHandle("P"));
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget O.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget N.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget M.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Remove Widget L.
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
@@ -83,6 +92,7 @@ describe("items removal", () => {
       // Remove Widget F.
       await page.focus(boardItemHandle("F"));
       await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
 
       // Focus drag handle of the item that follows Widget E.
       await page.focus(boardItemHandle("E"));
@@ -98,6 +108,7 @@ describe("items removal", () => {
       // Remove Widget 5.
       await page.focus(boardItemHandle("5"));
       await page.keys(["Tab", "Enter", "Enter", "Tab", "Tab", "Enter"]);
+      await page.pause(200);
 
       await expect(page.isExisting(boardItemHandle("5"))).resolves.toBe(false);
       await expect(page.isFocused(boardItemHandle("8"))).resolves.toBe(true);

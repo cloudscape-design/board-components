@@ -11,9 +11,11 @@ export function createTransforms(grid: GridLayout, moves: readonly CommittedMove
   for (const move of moves) {
     const item = grid.items.find((prev) => prev.id === move.itemId);
 
-    // Item can be missing if inserting.
-    if (item) {
+    if (move.type === "REMOVE") {
+      transforms[move.itemId] = { type: "remove" };
+    } else if (item) {
       transforms[item.id] = {
+        type: "move",
         x: move.x - item.x,
         y: move.y - item.y,
         width: move.width,

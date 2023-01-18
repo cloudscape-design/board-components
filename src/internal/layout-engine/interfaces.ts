@@ -27,7 +27,7 @@ export interface CommittedMove {
   y: number;
   width: number;
   height: number;
-  type: "MOVE" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT" | "RESIZE" | "INSERT";
+  type: "MOVE" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT" | "RESIZE" | "INSERT" | "REMOVE";
 }
 
 export interface LayoutShift {
