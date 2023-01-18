@@ -73,7 +73,7 @@ function LiveRegion({ assertive = false, delay = 10, visible = false, children, 
       }
     }
 
-    let timeoutId: null | number;
+    let timeoutId: null | ReturnType<typeof setTimeout>;
     if (delay) {
       timeoutId = setTimeout(updateLiveRegion, delay);
     } else {

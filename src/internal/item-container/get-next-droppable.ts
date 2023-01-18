@@ -10,9 +10,9 @@ export function getNextDroppable(
   draggableElement: HTMLElement,
   droppables: readonly [ItemId, Droppable][],
   direction: Direction
-): null | Droppable {
+): null | ItemId {
   const draggableRect = getNormalizedElementRect(draggableElement);
-  const sources = new Map(droppables.map(([, d]) => [getNormalizedElementRect(d.element), d]));
+  const sources = new Map(droppables.map(([id, d]) => [getNormalizedElementRect(d.element), id]));
   const closest = getClosestNeighbor(draggableRect, [...sources.keys()], direction);
   return sources.get(closest as DOMRect) ?? null;
 }

@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import clsx from "clsx";
 import {
   CSSProperties,
   KeyboardEvent,
@@ -26,6 +27,8 @@ import { BoardItemDefinitionBase, Direction, ItemId } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
+import { useStableEventHandler } from "../utils/use-stable-event-handler";
+import { useThrottledEventHandler } from "../utils/use-throttled-event-handler";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
@@ -73,20 +76,19 @@ interface Transition {
  * `transform` - items's position and size offset in units to temporarily change its placement.
  * `onNavigate` - a callback to fire when arrow keys are pressed on drag handle.
  */
-interface ItemContainerProps {
+export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
   acquired?: boolean;
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
   onNavigate?(direction: Direction): void;
-  onBorrow?(): void;
   children: ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, onNavigate, onBorrow, children }: ItemContainerProps,
+  { item, acquired, itemSize, itemMaxSize, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -98,10 +100,16 @@ function ItemContainerComponent(
   };
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
-  const eventHandlersRef = useRef({
-    onPointerMove: (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-    onPointerUp: () => draggableApi.submitTransition(),
+
+  const onPointerMove = useThrottledEventHandler(
+    (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
+    10
+  );
+  const onPointerUp = useStableEventHandler(() => {
+    onPointerMove.cancel();
+    draggableApi.submitTransition();
   });
+
   const gridContext = useGridContext();
 
   function updateTransition({
@@ -145,11 +153,16 @@ function ItemContainerComponent(
   useDragSubscription("update", (detail) => updateTransition(detail));
   useDragSubscription("submit", () => clearState());
   useDragSubscription("discard", () => clearState());
+  useDragSubscription("acquire", (detail) => {
+    if (detail.draggableItem.id === item.id) {
+      setIsBorrowed(true);
+    }
+  });
 
+  const transitionInteractionType = transition?.interactionType ?? null;
+  const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
-    const { onPointerMove, onPointerUp } = eventHandlersRef.current;
-
-    if (transition && transition.interactionType === "pointer" && transition.itemId === item.id) {
+    if (transitionInteractionType === "pointer" && transitionItemId === item.id) {
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
     }
@@ -158,7 +171,7 @@ function ItemContainerComponent(
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [item.id, transition]);
+  }, [item.id, transitionInteractionType, transitionItemId, onPointerMove, onPointerUp]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     // The acquired item is a copy and does not have the transition state.
@@ -196,14 +209,14 @@ function ItemContainerComponent(
 
     if (!nextDroppable) {
       // TODO: add announcement
+      // Context: the keyboard insertion only works when there is some droppable area in the specified direction.
+      // That means that only some arrow keys might work which is confusing for a screen-reader user.
+      // Alternatively, we can consider a multi-step insertion where the user would first explicitly select the desired board.
       return;
     }
 
     // Notify the respective droppable of the intention to insert the item in it.
-    nextDroppable.context.acquire();
-
-    setIsBorrowed(true);
-    onBorrow?.();
+    draggableApi.acquire(nextDroppable);
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -269,29 +282,20 @@ function ItemContainerComponent(
     onHandleKeyDown("resize", event);
   }
 
-  // TODO: use a combination of styles and classes.
-  // When there is a transition the item's placement and styles might need to be altered for the period of the transition.
-  let style: CSSProperties = {};
+  const itemTransitionStyle: CSSProperties = {};
+  const itemTransitionClassNames: string[] = [];
 
+  // Adjust the dragged/resized item to the pointer's location.
   if (transition && transition.interactionType === "pointer") {
-    style = getPointerDragStyles(transition);
-  } else if (isBorrowed) {
-    style = getBorrowedItemStyles();
+    itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
+    itemTransitionStyle.left = transition.positionTransform?.x;
+    itemTransitionStyle.top = transition.positionTransform?.y;
+    itemTransitionStyle.width = transition.sizeTransform?.width;
+    itemTransitionStyle.height = transition.sizeTransform?.height;
   }
-
-  function getPointerDragStyles(transition: Transition): CSSProperties {
-    return {
-      zIndex: 5000,
-      position: transition.operation === "resize" ? "absolute" : "fixed",
-      left: transition.positionTransform?.x,
-      top: transition.positionTransform?.y,
-      width: transition.sizeTransform?.width,
-      height: transition.sizeTransform?.height,
-    };
-  }
-
-  function getBorrowedItemStyles(): CSSProperties {
-    return { opacity: 0.5 };
+  // Make the borrowed item dimmed.
+  else if (isBorrowed) {
+    itemTransitionClassNames.push(styles.borrowed);
   }
 
   const dragHandleRef = useRef<HTMLButtonElement>(null);
@@ -300,7 +304,13 @@ function ItemContainerComponent(
   }));
 
   return (
-    <div ref={itemRef} className={styles.root} style={style} data-item-id={item.id} onBlur={onBlur}>
+    <div
+      ref={itemRef}
+      className={clsx(styles.root, ...itemTransitionClassNames)}
+      style={itemTransitionStyle}
+      data-item-id={item.id}
+      onBlur={onBlur}
+    >
       <Context.Provider
         value={{
           dragHandle: {

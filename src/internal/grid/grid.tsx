@@ -3,6 +3,7 @@
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
+import clsx from "clsx";
 import { Children } from "react";
 import { GridContextProvider } from "../grid-context";
 
@@ -14,7 +15,7 @@ import { zipTwoArrays } from "./utils";
 const GRID_GAP = 16;
 const ROWSPAN_HEIGHT = 100;
 
-export default function Grid({ layout, children, columns, rows, transforms }: GridProps) {
+export default function Grid({ layout, children, columns, rows, transforms, inTransition }: GridProps) {
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
   const zipped = zipTwoArrays(layout, Children.toArray(children));
 
@@ -32,22 +33,32 @@ export default function Grid({ layout, children, columns, rows, transforms }: Gr
       <div ref={containerQueryRef} data-columns={columns} data-rows={rows} className={styles.grid}>
         {zipped.map(([item, children]) => {
           const contentTransform = transforms?.[item.id];
-          const contentClassName = contentTransform ? styles.transformed : undefined;
-          const contentStyle = contentTransform
-            ? {
-                transform: CSSUtil.Transform.toString({
-                  x: getColOffset(contentTransform.x),
-                  y: getRowOffset(contentTransform.y),
-                  scaleX: 1,
-                  scaleY: 1,
-                }),
-                width: getWidth(contentTransform.width) + "px",
-                height: getHeight(contentTransform.height) + "px",
-              }
-            : undefined;
+
+          const contentClassNames: string[] = [];
+          let contentStyle: React.CSSProperties = {};
+
+          if (inTransition) {
+            contentClassNames.push(styles["in-transition"]);
+          }
+          if (contentTransform && contentTransform.type === "move") {
+            contentClassNames.push(styles.transformed);
+            contentStyle = {
+              transform: CSSUtil.Transform.toString({
+                x: getColOffset(contentTransform.x),
+                y: getRowOffset(contentTransform.y),
+                scaleX: 1,
+                scaleY: 1,
+              }),
+              width: getWidth(contentTransform.width) + "px",
+              height: getHeight(contentTransform.height) + "px",
+            };
+          }
+          if (contentTransform && contentTransform.type === "remove") {
+            contentClassNames.push(styles.removed);
+          }
 
           return (
-            <GridItem key={item.id} item={item} contentClassName={contentClassName} contentStyle={contentStyle}>
+            <GridItem key={item.id} item={item} contentClassName={clsx(contentClassNames)} contentStyle={contentStyle}>
               {children}
             </GridItem>
           );

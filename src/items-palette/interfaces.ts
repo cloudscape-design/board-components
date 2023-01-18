@@ -3,16 +3,23 @@
 
 import { BoardItemDefinitionBase, DataFallbackType } from "../internal/interfaces";
 
+/*
+  Note:
+  The component does not provide handling of items state (loading, error, loaded).
+  It is the responsibility of the client to control it and provide the necessary
+  ARIA-live announcements.
+*/
+
 export interface ItemsPaletteProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the palette. The content of each item is controlled by the `renderItem` property.
    */
-  items: readonly ItemsPaletteProps.Item<D>[];
+  items: ReadonlyArray<ItemsPaletteProps.Item<D>>;
 
   /**
    * Specifies a function to render a palette item content. The return value must include board item component.
    */
-  renderItem(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext): JSX.Element;
+  renderItem: (item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.

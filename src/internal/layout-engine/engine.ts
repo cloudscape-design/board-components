@@ -87,6 +87,9 @@ export class LayoutEngine {
   remove(itemId: ItemId): LayoutEngine {
     this.cleanup();
 
+    const { x, y, width, height } = this.grid.getItem(itemId);
+    this.moves.push({ itemId, x, y, width, height, type: "REMOVE" });
+
     this.grid.remove(itemId);
 
     return new LayoutEngine(this);
