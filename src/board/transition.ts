@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Dispatch, useMemo, useReducer } from "react";
+import { Dispatch, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { debounce } from "../internal/utils/debounce";
 import { getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { Transition, TransitionAnnouncement } from "./interfaces";
@@ -73,23 +72,7 @@ interface RemoveItemAction {
 }
 
 export function useTransition<D>(): [TransitionState<D>, Dispatch<Action<D>>] {
-  const [state, dispatch] = useReducer(transitionReducer, { transition: null, announcement: null, acquiredItem: null });
-
-  // Debounces pointer actions to resolve race condition between layout and items.
-  const decoratedDispatch = useMemo(() => {
-    const debouncedDispatch = debounce(dispatch, 10);
-
-    return (action: Action<D>) => {
-      if (action.type === "update-with-pointer") {
-        debouncedDispatch(action);
-      } else {
-        debouncedDispatch.cancel();
-        dispatch(action);
-      }
-    };
-  }, []);
-
-  return [state as TransitionState<D>, decoratedDispatch];
+  return useReducer(transitionReducer<D>, { transition: null, announcement: null, acquiredItem: null });
 }
 
 export function selectTransitionRows<D>(state: TransitionState<D>) {
