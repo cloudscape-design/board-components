@@ -73,7 +73,7 @@ interface Transition {
  * `transform` - items's position and size offset in units to temporarily change its placement.
  * `onNavigate` - a callback to fire when arrow keys are pressed on drag handle.
  */
-interface ItemContainerProps {
+export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
   acquired?: boolean;
   itemSize: { width: number; height: number };
