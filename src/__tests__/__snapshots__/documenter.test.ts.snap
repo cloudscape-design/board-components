@@ -97,7 +97,9 @@ attached data. The content of an item is controlled by the \`renderItem\` proper
   ],
   "regions": [
     {
-      "description": "Rendered when no items provided.",
+      "description": "Rendered when the \`items\` array is empty.
+When items are loading the slot can be used to render the loading indicator.
+",
       "isDefault": false,
       "name": "empty",
     },
