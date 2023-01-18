@@ -11,10 +11,9 @@ export type PlaceholderState = "default" | "active" | "hover";
 export interface PlaceholderProps {
   id: string;
   state: PlaceholderState;
-  acquire: () => void;
 }
 
-export default function Placeholder({ id, state, acquire }: PlaceholderProps) {
+export default function Placeholder({ id, state }: PlaceholderProps) {
   const gridContext = useGridContext();
   if (!gridContext) {
     throw new Error("Invariant violation: droppable is used outside grid context.");
@@ -27,7 +26,6 @@ export default function Placeholder({ id, state, acquire }: PlaceholderProps) {
       width: gridContext.getWidth(width),
       height: gridContext.getHeight(height),
     }),
-    acquire,
   };
 
   useDroppable({ itemId: id, context: dropTargetContext, getElement: () => ref.current! });

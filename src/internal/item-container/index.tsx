@@ -80,14 +80,13 @@ export interface ItemContainerProps {
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
   onNavigate?(direction: Direction): void;
-  onBorrow?(): void;
   children: ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, onNavigate, onBorrow, children }: ItemContainerProps,
+  { item, acquired, itemSize, itemMaxSize, onNavigate, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -146,6 +145,11 @@ function ItemContainerComponent(
   useDragSubscription("update", (detail) => updateTransition(detail));
   useDragSubscription("submit", () => clearState());
   useDragSubscription("discard", () => clearState());
+  useDragSubscription("acquire", (detail) => {
+    if (detail.draggableItem.id === item.id) {
+      setIsBorrowed(true);
+    }
+  });
 
   useEffect(() => {
     const { onPointerMove, onPointerUp } = eventHandlersRef.current;
@@ -204,10 +208,7 @@ function ItemContainerComponent(
     }
 
     // Notify the respective droppable of the intention to insert the item in it.
-    nextDroppable.context.acquire();
-
-    setIsBorrowed(true);
-    onBorrow?.();
+    draggableApi.acquire(nextDroppable);
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {

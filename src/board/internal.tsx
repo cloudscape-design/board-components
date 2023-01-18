@@ -138,6 +138,23 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     autoScrollHandlers.removePointerEventHandlers();
   });
 
+  useDragSubscription("acquire", ({ droppableId, draggableItem }) => {
+    const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
+
+    // Check if placeholder belongs to the board.
+    if (!placeholder) {
+      return;
+    }
+
+    dispatch({
+      type: "acquire-item",
+      position: new Position({ x: placeholder.x, y: placeholder.y }),
+      layoutElement: containerAccessRef.current!,
+    });
+
+    focusNextRenderIdRef.current = draggableItem.id ?? null;
+  });
+
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
 
@@ -163,11 +180,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     if (transition) {
       shiftItem(direction);
     }
-  }
-
-  function acquireItem(position: Position) {
-    dispatch({ type: "acquire-item", position, layoutElement: containerAccessRef.current! });
-    focusNextRenderIdRef.current = transition?.draggableItem.id ?? null;
   }
 
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
@@ -260,7 +272,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
               key={placeholder.id}
               id={placeholder.id}
               state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
-              acquire={() => acquireItem(new Position({ x: placeholder.x, y: placeholder.y }))}
             />
           ))}
           {items.map((item) => {
