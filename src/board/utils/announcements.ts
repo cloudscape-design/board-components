@@ -5,10 +5,13 @@ import { MIN_ROW_SPAN } from "../../internal/constants";
 import { Direction, ItemId } from "../../internal/interfaces";
 import { BoardProps, OperationPerformedAnnouncement, Transition, TransitionAnnouncement } from "../interfaces";
 
+/**
+ * Creates an announcement object describing the last user move.
+ */
 export function createOperationAnnouncement<D>(
   transition: Transition<D>,
   direction: null | Direction
-): null | TransitionAnnouncement {
+): null | OperationPerformedAnnouncement {
   const { operation, layoutShift, layoutShiftWithRefloat, itemsLayout } = transition;
   const targetItem = itemsLayout.items.find((it) => it.id === transition.draggableItem.id) ?? null;
 
@@ -47,11 +50,14 @@ export function createOperationAnnouncement<D>(
   };
 }
 
+/**
+ * Applies i18nStrings to the announcement object to produce a string for the live region.
+ */
 export function announcementToString<D>(
   transitionAnnouncement: TransitionAnnouncement,
   items: readonly BoardProps.Item<D>[],
   i18nStrings: BoardProps.I18nStrings<D>
-) {
+): string {
   if (!transitionAnnouncement) {
     return "";
   }

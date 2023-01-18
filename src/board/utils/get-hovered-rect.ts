@@ -3,6 +3,9 @@
 
 import { GridLayoutItem, ItemId } from "../../internal/interfaces";
 
+/**
+ * Creates a minimal hovered rectangle (in grid units) that contains all collided placeholders.
+ */
 export function getHoveredRect(collisionsIds: readonly ItemId[], placeholders: readonly GridLayoutItem[]) {
   const hoveredPlaceholders = collisionsIds.map((id) => placeholders.find((p) => p.id === id)!);
   return hoveredPlaceholders.reduce(

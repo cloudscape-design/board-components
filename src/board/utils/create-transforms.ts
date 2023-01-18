@@ -3,6 +3,9 @@
 import { GridLayout, ItemId, Transform } from "../../internal/interfaces";
 import { CommittedMove } from "../../internal/layout-engine/interfaces";
 
+/**
+ * Creates a mapping of between items and transforms to be applied while in transition.
+ */
 export function createTransforms(grid: GridLayout, moves: readonly CommittedMove[]) {
   const transforms: Record<ItemId, Transform> = {};
 

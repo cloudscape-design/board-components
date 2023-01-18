@@ -4,6 +4,10 @@ import { Direction } from "../../internal/interfaces";
 import { Rect } from "../../internal/interfaces";
 import { Position } from "../../internal/utils/position";
 
+/**
+ * The insertion operation is similar to reorder yet the first path entry is treated differently.
+ * The normalization removes leading path entries if on the same edge to optimize UX.
+ */
 export function normalizeInsertionPath(
   path: readonly Position[],
   insertionDirection: Direction,
@@ -50,6 +54,12 @@ export function appendResizePath(prevPath: readonly Position[], collisionRect: R
   return appendPath(prevPath, new Position({ x: collisionRect.right, y: collisionRect.bottom }));
 }
 
+/**
+ * The operation path must be strictly incremental (each dx + dy == 1). However, the actual collisions
+ * data can have gaps due to pointer events throttling or other factors.
+ *
+ * The function produces next path from previous path and the target position by incrementally adding steps.
+ */
 function appendPath(prevPath: readonly Position[], nextPosition: Position): Position[] {
   const path: Array<Position> = [...prevPath];
   const lastPosition = prevPath[prevPath.length - 1];

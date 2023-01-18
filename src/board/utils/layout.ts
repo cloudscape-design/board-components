@@ -43,6 +43,9 @@ export function getLayoutPlaceholders<D>(transition: Transition<D>) {
   return createPlaceholdersLayout(rows, columns);
 }
 
+/**
+ * Retrieves direction from where the inserting item comes.
+ */
 export function getInsertionDirection(cursorOffset: Coordinates): Direction {
   if (cursorOffset.x < 0) {
     return "right";
@@ -59,6 +62,12 @@ export function getInsertionDirection(cursorOffset: Coordinates): Direction {
   return "right";
 }
 
+/**
+ * Applies transition operation (reorder/move/insert) and retrieves an object that describes the updated
+ * layout and the moves to be made including and not including items float to top.
+ *
+ * The layout shift w/o refloat is used for rendering and w/ refloat is used for live announcements.
+ */
 export function getLayoutShift<D>(
   transition: Transition<D>,
   path: readonly Position[],
