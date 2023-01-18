@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import clsx from "clsx";
 import {
   CSSProperties,
   KeyboardEvent,
@@ -196,6 +197,9 @@ function ItemContainerComponent(
 
     if (!nextDroppable) {
       // TODO: add announcement
+      // Context: the keyboard insertion only works when there is some droppable area in the specified direction.
+      // That means that only some arrow keys might work which is confusing for a screen-reader user.
+      // Alternatively, we can consider a multi-step insertion where the user would first explicitly select the desired board.
       return;
     }
 
@@ -269,29 +273,20 @@ function ItemContainerComponent(
     onHandleKeyDown("resize", event);
   }
 
-  // TODO: use a combination of styles and classes.
-  // When there is a transition the item's placement and styles might need to be altered for the period of the transition.
-  let style: CSSProperties = {};
+  const itemTransitionStyle: CSSProperties = {};
+  const itemTransitionClassNames: string[] = [];
 
+  // Adjust the dragged/resized item to the pointer's location.
   if (transition && transition.interactionType === "pointer") {
-    style = getPointerDragStyles(transition);
-  } else if (isBorrowed) {
-    style = getBorrowedItemStyles();
+    itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
+    itemTransitionStyle.left = transition.positionTransform?.x;
+    itemTransitionStyle.top = transition.positionTransform?.y;
+    itemTransitionStyle.width = transition.sizeTransform?.width;
+    itemTransitionStyle.height = transition.sizeTransform?.height;
   }
-
-  function getPointerDragStyles(transition: Transition): CSSProperties {
-    return {
-      zIndex: 5000,
-      position: transition.operation === "resize" ? "absolute" : "fixed",
-      left: transition.positionTransform?.x,
-      top: transition.positionTransform?.y,
-      width: transition.sizeTransform?.width,
-      height: transition.sizeTransform?.height,
-    };
-  }
-
-  function getBorrowedItemStyles(): CSSProperties {
-    return { opacity: 0.5 };
+  // Make the borrowed item dimmed.
+  else if (isBorrowed) {
+    itemTransitionClassNames.push(styles.borrowed);
   }
 
   const dragHandleRef = useRef<HTMLButtonElement>(null);
@@ -300,7 +295,13 @@ function ItemContainerComponent(
   }));
 
   return (
-    <div ref={itemRef} className={styles.root} style={style} data-item-id={item.id} onBlur={onBlur}>
+    <div
+      ref={itemRef}
+      className={clsx(styles.root, ...itemTransitionClassNames)}
+      style={itemTransitionStyle}
+      data-item-id={item.id}
+      onBlur={onBlur}
+    >
       <Context.Provider
         value={{
           dragHandle: {
