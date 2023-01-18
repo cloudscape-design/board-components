@@ -54,7 +54,6 @@ export function EnginePageTemplate({
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }
             if (removedItem) {
-              setItems((prev) => prev.filter((prevItem) => prevItem.id !== removedItem.id));
               setPaletteItems((prev) =>
                 [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title))
               );
