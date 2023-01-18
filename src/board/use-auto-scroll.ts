@@ -6,7 +6,7 @@ import { useLastInteraction } from "../internal/utils/use-last-interaction";
 
 export function useAutoScroll() {
   const [activeAutoScroll, setActiveAutoScroll] = useState<"up" | "down" | "none">("none");
-  const scrollIntoViewTimerRef = useRef<null | number>(null);
+  const scrollIntoViewTimerRef = useRef<null | ReturnType<typeof setTimeout>>(null);
   const getLastInteraction = useLastInteraction();
 
   // Scroll window repeatedly if activeAutoScroll="up" or activeAutoScroll="down".

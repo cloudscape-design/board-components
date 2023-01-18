@@ -1,0 +1,242 @@
+// Vitest Snapshot v1
+
+exports[`definition for board matches the snapshot > board 1`] = `
+{
+  "events": [
+    {
+      "cancelable": false,
+      "description": "Fired when a user interaction changes size or position of board items.",
+      "detailInlineType": {
+        "name": "BoardProps.ItemsChangeDetail",
+        "properties": [
+          {
+            "name": "addedItem",
+            "optional": true,
+            "type": "BoardProps.Item<D>",
+          },
+          {
+            "name": "items",
+            "optional": false,
+            "type": "ReadonlyArray<BoardProps.Item<D>>",
+          },
+          {
+            "name": "removedItem",
+            "optional": true,
+            "type": "BoardProps.Item<D>",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "BoardProps.ItemsChangeDetail<D>",
+      "name": "onItemsChange",
+    },
+  ],
+  "functions": [],
+  "name": "Board",
+  "properties": [
+    {
+      "description": "An object containing all the necessary localized strings required by the component.",
+      "inlineType": {
+        "name": "BoardProps.I18nStrings",
+        "properties": [
+          {
+            "name": "liveAnnouncementOperation",
+            "optional": false,
+            "type": "(operation: BoardProps.OperationState<D>) => string",
+          },
+          {
+            "name": "liveAnnouncementOperationCommitted",
+            "optional": false,
+            "type": "(operationType: BoardProps.DragOperationType) => string",
+          },
+          {
+            "name": "liveAnnouncementOperationDiscarded",
+            "optional": false,
+            "type": "(operationType: BoardProps.DragOperationType) => string",
+          },
+          {
+            "name": "liveAnnouncementOperationStarted",
+            "optional": false,
+            "type": "(operationType: BoardProps.OperationType) => string",
+          },
+          {
+            "name": "navigationAriaDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "navigationAriaLabel",
+            "optional": false,
+            "type": "string",
+          },
+          {
+            "name": "navigationItemAriaLabel",
+            "optional": false,
+            "type": "(item: BoardProps.Item<D> | null) => string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": false,
+      "type": "BoardProps.I18nStrings<D>",
+    },
+    {
+      "description": "Specifies the items displayed in the board. Each item is includes its position on the board and
+attached data. The content of an item is controlled by the \`renderItem\` property.",
+      "name": "items",
+      "optional": false,
+      "type": "ReadonlyArray<BoardProps.Item<D>>",
+    },
+    {
+      "description": "Specifies a function to render a board item content. The return value must include board item component.",
+      "name": "renderItem",
+      "optional": false,
+      "type": "(item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => Element",
+    },
+  ],
+  "regions": [
+    {
+      "description": "Rendered when the \`items\` array is empty.
+When items are loading the slot can be used to render the loading indicator.
+",
+      "isDefault": false,
+      "name": "empty",
+    },
+  ],
+  "releaseStatus": "stable",
+}
+`;
+
+exports[`definition for board-item matches the snapshot > board-item 1`] = `
+{
+  "events": [],
+  "functions": [],
+  "name": "BoardItem",
+  "properties": [
+    {
+      "description": "Determines whether the main content of the item has padding. If \`true\`, removes the default padding
+from the content area.",
+      "name": "disableContentPaddings",
+      "optional": true,
+      "type": "boolean",
+    },
+    {
+      "description": "An object containing all the necessary localized strings required by the component.",
+      "inlineType": {
+        "name": "BoardItemProps.I18nStrings",
+        "properties": [
+          {
+            "name": "dragHandleAriaDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "dragHandleAriaLabel",
+            "optional": false,
+            "type": "string",
+          },
+          {
+            "name": "resizeHandleAriaDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "resizeHandleAriaLabel",
+            "optional": false,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": false,
+      "type": "BoardItemProps.I18nStrings",
+    },
+  ],
+  "regions": [
+    {
+      "description": "Main content of the item.",
+      "isDefault": true,
+      "name": "children",
+    },
+    {
+      "description": "Footer of the item.",
+      "isDefault": false,
+      "name": "footer",
+    },
+    {
+      "description": "Heading element of the item. Use the [header component](/components/header/).",
+      "isDefault": false,
+      "name": "header",
+    },
+    {
+      "description": "Additional slot next to the heading. Use it to render an overflow actions menu in the form of a button dropdown.",
+      "isDefault": false,
+      "name": "settings",
+    },
+  ],
+  "releaseStatus": "stable",
+}
+`;
+
+exports[`definition for items-palette matches the snapshot > items-palette 1`] = `
+{
+  "events": [],
+  "functions": [],
+  "name": "ItemsPalette",
+  "properties": [
+    {
+      "description": "An object containing all the necessary localized strings required by the component.",
+      "inlineType": {
+        "name": "ItemsPaletteProps.I18nStrings",
+        "properties": [
+          {
+            "name": "liveAnnouncementDragDiscarded",
+            "optional": false,
+            "type": "string",
+          },
+          {
+            "name": "liveAnnouncementDragStarted",
+            "optional": false,
+            "type": "string",
+          },
+          {
+            "name": "navigationAriaDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "navigationAriaLabel",
+            "optional": false,
+            "type": "string",
+          },
+          {
+            "name": "navigationItemAriaLabel",
+            "optional": false,
+            "type": "(item: ItemsPaletteProps.Item<D>) => string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": false,
+      "type": "ItemsPaletteProps.I18nStrings<D>",
+    },
+    {
+      "description": "Specifies the items displayed in the palette. The content of each item is controlled by the \`renderItem\` property.",
+      "name": "items",
+      "optional": false,
+      "type": "ReadonlyArray<ItemsPaletteProps.Item<D>>",
+    },
+    {
+      "description": "Specifies a function to render a palette item content. The return value must include board item component.",
+      "name": "renderItem",
+      "optional": false,
+      "type": "(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => Element",
+    },
+  ],
+  "regions": [],
+  "releaseStatus": "stable",
+}
+`;

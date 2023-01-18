@@ -15,7 +15,8 @@
     "declaration": true,
     "rootDir": "src",
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "tsBuildInfoFile": "./.cache/source.tsbuildinfo"
   },
   "include": ["src", "types"],
   "exclude": ["**/__tests__/**", "src/test-utils/**"]

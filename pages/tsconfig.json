@@ -3,7 +3,8 @@
   "compilerOptions": {
     "noEmit": true,
     "rootDir": "../",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "tsBuildInfoFile": "../.cache/pages.tsbuildinfo"
   },
   "include": ["./**/*"]
 }

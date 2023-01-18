@@ -1,34 +1,23 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { act, cleanup, render as libRender } from "@testing-library/react";
-import { ReactElement, forwardRef } from "react";
+import { ReactElement, ReactNode, Ref, forwardRef } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import itemStyles from "../../../lib/components/board-item/styles.css.js";
-import { DragAndDropEvents, useDragSubscription } from "../../../lib/components/internal/dnd-controller/controller";
-import { EventEmitter } from "../../../lib/components/internal/dnd-controller/event-emitter";
+import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
+import { ItemContainerRef } from "../../../lib/components/internal/item-container";
 import ItemsPalette, { ItemsPaletteProps } from "../../../lib/components/items-palette";
 import createWrapper, { ItemsPaletteWrapper } from "../../../lib/components/test-utils/dom";
 
 afterEach(cleanup);
 
-vi.mock("../../../lib/components/internal/dnd-controller/controller", () => ({ useDragSubscription: vi.fn() }));
+vi.mock("../../../lib/components/internal/dnd-controller/controller");
 vi.mock("../../../lib/components/internal/item-container", () => ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ItemContainer: forwardRef(({ children }: { children: ReactElement }, ref) => <div>{children}</div>),
+  ItemContainer: forwardRef(({ children }: { children: ReactNode }, ref: Ref<ItemContainerRef>) => (
+    <div>{children}</div>
+  )),
 }));
-
-class FakeEmitter extends EventEmitter<DragAndDropEvents> {
-  constructor() {
-    vi.mocked(useDragSubscription).mockImplementation((event, handler) => {
-      this.on(event, handler);
-    });
-    super();
-  }
-
-  public emit(event: keyof DragAndDropEvents, ...data: Parameters<DragAndDropEvents[keyof DragAndDropEvents]>) {
-    super.emit(event, ...data);
-  }
-}
 
 function render(jsx: ReactElement) {
   libRender(jsx);
@@ -64,29 +53,26 @@ test("renders palette and items", () => {
 });
 
 test("updates preview state when drop target changes", () => {
-  const fakeEmitter = new FakeEmitter();
   const wrapper = render(<ItemsPalette {...defaultProps} />);
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
-  act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: {} } as any));
+  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: {} } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
-  act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: null } as any));
+  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: null } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
 });
 
 test("updates preview state when operation submits", () => {
-  const fakeEmitter = new FakeEmitter();
   const wrapper = render(<ItemsPalette {...defaultProps} />);
-  act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: {} } as any));
+  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: {} } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
-  act(() => fakeEmitter.emit("submit"));
+  act(() => mockController.submit());
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
 });
 
 test("updates preview state when operation discards", () => {
-  const fakeEmitter = new FakeEmitter();
   const wrapper = render(<ItemsPalette {...defaultProps} />);
-  act(() => fakeEmitter.emit("update", { draggableItem: { id: "second" }, dropTarget: {} } as any));
+  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: {} } as any));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
-  act(() => fakeEmitter.emit("discard"));
+  act(() => mockController.discard());
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
 });
