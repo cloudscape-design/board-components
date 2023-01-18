@@ -35,9 +35,9 @@
   },
   "exports": {
     ".": "./index.js",
-    "./layout": "./layout/index.js",
-    "./item": "./item/index.js",
-    "./palette": "./palette/index.js"
+    "./board": "./board/index.js",
+    "./board-item": "./board-item/index.js",
+    "./items-palette": "./items-palette/index.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
