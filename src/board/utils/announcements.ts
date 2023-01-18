@@ -33,10 +33,9 @@ export function createOperationAnnouncement<D>(
 
   return {
     type: "operation-performed",
-    itemId: targetId,
+    item: transition.draggableItem,
     operation,
-    targetItem: {
-      id: targetId,
+    placement: {
       x: placement.x,
       y: placement.y,
       width: placement.width,
@@ -51,14 +50,14 @@ export function createOperationAnnouncement<D>(
 export function announcementToString<D>(
   transitionAnnouncement: TransitionAnnouncement,
   items: readonly BoardProps.Item<D>[],
-  acquiredItem: null | BoardProps.Item<D>,
   i18nStrings: BoardProps.I18nStrings<D>
 ) {
-  if (!acquiredItem && !items.some((it) => it.id === transitionAnnouncement.itemId)) {
+  if (!transitionAnnouncement) {
     return "";
   }
+  const item = transitionAnnouncement.item as BoardProps.Item<D>;
 
-  const toItem = (id: ItemId) => [...items, acquiredItem].find((it) => it?.id === id)!;
+  const toItem = (id: ItemId) => items.find((it) => it?.id === id)!;
   const formatDirection = (direction: null | Direction) => {
     if (!direction) {
       return null;
@@ -67,8 +66,7 @@ export function announcementToString<D>(
   };
 
   function getOperationState(announcement: OperationPerformedAnnouncement): BoardProps.OperationState<D> {
-    const item = toItem(announcement.itemId);
-    const placement = { ...announcement.targetItem };
+    const placement = announcement.placement;
     const direction = formatDirection(announcement.direction);
     const conflicts = [...announcement.conflicts].map(toItem);
     const disturbed = [...announcement.disturbed].map(toItem);
@@ -104,7 +102,7 @@ export function announcementToString<D>(
     case "item-removed":
       return i18nStrings.liveAnnouncementOperation({
         operationType: "remove",
-        item: toItem(transitionAnnouncement.itemId),
+        item,
         disturbed: [...transitionAnnouncement.disturbed].map(toItem),
       });
   }

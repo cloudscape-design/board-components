@@ -8,7 +8,6 @@ import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
-import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
@@ -43,8 +42,12 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
 
   const [transitionState, dispatch] = useTransition<D>();
   const transition = transitionState.transition;
+  const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
-  const acquiredItem = transition && transitionState.acquiredItem;
+  const acquiredItem = transition?.acquiredItem ?? null;
+
+  // Use previous items while remove transition is in progress.
+  items = removeTransition?.items ?? items;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
@@ -68,6 +71,23 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     focusNextRenderIndexRef.current = null;
     focusNextRenderIdRef.current = null;
   });
+
+  // Submit scheduled removal after a delay to let animations play.
+  useEffect(() => {
+    if (!removeTransition) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      dispatch({ type: "submit" });
+
+      const removedItemIndex = items.findIndex((it) => it.id === removeTransition.removedItem.id);
+      const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
+      focusNextRenderIndexRef.current = nextIndexToFocus;
+    }, TRANSITION_DURATION_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [removeTransition, items]);
 
   const getDefaultItemWidth = (item: BoardItemDefinitionBase<unknown>) =>
     Math.min(columns, getDefaultItemSize(item).width);
@@ -147,19 +167,13 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
       layoutElement: containerAccessRef.current!,
     });
 
-    focusNextRenderIdRef.current = draggableItem.id ?? null;
+    focusNextRenderIdRef.current = draggableItem.id;
   });
 
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
-    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    onItemsChange(createCustomEvent({ items: exportItemsLayout(layoutShift.next, items), removedItem }));
-
-    dispatch({ type: "remove-item", itemsLayout, itemId: removedItem.id });
-
-    const removedItemIndex = items.findIndex((it) => it === removedItem);
-    const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
-    focusNextRenderIndexRef.current = nextIndexToFocus;
+    onItemsChange(createCustomEvent({ items: items.filter((it) => it !== removedItem), removedItem }));
   };
 
   function focusItem(itemId: ItemId) {
@@ -173,15 +187,13 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     }
   }
 
-  const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
+  const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
+  const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves) : {};
   if (transition && transition.interactionType === "pointer") {
     delete transforms[transition.draggableItem.id];
   }
 
-  const announcement = transitionAnnouncement
-    ? announcementToString(transitionAnnouncement, items, transitionState.acquiredItem, i18nStrings)
-    : "";
-
+  const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
   const showGrid = items.length > 0 || transition;
 
   return (
@@ -201,6 +213,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
           rows={rows}
           layout={[...placeholdersLayout.items, ...itemsLayout.items]}
           transforms={transforms}
+          inTransition={!!layoutShift}
         >
           {placeholdersLayout.items.map((placeholder) => (
             <Placeholder

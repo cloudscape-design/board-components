@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
-import { BoardItemDefinition, BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
+import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { Transition, TransitionAnnouncement } from "./interfaces";
+import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
 import {
@@ -23,18 +23,18 @@ import { appendMovePath, appendResizePath } from "./utils/path";
 
 export interface TransitionState<D> {
   transition: null | Transition<D>;
+  removeTransition: null | RemoveTransition<D>;
   announcement: null | TransitionAnnouncement;
-  acquiredItem: null | BoardItemDefinition<D>;
 }
 
 export type Action<D> =
   | InitAction<D>
+  | InitRemoveAction<D>
   | SubmitAction
   | DiscardAction
   | UpdateWithPointerAction
   | UpdateWithKeyboardAction
-  | AcquireItemAction
-  | RemoveItemAction;
+  | AcquireItemAction;
 
 interface InitAction<D> {
   type: "init";
@@ -44,6 +44,12 @@ interface InitAction<D> {
   draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
+}
+interface InitRemoveAction<D> {
+  type: "init-remove";
+  items: readonly BoardProps.Item<D>[];
+  removedItem: BoardItemDefinitionBase<D>;
+  itemsLayout: GridLayout;
 }
 interface SubmitAction {
   type: "submit";
@@ -65,14 +71,9 @@ interface AcquireItemAction {
   position: Position;
   layoutElement: HTMLElement;
 }
-interface RemoveItemAction {
-  type: "remove-item";
-  itemsLayout: GridLayout;
-  itemId: ItemId;
-}
 
 export function useTransition<D>(): [TransitionState<D>, Dispatch<Action<D>>] {
-  return useReducer(transitionReducer<D>, { transition: null, announcement: null, acquiredItem: null });
+  return useReducer(transitionReducer<D>, { transition: null, removeTransition: null, announcement: null });
 }
 
 export function selectTransitionRows<D>(state: TransitionState<D>) {
@@ -83,6 +84,8 @@ function transitionReducer<D>(state: TransitionState<D>, action: Action<D>): Tra
   switch (action.type) {
     case "init":
       return initTransition(action);
+    case "init-remove":
+      return initRemoveTransition(action);
     case "submit":
       return submitTransition(state);
     case "discard":
@@ -93,8 +96,6 @@ function transitionReducer<D>(state: TransitionState<D>, action: Action<D>): Tra
       return updateTransitionWithKeyboardEvent(state, action);
     case "acquire-item":
       return acquireTransitionItem(state, action);
-    case "remove-item":
-      return removeTransitionItem(action);
   }
 }
 
@@ -113,6 +114,7 @@ function initTransition<D>({
     insertionDirection: null,
     draggableItem,
     draggableElement,
+    acquiredItem: null,
     collisionIds: new Set(),
     layoutShift: null,
     layoutShiftWithRefloat: null,
@@ -128,41 +130,66 @@ function initTransition<D>({
 
   return {
     transition: { ...transition, path },
-    announcement: { type: "operation-started", itemId: draggableItem.id, operation },
-    acquiredItem: null,
+    removeTransition: null,
+    announcement: { type: "operation-started", item: draggableItem, operation },
   };
 }
 
+function initRemoveTransition<D>({ items, removedItem, itemsLayout }: InitRemoveAction<D>): TransitionState<D> {
+  const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
+  const removeTransition: RemoveTransition<D> = { items, removedItem, layoutShift };
+  return { transition: null, removeTransition, announcement: null };
+}
+
 function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
-  const { transition } = state;
+  const { transition, removeTransition } = state;
+
+  if (removeTransition) {
+    const disturbed = new Set(removeTransition.layoutShift.moves.map((move) => move.itemId));
+    disturbed.delete(removeTransition.removedItem.id);
+    return {
+      transition: null,
+      removeTransition: null,
+      announcement: { type: "item-removed", item: removeTransition.removedItem, disturbed },
+    };
+  }
 
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }
 
-  const {
-    operation,
-    draggableItem: { id: itemId },
-  } = transition;
+  const { operation, draggableItem: item } = transition;
 
   return transition.layoutShift?.conflicts.length === 0
-    ? { ...state, transition: null, announcement: { type: "operation-committed", itemId, operation } }
-    : { ...state, transition: null, announcement: { type: "operation-discarded", itemId, operation } };
+    ? {
+        transition: null,
+        removeTransition: null,
+        announcement: { type: "operation-committed", item, operation },
+      }
+    : {
+        transition: null,
+        removeTransition: null,
+        announcement: { type: "operation-discarded", item, operation },
+      };
 }
 
 function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
-  const { transition } = state;
+  const { transition, removeTransition } = state;
 
+  if (removeTransition) {
+    throw new Error("Can't discard remove transition.");
+  }
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }
 
-  const {
-    operation,
-    draggableItem: { id: itemId },
-  } = transition;
+  const { operation, draggableItem: item } = transition;
 
-  return { ...state, transition: null, announcement: { type: "operation-discarded", itemId, operation } };
+  return {
+    transition: null,
+    removeTransition: null,
+    announcement: { type: "operation-discarded", item, operation },
+  };
 }
 
 function updateTransitionWithPointerEvent<D>(
@@ -186,8 +213,8 @@ function updateTransitionWithPointerEvent<D>(
 
   if (isOutOfBoundaries) {
     return {
-      ...state,
       transition: { ...transition, collisionIds: new Set(), layoutShift: null, insertionDirection: null },
+      removeTransition: null,
       announcement: null,
     };
   }
@@ -201,8 +228,8 @@ function updateTransitionWithPointerEvent<D>(
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
   return {
-    ...state,
     transition: { ...transition, collisionIds: new Set(collisionIds), ...layoutShift, path, insertionDirection },
+    removeTransition: null,
     announcement: null,
   };
 }
@@ -230,8 +257,8 @@ function updateTransitionWithKeyboardEvent<D>(
     const layoutShift = getLayoutShift(transition, nextPath);
     const nextTransition = { ...transition, ...layoutShift, path: nextPath };
     return {
-      ...state,
       transition: nextTransition,
+      removeTransition: null,
       announcement: createOperationAnnouncement(nextTransition, direction),
     };
   };
@@ -320,19 +347,10 @@ function acquireTransitionItem<D>(
   // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
   const acquiredItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
-  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), ...layoutShift, path };
+  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), ...layoutShift, path, acquiredItem };
   return {
     transition: nextTransition,
+    removeTransition: null,
     announcement: createOperationAnnouncement(nextTransition, null),
-    acquiredItem,
   };
-}
-
-function removeTransitionItem<D>({ itemId, itemsLayout }: RemoveItemAction): TransitionState<D> {
-  const layoutShiftWithRefloat = new LayoutEngine(itemsLayout).remove(itemId).refloat().getLayoutShift();
-
-  const disturbed = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
-  disturbed.delete(itemId);
-
-  return { transition: null, announcement: { type: "item-removed", itemId, disturbed }, acquiredItem: null };
 }

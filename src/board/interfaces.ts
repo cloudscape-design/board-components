@@ -168,10 +168,17 @@ export interface Transition<D> {
   insertionDirection: null | Direction;
   draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
+  acquiredItem: null | BoardItemDefinition<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
   layoutShiftWithRefloat: null | LayoutShift;
   path: readonly Position[];
+}
+
+export interface RemoveTransition<D> {
+  items: readonly BoardProps.Item<D>[];
+  removedItem: BoardItemDefinitionBase<D>;
+  layoutShift: LayoutShift;
 }
 
 export type TransitionAnnouncement =
@@ -183,30 +190,30 @@ export type TransitionAnnouncement =
 
 export interface OperationStartedAnnouncement {
   type: "operation-started";
-  itemId: ItemId;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
 export interface OperationPerformedAnnouncement {
   type: "operation-performed";
-  itemId: ItemId;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
-  targetItem: GridLayoutItem;
+  placement: Omit<GridLayoutItem, "id">;
   direction: null | Direction;
   conflicts: Set<ItemId>;
   disturbed: Set<ItemId>;
 }
 export interface OperationCommittedAnnouncement {
   type: "operation-committed";
-  itemId: ItemId;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
 export interface OperationDiscardedAnnouncement {
   type: "operation-discarded";
-  itemId: ItemId;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
 export interface ItemRemovedAnnouncement {
   type: "item-removed";
-  itemId: ItemId;
+  item: BoardItemDefinitionBase<unknown>;
   disturbed: Set<ItemId>;
 }
