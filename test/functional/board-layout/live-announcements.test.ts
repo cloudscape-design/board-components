@@ -155,6 +155,9 @@ test(
     await page.keys(["Enter"]);
     await page.keys(["Enter"]);
 
+    // Waiting for remove transition.
+    await page.pause(200);
+
     await expect(page.getLiveAnnouncements()).resolves.toEqual(["Removed item Widget A. Disturbed 1 items."]);
   })
 );
