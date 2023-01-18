@@ -20,7 +20,6 @@ export type InteractionType = "pointer" | "keyboard";
  */
 export interface DropTargetContext {
   scale: (size: { width: number; height: number }) => { width: number; height: number };
-  acquire: () => void;
 }
 
 export interface DragAndDropData {
@@ -47,11 +46,17 @@ interface DragDetail {
   draggableElement: HTMLElement;
 }
 
+interface AcquireData {
+  droppableId: ItemId;
+  draggableItem: BoardItemDefinitionBase<unknown>;
+}
+
 export interface DragAndDropEvents {
   start: (data: DragAndDropData) => void;
   update: (data: DragAndDropData) => void;
   submit: () => void;
   discard: () => void;
+  acquire: (data: AcquireData) => void;
 }
 
 interface Transition extends DragDetail {
@@ -91,6 +96,13 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   public discard() {
     this.emit("discard");
     this.transition = null;
+  }
+
+  public acquire(droppableId: ItemId) {
+    if (!this.transition) {
+      throw new Error("Invariant violation: no transition present for acquire.");
+    }
+    this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem });
   }
 
   public addDroppable(id: ItemId, context: DropTargetContext, element: HTMLElement) {
@@ -158,6 +170,9 @@ export function useDraggable({
     },
     discardTransition() {
       controller.discard();
+    },
+    acquire(droppableId: ItemId) {
+      controller.acquire(droppableId);
     },
     getDroppables() {
       return controller.getDroppables();

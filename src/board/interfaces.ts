@@ -12,19 +12,27 @@ import {
   ItemId,
 } from "../internal/interfaces";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
+import { NonCancelableEventHandler } from "../internal/utils/events";
 import { Position } from "../internal/utils/position";
+
+/*
+  Note:
+  The component does not provide handling of items state (loading, error, loaded).
+  It is the responsibility of the client to control it and provide the necessary
+  ARIA-live announcements.
+*/
 
 export interface BoardProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the board. Each item is includes its position on the board and
    * attached data. The content of an item is controlled by the `renderItem` property.
    */
-  items: readonly BoardProps.Item<D>[];
+  items: ReadonlyArray<BoardProps.Item<D>>;
 
   /**
    * Specifies a function to render a board item content. The return value must include board item component.
    */
-  renderItem(item: BoardProps.Item<D>, actions: BoardProps.ItemActions): JSX.Element;
+  renderItem: (item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
@@ -34,10 +42,12 @@ export interface BoardProps<D = DataFallbackType> {
   /**
    * Fired when a user interaction changes size or position of board items.
    */
-  onItemsChange: (event: CustomEvent<BoardProps.ItemsChangeDetail<D>>) => void;
+  onItemsChange: NonCancelableEventHandler<BoardProps.ItemsChangeDetail<D>>;
 
   /**
-   * Rendered when no items provided.
+   * Rendered when the `items` array is empty.
+   *
+   * When items are loading the slot can be used to render the loading indicator.
    */
   empty: ReactNode;
 }

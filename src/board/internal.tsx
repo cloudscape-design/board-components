@@ -29,7 +29,7 @@ import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 
-export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
+export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -133,6 +133,23 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     autoScrollHandlers.removePointerEventHandlers();
   });
 
+  useDragSubscription("acquire", ({ droppableId, draggableItem }) => {
+    const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
+
+    // Check if placeholder belongs to the board.
+    if (!placeholder) {
+      return;
+    }
+
+    dispatch({
+      type: "acquire-item",
+      position: new Position({ x: placeholder.x, y: placeholder.y }),
+      layoutElement: containerAccessRef.current!,
+    });
+
+    focusNextRenderIdRef.current = draggableItem.id ?? null;
+  });
+
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
 
@@ -156,11 +173,6 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
     }
   }
 
-  function acquireItem(position: Position) {
-    dispatch({ type: "acquire-item", position, layoutElement: containerAccessRef.current! });
-    focusNextRenderIdRef.current = transition?.draggableItem.id ?? null;
-  }
-
   const transforms = transition?.layoutShift ? createTransforms(itemsLayout, transition.layoutShift.moves) : {};
   if (transition && transition.interactionType === "pointer") {
     delete transforms[transition.draggableItem.id];
@@ -172,8 +184,6 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
 
   const showGrid = items.length > 0 || transition;
 
-  // TODO: make sure empty / finished states announcements are considered.
-
   return (
     <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
       <ScreenReaderGridNavigation
@@ -182,7 +192,7 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
         ariaLabel={i18nStrings.navigationAriaLabel}
         ariaDescription={i18nStrings.navigationAriaDescription}
         itemAriaLabel={i18nStrings.navigationItemAriaLabel}
-        onFocusItem={focusItem}
+        onActivateItem={focusItem}
       />
 
       {showGrid ? (
@@ -197,7 +207,6 @@ export default function Board<D>({ items, renderItem, onItemsChange, empty, i18n
               key={placeholder.id}
               id={placeholder.id}
               state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
-              acquire={() => acquireItem(new Position({ x: placeholder.x, y: placeholder.y }))}
             />
           ))}
           {items.map((item) => {

@@ -11,7 +11,7 @@ import { getDefaultItemSize } from "../internal/utils/layout";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: ItemsPaletteProps<D>) {
+export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: ItemsPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
@@ -50,11 +50,12 @@ export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: Item
       setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
     }
   });
-
-  // "Disconnect" target item from the palette if borrowed.
-  const onBorrow = () => {
-    setDropState(undefined);
-  };
+  useDragSubscription("acquire", ({ draggableItem }) => {
+    // "Disconnect" target item from the palette if borrowed.
+    if (items.some((it) => it.id === draggableItem.id)) {
+      setDropState(undefined);
+    }
+  });
 
   const itemsLayout = {
     items: items.map((it, index) => ({ id: it.id, x: 0, y: index, width: 1, height: 1 })),
@@ -70,7 +71,7 @@ export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: Item
         ariaLabel={i18nStrings.navigationAriaLabel}
         ariaDescription={i18nStrings.navigationAriaDescription}
         itemAriaLabel={(item) => i18nStrings.navigationItemAriaLabel(item!)}
-        onFocusItem={focusItem}
+        onActivateItem={focusItem}
       />
 
       <SpaceBetween size="l">
@@ -87,7 +88,6 @@ export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: Item
             item={item}
             itemSize={getDefaultItemSize(item)}
             itemMaxSize={getDefaultItemSize(item)}
-            onBorrow={onBorrow}
           >
             <div data-item-id={item.id}>
               {renderItem(item, {
