@@ -34,7 +34,7 @@ import styles from "./styles.css.js";
 import { OperationPerformedAnnouncement, selectTransitionRows, useTransition } from "./transition";
 import { useAutoScroll } from "./use-auto-scroll";
 
-export default function Board<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
+export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),

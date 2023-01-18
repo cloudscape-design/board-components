@@ -11,7 +11,7 @@ import { getDefaultItemSize } from "../internal/utils/layout";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export default function ItemsPalette<D>({ items, renderItem, i18nStrings }: ItemsPaletteProps<D>) {
+export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: ItemsPaletteProps<D>) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
