@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction } from "../../internal/interfaces";
+import { BoardItemDefinitionBase, Direction } from "../../internal/interfaces";
 import { LayoutEngine } from "../../internal/layout-engine/engine";
 import { Coordinates } from "../../internal/utils/coordinates";
 import { createPlaceholdersLayout, getDefaultItemSize } from "../../internal/utils/layout";
@@ -9,12 +9,12 @@ import { Position } from "../../internal/utils/position";
 import { Transition } from "../interfaces";
 import { normalizeInsertionPath } from "./path";
 
-export function getItemWidth<D>(transition: Transition<D>) {
-  return Math.min(transition.itemsLayout.columns, getDefaultItemSize(transition.draggableItem).width);
+export function getDefaultItemWidth(item: BoardItemDefinitionBase<unknown>, columns: number) {
+  return Math.min(columns, getDefaultItemSize(item).width);
 }
 
-export function getItemHeight<D>(transition: Transition<D>) {
-  return getDefaultItemSize(transition.draggableItem).height;
+export function getDefaultItemHeight(item: BoardItemDefinitionBase<unknown>) {
+  return getDefaultItemSize(item).height;
 }
 
 export function getLayoutColumns<D>(transition: Transition<D>) {
@@ -26,7 +26,7 @@ export function getLayoutRows<D>(transition: Transition<D>) {
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
 
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemHeight = layoutItem?.height ?? getItemHeight(transition);
+  const itemHeight = layoutItem?.height ?? getDefaultItemHeight(transition.draggableItem);
   // Add extra row for resize when already at the bottom.
   if (transition.operation === "resize") {
     return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
@@ -78,8 +78,8 @@ export function getLayoutShift<D>(
   }
 
   let engine = new LayoutEngine(transition.itemsLayout);
-  const width = getItemWidth(transition);
-  const height = getItemHeight(transition);
+  const width = getDefaultItemWidth(transition.draggableItem, getLayoutColumns(transition));
+  const height = getDefaultItemHeight(transition.draggableItem);
   const rows = getLayoutRows(transition);
   const columns = getLayoutColumns(transition);
 

@@ -72,23 +72,22 @@ interface Transition {
  * `item` - the unique board item base object to be used in d&d context.
  * `acquired` - specifies if the item is essentially a copy temporarily acquired by a droppable but not submitted yet.
  * `itemSize` - the actual item's size in units.
- * `itemMaxSize` - the item's size in units it is allowed to grow to.
- * `transform` - items's position and size offset in units to temporarily change its placement.
- * `onNavigate` - a callback to fire when arrow keys are pressed on drag handle.
+ * `itemMaxSize` - the item's size in units it is allowed to grow to (to constrain resize).
+ * `onKeyMove` - a callback that fires when arrow keys are pressed in drag- or resize handle.
  */
 export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
   acquired?: boolean;
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
-  onNavigate?(direction: Direction): void;
+  onKeyMove?(direction: Direction): void;
   children: ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, onNavigate, children }: ItemContainerProps,
+  { item, acquired, itemSize, itemMaxSize, onKeyMove, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -228,7 +227,7 @@ function ItemContainerComponent(
       if (canInsert) {
         handleInsert(direction);
       } else if (canNavigate) {
-        onNavigate?.(direction);
+        onKeyMove?.(direction);
       }
     };
 

@@ -6,17 +6,12 @@ import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
+import { BoardItemDefinition, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
-import {
-  createItemsLayout,
-  createPlaceholdersLayout,
-  exportItemsLayout,
-  getDefaultItemSize,
-} from "../internal/utils/layout";
+import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
@@ -27,6 +22,7 @@ import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
+import { getDefaultItemHeight, getDefaultItemWidth } from "./utils/layout";
 
 export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
@@ -89,12 +85,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     return () => clearTimeout(timeoutId);
   }, [removeTransition, items]);
 
-  const getDefaultItemWidth = (item: BoardItemDefinitionBase<unknown>) =>
-    Math.min(columns, getDefaultItemSize(item).width);
-  const getDefaultItemHeight = (item: BoardItemDefinitionBase<unknown>) => getDefaultItemSize(item).height;
-
-  // Rows can't be 0 as it would prevent placing the first item to the layout.
-  const rows = selectTransitionRows(transitionState) || itemsLayout.rows || 1;
+  const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
   useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
@@ -119,35 +110,31 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   });
 
   useDragSubscription("submit", () => {
+    dispatch({ type: "submit" });
+
+    autoScrollHandlers.removePointerEventHandlers();
+
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
-
-    dispatch({ type: "submit" });
-
-    if (transition.layoutShift) {
-      if (transition.layoutShift.conflicts.length === 0) {
-        // Commit new layout for insert case.
-        if (transition.operation === "insert") {
-          const newLayout = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
-          const addedItem = newLayout.find((item) => item.id === transition.draggableItem.id)!;
-          onItemsChange(createCustomEvent({ items: newLayout, addedItem }));
-        }
-        // Commit new layout for reorder/resize case.
-        else {
-          onItemsChange(createCustomEvent({ items: exportItemsLayout(transition.layoutShift.next, items) }));
-        }
-      }
+    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
+      return null;
     }
 
-    autoScrollHandlers.removePointerEventHandlers();
+    // Commit new layout for insert case.
+    if (transition.operation === "insert") {
+      const newItems = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
+      const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
+      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
+    }
+    // Commit new layout for reorder/resize case.
+    else {
+      const newItems = exportItemsLayout(transition.layoutShift.next, items);
+      onItemsChange(createCustomEvent({ items: newItems }));
+    }
   });
 
   useDragSubscription("discard", () => {
-    if (!transition) {
-      throw new Error("Invariant violation: no transition.");
-    }
-
     dispatch({ type: "discard" });
 
     autoScrollHandlers.removePointerEventHandlers();
@@ -156,7 +143,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   useDragSubscription("acquire", ({ droppableId, draggableItem }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
 
-    // Check if placeholder belongs to the board.
+    // If missing then it does not belong to this board.
     if (!placeholder) {
       return;
     }
@@ -180,7 +167,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     itemContainerRef.current[itemId].focusDragHandle();
   }
 
-  function onItemNavigate(direction: Direction) {
+  function onItemMove(direction: Direction) {
     if (transition) {
       dispatch({ type: "update-with-keyboard", direction });
       autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
@@ -189,15 +176,16 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
 
   const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
   const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves) : {};
+
+  // Exclude drag target from transforms.
   if (transition && transition.interactionType === "pointer") {
     delete transforms[transition.draggableItem.id];
   }
 
   const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
-  const showGrid = items.length > 0 || transition;
 
   return (
-    <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: !showGrid })}>
+    <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}
@@ -207,7 +195,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
         onActivateItem={focusItem}
       />
 
-      {showGrid ? (
+      {rows > 0 ? (
         <Grid
           columns={columns}
           rows={rows}
@@ -215,6 +203,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
           transforms={transforms}
           inTransition={!!layoutShift}
         >
+          {/* Placeholders are rendered even when there is no transition to support the first collisions check. */}
           {placeholdersLayout.items.map((placeholder) => (
             <Placeholder
               key={placeholder.id}
@@ -222,14 +211,13 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
               state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
             />
           ))}
+
           {items.map((item) => {
             const layoutItem = layoutItemById.get(item.id);
-            const isResizing =
-              transition && transition.operation === "resize" && transition.draggableItem.id === item.id;
+            const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
-            // Take item's layout size or item's definition defaults to be used for insert and reorder.
             const itemSize = layoutItem ?? {
-              width: getDefaultItemWidth(item),
+              width: getDefaultItemWidth(item, columns),
               height: getDefaultItemHeight(item),
             };
 
@@ -249,7 +237,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
                 acquired={item.id === acquiredItem?.id}
                 itemSize={itemSize}
                 itemMaxSize={itemMaxSize}
-                onNavigate={onItemNavigate}
+                onKeyMove={onItemMove}
               >
                 {renderItem(item, { removeItem: () => removeItemAction(item) })}
               </ItemContainer>

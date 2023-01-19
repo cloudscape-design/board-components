@@ -20,7 +20,7 @@
     "pretest": "tsc -p tsconfig.test.json",
     "test": "run-s lint test:unit test:functional",
     "preview": "vite preview",
-    "start": "run-p start:*",
+    "start": "run-p start:server start:watch:ts start:watch:css",
     "start:server": "vite",
     "start:watch:ts": "tsc --watch",
     "start:watch:css": "chokidar \"./src/**/*.scss\" -c \"npm run build:src:css\"",
