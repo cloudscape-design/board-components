@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// The code is pied from https://github.com/cloudscape-design/components/blob/main/src/internal/components/screenreader-only/index.tsx
+
 import clsx from "clsx";
 import styles from "./styles.css.js";
 
