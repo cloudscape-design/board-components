@@ -6,7 +6,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 const componentsDir = path.resolve(__dirname, "../../lib/components");
-const definitionsDir = path.resolve(__dirname, "../../lib/components-api/components");
+const definitionsDir = path.resolve(__dirname, "../../lib/components/internal/api-docs/components");
 
 export function getAllComponents(): string[] {
   return fs

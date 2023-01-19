@@ -6,7 +6,7 @@ import { documentComponents, documentTestUtils } from "@cloudscape-design/docume
 import { dashCase, listPublicDirs, writeSourceFile } from "./utils.js";
 
 const publicDirs = listPublicDirs("src");
-const targetDir = "lib/components-api";
+const targetDir = "lib/components/internal/api-docs";
 
 componentDocs();
 testUtilDocs();
