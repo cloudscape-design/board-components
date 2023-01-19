@@ -5,7 +5,6 @@ import { InteractionType, Operation } from "../internal/dnd-controller/controlle
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
@@ -14,7 +13,6 @@ import {
   getDefaultItemHeight,
   getDefaultItemWidth,
   getInsertionDirection,
-  getLayoutColumns,
   getLayoutPlaceholders,
   getLayoutRows,
   getLayoutShift,
@@ -246,74 +244,35 @@ function updateTransitionWithKeyboardEvent<D>(
     throw new Error("Invariant violation: no transition.");
   }
 
-  const { itemsLayout } = transition;
-  const lastPosition = transition.path[transition.path.length - 1];
-  const columns = getLayoutColumns(transition);
-  const rows = getLayoutRows(transition);
-
   const updateManualItemTransition = (transition: Transition<D>, direction: Direction): TransitionState<D> => {
     const xDelta = direction === "left" ? -1 : direction === "right" ? 1 : 0;
     const yDelta = direction === "up" ? -1 : direction === "down" ? 1 : 0;
+    const lastPosition = transition.path[transition.path.length - 1];
     const nextPosition = new Position({ x: lastPosition.x + xDelta, y: lastPosition.y + yDelta });
     const nextPath = [...transition.path, nextPosition];
-    const layoutShift = getLayoutShift(transition, nextPath);
-    const nextTransition = { ...transition, ...layoutShift, path: nextPath };
-    return {
-      transition: nextTransition,
-      removeTransition: null,
-      announcement: createOperationAnnouncement(nextTransition, direction),
-    };
+    try {
+      const layoutShift = getLayoutShift(transition, nextPath);
+      const nextTransition = { ...transition, ...layoutShift, path: nextPath };
+      return {
+        transition: nextTransition,
+        removeTransition: null,
+        announcement: createOperationAnnouncement(nextTransition, direction),
+      };
+    } catch {
+      // Can't create next layout because the next path is out of bounds.
+      return state;
+    }
   };
-
-  function shiftItemLeft(transition: Transition<D>) {
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const position = layoutItem?.x ?? 0;
-    const minSize = getMinItemSize(transition.draggableItem).width;
-    if (lastPosition.x > (transition.operation === "resize" ? position + minSize : 0)) {
-      return updateManualItemTransition(transition, "left");
-    } else {
-      return state;
-    }
-  }
-
-  function shiftItemRight(transition: Transition<D>) {
-    if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
-      return updateManualItemTransition(transition, "right");
-    } else {
-      return state;
-    }
-  }
-
-  function shiftItemUp(transition: Transition<D>) {
-    const layout = transition.layoutShift?.next ?? itemsLayout;
-    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const position = layoutItem?.y ?? 0;
-    const minSize = getMinItemSize(transition.draggableItem).height;
-    if (lastPosition.y > (transition.operation === "resize" ? position + minSize : 0)) {
-      return updateManualItemTransition(transition, "up");
-    } else {
-      return state;
-    }
-  }
-
-  function shiftItemDown(transition: Transition<D>) {
-    if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
-      return updateManualItemTransition(transition, "down");
-    } else {
-      return state;
-    }
-  }
 
   switch (direction) {
     case "left":
-      return shiftItemLeft(transition);
+      return updateManualItemTransition(transition, "left");
     case "right":
-      return shiftItemRight(transition);
+      return updateManualItemTransition(transition, "right");
     case "up":
-      return shiftItemUp(transition);
+      return updateManualItemTransition(transition, "up");
     case "down":
-      return shiftItemDown(transition);
+      return updateManualItemTransition(transition, "down");
   }
 }
 
