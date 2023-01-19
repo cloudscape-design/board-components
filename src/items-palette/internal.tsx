@@ -31,9 +31,11 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
       setAnnouncement("");
     }
   });
+
   useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) => {
     setDropState({ id, isExpanded: !!dropTarget });
   });
+
   useDragSubscription("submit", () => {
     setDropState(undefined);
 
@@ -42,6 +44,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
       setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
     }
   });
+
   useDragSubscription("discard", () => {
     setDropState(undefined);
 
@@ -50,6 +53,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
       setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
     }
   });
+
   useDragSubscription("acquire", ({ draggableItem }) => {
     // "Disconnect" target item from the palette if borrowed.
     if (items.some((it) => it.id === draggableItem.id)) {

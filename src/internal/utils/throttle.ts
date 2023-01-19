@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// The code is copied from https://github.com/cloudscape-design/components/blob/main/src/internal/utils/throttle.ts
+
 export interface ThrottleOptions {
   leading?: boolean;
   trailing?: boolean;

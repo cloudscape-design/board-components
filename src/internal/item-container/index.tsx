@@ -53,7 +53,7 @@ const Context = createContext<ItemContext | null>(null);
 export function useItemContext() {
   const ctx = useContext(Context);
   if (!ctx) {
-    throw new Error("Unable to find BoardItem context");
+    throw new Error("Unable to find BoardItem context.");
   }
   return ctx;
 }
@@ -64,6 +64,7 @@ interface Transition {
   interactionType: InteractionType;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
+  isBorrowed: boolean;
 }
 
 /**
@@ -72,32 +73,26 @@ interface Transition {
  * `item` - the unique board item base object to be used in d&d context.
  * `acquired` - specifies if the item is essentially a copy temporarily acquired by a droppable but not submitted yet.
  * `itemSize` - the actual item's size in units.
- * `itemMaxSize` - the item's size in units it is allowed to grow to.
- * `transform` - items's position and size offset in units to temporarily change its placement.
- * `onNavigate` - a callback to fire when arrow keys are pressed on drag handle.
+ * `itemMaxSize` - the item's size in units it is allowed to grow to (to constrain resize).
+ * `onKeyMove` - a callback that fires when arrow keys are pressed in drag- or resize handle.
  */
 export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
   acquired?: boolean;
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
-  onNavigate?(direction: Direction): void;
+  onKeyMove?(direction: Direction): void;
   children: ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, onNavigate, children }: ItemContainerProps,
+  { item, acquired, itemSize, itemMaxSize, onKeyMove, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
-  const [isBorrowed, setIsBorrowed] = useState(false);
   const [transition, setTransition] = useState<null | Transition>(null);
-  const clearState = () => {
-    setIsBorrowed(false);
-    setTransition(null);
-  };
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
 
@@ -127,7 +122,7 @@ function ItemContainerComponent(
       if (operation === "resize" && dropTarget) {
         const { width: minWidth, height: minHeight } = dropTarget.scale(getMinItemSize(draggableItem));
         const { width: maxWidth } = dropTarget.scale(itemMaxSize);
-        setTransition({
+        setTransition((transition) => ({
           operation,
           interactionType,
           itemId: draggableItem.id,
@@ -136,29 +131,32 @@ function ItemContainerComponent(
             height: Math.max(minHeight, height - pointerOffset.y),
           },
           positionTransform: null,
-        });
+          isBorrowed: !!transition?.isBorrowed,
+        }));
       } else if (operation === "insert" || operation === "reorder") {
-        setTransition({
+        setTransition((transition) => ({
           operation,
           interactionType,
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
-        });
+          isBorrowed: !!transition?.isBorrowed,
+        }));
       }
     }
   }
 
   useDragSubscription("start", (detail) => updateTransition(detail));
   useDragSubscription("update", (detail) => updateTransition(detail));
-  useDragSubscription("submit", () => clearState());
-  useDragSubscription("discard", () => clearState());
+  useDragSubscription("submit", () => setTransition(null));
+  useDragSubscription("discard", () => setTransition(null));
   useDragSubscription("acquire", (detail) => {
     if (detail.draggableItem.id === item.id) {
-      setIsBorrowed(true);
+      setTransition((transition) => transition && { ...transition, isBorrowed: true });
     }
   });
 
+  // During the transition listen to pointer move and pointer up events to update/submit transition.
   const transitionInteractionType = transition?.interactionType ?? null;
   const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
@@ -166,7 +164,6 @@ function ItemContainerComponent(
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
     }
-
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
@@ -228,7 +225,7 @@ function ItemContainerComponent(
       if (canInsert) {
         handleInsert(direction);
       } else if (canNavigate) {
-        onNavigate?.(direction);
+        onKeyMove?.(direction);
       }
     };
 
@@ -253,7 +250,7 @@ function ItemContainerComponent(
     // When drag- or resize handle loses focus the transition must be discarded with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && transition.interactionType === "keyboard" && !isBorrowed) {
+    if (transition && transition.interactionType === "keyboard" && !transition.isBorrowed) {
       draggableApi.discardTransition();
     }
   }
@@ -294,7 +291,7 @@ function ItemContainerComponent(
     itemTransitionStyle.height = transition.sizeTransform?.height;
   }
   // Make the borrowed item dimmed.
-  else if (isBorrowed) {
+  else if (transition && transition.isBorrowed) {
     itemTransitionClassNames.push(styles.borrowed);
   }
 

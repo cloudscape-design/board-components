@@ -16,6 +16,15 @@ export interface ScreenReaderGridNavigationProps<Item> {
   onActivateItem: (itemId: ItemId) => void;
 }
 
+/**
+ * The component provides a native screen-reader grid navigation for board items.
+ * A separate navigation component is used because the navigation requires a table or table-like
+ * DOM structure while the board uses CSS grid.
+ *
+ * The screen-reader navigation component is hidden and don't have a tab stop, however, it can be focused
+ * programmatically or with a screen-reader. When focused with a screen-reader the component becomes visible
+ * so that it can be clicked (e.g. the VO can imitate clicks on the elements under VO cursor with VO+Space).
+ */
 export function ScreenReaderGridNavigation<Item extends { id: string }>({
   items,
   itemsLayout,

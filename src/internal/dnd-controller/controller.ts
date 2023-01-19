@@ -67,6 +67,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
   private transition: null | Transition = null;
 
+  /**
+   * Inits a drag transition and issues a "start" event.
+   *
+   * The method overrides the previous transition if exists (w/o a cancellation event)!
+   */
   public start(
     operation: Operation,
     interactionType: InteractionType,
@@ -84,20 +89,32 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("start", this.getDragAndDropData(startCoordinates));
   }
 
+  /**
+   * Updates current transition with given coordinates and issues an "update" event.
+   */
   public update(coordinates: Coordinates) {
     this.emit("update", this.getDragAndDropData(coordinates));
   }
 
+  /**
+   * Removes transition and issues a "submit" event.
+   */
   public submit() {
     this.emit("submit");
     this.transition = null;
   }
 
+  /**
+   * Removes transition and issues a "discard" event.
+   */
   public discard() {
     this.emit("discard");
     this.transition = null;
   }
 
+  /**
+   * Issues an "acquire" event to notify the current transition draggable is acquired by the given droppable.
+   */
   public acquire(droppableId: ItemId) {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for acquire.");
@@ -105,14 +122,23 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem });
   }
 
+  /**
+   * Registers a droppable used for collisions check, acquire, and dropTarget provision.
+   */
   public addDroppable(id: ItemId, context: DropTargetContext, element: HTMLElement) {
     this.droppables.set(id, { element, context });
   }
 
+  /**
+   * Un-registers the droppable - use it when component unmounts.
+   */
   public removeDroppable(id: ItemId) {
     this.droppables.delete(id);
   }
 
+  /**
+   * Retrieves all registered droppables to run a manual match against.
+   */
   public getDroppables() {
     return [...this.droppables.entries()];
   }

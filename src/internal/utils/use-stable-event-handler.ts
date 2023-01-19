@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useCallback, useEffect, useRef } from "react";
 
+// The code is copied from https://github.com/cloudscape-design/components/blob/main/src/internal/hooks/use-stable-event-handler/index.ts
+
 /**
  * A callback that stays stable between renders even as the dependencies change.
  * Not a recommended React pattern, so it should be used sparingly and only if

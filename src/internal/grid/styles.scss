@@ -1,6 +1,9 @@
 .grid {
   display: grid;
-  gap: 16px; // Can't use design tokens for the gap because it is used in calculations;
+  /* Matches GRID_GAP constant used for calculations. */
+  /* TODO: consider using different gaps for comfortable/compact which would require a mode observer. */
+  gap: 16px;
+  /* Matches ROWSPAN_HEIGHT constant used for calculations. */
   grid-auto-rows: 100px;
 }
 

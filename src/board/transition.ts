@@ -11,9 +11,9 @@ import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
 import {
+  getDefaultItemHeight,
+  getDefaultItemWidth,
   getInsertionDirection,
-  getItemHeight,
-  getItemWidth,
   getLayoutColumns,
   getLayoutPlaceholders,
   getLayoutRows,
@@ -123,12 +123,10 @@ function initTransition<D>({
 
   const placeholdersLayout = getLayoutPlaceholders(transition);
 
-  const layoutItem = itemsLayout.items.find((it) => it.id === draggableItem.id);
+  const itemBelongsToBoard = itemsLayout.items.find((it) => it.id === draggableItem.id);
   const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
   const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-  const path = layoutItem ? appendPath([], collisionRect) : [];
-
-  const itemBelongsToBoard = itemsLayout.items.some((it) => it.id === draggableItem.id);
+  const path = itemBelongsToBoard ? appendPath([], collisionRect) : [];
 
   return {
     transition: { ...transition, path },
@@ -208,8 +206,8 @@ function updateTransitionWithPointerEvent<D>(
 
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemWidth = layoutItem ? layoutItem.width : getItemWidth(transition);
-  const itemHeight = layoutItem ? layoutItem.height : getItemHeight(transition);
+  const itemWidth = layoutItem ? layoutItem.width : getDefaultItemWidth(transition.draggableItem, layout.columns);
+  const itemHeight = layoutItem ? layoutItem.height : getDefaultItemHeight(transition.draggableItem);
   const itemSize = itemWidth * itemHeight;
 
   const isOutOfBoundaries =
@@ -249,13 +247,13 @@ function updateTransitionWithKeyboardEvent<D>(
   }
 
   const { itemsLayout } = transition;
+  const lastPosition = transition.path[transition.path.length - 1];
   const columns = getLayoutColumns(transition);
   const rows = getLayoutRows(transition);
 
   const updateManualItemTransition = (transition: Transition<D>, direction: Direction): TransitionState<D> => {
     const xDelta = direction === "left" ? -1 : direction === "right" ? 1 : 0;
     const yDelta = direction === "up" ? -1 : direction === "down" ? 1 : 0;
-    const lastPosition = transition.path[transition.path.length - 1];
     const nextPosition = new Position({ x: lastPosition.x + xDelta, y: lastPosition.y + yDelta });
     const nextPath = [...transition.path, nextPosition];
     const layoutShift = getLayoutShift(transition, nextPath);
@@ -268,7 +266,6 @@ function updateTransitionWithKeyboardEvent<D>(
   };
 
   function shiftItemLeft(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const position = layoutItem?.x ?? 0;
@@ -281,7 +278,6 @@ function updateTransitionWithKeyboardEvent<D>(
   }
 
   function shiftItemRight(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.x < (transition.operation === "resize" ? columns : columns - 1)) {
       return updateManualItemTransition(transition, "right");
     } else {
@@ -290,7 +286,6 @@ function updateTransitionWithKeyboardEvent<D>(
   }
 
   function shiftItemUp(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
     const layout = transition.layoutShift?.next ?? itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const position = layoutItem?.y ?? 0;
@@ -303,7 +298,6 @@ function updateTransitionWithKeyboardEvent<D>(
   }
 
   function shiftItemDown(transition: Transition<D>) {
-    const lastPosition = transition.path[transition.path.length - 1];
     if (lastPosition.y < (transition.operation === "resize" ? 999 : rows - 1)) {
       return updateManualItemTransition(transition, "down");
     } else {
@@ -341,7 +335,7 @@ function acquireTransitionItem<D>(
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.
-  const width = getItemWidth(transition);
+  const width = getDefaultItemWidth(transition.draggableItem, columns);
   position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
   const path = [...transition.path, position];
