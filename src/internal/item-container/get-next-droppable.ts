@@ -6,6 +6,10 @@ import { Direction, ItemId } from "../interfaces";
 import { getClosestNeighbor } from "../utils/rects";
 import { getNormalizedElementRect } from "../utils/screen";
 
+/**
+ * Finds closest droppable to provided draggable element and direction.
+ * Returns null if there is no droppable in the given direction.
+ */
 export function getNextDroppable(
   draggableElement: HTMLElement,
   droppables: readonly [ItemId, Droppable][],
