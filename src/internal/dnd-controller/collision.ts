@@ -7,6 +7,9 @@ import { getGridPlacement, isInside } from "../utils/rects";
 import { getNormalizedElementRect } from "../utils/screen";
 import { Operation } from "./controller";
 
+/**
+ * Produces a rect (in coordinates) to represent the draggable item.
+ */
 export function getCollisionRect(operation: Operation, draggableElement: HTMLElement, coordinates: Coordinates) {
   const activeRect = getNormalizedElementRect(draggableElement);
 
@@ -30,6 +33,9 @@ export function getCollisionRect(operation: Operation, draggableElement: HTMLEle
   return collisionRect;
 }
 
+/**
+ * Returns IDs of droppables hovered by the draggable rect.
+ */
 export function getHoveredDroppables(collisionRect: Rect, droppables: readonly [ItemId, HTMLElement][]) {
   const droppableRects = droppables.map(([, element]) => getNormalizedElementRect(element));
   const bounds = getGridPlacement(collisionRect, droppableRects);
