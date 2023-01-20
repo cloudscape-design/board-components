@@ -123,13 +123,13 @@ describe("horizontal swaps of larger items", () => {
       [
         ["A", "A", "C", "B", "B"],
         ["A", "A", "D", "B", "B"],
-        ["A", "A", "E", "F", "G"],
+        ["A", "A", "E", "G", "G"],
       ],
       "B2 C2 D2 E2",
       [
         ["C", "B", "B", "A", "A"],
         ["D", "B", "B", "A", "A"],
-        ["E", "F", "G", "A", "A"],
+        ["E", "G", "G", "A", "A"],
       ],
     ],
     [
@@ -137,13 +137,13 @@ describe("horizontal swaps of larger items", () => {
       [
         [" ", "K", "C", "B", "B"],
         [" ", "K", "D", "B", "B"],
-        [" ", "K", "E", "F", "G"],
+        [" ", "K", "E", "G", "G"],
       ],
       "B2 C2 D2 E2",
       [
         [" ", "C", "B", "B", "K"],
         [" ", "D", "B", "B", "K"],
-        [" ", "E", "F", "G", "K"],
+        [" ", "E", "G", "G", "K"],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
@@ -205,9 +205,9 @@ describe("swaps with overlay", () => {
       ],
       "A2 A3 A4",
       [
-        [" ", "A"],
         ["D", "A"],
-        ["D", "B"],
+        ["D", "A"],
+        [" ", "B"],
         ["S", "B"],
       ],
     ],
@@ -300,30 +300,6 @@ describe("replacement moves of larger items", () => {
         ["B", "B", "D", "D"],
         ["C", "C", "A", "A"],
         ["C", "C", "A", "A"],
-      ],
-    ],
-    [
-      "push A and C to escape with B",
-      [
-        ["C", "C", "C", "B"],
-        ["C", "C", "C", "B"],
-        ["A", "A", "A", "B"],
-        ["A", "A", "A", "B"],
-        ["D", "D", "E", "E"],
-        ["D", "D", "E", "E"],
-      ],
-      "D1 C1 C2 B2 B1",
-      [
-        [" ", "B", "E", "E"],
-        [" ", "B", "E", "E"],
-        [" ", "B", " ", " "],
-        [" ", "B", " ", " "],
-        ["D", "D", " ", " "],
-        ["D", "D", " ", " "],
-        ["C", "C", "C", " "],
-        ["C", "C", "C", " "],
-        ["A", "A", "A", " "],
-        ["A", "A", "A", " "],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
@@ -444,11 +420,10 @@ describe("multiple overlap resolutions", () => {
       ],
       "A3 B3 B2 C2",
       [
-        [" ", "C", "A", "A"],
-        ["E", "C", "G", "F"],
+        ["E", "C", "A", "A"],
+        ["H", "C", "G", "F"],
         [" ", "B", "B", "F"],
-        ["H", "B", "B", " "],
-        [" ", " ", " ", " "],
+        [" ", "B", "B", " "],
         [" ", " ", "D", " "],
       ],
     ],
@@ -464,31 +439,29 @@ describe("multiple overlap resolutions", () => {
 describe("escape moves", () => {
   test.each([
     [
-      "D forces C to escape",
+      "B forces A and C to escape",
       [
-        [" ", "A", "B", " "],
-        ["C", "C", " ", " "],
-        ["D", "D", " ", " "],
-        ["F", "E", "E", " "],
-        ["F", "E", "E", " "],
-        ["G", "E", "E", " "],
-        [" ", " ", "H", " "],
+        ["C", "C", "C", "B"],
+        ["C", "C", "C", "B"],
+        ["A", "A", "A", "B"],
+        ["A", "A", "A", "B"],
+        ["D", "D", "E", "E"],
+        ["D", "D", "E", "E"],
       ],
-      "A3 A4 B4",
+      "D1 C1 C2 C3 C4 C5 D5 D4 D3",
       [
-        ["B", "E", "E", "A"],
-        [" ", "E", "E", " "],
-        ["F", "E", "E", " "],
-        ["F", "D", "D", " "],
-        ["C", "C", " ", " "],
-        ["G", " ", " ", " "],
-        [" ", " ", "H", " "],
+        ["D", "D", "E", "E"],
+        ["D", "D", "E", "E"],
+        ["C", "C", "C", "B"],
+        ["C", "C", "C", "B"],
+        ["A", "A", "A", "B"],
+        ["A", "A", "A", "B"],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBeGreaterThan(0);
+    expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBe(2);
   });
 });

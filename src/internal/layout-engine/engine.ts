@@ -185,6 +185,8 @@ export class LayoutEngine {
     };
 
     tryVacantMoves();
+
+    this.refloatGrid(activeId);
   }
 
   // Retrieves prioritized list of directions to look for a resolution move.
@@ -466,10 +468,15 @@ export class LayoutEngine {
   }
 
   // Find items that can "float" to the top and apply the necessary moves.
-  private refloatGrid(): void {
+  private refloatGrid(activeId?: ItemId): void {
     let needAnotherRefloat = false;
 
     for (const item of this.grid.items) {
+      // The active item is skipped until the operation is committed.
+      if (item.id === activeId) {
+        continue;
+      }
+
       const move: CommittedMove = {
         itemId: item.id,
         x: item.x,
@@ -490,7 +497,7 @@ export class LayoutEngine {
     }
 
     if (needAnotherRefloat) {
-      this.refloatGrid();
+      this.refloatGrid(activeId);
     }
   }
 

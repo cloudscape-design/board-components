@@ -37,7 +37,7 @@ test("commits no changes if resize path returns to original or smaller", () => {
       };
       resize.path = [...resize.path, ...generateRandomPath(lastPathItem, originalSizePath)];
       const moves = new LayoutEngine(grid).resize(resize).getLayoutShift().moves;
-      expect(moves.filter((move) => move.type !== "RESIZE")).toHaveLength(0);
+      expect(moves.filter((move) => move.type !== "RESIZE" && move.type !== "FLOAT")).toHaveLength(0);
     }
   });
 
