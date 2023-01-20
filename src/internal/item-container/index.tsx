@@ -91,6 +91,7 @@ function ItemContainerComponent(
   { item, acquired, itemSize, itemMaxSize, onKeyMove, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
+  const originalSizeRef = useRef({ width: 0, height: 0 });
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
   const [transition, setTransition] = useState<null | Transition>(null);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -138,7 +139,7 @@ function ItemContainerComponent(
           operation,
           interactionType,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : { width, height },
+          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
           isBorrowed: !!transition?.isBorrowed,
         }));
@@ -259,6 +260,7 @@ function ItemContainerComponent(
     // Calculate the offset between item's top-left corner and the pointer landing position.
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+    originalSizeRef.current = { width: rect.width, height: rect.height };
 
     draggableApi.start(!gridContext ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
   }
@@ -271,6 +273,7 @@ function ItemContainerComponent(
     // Calculate the offset between item's bottom-right corner and the pointer landing position.
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.right, y: event.clientY - rect.bottom });
+    originalSizeRef.current = { width: rect.width, height: rect.height };
 
     draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
   }
