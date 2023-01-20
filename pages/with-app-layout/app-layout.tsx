@@ -28,7 +28,7 @@ export function ClientAppLayout({ content, splitPanelContent, onReload }: Client
                     <Button variant="icon" iconName="refresh" onClick={onReload}>
                       {clientI18nStrings.appLayout.reloadButton}
                     </Button>
-                    <Button iconName="add-plus" onClick={() => setSplitPanelOpen(true)}>
+                    <Button data-testid="add-widget" iconName="add-plus" onClick={() => setSplitPanelOpen(true)}>
                       {clientI18nStrings.appLayout.addWidgetButton}
                     </Button>
                   </SpaceBetween>
