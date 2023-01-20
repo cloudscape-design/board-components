@@ -22,7 +22,6 @@ function createMockTransition(
     draggableElement: null as unknown as HTMLElement,
     collisionIds: new Set(),
     layoutShift,
-    layoutShiftWithRefloat: null,
     path: [],
   };
 }

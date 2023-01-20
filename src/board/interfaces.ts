@@ -171,7 +171,6 @@ export interface Transition<D> {
   acquiredItem: null | BoardItemDefinition<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
-  layoutShiftWithRefloat: null | LayoutShift;
   path: readonly Position[];
 }
 

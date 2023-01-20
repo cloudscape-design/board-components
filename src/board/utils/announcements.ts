@@ -12,10 +12,10 @@ export function createOperationAnnouncement<D>(
   transition: Transition<D>,
   direction: null | Direction
 ): null | OperationPerformedAnnouncement {
-  const { operation, layoutShift, layoutShiftWithRefloat, itemsLayout } = transition;
+  const { operation, layoutShift, itemsLayout } = transition;
   const targetItem = itemsLayout.items.find((it) => it.id === transition.draggableItem.id) ?? null;
 
-  if (!layoutShift || !layoutShiftWithRefloat) {
+  if (!layoutShift) {
     return null;
   }
 
@@ -31,7 +31,7 @@ export function createOperationAnnouncement<D>(
 
   const conflicts = new Set(layoutShift.conflicts);
 
-  const disturbed = new Set(layoutShiftWithRefloat.moves.map((move) => move.itemId));
+  const disturbed = new Set(layoutShift.moves.map((move) => move.itemId));
   disturbed.delete(targetId);
 
   return {
