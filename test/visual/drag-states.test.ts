@@ -176,3 +176,18 @@ test(
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
+
+test(
+  "split-panel prevents collisions when inserting an item from the palette at the bottom",
+  setupTest("/index.html#/with-app-layout/integ", async (page) => {
+    await page.setWindowSize({ width: 600, height: 800 });
+
+    await page.click(`[data-testid="add-widget"]`);
+
+    await page.mouseDown(itemsPaletteWrapper.findItemById("counter").findDragHandle().toSelector());
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    await page.mouseMove(0, -400);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
