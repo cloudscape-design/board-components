@@ -287,24 +287,6 @@ describe("diagonal swaps of larger items", () => {
 describe("replacement moves of larger items", () => {
   test.each([
     [
-      "move A to D touching C",
-      [
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-        ["C", "C", "D", "D"],
-        ["C", "C", "D", "D"],
-      ],
-      "B2 C2 C3 C4 D4",
-      [
-        ["C", "C", "B", "B"],
-        ["C", "C", "B", "B"],
-        [" ", " ", "A", "A"],
-        [" ", " ", "A", "A"],
-        [" ", " ", "D", "D"],
-        [" ", " ", "D", "D"],
-      ],
-    ],
-    [
       "move A to D touching B",
       [
         ["A", "A", "B", "B"],
@@ -318,6 +300,30 @@ describe("replacement moves of larger items", () => {
         ["B", "B", "D", "D"],
         ["C", "C", "A", "A"],
         ["C", "C", "A", "A"],
+      ],
+    ],
+    [
+      "push A and C to escape with B",
+      [
+        ["C", "C", "C", "B"],
+        ["C", "C", "C", "B"],
+        ["A", "A", "A", "B"],
+        ["A", "A", "A", "B"],
+        ["D", "D", "E", "E"],
+        ["D", "D", "E", "E"],
+      ],
+      "D1 C1 C2 B2 B1",
+      [
+        [" ", "B", "E", "E"],
+        [" ", "B", "E", "E"],
+        [" ", "B", " ", " "],
+        [" ", "B", " ", " "],
+        ["D", "D", " ", " "],
+        ["D", "D", " ", " "],
+        ["C", "C", "C", " "],
+        ["C", "C", "C", " "],
+        ["A", "A", "A", " "],
+        ["A", "A", "A", " "],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {

@@ -296,11 +296,6 @@ export class LayoutEngine {
       }
     }
 
-    // "Escape" moves are not allowed when there are conflicts.
-    if (this.conflicts.size > 0) {
-      return null;
-    }
-
     // If can't find a good move - "escape" item to the bottom.
     const move: CommittedMove = {
       itemId: overlapItem.id,
