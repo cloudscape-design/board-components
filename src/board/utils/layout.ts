@@ -3,6 +3,7 @@
 
 import { BoardItemDefinitionBase, Direction } from "../../internal/interfaces";
 import { LayoutEngine } from "../../internal/layout-engine/engine";
+import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
 import { createPlaceholdersLayout, getDefaultItemSize } from "../../internal/utils/layout";
 import { Position } from "../../internal/utils/position";
@@ -72,12 +73,12 @@ export function getLayoutShift<D>(
   transition: Transition<D>,
   path: readonly Position[],
   insertionDirection?: Direction
-) {
+): null | LayoutShift {
   if (path.length === 0) {
-    return { layoutShift: null, layoutShiftWithRefloat: null };
+    return null;
   }
 
-  let engine = new LayoutEngine(transition.itemsLayout);
+  const engine = new LayoutEngine(transition.itemsLayout);
   const width = getDefaultItemWidth(transition.draggableItem, getLayoutColumns(transition));
   const height = getDefaultItemHeight(transition.draggableItem);
   const rows = getLayoutRows(transition);
@@ -85,20 +86,17 @@ export function getLayoutShift<D>(
 
   switch (transition.operation) {
     case "resize":
-      engine = engine.resize({ itemId: transition.draggableItem.id, path });
-      break;
+      return engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
     case "reorder":
-      engine = engine.move({ itemId: transition.draggableItem.id, path });
-      break;
+      return engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
     case "insert":
-      engine = engine.insert({
-        itemId: transition.draggableItem.id,
-        width,
-        height,
-        path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
-      });
-      break;
+      return engine
+        .insert({
+          itemId: transition.draggableItem.id,
+          width,
+          height,
+          path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
+        })
+        .getLayoutShift();
   }
-
-  return { layoutShift: engine.getLayoutShift(), layoutShiftWithRefloat: engine.refloat().getLayoutShift() };
 }

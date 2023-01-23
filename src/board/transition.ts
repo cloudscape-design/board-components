@@ -115,7 +115,6 @@ function initTransition<D>({
     acquiredItem: null,
     collisionIds: new Set(),
     layoutShift: null,
-    layoutShiftWithRefloat: null,
     path: [],
   };
 
@@ -228,7 +227,7 @@ function updateTransitionWithPointerEvent<D>(
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
   return {
-    transition: { ...transition, collisionIds: new Set(collisionIds), ...layoutShift, path, insertionDirection },
+    transition: { ...transition, collisionIds: new Set(collisionIds), layoutShift, path, insertionDirection },
     removeTransition: null,
     announcement: null,
   };
@@ -252,7 +251,7 @@ function updateTransitionWithKeyboardEvent<D>(
     const nextPath = [...transition.path, nextPosition];
     try {
       const layoutShift = getLayoutShift(transition, nextPath);
-      const nextTransition = { ...transition, ...layoutShift, path: nextPath };
+      const nextTransition = { ...transition, layoutShift, path: nextPath };
       return {
         transition: nextTransition,
         removeTransition: null,
@@ -304,7 +303,7 @@ function acquireTransitionItem<D>(
   // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
   const acquiredItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
-  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), ...layoutShift, path, acquiredItem };
+  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), layoutShift, path, acquiredItem };
   return {
     transition: nextTransition,
     removeTransition: null,
