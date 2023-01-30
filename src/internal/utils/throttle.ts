@@ -3,21 +3,12 @@
 
 // The code is copied from https://github.com/cloudscape-design/components/blob/main/src/internal/utils/throttle.ts
 
-export interface ThrottleOptions {
-  leading?: boolean;
-  trailing?: boolean;
-}
-
 export interface ThrottledFunction<F extends (...args: any) => any> {
   (...args: Parameters<F>): void;
   cancel(): void;
 }
 
-export function throttle<F extends (...args: any) => any>(
-  func: F,
-  delay: number,
-  { trailing = true }: ThrottleOptions = {}
-): ThrottledFunction<F> {
+export function throttle<F extends (...args: any) => any>(func: F, delay: number): ThrottledFunction<F> {
   let pending: null | { this: any; args: any } = null;
   let lastInvokeTime: null | number = null;
   let timerId: null | number = null;
@@ -36,7 +27,7 @@ export function throttle<F extends (...args: any) => any>(
       lastInvokeTime = invokeTime;
       pending = null;
       timerId = null;
-    } else if (trailing) {
+    } else {
       startTimer();
     }
   }
