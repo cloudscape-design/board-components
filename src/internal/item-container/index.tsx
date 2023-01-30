@@ -120,17 +120,21 @@ function ItemContainerComponent(
       const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
       const pointerOffset = pointerOffsetRef.current;
 
-      if (operation === "resize" && dropTarget) {
-        const { width: minWidth, height: minHeight } = dropTarget.scale(getMinItemSize(draggableItem));
-        const { width: maxWidth } = dropTarget.scale(itemMaxSize);
+      if (operation === "resize") {
+        const itemMinSize = getMinItemSize(draggableItem);
         setTransition((transition) => ({
           operation,
           interactionType,
           itemId: draggableItem.id,
-          sizeTransform: {
-            width: Math.max(minWidth, Math.min(maxWidth, width - pointerOffset.x)),
-            height: Math.max(minHeight, height - pointerOffset.y),
-          },
+          sizeTransform: dropTarget
+            ? {
+                width: Math.max(
+                  dropTarget.scale(itemMinSize).width,
+                  Math.min(dropTarget.scale(itemMaxSize).width, width - pointerOffset.x)
+                ),
+                height: Math.max(dropTarget.scale(itemMinSize).height, height - pointerOffset.y),
+              }
+            : null,
           positionTransform: null,
           isBorrowed: !!transition?.isBorrowed,
         }));

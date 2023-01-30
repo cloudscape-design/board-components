@@ -85,7 +85,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
       
       When the draggable intersects with a fixed element (e.g. a spit-panel) the collisions are not calculated.
     */
-    this.fixedRects = queryFixedRects();
+    this.fixedRects = queryFixedRects(draggableElement);
 
     this.transition = {
       operation,

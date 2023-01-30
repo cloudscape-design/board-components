@@ -7,6 +7,7 @@ import { DndPageObject } from "./dnd-page-object.js";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
+const paletteItemHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
@@ -72,6 +73,22 @@ test(
       [" ", " ", " ", "H"],
       [" ", " ", " ", "H"],
     ]);
+  })
+);
+
+test(
+  "can resize item with fixed elements inside",
+  setupTest("index.html#/with-app-layout/integ", async (page) => {
+    // Add "events" widget that has a table as contents.
+    await page.click('[data-testid="add-widget"]');
+    await page.focus(paletteItemHandle("events"));
+    await page.keys(["Enter"]);
+    await page.keys(["ArrowLeft", "ArrowUp", "ArrowUp", "ArrowUp"]);
+    await page.keys(["Enter"]);
+    await expect(page.getWidgetSize("events")).resolves.toHaveLength(4);
+
+    await page.dragAndDrop(boardWrapper.findItemById("events").findResizeHandle().toSelector(), 0, 200);
+    await expect(page.getWidgetSize("events")).resolves.toHaveLength(8);
   })
 );
 

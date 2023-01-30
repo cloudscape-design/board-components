@@ -76,6 +76,11 @@ export class DndPageObject extends BasePageObject {
     return grid;
   }
 
+  async getWidgetSize(widgetId: string) {
+    const grid = await this.getGrid();
+    return grid.flatMap((r) => r).filter((id) => id === widgetId);
+  }
+
   async focus(selector: string) {
     await this.browser.execute((target) => {
       (document.querySelector(target) as HTMLButtonElement)!.focus();
