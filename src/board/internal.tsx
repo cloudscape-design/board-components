@@ -185,7 +185,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
 
   return (
-    <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
+    <>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}
@@ -195,60 +195,62 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
         onActivateItem={focusItem}
       />
 
-      {rows > 0 ? (
-        <Grid
-          columns={columns}
-          rows={rows}
-          layout={[...placeholdersLayout.items, ...itemsLayout.items]}
-          transforms={transforms}
-          inTransition={!!layoutShift}
-        >
-          {/* Placeholders are rendered even when there is no transition to support the first collisions check. */}
-          {placeholdersLayout.items.map((placeholder) => (
-            <Placeholder
-              key={placeholder.id}
-              id={placeholder.id}
-              state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
-            />
-          ))}
+      <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
+        {rows > 0 ? (
+          <Grid
+            columns={columns}
+            rows={rows}
+            layout={[...placeholdersLayout.items, ...itemsLayout.items]}
+            transforms={transforms}
+            inTransition={!!layoutShift}
+          >
+            {/* Placeholders are rendered even when there is no transition to support the first collisions check. */}
+            {placeholdersLayout.items.map((placeholder) => (
+              <Placeholder
+                key={placeholder.id}
+                id={placeholder.id}
+                state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
+              />
+            ))}
 
-          {items.map((item) => {
-            const layoutItem = layoutItemById.get(item.id);
-            const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
+            {items.map((item) => {
+              const layoutItem = layoutItemById.get(item.id);
+              const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
-            const itemSize = layoutItem ?? {
-              width: getDefaultItemWidth(item, columns),
-              height: getDefaultItemHeight(item),
-            };
+              const itemSize = layoutItem ?? {
+                width: getDefaultItemWidth(item, columns),
+                height: getDefaultItemHeight(item),
+              };
 
-            const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
+              const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
 
-            return (
-              <ItemContainer
-                ref={(elem) => {
-                  if (elem) {
-                    itemContainerRef.current[item.id] = elem;
-                  } else {
-                    delete itemContainerRef.current[item.id];
-                  }
-                }}
-                key={item.id}
-                item={item}
-                acquired={item.id === acquiredItem?.id}
-                itemSize={itemSize}
-                itemMaxSize={itemMaxSize}
-                onKeyMove={onItemMove}
-              >
-                {renderItem(item, { removeItem: () => removeItemAction(item) })}
-              </ItemContainer>
-            );
-          })}
-        </Grid>
-      ) : (
-        empty
-      )}
+              return (
+                <ItemContainer
+                  ref={(elem) => {
+                    if (elem) {
+                      itemContainerRef.current[item.id] = elem;
+                    } else {
+                      delete itemContainerRef.current[item.id];
+                    }
+                  }}
+                  key={item.id}
+                  item={item}
+                  acquired={item.id === acquiredItem?.id}
+                  itemSize={itemSize}
+                  itemMaxSize={itemMaxSize}
+                  onKeyMove={onItemMove}
+                >
+                  {renderItem(item, { removeItem: () => removeItemAction(item) })}
+                </ItemContainer>
+              );
+            })}
+          </Grid>
+        ) : (
+          empty
+        )}
+      </div>
 
       <LiveRegion>{announcement}</LiveRegion>
-    </div>
+    </>
   );
 }

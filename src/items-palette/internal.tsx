@@ -68,7 +68,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
   };
 
   return (
-    <div ref={paletteRef} className={styles.root}>
+    <>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}
@@ -78,31 +78,33 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
         onActivateItem={focusItem}
       />
 
-      <SpaceBetween size="l">
-        {items.map((item) => (
-          <ItemContainer
-            ref={(elem) => {
-              if (elem) {
-                itemContainerRef.current[item.id] = elem;
-              } else {
-                delete itemContainerRef.current[item.id];
-              }
-            }}
-            key={item.id}
-            item={item}
-            itemSize={getDefaultItemSize(item)}
-            itemMaxSize={getDefaultItemSize(item)}
-          >
-            <div data-item-id={item.id}>
-              {renderItem(item, {
-                showPreview: dropState?.id === item.id && dropState.isExpanded,
-              })}
-            </div>
-          </ItemContainer>
-        ))}
-      </SpaceBetween>
+      <div ref={paletteRef} className={styles.root}>
+        <SpaceBetween size="l">
+          {items.map((item) => (
+            <ItemContainer
+              ref={(elem) => {
+                if (elem) {
+                  itemContainerRef.current[item.id] = elem;
+                } else {
+                  delete itemContainerRef.current[item.id];
+                }
+              }}
+              key={item.id}
+              item={item}
+              itemSize={getDefaultItemSize(item)}
+              itemMaxSize={getDefaultItemSize(item)}
+            >
+              <div data-item-id={item.id}>
+                {renderItem(item, {
+                  showPreview: dropState?.id === item.id && dropState.isExpanded,
+                })}
+              </div>
+            </ItemContainer>
+          ))}
+        </SpaceBetween>
+      </div>
 
       <LiveRegion>{announcement}</LiveRegion>
-    </div>
+    </>
   );
 }
