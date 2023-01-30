@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getCollisionRect, getHoveredDroppables, queryFixedRects } from "./collision";
+import { getCollisionRect, getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
 
 export type Operation = "reorder" | "resize" | "insert";
@@ -66,7 +66,6 @@ interface Transition extends DragDetail {
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
   private transition: null | Transition = null;
-  private fixedRects: readonly DOMRect[] = [];
 
   /**
    * Inits a drag transition and issues a "start" event.
@@ -80,13 +79,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     draggableElement: HTMLElement,
     startCoordinates: Coordinates
   ) {
-    /*
-      Find all fixed/sticky element rects on the page when transition starts (not expected to change during transition).
-      
-      When the draggable intersects with a fixed element (e.g. a spit-panel) the collisions are not calculated.
-    */
-    this.fixedRects = queryFixedRects(draggableElement);
-
     this.transition = {
       operation,
       interactionType,
@@ -165,7 +157,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private getCollisions(collisionRect: Rect) {
     const droppableEntries = [...this.droppables.entries()];
     const droppableElements: [ItemId, HTMLElement][] = droppableEntries.map(([id, entry]) => [id, entry.element]);
-    const collisionIds = getHoveredDroppables(collisionRect, droppableElements, this.fixedRects);
+    const collisionIds = getHoveredDroppables(collisionRect, droppableElements);
     if (collisionIds.length === 0) {
       return { collisionIds, dropTarget: null };
     }

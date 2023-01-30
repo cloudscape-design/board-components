@@ -10,17 +10,33 @@ export function isInside(rect: Rect, bounds: Rect) {
 }
 
 export function isIntersecting(rect1: Rect, rect2: Rect) {
-  const horizontalIntersection =
-    (rect2.left <= rect1.left && rect1.left <= rect2.right) ||
-    (rect2.left <= rect1.right && rect1.right <= rect2.right) ||
-    (rect1.left <= rect2.left && rect2.left <= rect1.right) ||
-    (rect1.left <= rect2.right && rect2.right <= rect1.right);
-  const verticalIntersection =
-    (rect2.top <= rect1.top && rect1.top <= rect2.bottom) ||
-    (rect2.top <= rect1.bottom && rect1.bottom <= rect2.bottom) ||
-    (rect1.top <= rect2.top && rect2.top <= rect1.bottom) ||
-    (rect1.top <= rect2.bottom && rect2.bottom <= rect1.bottom);
-  return horizontalIntersection && verticalIntersection;
+  return getIntersectionArea(rect1, rect2) > 0;
+}
+
+export function getIntersectionArea(rect1: Rect, rect2: Rect) {
+  let horizontalIntersectionLength = 0;
+  if (rect2.left <= rect1.left && rect1.left <= rect2.right) {
+    horizontalIntersectionLength = Math.min(rect1.right, rect2.right) - rect1.left;
+  } else if (rect2.left <= rect1.right && rect1.right <= rect2.right) {
+    horizontalIntersectionLength = rect1.right - Math.max(rect1.left, rect2.left);
+  } else if (rect1.left <= rect2.left && rect2.left <= rect1.right) {
+    horizontalIntersectionLength = Math.min(rect1.right, rect2.right) - rect2.left;
+  } else if (rect1.left <= rect2.right && rect2.right <= rect1.right) {
+    horizontalIntersectionLength = rect2.right - Math.max(rect1.left, rect2.left);
+  }
+
+  let verticalIntersectionLength = 0;
+  if (rect2.top <= rect1.top && rect1.top <= rect2.bottom) {
+    verticalIntersectionLength = Math.min(rect1.bottom, rect2.bottom) - rect1.top;
+  } else if (rect2.top <= rect1.bottom && rect1.bottom <= rect2.bottom) {
+    verticalIntersectionLength = rect1.bottom - Math.max(rect1.top, rect2.top);
+  } else if (rect1.top <= rect2.top && rect2.top <= rect1.bottom) {
+    verticalIntersectionLength = Math.min(rect1.bottom, rect2.bottom) - rect2.top;
+  } else if (rect1.top <= rect2.bottom && rect2.bottom <= rect1.bottom) {
+    verticalIntersectionLength = rect2.bottom - Math.max(rect1.top, rect2.top);
+  }
+
+  return horizontalIntersectionLength * verticalIntersectionLength;
 }
 
 export function getGridPlacement(target: Rect, grid: readonly Rect[]): Rect {
