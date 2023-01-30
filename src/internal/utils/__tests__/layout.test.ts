@@ -4,7 +4,13 @@
 import { describe, expect, test } from "vitest";
 import { fromMatrix, toString } from "../../debug-tools";
 import { BoardItemDefinition } from "../../interfaces";
-import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../layout";
+import {
+  createItemsLayout,
+  createPlaceholdersLayout,
+  exportItemsLayout,
+  getDefaultItemSize,
+  getMinItemSize,
+} from "../layout";
 
 function makeItem(
   id: string,
@@ -104,5 +110,85 @@ describe("exportItemsLayout", () => {
       [makeItem("A", 0, 1, 1), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 1)]
     );
     expect(exported).toEqual([makeItem("A", 0, 2, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
+  });
+});
+
+describe("getMinItemSize", () => {
+  test("returns 1 as min width when definition is undefined or smaller", () => {
+    expect(
+      getMinItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+        data: null,
+      }).width
+    ).toBe(1);
+
+    expect(
+      getMinItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 1, defaultRowSpan: 1, minColumnSpan: 0 },
+        data: null,
+      }).width
+    ).toBe(1);
+  });
+
+  test("returns 2 as min height when definition is undefined or smaller", () => {
+    expect(
+      getMinItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+        data: null,
+      }).height
+    ).toBe(2);
+
+    expect(
+      getMinItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 1, defaultRowSpan: 1, minRowSpan: 1 },
+        data: null,
+      }).height
+    ).toBe(2);
+  });
+
+  test("returns defined size when above defaults", () => {
+    expect(
+      getMinItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 1, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 3 },
+        data: null,
+      })
+    ).toEqual({ width: 2, height: 3 });
+  });
+});
+
+describe("getDefaultItemSize", () => {
+  test("returns 1 as default width when definition is smaller", () => {
+    expect(
+      getDefaultItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 0, defaultRowSpan: 1 },
+        data: null,
+      }).width
+    ).toBe(1);
+  });
+
+  test("returns 2 as default height when definition is smaller", () => {
+    expect(
+      getDefaultItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 1, defaultRowSpan: 1 },
+        data: null,
+      }).height
+    ).toBe(2);
+  });
+
+  test("returns defined size when above defaults", () => {
+    expect(
+      getDefaultItemSize({
+        id: "Test",
+        definition: { defaultColumnSpan: 2, defaultRowSpan: 3 },
+        data: null,
+      })
+    ).toEqual({ width: 2, height: 3 });
   });
 });

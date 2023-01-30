@@ -54,6 +54,7 @@ export function exportItemsLayout<D>(
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
     const item = itemById.get(itemId);
+    /* istanbul ignore if -- @preserve */
     if (!item) {
       throw new Error("Invariant violation: no matching source item found.");
     }
