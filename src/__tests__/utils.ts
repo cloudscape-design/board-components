@@ -14,10 +14,6 @@ export function getAllComponents(): string[] {
     .filter((name) => name !== "internal" && name !== "test-utils" && !name.includes(".") && !name.includes("LICENSE"));
 }
 
-export function requireComponent(componentName: string) {
-  return require(path.join(componentsDir, componentName));
-}
-
 export function requireComponentDefinition(componentName: string) {
   return require(path.join(definitionsDir, componentName));
 }
