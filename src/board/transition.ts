@@ -151,7 +151,6 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
     };
   }
 
-  /* istanbul ignore if -- @preserve */
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }
@@ -179,7 +178,6 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
     throw new Error("Can't discard remove transition.");
   }
 
-  /* istanbul ignore if -- @preserve */
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }
@@ -200,7 +198,6 @@ function updateTransitionWithPointerEvent<D>(
 ): TransitionState<D> {
   const { transition } = state;
 
-  /* istanbul ignore if -- @preserve */
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }
@@ -243,7 +240,6 @@ function updateTransitionWithKeyboardEvent<D>(
 ): TransitionState<D> {
   const { transition } = state;
 
-  /* istanbul ignore if -- @preserve */
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }
@@ -286,7 +282,6 @@ function acquireTransitionItem<D>(
 ): TransitionState<D> {
   const { transition } = state;
 
-  /* istanbul ignore if -- @preserve */
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }

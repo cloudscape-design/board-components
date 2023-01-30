@@ -16,7 +16,6 @@ export interface PlaceholderProps {
 export default function Placeholder({ id, state }: PlaceholderProps) {
   const gridContext = useGridContext();
 
-  /* istanbul ignore if -- @preserve */
   if (!gridContext) {
     throw new Error("Invariant violation: droppable is used outside grid context.");
   }

@@ -114,7 +114,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
 
     autoScrollHandlers.removePointerEventHandlers();
 
-    /* istanbul ignore if -- @preserve */
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
