@@ -13,7 +13,7 @@ interface ClientAppLayoutProps {
 
 export function ClientAppLayout({ content, splitPanelContent, onReload }: ClientAppLayoutProps) {
   const [splitPanelOpen, setSplitPanelOpen] = useState(false);
-  const [splitPanelPosition, setSpitPanelPosition] = useState<"side" | "bottom">("side");
+  const [splitPanelPosition, setSplitPanelPosition] = useState<"side" | "bottom">("side");
   return (
     <AppLayout
       contentType="default"
@@ -54,7 +54,7 @@ export function ClientAppLayout({ content, splitPanelContent, onReload }: Client
       splitPanelPreferences={{ position: splitPanelPosition }}
       splitPanelOpen={splitPanelOpen}
       onSplitPanelToggle={({ detail }) => setSplitPanelOpen(detail.open)}
-      onSplitPanelPreferencesChange={({ detail }) => setSpitPanelPosition(detail.position)}
+      onSplitPanelPreferencesChange={({ detail }) => setSplitPanelPosition(detail.position)}
       ariaLabels={appLayoutI18nStrings}
     />
   );
