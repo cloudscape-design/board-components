@@ -97,6 +97,12 @@
       "env": {
         "jest": true
       }
+    },
+    {
+      "files": ["vite.*.config.js"],
+      "env": {
+        "node": true
+      }
     }
   ]
 }

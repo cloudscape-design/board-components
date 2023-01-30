@@ -11,7 +11,7 @@
     "build": "npm-run-all build:pkg --parallel build:src:* --parallel build:pages:*",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
-    "test:unit": "vitest run --config vite.unit.config.js --coverage",
+    "test:unit": "vitest run --config vite.unit.config.js",
     "test:functional": "run-p -r preview test:functional:vitest",
     "test:functional:vitest": "vitest run --config vite.e2e-functional.config.js",
     "test:visual": "run-p -r preview test:visual:vitest",
