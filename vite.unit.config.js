@@ -10,5 +10,8 @@ export default defineConfig({
   test: {
     include: ["./src/**/__tests__/**/*.test.{ts,tsx}"],
     environment: "jsdom",
+    coverage: {
+      provider: "istanbul",
+    },
   },
 });
