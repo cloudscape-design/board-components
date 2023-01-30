@@ -87,7 +87,10 @@ test(
     await page.keys(["Enter"]);
     await expect(page.getWidgetSize("events")).resolves.toHaveLength(4);
 
-    await page.dragAndDrop(boardWrapper.findItemById("events").findResizeHandle().toSelector(), 0, 200);
+    await page.dragAndDropTo(
+      boardWrapper.findItemById("events").findResizeHandle().toSelector(),
+      boardWrapper.findItemById("3").findResizeHandle().toSelector()
+    );
     await expect(page.getWidgetSize("events")).resolves.toHaveLength(8);
   })
 );
