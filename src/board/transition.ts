@@ -177,6 +177,7 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
   if (removeTransition) {
     throw new Error("Can't discard remove transition.");
   }
+
   if (!transition) {
     throw new Error("Invariant violation: no transition.");
   }

@@ -169,18 +169,11 @@ export class LayoutEngine {
 
     const tryPriorityMoves = () => {
       // Try priority moves until first success and delegate back to vacant moves check.
-      let overlap = priorityOverlaps.pop();
-      while (overlap) {
-        const nextMove = this.tryFindPriorityMove(overlap, activeId, priority, resize);
-        if (nextMove) {
-          this.makeMove(nextMove, priority);
-          tryVacantMoves();
-          break;
-        } else {
-          // Can't resolve this overlap because of the blocked items.
-          // That is expected - such overlaps can be resolved once the conflicts are gone.
-        }
-        overlap = priorityOverlaps.pop();
+      const overlap = priorityOverlaps.pop();
+      if (overlap) {
+        const nextMove = this.findPriorityMove(overlap, activeId, priority, resize);
+        this.makeMove(nextMove, priority);
+        tryVacantMoves();
       }
     };
 
@@ -280,13 +273,8 @@ export class LayoutEngine {
     return true;
   }
 
-  // Try finding a move that resolves an overlap by moving an item over another item that has not been disturbed yet.
-  private tryFindPriorityMove(
-    overlap: ItemId,
-    activeId: ItemId,
-    priority: number,
-    resize = false
-  ): null | CommittedMove {
+  // Find a move that resolves an overlap by moving an item over another item that has not been disturbed yet.
+  private findPriorityMove(overlap: ItemId, activeId: ItemId, priority: number, resize = false): CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
     const directions = resize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
@@ -313,7 +301,7 @@ export class LayoutEngine {
       }
     }
 
-    return null;
+    throw new Error("Invariant violation: can't find escape move.");
   }
 
   private validatePriorityMove(move: CommittedMove, activeId: ItemId, priority: number, resize = false): boolean {
