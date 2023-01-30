@@ -12,7 +12,8 @@ export default defineConfig({
     environment: "jsdom",
     coverage: {
       provider: "istanbul",
-      exclude: ["**/lib/**", "**/debug-tools/**"],
+      include: ["src/**"],
+      exclude: ["**/debug-tools/**"],
     },
   },
 });
