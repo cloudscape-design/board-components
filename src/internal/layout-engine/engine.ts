@@ -387,6 +387,7 @@ export class LayoutEngine {
         }
       }
     }
+    /* istanbul ignore if -- @preserve */
     throw new Error("Invariant violation - no overlaps found.");
   }
 
@@ -438,6 +439,7 @@ export class LayoutEngine {
         }
         break;
       }
+      /* istanbul ignore if -- @preserve */
       default:
         throw new Error(`Invariant violation: unexpected direction ${direction}.`);
     }

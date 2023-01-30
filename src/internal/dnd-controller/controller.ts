@@ -124,6 +124,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
    * Issues an "acquire" event to notify the current transition draggable is acquired by the given droppable.
    */
   public acquire(droppableId: ItemId) {
+    /* istanbul ignore if -- @preserve */
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for acquire.");
     }
@@ -152,6 +153,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   }
 
   private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
+    /* istanbul ignore if -- @preserve */
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
@@ -171,6 +173,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     }
 
     const matchedDroppable = droppableEntries.find(([id]) => id === collisionIds[0]);
+    /* istanbul ignore if -- @preserve */
     if (!matchedDroppable) {
       throw new Error("Invariant violation: no droppable matches collision.");
     }
