@@ -54,19 +54,19 @@ describe("isIntersecting", () => {
     expect(isIntersecting(rect2, rect1)).toBe(true);
   });
 
-  test("returns true if one rect touches another", () => {
+  test("returns true if one rect intersects with another", () => {
     const source = { left: 2, right: 4, top: 2, bottom: 4 };
 
     // Touching source's top-left corner.
-    expect(isIntersecting(source, { left: 0, right: 2, top: 0, bottom: 2 })).toBe(true);
+    expect(isIntersecting(source, { left: 0, right: 3, top: 0, bottom: 3 })).toBe(true);
 
     // Touching source's bottom-right corner.
-    expect(isIntersecting(source, { left: 4, right: 6, top: 4, bottom: 6 })).toBe(true);
+    expect(isIntersecting(source, { left: 3, right: 6, top: 3, bottom: 6 })).toBe(true);
   });
 
-  test("returns false if rects are not touching", () => {
+  test("returns false if one rect does not intersect with another", () => {
     const rect1 = { left: 2, right: 4, top: 2, bottom: 4 };
-    const rect2 = { left: 2, right: 4, top: 5, bottom: 6 };
+    const rect2 = { left: 2, right: 4, top: 4, bottom: 6 };
     expect(isIntersecting(rect1, rect2)).toBe(false);
   });
 });
