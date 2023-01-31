@@ -24,23 +24,56 @@ import { Position } from "../internal/utils/position";
 
 export interface BoardProps<D = DataFallbackType> {
   /**
-   * Specifies the items displayed in the board. Each item is includes its position on the board and
-   * attached data. The content of an item is controlled by the `renderItem` property.
+   * Specifies the items displayed in the board. Each item includes its position on the board and
+   * optional data. The content of an item is controlled by the `renderItem` property.
+   *
+   * The BoardProps.Item includes:
+   * * `id` (string) - the unique item identifier. The IDs of any two items in a page must be different.
+   * * `definition.minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than 2. Defaults to 2.
+   * * `definition.minColumnSpan` (number, optional) - the minimal number of columns the item is allowed to take (in 4-column layout). It can't be less than 1. Defaults to 1.
+   * * `definition.defaultRowSpan` (number) - the number or rows the item will take when inserted to the board. It can't be less than `definition.minRowSpan`.
+   * * `definition.defaultColumnSpan` (number) - the number or columns the item will take (in 4-column layout) when inserted to the board. It can't be less than `definition.minColumnSpan`.
+   * * `columnOffset` (number) - the item's offset from the first column starting from 0. The value is updated by `onItemsChange` after an update is committed.
+   * * `rowSpan` (number) - the item's vertical size starting from 2. The value is updated by `onItemsChange` after an update is committed.
+   * * `columnSpan` (number) - the item's vertical size starting from 1. The value is updated by `onItemsChange` after an update is committed.
+   * * `data` (D) - the optional item's data which can include item's specific configuration, title etc.
    */
   items: ReadonlyArray<BoardProps.Item<D>>;
 
   /**
    * Specifies a function to render a board item content. The return value must include board item component.
+   *
+   * The function takes an item and item's associated actions (BoardProps.ItemActions) that include:
+   * * `removeItem(): void` - the callback to issue the item's removal. Once issued, the `onItemsChange` will fire to update the state.
    */
   renderItem: (item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
+   *
+   * Live announcement generators:
+   * * `liveAnnouncementDndStarted(BoardProps.DndOperationType): string` - the function to create a live announcement string for DnD ("reorder", "resize" or "insert") start.
+   * * `liveAnnouncementDndReorder(BoardProps.DndReorderState<D>): string` - the function to create a live announcement string when DnD reorder is performed.
+   * * `liveAnnouncementDndResize(BoardProps.DndResizeState<D>): string` - the function to create a live announcement string when DnD resize is performed.
+   * * `liveAnnouncementDndInsert(BoardProps.DndInsertState<D>): string` - the function to create a live announcement string when DnD insert is performed.
+   * * `liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string` - the function to create a live announcement string for DnD ("reorder", "resize" or "insert") commit.
+   * * `liveAnnouncementDndCommitted(BoardProps.DndOperationType): string` - the function to create a live announcement string for DnD ("reorder", "resize" or "insert") discard.
+   * * `liveAnnouncementOperationRemove(BoardProps.OperationStateRemove<D>): string` - the function to create a live announcement string for item removal.
+   *
+   * Navigation labels:
+   * * `navigationAriaLabel` (string) - the ARIA label for the accessible board navigation element.
+   * * `navigationAriaDescription` (string, optional) - the ARIA description for the accessible board navigation element.
+   * * `navigationItemAriaLabel(null | BoardProps.Item<D>): string` - the function to create the ARIA label for a navigation board item or an empty slot.
    */
   i18nStrings: BoardProps.I18nStrings<D>;
 
   /**
    * Fired when a user interaction changes size or position of board items.
+   *
+   * The change detail has the following properties:
+   * * `items`: (readonly Item<D>[]) - the updated items array.
+   * * `addedItem`: (Item<D>, optional) - the item that was added as part of the update if available.
+   * * `removedItem`: (Item<D>, optional) - the item that was removed as part of the update if available.
    */
   onItemsChange: NonCancelableEventHandler<BoardProps.ItemsChangeDetail<D>>;
 
@@ -66,71 +99,19 @@ export namespace BoardProps {
   }
 
   export interface I18nStrings<D> {
-    /**
-     * Specifies live announcement made when operation starts.
-     *
-     * Example: "Dragging".
-     */
-    liveAnnouncementOperationStarted: (operationType: OperationType) => string;
-    /**
-     * Specifies live announcement made when reorder operation is performed.
-     *
-     * Example: "Moved Demo widget to column 2, row 3. Conflicts with Second widget. Disturbed 2 items."
-     */
-    liveAnnouncementOperationReorder: (operation: OperationStateReorder<D>) => string;
-    /**
-     * Specifies live announcement made when resize operation is performed.
-     *
-     * Example: "Resized Demo widget to 3 columns. Disturbed 2 items."
-     */
-    liveAnnouncementOperationResize: (operation: OperationStateResize<D>) => string;
-    /**
-     * Specifies live announcement made when insert operation is performed.
-     *
-     * Example: "Inserted Demo widget to column 1 row 1. Disturbed 2 items."
-     */
-    liveAnnouncementOperationInsert: (operation: OperationStateInsert<D>) => string;
-    /**
-     * Specifies live announcement made when remove operation is performed.
-     *
-     * Example: "Removed Demo widget. Disturbed 2 items."
-     */
-    liveAnnouncementOperationRemove: (operation: OperationStateRemove<D>) => string;
-    /**
-     * Specifies live announcement made when operation is committed.
-     *
-     * Example: "Reorder committed".
-     */
-    liveAnnouncementOperationCommitted: (operationType: DragOperationType) => string;
-    /**
-     * Specifies live announcement made when operation is discarded.
-     *
-     * Example: "Reorder discarded".
-     */
-    liveAnnouncementOperationDiscarded: (operationType: DragOperationType) => string;
-    /**
-     * Specifies ARIA-label for screen-reader board navigation.
-     *
-     * Example: "Board navigation".
-     */
+    liveAnnouncementDndStarted: (operationType: DndOperationType) => string;
+    liveAnnouncementDndReorder: (operation: DndReorderState<D>) => string;
+    liveAnnouncementDndResize: (operation: DndResizeState<D>) => string;
+    liveAnnouncementDndInsert: (operation: DndInsertState<D>) => string;
+    liveAnnouncementDndCommitted: (operationType: DndOperationType) => string;
+    liveAnnouncementDndDiscarded: (operationType: DndOperationType) => string;
+    liveAnnouncementItemRemoved: (operation: ItemRemovedState<D>) => string;
     navigationAriaLabel: string;
-    /**
-     * Specifies ARIA-description for screen-reader board navigation.
-     *
-     * Example: "Click on non-empty item to move focus over."
-     */
     navigationAriaDescription?: string;
-    /**
-     * Specifies ARIA-label for navigated grid item. Includes empty cells.
-     *
-     * Example: "Widget 1" or "Empty".
-     */
     navigationItemAriaLabel: (item: null | BoardProps.Item<D>) => string;
   }
 
-  export type DragOperationType = "reorder" | "resize" | "insert";
-
-  export type OperationType = "reorder" | "resize" | "insert" | "remove";
+  export type DndOperationType = "reorder" | "resize" | "insert";
 
   export type Edge = "left" | "right" | "top" | "bottom";
 
@@ -141,20 +122,22 @@ export namespace BoardProps {
     height: number;
   }
 
-  export interface OperationStateReorder<D> {
+  export interface DndReorderState<D> {
     item: Item<D>;
     placement: ItemPlacement;
     direction: "horizontal" | "vertical";
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];
   }
-  export interface OperationStateInsert<D> {
+
+  export interface DndInsertState<D> {
     item: Item<D>;
     placement: ItemPlacement;
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];
   }
-  export interface OperationStateResize<D> {
+
+  export interface DndResizeState<D> {
     item: Item<D>;
     placement: ItemPlacement;
     direction: "horizontal" | "vertical";
@@ -163,7 +146,8 @@ export namespace BoardProps {
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];
   }
-  export interface OperationStateRemove<D> {
+
+  export interface ItemRemovedState<D> {
     item: Item<D>;
     disturbed: readonly Item<D>[];
   }
@@ -189,19 +173,19 @@ export interface RemoveTransition<D> {
 }
 
 export type TransitionAnnouncement =
-  | OperationStartedAnnouncement
-  | OperationPerformedAnnouncement
-  | OperationCommittedAnnouncement
-  | OperationDiscardedAnnouncement
+  | DndStartedAnnouncement
+  | DndActionAnnouncement
+  | DndCommittedAnnouncement
+  | DndDiscardedAnnouncement
   | ItemRemovedAnnouncement;
 
-export interface OperationStartedAnnouncement {
-  type: "operation-started";
+export interface DndStartedAnnouncement {
+  type: "dnd-started";
   item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
-export interface OperationPerformedAnnouncement {
-  type: "operation-performed";
+export interface DndActionAnnouncement {
+  type: "dnd-action";
   item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
   placement: Omit<GridLayoutItem, "id">;
@@ -209,13 +193,13 @@ export interface OperationPerformedAnnouncement {
   conflicts: Set<ItemId>;
   disturbed: Set<ItemId>;
 }
-export interface OperationCommittedAnnouncement {
-  type: "operation-committed";
+export interface DndCommittedAnnouncement {
+  type: "dnd-committed";
   item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
-export interface OperationDiscardedAnnouncement {
-  type: "operation-discarded";
+export interface DndDiscardedAnnouncement {
+  type: "dnd-discarded";
   item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }

@@ -5,8 +5,8 @@ import { MIN_ROW_SPAN } from "../../internal/constants";
 import { Direction, ItemId } from "../../internal/interfaces";
 import {
   BoardProps,
+  DndActionAnnouncement,
   ItemRemovedAnnouncement,
-  OperationPerformedAnnouncement,
   Transition,
   TransitionAnnouncement,
 } from "../interfaces";
@@ -17,7 +17,7 @@ import {
 export function createOperationAnnouncement<D>(
   transition: Transition<D>,
   direction: null | Direction
-): null | OperationPerformedAnnouncement {
+): null | DndActionAnnouncement {
   const { operation, layoutShift, itemsLayout } = transition;
   const targetItem = itemsLayout.items.find((it) => it.id === transition.draggableItem.id) ?? null;
 
@@ -41,7 +41,7 @@ export function createOperationAnnouncement<D>(
   disturbed.delete(targetId);
 
   return {
-    type: "operation-performed",
+    type: "dnd-action",
     item: transition.draggableItem,
     operation,
     placement: {
@@ -77,7 +77,7 @@ export function announcementToString<D>(
     return direction === "left" || direction === "right" ? "horizontal" : "vertical";
   };
 
-  function createOperationPerformedAnnouncement(announcement: OperationPerformedAnnouncement) {
+  function createDndActionAnnouncement(announcement: DndActionAnnouncement) {
     const placement = announcement.placement;
     const direction = formatDirection(announcement.direction);
     const conflicts = [...announcement.conflicts].map(toItem);
@@ -85,7 +85,7 @@ export function announcementToString<D>(
 
     switch (announcement.operation) {
       case "reorder":
-        return i18nStrings.liveAnnouncementOperationReorder({
+        return i18nStrings.liveAnnouncementDndReorder({
           item,
           placement,
           direction: direction!,
@@ -93,7 +93,7 @@ export function announcementToString<D>(
           disturbed,
         });
       case "resize":
-        return i18nStrings.liveAnnouncementOperationResize({
+        return i18nStrings.liveAnnouncementDndResize({
           item,
           placement,
           direction: direction!,
@@ -103,23 +103,23 @@ export function announcementToString<D>(
           disturbed,
         });
       case "insert":
-        return i18nStrings.liveAnnouncementOperationInsert({ item, placement, conflicts, disturbed });
+        return i18nStrings.liveAnnouncementDndInsert({ item, placement, conflicts, disturbed });
     }
   }
 
   function createItemRemovedAnnouncement(announcement: ItemRemovedAnnouncement) {
-    return i18nStrings.liveAnnouncementOperationRemove({ item, disturbed: [...announcement.disturbed].map(toItem) });
+    return i18nStrings.liveAnnouncementItemRemoved({ item, disturbed: [...announcement.disturbed].map(toItem) });
   }
 
   switch (announcement.type) {
-    case "operation-started":
-      return i18nStrings.liveAnnouncementOperationStarted(announcement.operation);
-    case "operation-performed":
-      return createOperationPerformedAnnouncement(announcement);
-    case "operation-committed":
-      return i18nStrings.liveAnnouncementOperationCommitted(announcement.operation);
-    case "operation-discarded":
-      return i18nStrings.liveAnnouncementOperationDiscarded(announcement.operation);
+    case "dnd-started":
+      return i18nStrings.liveAnnouncementDndStarted(announcement.operation);
+    case "dnd-action":
+      return createDndActionAnnouncement(announcement);
+    case "dnd-committed":
+      return i18nStrings.liveAnnouncementDndCommitted(announcement.operation);
+    case "dnd-discarded":
+      return i18nStrings.liveAnnouncementDndDiscarded(announcement.operation);
     case "item-removed":
       return createItemRemovedAnnouncement(announcement);
   }

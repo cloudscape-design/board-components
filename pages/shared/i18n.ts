@@ -32,10 +32,10 @@ function createAnnouncement(
 }
 
 export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
-  liveAnnouncementOperationStarted(operationType) {
+  liveAnnouncementDndStarted(operationType) {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },
-  liveAnnouncementOperationReorder(op) {
+  liveAnnouncementDndReorder(op) {
     const columns = `column ${op.placement.x + 1}`;
     const rows = `row ${op.placement.y + 1}`;
     return createAnnouncement(
@@ -44,7 +44,7 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
       op.disturbed
     );
   },
-  liveAnnouncementOperationResize(op) {
+  liveAnnouncementDndResize(op) {
     const columnsConstraint = op.isMinimalColumnsReached ? " (minimal)" : "";
     const rowsConstraint = op.isMinimalRowsReached ? " (minimal)" : "";
     const sizeAnnouncement =
@@ -53,19 +53,19 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
         : `rows ${op.placement.height}${rowsConstraint}`;
     return createAnnouncement(`Item resized to ${sizeAnnouncement}.`, op.conflicts, op.disturbed);
   },
-  liveAnnouncementOperationInsert(op) {
+  liveAnnouncementDndInsert(op) {
     const columns = `column ${op.placement.x + 1}`;
     const rows = `row ${op.placement.y + 1}`;
     return createAnnouncement(`Item inserted to ${columns}, ${rows}.`, op.conflicts, op.disturbed);
   },
-  liveAnnouncementOperationRemove(op) {
-    return createAnnouncement(`Removed item ${op.item.data.title}.`, [], op.disturbed);
-  },
-  liveAnnouncementOperationCommitted(operationType) {
+  liveAnnouncementDndCommitted(operationType) {
     return `${operationType} committed`;
   },
-  liveAnnouncementOperationDiscarded(operationType) {
+  liveAnnouncementDndDiscarded(operationType) {
     return `${operationType} discarded`;
+  },
+  liveAnnouncementItemRemoved(op) {
+    return createAnnouncement(`Removed item ${op.item.data.title}.`, [], op.disturbed);
   },
   navigationAriaLabel: "Board navigation",
   navigationAriaDescription: "Click on non-empty item to move focus over",
