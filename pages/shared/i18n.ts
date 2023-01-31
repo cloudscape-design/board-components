@@ -20,62 +20,46 @@ export const itemsPaletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = 
   navigationItemAriaLabel: (item) => item.data.title,
 };
 
+function createAnnouncement(
+  operationAnnouncement: string,
+  conflicts: readonly BoardProps.Item<ItemData>[],
+  disturbed: readonly BoardProps.Item<ItemData>[]
+) {
+  const conflictsAnnouncement =
+    conflicts.length > 0 ? `Conflicts with ${conflicts.map((c) => c.data.title).join(", ")}.` : "";
+  const disturbedAnnouncement = disturbed.length > 0 ? `Disturbed ${disturbed.length} items.` : "";
+  return [operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
+}
+
 export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementOperationStarted(operationType) {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },
-  liveAnnouncementOperation(operation) {
-    function createAnnouncement(
-      operationAnnouncement: string,
-      conflicts: readonly BoardProps.Item<ItemData>[],
-      disturbed: readonly BoardProps.Item<ItemData>[]
-    ) {
-      const conflictsAnnouncement =
-        conflicts.length > 0 ? `Conflicts with ${conflicts.map((c) => c.data.title).join(", ")}.` : "";
-      const disturbedAnnouncement = disturbed.length > 0 ? `Disturbed ${disturbed.length} items.` : "";
-      return [operationAnnouncement, conflictsAnnouncement, disturbedAnnouncement].filter(Boolean).join(" ");
-    }
-
-    function reorderAnnouncement(op: BoardProps.OperationStateReorder<ItemData>): string {
-      const columns = `column ${op.placement.x + 1}`;
-      const rows = `row ${op.placement.y + 1}`;
-      return createAnnouncement(
-        `Item moved to ${op.direction === "horizontal" ? columns : rows}.`,
-        op.conflicts,
-        op.disturbed
-      );
-    }
-
-    function insertAnnouncement(op: BoardProps.OperationStateInsert<ItemData>): string {
-      const columns = `column ${op.placement.x + 1}`;
-      const rows = `row ${op.placement.y + 1}`;
-      return createAnnouncement(`Item inserted to ${columns}, ${rows}.`, op.conflicts, op.disturbed);
-    }
-
-    function resizeAnnouncement(op: BoardProps.OperationStateResize<ItemData>): string {
-      const columnsConstraint = op.isMinimalColumnsReached ? " (minimal)" : "";
-      const rowsConstraint = op.isMinimalRowsReached ? " (minimal)" : "";
-      const sizeAnnouncement =
-        op.direction === "horizontal"
-          ? `columns ${op.placement.width}${columnsConstraint}`
-          : `rows ${op.placement.height}${rowsConstraint}`;
-      return createAnnouncement(`Item resized to ${sizeAnnouncement}.`, op.conflicts, op.disturbed);
-    }
-
-    function removeAnnouncement(op: BoardProps.OperationStateRemove<ItemData>): string {
-      return createAnnouncement(`Removed item ${op.item.data.title}.`, [], op.disturbed);
-    }
-
-    switch (operation.operationType) {
-      case "reorder":
-        return reorderAnnouncement(operation);
-      case "insert":
-        return insertAnnouncement(operation);
-      case "resize":
-        return resizeAnnouncement(operation);
-      case "remove":
-        return removeAnnouncement(operation);
-    }
+  liveAnnouncementOperationReorder(op) {
+    const columns = `column ${op.placement.x + 1}`;
+    const rows = `row ${op.placement.y + 1}`;
+    return createAnnouncement(
+      `Item moved to ${op.direction === "horizontal" ? columns : rows}.`,
+      op.conflicts,
+      op.disturbed
+    );
+  },
+  liveAnnouncementOperationResize(op) {
+    const columnsConstraint = op.isMinimalColumnsReached ? " (minimal)" : "";
+    const rowsConstraint = op.isMinimalRowsReached ? " (minimal)" : "";
+    const sizeAnnouncement =
+      op.direction === "horizontal"
+        ? `columns ${op.placement.width}${columnsConstraint}`
+        : `rows ${op.placement.height}${rowsConstraint}`;
+    return createAnnouncement(`Item resized to ${sizeAnnouncement}.`, op.conflicts, op.disturbed);
+  },
+  liveAnnouncementOperationInsert(op) {
+    const columns = `column ${op.placement.x + 1}`;
+    const rows = `row ${op.placement.y + 1}`;
+    return createAnnouncement(`Item inserted to ${columns}, ${rows}.`, op.conflicts, op.disturbed);
+  },
+  liveAnnouncementOperationRemove(op) {
+    return createAnnouncement(`Removed item ${op.item.data.title}.`, [], op.disturbed);
   },
   liveAnnouncementOperationCommitted(operationType) {
     return `${operationType} committed`;

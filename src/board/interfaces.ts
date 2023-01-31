@@ -73,11 +73,29 @@ export namespace BoardProps {
      */
     liveAnnouncementOperationStarted: (operationType: OperationType) => string;
     /**
-     * Specifies live announcement made when operation is performed.
+     * Specifies live announcement made when reorder operation is performed.
      *
      * Example: "Moved Demo widget to column 2, row 3. Conflicts with Second widget. Disturbed 2 items."
      */
-    liveAnnouncementOperation: (operation: OperationState<D>) => string;
+    liveAnnouncementOperationReorder: (operation: OperationStateReorder<D>) => string;
+    /**
+     * Specifies live announcement made when resize operation is performed.
+     *
+     * Example: "Resized Demo widget to 3 columns. Disturbed 2 items."
+     */
+    liveAnnouncementOperationResize: (operation: OperationStateResize<D>) => string;
+    /**
+     * Specifies live announcement made when insert operation is performed.
+     *
+     * Example: "Inserted Demo widget to column 1 row 1. Disturbed 2 items."
+     */
+    liveAnnouncementOperationInsert: (operation: OperationStateInsert<D>) => string;
+    /**
+     * Specifies live announcement made when remove operation is performed.
+     *
+     * Example: "Removed Demo widget. Disturbed 2 items."
+     */
+    liveAnnouncementOperationRemove: (operation: OperationStateRemove<D>) => string;
     /**
      * Specifies live announcement made when operation is committed.
      *
@@ -123,14 +141,7 @@ export namespace BoardProps {
     height: number;
   }
 
-  export type OperationState<D> =
-    | OperationStateReorder<D>
-    | OperationStateInsert<D>
-    | OperationStateResize<D>
-    | OperationStateRemove<D>;
-
   export interface OperationStateReorder<D> {
-    operationType: "reorder";
     item: Item<D>;
     placement: ItemPlacement;
     direction: "horizontal" | "vertical";
@@ -138,14 +149,12 @@ export namespace BoardProps {
     disturbed: readonly Item<D>[];
   }
   export interface OperationStateInsert<D> {
-    operationType: "insert";
     item: Item<D>;
     placement: ItemPlacement;
     conflicts: readonly Item<D>[];
     disturbed: readonly Item<D>[];
   }
   export interface OperationStateResize<D> {
-    operationType: "resize";
     item: Item<D>;
     placement: ItemPlacement;
     direction: "horizontal" | "vertical";
@@ -155,7 +164,6 @@ export namespace BoardProps {
     disturbed: readonly Item<D>[];
   }
   export interface OperationStateRemove<D> {
-    operationType: "remove";
     item: Item<D>;
     disturbed: readonly Item<D>[];
   }

@@ -13,8 +13,17 @@ const i18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementOperationStarted() {
     return "Operation started";
   },
-  liveAnnouncementOperation() {
-    return "Operation performed";
+  liveAnnouncementOperationReorder() {
+    return "Reorder performed";
+  },
+  liveAnnouncementOperationResize() {
+    return "Resize performed";
+  },
+  liveAnnouncementOperationInsert() {
+    return "Insert performed";
+  },
+  liveAnnouncementOperationRemove() {
+    return "Remove performed";
   },
   liveAnnouncementOperationCommitted() {
     return "Operation committed";

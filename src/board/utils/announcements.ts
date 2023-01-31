@@ -3,7 +3,13 @@
 
 import { MIN_ROW_SPAN } from "../../internal/constants";
 import { Direction, ItemId } from "../../internal/interfaces";
-import { BoardProps, OperationPerformedAnnouncement, Transition, TransitionAnnouncement } from "../interfaces";
+import {
+  BoardProps,
+  ItemRemovedAnnouncement,
+  OperationPerformedAnnouncement,
+  Transition,
+  TransitionAnnouncement,
+} from "../interfaces";
 
 /**
  * Creates an announcement object describing the last user move.
@@ -54,14 +60,14 @@ export function createOperationAnnouncement<D>(
  * Applies i18nStrings to the announcement object to produce a string for the live region.
  */
 export function announcementToString<D>(
-  transitionAnnouncement: TransitionAnnouncement,
+  announcement: TransitionAnnouncement,
   items: readonly BoardProps.Item<D>[],
   i18nStrings: BoardProps.I18nStrings<D>
 ): string {
-  if (!transitionAnnouncement) {
+  if (!announcement) {
     return "";
   }
-  const item = transitionAnnouncement.item as BoardProps.Item<D>;
+  const item = announcement.item as BoardProps.Item<D>;
 
   const toItem = (id: ItemId) => items.find((it) => it?.id === id)!;
   const formatDirection = (direction: null | Direction) => {
@@ -71,7 +77,7 @@ export function announcementToString<D>(
     return direction === "left" || direction === "right" ? "horizontal" : "vertical";
   };
 
-  function getOperationState(announcement: OperationPerformedAnnouncement): BoardProps.OperationState<D> {
+  function createOperationPerformedAnnouncement(announcement: OperationPerformedAnnouncement) {
     const placement = announcement.placement;
     const direction = formatDirection(announcement.direction);
     const conflicts = [...announcement.conflicts].map(toItem);
@@ -79,12 +85,15 @@ export function announcementToString<D>(
 
     switch (announcement.operation) {
       case "reorder":
-        return { operationType: "reorder", item, placement, direction: direction!, conflicts, disturbed };
-      case "insert":
-        return { operationType: "insert", item, placement, conflicts, disturbed };
+        return i18nStrings.liveAnnouncementOperationReorder({
+          item,
+          placement,
+          direction: direction!,
+          conflicts,
+          disturbed,
+        });
       case "resize":
-        return {
-          operationType: "resize",
+        return i18nStrings.liveAnnouncementOperationResize({
           item,
           placement,
           direction: direction!,
@@ -92,24 +101,26 @@ export function announcementToString<D>(
           isMinimalRowsReached: placement.height === (item.definition.minRowSpan ?? MIN_ROW_SPAN),
           conflicts,
           disturbed,
-        };
+        });
+      case "insert":
+        return i18nStrings.liveAnnouncementOperationInsert({ item, placement, conflicts, disturbed });
     }
   }
 
-  switch (transitionAnnouncement.type) {
+  function createItemRemovedAnnouncement(announcement: ItemRemovedAnnouncement) {
+    return i18nStrings.liveAnnouncementOperationRemove({ item, disturbed: [...announcement.disturbed].map(toItem) });
+  }
+
+  switch (announcement.type) {
     case "operation-started":
-      return i18nStrings.liveAnnouncementOperationStarted(transitionAnnouncement.operation);
+      return i18nStrings.liveAnnouncementOperationStarted(announcement.operation);
     case "operation-performed":
-      return i18nStrings.liveAnnouncementOperation(getOperationState(transitionAnnouncement));
+      return createOperationPerformedAnnouncement(announcement);
     case "operation-committed":
-      return i18nStrings.liveAnnouncementOperationCommitted(transitionAnnouncement.operation);
+      return i18nStrings.liveAnnouncementOperationCommitted(announcement.operation);
     case "operation-discarded":
-      return i18nStrings.liveAnnouncementOperationDiscarded(transitionAnnouncement.operation);
+      return i18nStrings.liveAnnouncementOperationDiscarded(announcement.operation);
     case "item-removed":
-      return i18nStrings.liveAnnouncementOperation({
-        operationType: "remove",
-        item,
-        disturbed: [...transitionAnnouncement.disturbed].map(toItem),
-      });
+      return createItemRemovedAnnouncement(announcement);
   }
 }
