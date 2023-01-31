@@ -1,9 +1,9 @@
 {
-  "name": "@cloudscape-design/dashboard-components",
+  "name": "@cloudscape-design/board-components",
   "version": "3.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cloudscape-design/dashboard-components.git"
+    "url": "https://github.com/cloudscape-design/board-components.git"
   },
   "homepage": "https://cloudscape.design",
   "scripts": {
