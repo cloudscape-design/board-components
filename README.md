@@ -1,7 +1,7 @@
 ## React components for Cloudscape Design System
 
-This package contains the source code of dashboard-oriented components in the [Cloudscape Design System](https://cloudscape.design/).
-For more information about dashboard components, see [the documentation](todo).
+This package contains the source code of board-oriented components in the [Cloudscape Design System](https://cloudscape.design/).
+For more information about board components, see [the documentation](todo).
 
 Cloudscape is an open source design system for building intuitive, engaging, and inclusive user experiences at scale. It consists of an extensive set of guidelines to create web applications, along with the design resources and front-end components to streamline implementation.
 
@@ -9,7 +9,7 @@ Cloudscape was built for and is used by Amazon Web Services (AWS) products and s
 
 ## Getting help
 
-You can [create bug reports or feature requests](https://github.com/cloudscape-design/dashboard-components/issues/new/choose), or [start a discussion](https://github.com/cloudscape-design/components/discussions) to ask a question. To minimize duplicates, we recommend that you search for existing bug reports, feature requests, or discussions before initiating a new thread.
+You can [create bug reports or feature requests](https://github.com/cloudscape-design/board-components/issues/new/choose), or [start a discussion](https://github.com/cloudscape-design/components/discussions) to ask a question. To minimize duplicates, we recommend that you search for existing bug reports, feature requests, or discussions before initiating a new thread.
 
 ## Contributing
 
