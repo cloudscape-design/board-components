@@ -113,8 +113,6 @@ export namespace BoardProps {
 
   export type DndOperationType = "reorder" | "resize" | "insert";
 
-  export type Edge = "left" | "right" | "top" | "bottom";
-
   export interface ItemPlacement {
     x: number;
     y: number;

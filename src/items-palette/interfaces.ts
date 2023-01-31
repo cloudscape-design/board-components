@@ -36,8 +36,8 @@ export interface ItemsPaletteProps<D = DataFallbackType> {
    * An object containing all the necessary localized strings required by the component.
    *
    * Live announcements:
-   * * `liveAnnouncementDndStarted` (string) - the live announcement string for the drag start.
-   * * `liveAnnouncementDndDiscarded` (string) - the live announcement string for the drag discard.
+   * * `liveAnnouncementDndStarted` (string) - the live announcement string for the DnD start.
+   * * `liveAnnouncementDndDiscarded` (string) - the live announcement string for the DnD discard.
    *
    * Navigation labels:
    * * `navigationAriaLabel` (string) - the ARIA label for the accessible board navigation element.
