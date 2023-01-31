@@ -26,7 +26,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
 
     // Announce only if the target item belongs to the palette.
     if (items.some((it) => it.id === id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementDragStarted);
+      setAnnouncement(i18nStrings.liveAnnouncementDndStarted);
     } else {
       setAnnouncement("");
     }
@@ -41,7 +41,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
 
     // Announce only if the target item belongs to the palette.
     if (dropState && items.some((it) => it.id === dropState.id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
+      setAnnouncement(i18nStrings.liveAnnouncementDndDiscarded);
     }
   });
 
@@ -50,7 +50,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
 
     // Announce only if the target item belongs to the palette.
     if (items.some((it) => it.id === dropState?.id)) {
-      setAnnouncement(i18nStrings.liveAnnouncementDragDiscarded);
+      setAnnouncement(i18nStrings.liveAnnouncementDndDiscarded);
     }
   });
 

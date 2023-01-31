@@ -43,7 +43,7 @@ export interface BoardProps<D = DataFallbackType> {
   /**
    * Specifies a function to render a board item content. The return value must include board item component.
    *
-   * The function takes an item and item's associated actions (BoardProps.ItemActions) that include:
+   * The function takes the item and its associated actions (BoardProps.ItemActions) that include:
    * * `removeItem(): void` - the callback to issue the item's removal. Once issued, the `onItemsChange` will fire to update the state.
    */
   renderItem: (item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => JSX.Element;
@@ -51,11 +51,11 @@ export interface BoardProps<D = DataFallbackType> {
   /**
    * An object containing all the necessary localized strings required by the component.
    *
-   * Live announcement generators:
+   * Live announcements:
    * * `liveAnnouncementDndStarted(BoardProps.DndOperationType): string` - the function to create a live announcement string for DnD ("reorder", "resize" or "insert") start.
-   * * `liveAnnouncementDndReorder(BoardProps.DndReorderState<D>): string` - the function to create a live announcement string when DnD reorder is performed.
-   * * `liveAnnouncementDndResize(BoardProps.DndResizeState<D>): string` - the function to create a live announcement string when DnD resize is performed.
-   * * `liveAnnouncementDndInsert(BoardProps.DndInsertState<D>): string` - the function to create a live announcement string when DnD insert is performed.
+   * * `liveAnnouncementDndItemReordered(BoardProps.DndReorderState<D>): string` - the function to create a live announcement string when DnD reorder is performed.
+   * * `liveAnnouncementDndItemResized(BoardProps.DndResizeState<D>): string` - the function to create a live announcement string when DnD resize is performed.
+   * * `liveAnnouncementDndItemInserted(BoardProps.DndInsertState<D>): string` - the function to create a live announcement string when DnD insert is performed.
    * * `liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string` - the function to create a live announcement string for DnD ("reorder", "resize" or "insert") commit.
    * * `liveAnnouncementDndCommitted(BoardProps.DndOperationType): string` - the function to create a live announcement string for DnD ("reorder", "resize" or "insert") discard.
    * * `liveAnnouncementOperationRemove(BoardProps.OperationStateRemove<D>): string` - the function to create a live announcement string for item removal.
@@ -100,9 +100,9 @@ export namespace BoardProps {
 
   export interface I18nStrings<D> {
     liveAnnouncementDndStarted: (operationType: DndOperationType) => string;
-    liveAnnouncementDndReorder: (operation: DndReorderState<D>) => string;
-    liveAnnouncementDndResize: (operation: DndResizeState<D>) => string;
-    liveAnnouncementDndInsert: (operation: DndInsertState<D>) => string;
+    liveAnnouncementDndItemReordered: (operation: DndReorderState<D>) => string;
+    liveAnnouncementDndItemResized: (operation: DndResizeState<D>) => string;
+    liveAnnouncementDndItemInserted: (operation: DndInsertState<D>) => string;
     liveAnnouncementDndCommitted: (operationType: DndOperationType) => string;
     liveAnnouncementDndDiscarded: (operationType: DndOperationType) => string;
     liveAnnouncementItemRemoved: (operation: ItemRemovedState<D>) => string;

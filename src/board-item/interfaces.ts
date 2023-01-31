@@ -31,6 +31,12 @@ export interface BoardItemProps {
 
   /**
    * An object containing all the necessary localized strings required by the component.
+   *
+   * ARIA labels:
+   * * `dragHandleAriaLabel` (string) - the ARIA label for the drag handle.
+   * * `dragHandleAriaDescription` (string, optional) - the ARIA description for the drag handle.
+   * * `resizeHandleAriaLabel` (string) - the ARIA label for the resize handle.
+   * * `resizeHandleAriaDescription` (string, optional) - the ARIA description for the resize handle.
    */
   i18nStrings: BoardItemProps.I18nStrings;
 }

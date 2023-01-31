@@ -13,8 +13,8 @@ export const boardItemI18nStrings: BoardItemProps.I18nStrings = {
 };
 
 export const itemsPaletteI18nStrings: ItemsPaletteProps.I18nStrings<ItemData> = {
-  liveAnnouncementDragStarted: "Dragging",
-  liveAnnouncementDragDiscarded: "Insertion discarded",
+  liveAnnouncementDndStarted: "Dragging",
+  liveAnnouncementDndDiscarded: "Insertion discarded",
   navigationAriaLabel: "Items palette navigation",
   navigationAriaDescription: "Click on an item to move focus over",
   navigationItemAriaLabel: (item) => item.data.title,
@@ -35,7 +35,7 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementDndStarted(operationType) {
     return operationType === "resize" ? "Resizing" : "Dragging";
   },
-  liveAnnouncementDndReorder(op) {
+  liveAnnouncementDndItemReordered(op) {
     const columns = `column ${op.placement.x + 1}`;
     const rows = `row ${op.placement.y + 1}`;
     return createAnnouncement(
@@ -44,7 +44,7 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
       op.disturbed
     );
   },
-  liveAnnouncementDndResize(op) {
+  liveAnnouncementDndItemResized(op) {
     const columnsConstraint = op.isMinimalColumnsReached ? " (minimal)" : "";
     const rowsConstraint = op.isMinimalRowsReached ? " (minimal)" : "";
     const sizeAnnouncement =
@@ -53,7 +53,7 @@ export const boardI18nStrings: BoardProps.I18nStrings<ItemData> = {
         : `rows ${op.placement.height}${rowsConstraint}`;
     return createAnnouncement(`Item resized to ${sizeAnnouncement}.`, op.conflicts, op.disturbed);
   },
-  liveAnnouncementDndInsert(op) {
+  liveAnnouncementDndItemInserted(op) {
     const columns = `column ${op.placement.x + 1}`;
     const rows = `row ${op.placement.y + 1}`;
     return createAnnouncement(`Item inserted to ${columns}, ${rows}.`, op.conflicts, op.disturbed);

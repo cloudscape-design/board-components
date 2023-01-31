@@ -85,7 +85,7 @@ export function announcementToString<D>(
 
     switch (announcement.operation) {
       case "reorder":
-        return i18nStrings.liveAnnouncementDndReorder({
+        return i18nStrings.liveAnnouncementDndItemReordered({
           item,
           placement,
           direction: direction!,
@@ -93,7 +93,7 @@ export function announcementToString<D>(
           disturbed,
         });
       case "resize":
-        return i18nStrings.liveAnnouncementDndResize({
+        return i18nStrings.liveAnnouncementDndItemResized({
           item,
           placement,
           direction: direction!,
@@ -103,7 +103,7 @@ export function announcementToString<D>(
           disturbed,
         });
       case "insert":
-        return i18nStrings.liveAnnouncementDndInsert({ item, placement, conflicts, disturbed });
+        return i18nStrings.liveAnnouncementDndItemInserted({ item, placement, conflicts, disturbed });
     }
   }
 
