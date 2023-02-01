@@ -21,10 +21,6 @@ export default function GridWithWidgetContainerPage() {
                 columnOffset: 0,
                 columnSpan: 2,
                 rowSpan: 1,
-                definition: {
-                  defaultColumnSpan: 0,
-                  defaultRowSpan: 0,
-                },
                 data: { title: "One", description: "", content: "Content Area" },
               },
               {
@@ -32,10 +28,6 @@ export default function GridWithWidgetContainerPage() {
                 columnOffset: 2,
                 columnSpan: 1,
                 rowSpan: 1,
-                definition: {
-                  defaultColumnSpan: 0,
-                  defaultRowSpan: 0,
-                },
                 data: {
                   title: "Two",
                   description: "",
@@ -47,10 +39,6 @@ export default function GridWithWidgetContainerPage() {
                 columnOffset: 3,
                 columnSpan: 1,
                 rowSpan: 1,
-                definition: {
-                  defaultColumnSpan: 1,
-                  defaultRowSpan: 1,
-                },
                 data: { title: "Three", description: "", content: "Content Area" },
               },
               {
@@ -58,10 +46,6 @@ export default function GridWithWidgetContainerPage() {
                 columnOffset: 0,
                 columnSpan: 1,
                 rowSpan: 1,
-                definition: {
-                  defaultColumnSpan: 1,
-                  defaultRowSpan: 1,
-                },
                 data: { title: "Four", description: "", content: "Content Area" },
               },
               {
@@ -69,10 +53,6 @@ export default function GridWithWidgetContainerPage() {
                 columnOffset: 2,
                 columnSpan: 2,
                 rowSpan: 2,
-                definition: {
-                  defaultColumnSpan: 1,
-                  defaultRowSpan: 1,
-                },
                 data: { title: "Five", description: "", content: "Content Area" },
               },
             ]}

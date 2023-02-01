@@ -8,11 +8,11 @@ export type DataFallbackType = Record<string, unknown>;
 
 export interface BoardItemDefinitionBase<D = DataFallbackType> {
   id: ItemId;
-  definition: {
+  definition?: {
     minRowSpan?: number;
     minColumnSpan?: number;
-    defaultRowSpan: number;
-    defaultColumnSpan: number;
+    defaultRowSpan?: number;
+    defaultColumnSpan?: number;
   };
   data: D;
 }

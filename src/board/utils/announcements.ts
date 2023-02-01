@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { MIN_ROW_SPAN } from "../../internal/constants";
+import { MIN_COL_SPAN, MIN_ROW_SPAN } from "../../internal/constants";
 import { Direction, ItemId } from "../../internal/interfaces";
 import {
   BoardProps,
@@ -97,8 +97,8 @@ export function announcementToString<D>(
           item,
           placement,
           direction: direction!,
-          isMinimalColumnsReached: placement.width === (item.definition.minColumnSpan ?? 1),
-          isMinimalRowsReached: placement.height === (item.definition.minRowSpan ?? MIN_ROW_SPAN),
+          isMinimalColumnsReached: placement.width === (item.definition?.minColumnSpan ?? MIN_COL_SPAN),
+          isMinimalRowsReached: placement.height === (item.definition?.minRowSpan ?? MIN_ROW_SPAN),
           conflicts,
           disturbed,
         });

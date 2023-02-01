@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
-import { BoardProps } from "../../lib/components";
-import { fromMatrix } from "../../src/internal/debug-tools";
-import { BoardItemDefinitionBase } from "../../src/internal/interfaces";
-import { exportItemsLayout } from "../../src/internal/utils/layout";
-import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
+import { BoardProps, ItemsPaletteProps } from "../../lib/components";
+import { fromMatrix } from "../../lib/components/internal/debug-tools";
+import { BoardItemDefinitionBase } from "../../lib/components/internal/interfaces";
+import { exportItemsLayout } from "../../lib/components/internal/utils/layout";
 import { ItemData } from "../shared/interfaces";
 import { Counter } from "./commons";
 import {
@@ -25,12 +24,10 @@ export type ItemWidgets = Record<
   { data: ItemData; definition?: ItemsPaletteProps.Item["definition"] } | undefined
 >;
 
-const defaultDefinition = { defaultRowSpan: 1, defaultColumnSpan: 1 };
 const createDefaultWidget = (id: string) => ({
   title: `Widget ${id}`,
   description: "Dummy description",
   content: <DefaultContainer>Dummy content</DefaultContainer>,
-  definition: defaultDefinition,
 });
 
 export const demoWidgets: ItemWidgets = {
@@ -205,7 +202,7 @@ export const demoLayoutItems: readonly BoardProps.Item<ItemData>[] = storedPosit
   return {
     ...pos,
     data: config?.data ?? createDefaultWidget(pos.id),
-    definition: config?.definition ?? defaultDefinition,
+    definition: config?.definition,
   };
 });
 
@@ -213,7 +210,7 @@ export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Obj
   .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
   .map(([key, widget]) => ({
     id: key,
-    definition: widget?.definition ?? defaultDefinition,
+    definition: widget?.definition,
     data: widget?.data ?? createDefaultWidget(key),
   }));
 
@@ -231,7 +228,7 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
   };
   acc[letter] = {
     id: letter,
-    definition: definitions[letter] ?? defaultDefinition,
+    definition: definitions[letter],
     data: {
       title: `Widget ${letter}`,
       description: "Empty widget",
