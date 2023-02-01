@@ -37,20 +37,15 @@ describe("WidgetContainer", () => {
   });
   test("renders slots", () => {
     render(
-      <BoardItem
-        header={<span data-testid="header" />}
-        footer={<span data-testid="footer" />}
-        settings={<span data-testid="settings"></span>}
-        i18nStrings={i18nStrings}
-      >
-        <span data-testid="content" />
+      <BoardItem header="Header" footer="Footer" settings="Settings" i18nStrings={i18nStrings}>
+        Content
       </BoardItem>
     );
     const itemWrapper = createWrapper().findBoardItem()!;
-    expect(itemWrapper.find('[data-testid="header"]')).toBeDefined();
-    expect(itemWrapper.find('[data-testid="content"]')).toBeDefined();
-    expect(itemWrapper.find('[data-testid="footer"]')).toBeDefined();
-    expect(itemWrapper.find('[data-testid="settings"]')).toBeDefined();
+    expect(itemWrapper.findHeader()!.getElement().textContent).toBe("Header");
+    expect(itemWrapper.findContent().getElement().textContent).toBe("Content");
+    expect(itemWrapper.findFooter()!.getElement().textContent).toBe("Footer");
+    expect(itemWrapper.findSettings()!.getElement().textContent).toBe("Settings");
   });
 
   test("renders handle aria labels", () => {

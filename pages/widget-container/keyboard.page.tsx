@@ -25,26 +25,12 @@ export default function KeyboardPage() {
         ]}
         renderItem={() => (
           <BoardItem
-            header={
-              <span tabIndex={0} data-testid="header">
-                Header
-              </span>
-            }
-            settings={
-              <span tabIndex={0} data-testid="settings">
-                Settings
-              </span>
-            }
-            footer={
-              <span tabIndex={0} data-testid="footer">
-                Footer
-              </span>
-            }
+            header={<span tabIndex={0}>Header</span>}
+            settings={<span tabIndex={0}>Settings</span>}
+            footer={<span tabIndex={0}>Footer</span>}
             i18nStrings={i18nStrings.boardItemI18nStrings}
           >
-            <span tabIndex={0} data-testid="content">
-              Content
-            </span>
+            <span tabIndex={0}>Content</span>
           </BoardItem>
         )}
         onItemsChange={() => {
