@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { MIN_ROW_SPAN } from "../constants";
+import { MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import { BoardItemDefinition, BoardItemDefinitionBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[], columns: number): GridLayout {
@@ -12,9 +12,9 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
     const startCol = Math.min(columns - 1, columnOffset);
     const allowedColSpan = Math.min(
       columns,
-      Math.max(definition.minColumnSpan ?? 1, Math.min(columns - startCol, columnSpan))
+      Math.max(definition?.minColumnSpan ?? MIN_COL_SPAN, Math.min(columns - startCol, columnSpan))
     );
-    const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition.minRowSpan ?? 1, rowSpan);
+    const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition?.minRowSpan ?? MIN_ROW_SPAN, rowSpan);
 
     let itemRow = 0;
     for (let col = startCol; col < startCol + allowedColSpan; col++) {
@@ -71,15 +71,15 @@ export function exportItemsLayout<D>(
 
 export function getMinItemSize(item: BoardItemDefinitionBase<unknown>) {
   return {
-    width: Math.max(1, item.definition.minColumnSpan ?? 1),
-    height: Math.max(MIN_ROW_SPAN, item.definition.minRowSpan ?? 1),
+    width: Math.max(MIN_COL_SPAN, item.definition?.minColumnSpan ?? MIN_COL_SPAN),
+    height: Math.max(MIN_ROW_SPAN, item.definition?.minRowSpan ?? MIN_ROW_SPAN),
   };
 }
 
 export function getDefaultItemSize(item: BoardItemDefinitionBase<unknown>) {
   return {
-    width: Math.max(getMinItemSize(item).width, item.definition.defaultColumnSpan),
-    height: Math.max(getMinItemSize(item).height, item.definition.defaultRowSpan),
+    width: Math.max(getMinItemSize(item).width, item.definition?.defaultColumnSpan ?? MIN_COL_SPAN),
+    height: Math.max(getMinItemSize(item).height, item.definition?.defaultRowSpan ?? MIN_ROW_SPAN),
   };
 }
 

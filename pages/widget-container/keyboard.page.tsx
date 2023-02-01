@@ -16,10 +16,6 @@ export default function KeyboardPage() {
             columnOffset: 0,
             columnSpan: 4,
             rowSpan: 1,
-            definition: {
-              defaultColumnSpan: 1,
-              defaultRowSpan: 1,
-            },
             data: {
               title: "",
               description: "",
