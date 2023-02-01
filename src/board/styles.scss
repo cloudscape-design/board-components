@@ -63,6 +63,7 @@ $visual-refresh-dark-hover: $blue-600;
   box-sizing: border-box;
   width: 100%;
   padding: cs.$space-scaled-m cs.$space-scaled-l cs.$space-scaled-l;
+  color: cs.$color-text-empty;
   display: flex;
   justify-content: center;
 }
