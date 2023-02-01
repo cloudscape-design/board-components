@@ -1,7 +1,32 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
+/* TODO: use style dictionary */
+$box-shadow-classic-light: 0px 4px 8px rgba(0, 28, 36, 0.45);
+$box-shadow-classic-dark: 0px 4px 8px rgba(0, 28, 36, 0.45);
+$box-shadow-vr-light: 0px 1px 1px 1px #e9ebed, 0px 6px 36px #0007161a;
+$box-shadow-vr-dark: 0px 1px 1px 1px #192534, 0px 6px 36px #000716;
+
 .root {
   display: contents;
+}
+
+.active {
+  /* TODO: use container API instead of styles override */
+  div[class*="awsui_root_14iqq"] {
+    box-shadow: $box-shadow-classic-light;
+
+    :global(.awsui-polaris-dark-mode) & {
+      box-shadow: $box-shadow-classic-dark;
+    }
+
+    :global(.awsui-visual-refresh) & {
+      box-shadow: $box-shadow-vr-light;
+    }
+
+    :global(.awsui-visual-refresh.awsui-polaris-dark-mode) & {
+      box-shadow: $box-shadow-vr-dark;
+    }
+  }
 }
 
 .header {
