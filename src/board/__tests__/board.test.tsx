@@ -10,17 +10,26 @@ interface ItemData {
 }
 
 const i18nStrings: BoardProps.I18nStrings<ItemData> = {
-  liveAnnouncementOperationStarted() {
+  liveAnnouncementDndStarted() {
     return "Operation started";
   },
-  liveAnnouncementOperation() {
-    return "Operation performed";
+  liveAnnouncementDndItemReordered() {
+    return "Reorder performed";
   },
-  liveAnnouncementOperationCommitted() {
+  liveAnnouncementDndItemResized() {
+    return "Resize performed";
+  },
+  liveAnnouncementDndItemInserted() {
+    return "Insert performed";
+  },
+  liveAnnouncementDndCommitted() {
     return "Operation committed";
   },
-  liveAnnouncementOperationDiscarded() {
+  liveAnnouncementDndDiscarded() {
     return "Operation discarded";
+  },
+  liveAnnouncementItemRemoved() {
+    return "Remove performed";
   },
   navigationAriaLabel: "Board navigation",
   navigationAriaDescription: "Click on non-empty item to move focus over",

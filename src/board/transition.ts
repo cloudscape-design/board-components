@@ -128,7 +128,7 @@ function initTransition<D>({
   return {
     transition: { ...transition, path },
     removeTransition: null,
-    announcement: itemBelongsToBoard ? { type: "operation-started", item: draggableItem, operation } : null,
+    announcement: itemBelongsToBoard ? { type: "dnd-started", item: draggableItem, operation } : null,
   };
 }
 
@@ -162,12 +162,12 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
     ? {
         transition: null,
         removeTransition: null,
-        announcement: itemBelongsToBoard ? { type: "operation-committed", item, operation } : null,
+        announcement: itemBelongsToBoard ? { type: "dnd-committed", item, operation } : null,
       }
     : {
         transition: null,
         removeTransition: null,
-        announcement: itemBelongsToBoard ? { type: "operation-discarded", item, operation } : null,
+        announcement: itemBelongsToBoard ? { type: "dnd-discarded", item, operation } : null,
       };
 }
 
@@ -188,7 +188,7 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
   return {
     transition: null,
     removeTransition: null,
-    announcement: itemBelongsToBoard ? { type: "operation-discarded", item, operation } : null,
+    announcement: itemBelongsToBoard ? { type: "dnd-discarded", item, operation } : null,
   };
 }
 

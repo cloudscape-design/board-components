@@ -13,16 +13,36 @@ import { BoardItemDefinitionBase, DataFallbackType } from "../internal/interface
 export interface ItemsPaletteProps<D = DataFallbackType> {
   /**
    * Specifies the items displayed in the palette. The content of each item is controlled by the `renderItem` property.
+   *
+   * The ItemsPaletteProps.Item includes:
+   * * `id` (string) - the unique item identifier. The IDs of any two items in a page must be different.
+   * * `definition.minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than 2. Defaults to 2.
+   * * `definition.minColumnSpan` (number, optional) - the minimal number of columns the item is allowed to take (in 4-column layout). It can't be less than 1. Defaults to 1.
+   * * `definition.defaultRowSpan` (number) - the number or rows the item will take when inserted to the board. It can't be less than `definition.minRowSpan`.
+   * * `definition.defaultColumnSpan` (number) - the number or columns the item will take (in 4-column layout) when inserted to the board. It can't be less than `definition.minColumnSpan`.
+   * * `data` (D) - the optional item's data which can include item's specific configuration, title etc.
    */
   items: ReadonlyArray<ItemsPaletteProps.Item<D>>;
 
   /**
    * Specifies a function to render a palette item content. The return value must include board item component.
+   *
+   * The function takes the item and its associated context (ItemsPaletteProps.ItemContext) that include:
+   * * `showPreview` (boolean) - a flag that indicates if the item's content needs to be rendered in the preview mode.
    */
   renderItem: (item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => JSX.Element;
 
   /**
    * An object containing all the necessary localized strings required by the component.
+   *
+   * Live announcements:
+   * * `liveAnnouncementDndStarted` (string) - the live announcement string for the DnD start.
+   * * `liveAnnouncementDndDiscarded` (string) - the live announcement string for the DnD discard.
+   *
+   * Navigation labels:
+   * * `navigationAriaLabel` (string) - the ARIA label for the accessible board navigation element.
+   * * `navigationAriaDescription` (string, optional) - the ARIA description for the accessible board navigation element.
+   * * `navigationItemAriaLabel(null | BoardProps.Item<D>): string` - the function to create the ARIA label for a navigation board item.
    */
   i18nStrings: ItemsPaletteProps.I18nStrings<D>;
 }
@@ -35,35 +55,10 @@ export namespace ItemsPaletteProps {
   }
 
   export interface I18nStrings<D> {
-    /**
-     * Specifies live announcement made when drag starts.
-     *
-     * Example: "Dragging".
-     */
-    liveAnnouncementDragStarted: string;
-    /**
-     * Specifies live announcement made when palette item is dropped back to palette.
-     *
-     * Example: "Insertion discarded".
-     */
-    liveAnnouncementDragDiscarded: string;
-    /**
-     * Specifies ARIA-label for screen-reader items palette navigation.
-     *
-     * Example: "Board navigation".
-     */
+    liveAnnouncementDndStarted: string;
+    liveAnnouncementDndDiscarded: string;
     navigationAriaLabel: string;
-    /**
-     * Specifies ARIA-description for screen-reader items palette navigation.
-     *
-     * Example: "Click on an item to move focus over."
-     */
     navigationAriaDescription?: string;
-    /**
-     * Specifies ARIA-label for navigated palette item.
-     *
-     * Example: "Widget 1".
-     */
     navigationItemAriaLabel: (item: ItemsPaletteProps.Item<D>) => string;
   }
 }

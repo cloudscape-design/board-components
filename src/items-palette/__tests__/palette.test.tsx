@@ -26,8 +26,8 @@ function render(jsx: ReactElement) {
 
 const defaultProps: ItemsPaletteProps = {
   i18nStrings: {
-    liveAnnouncementDragStarted: "Dragging",
-    liveAnnouncementDragDiscarded: "Insertion discarded",
+    liveAnnouncementDndStarted: "Dragging",
+    liveAnnouncementDndDiscarded: "Insertion discarded",
     navigationAriaLabel: "Items palette navigation",
     navigationItemAriaLabel: (item) => item.id,
   },
