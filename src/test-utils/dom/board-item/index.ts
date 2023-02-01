@@ -28,10 +28,10 @@ export default class BoardItemWrapper extends ComponentWrapper {
   }
 
   findContent(): ComponentWrapper {
-    return componentsWrapper().findContainer()!.findContent();
+    return componentsWrapper(this.getElement()).findContainer()!.findContent();
   }
 
   findFooter(): null | ComponentWrapper {
-    return componentsWrapper().findContainer()!.findFooter();
+    return componentsWrapper(this.getElement()).findContainer()!.findFooter();
   }
 }
