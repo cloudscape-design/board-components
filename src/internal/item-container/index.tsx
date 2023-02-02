@@ -37,6 +37,7 @@ export interface ItemContainerRef {
 }
 
 export interface ItemContext {
+  isActive: boolean;
   dragHandle: {
     ref: React.RefObject<HTMLButtonElement>;
     onPointerDown(event: ReactPointerEvent): void;
@@ -317,6 +318,7 @@ function ItemContainerComponent(
     >
       <Context.Provider
         value={{
+          isActive: (!!transition && !transition.isBorrowed) || !!acquired,
           dragHandle: {
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,

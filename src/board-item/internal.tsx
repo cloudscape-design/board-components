@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Container from "@cloudscape-design/components/container";
+import clsx from "clsx";
 import { useId } from "react";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-container";
@@ -18,7 +19,7 @@ export function InternalBoardItem({
   footer,
   i18nStrings,
 }: BoardItemProps) {
-  const { dragHandle, resizeHandle } = useItemContext();
+  const { dragHandle, resizeHandle, isActive } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();
   const dragHandleAriaDescribedBy = useId();
@@ -49,6 +50,7 @@ export function InternalBoardItem({
         }
         footer={footer}
         disableContentPaddings={disableContentPaddings}
+        className={clsx(styles["container-override"], isActive && styles.active)}
       >
         {children}
       </Container>

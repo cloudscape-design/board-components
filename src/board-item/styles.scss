@@ -4,6 +4,11 @@
   display: contents;
 }
 
+/* TODO: use container API instead of styles override */
+.container-override.active {
+  box-shadow: cs.$shadow-container-active;
+}
+
 .header {
   display: flex;
   justify-items: center;
