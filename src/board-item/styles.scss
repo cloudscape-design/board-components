@@ -6,7 +6,7 @@
 
 .active {
   /* TODO: use container API instead of styles override */
-  div[class*="awsui_root_14iqq"] {
+  > div:first-child {
     box-shadow: cs.$shadow-container-active;
   }
 }
