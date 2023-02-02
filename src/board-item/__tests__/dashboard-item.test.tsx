@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Container } from "@cloudscape-design/components";
 import { cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement } from "react";
 import { afterEach, describe, expect, test } from "vitest";
@@ -37,20 +38,21 @@ describe("WidgetContainer", () => {
   });
   test("renders slots", () => {
     render(
-      <BoardItem
-        header={<span data-testid="header" />}
-        footer={<span data-testid="footer" />}
-        settings={<span data-testid="settings"></span>}
-        i18nStrings={i18nStrings}
-      >
-        <span data-testid="content" />
-      </BoardItem>
+      <div>
+        {/* Render an extra container to ensure board item test-utils are properly scoped. */}
+        <Container header="Container header" footer="Container footer">
+          Container content
+        </Container>
+        <BoardItem header="Header" footer="Footer" settings="Settings" i18nStrings={i18nStrings}>
+          Content
+        </BoardItem>
+      </div>
     );
     const itemWrapper = createWrapper().findBoardItem()!;
-    expect(itemWrapper.find('[data-testid="header"]')).toBeDefined();
-    expect(itemWrapper.find('[data-testid="content"]')).toBeDefined();
-    expect(itemWrapper.find('[data-testid="footer"]')).toBeDefined();
-    expect(itemWrapper.find('[data-testid="settings"]')).toBeDefined();
+    expect(itemWrapper.findHeader()!.getElement().textContent).toBe("Header");
+    expect(itemWrapper.findContent().getElement().textContent).toBe("Content");
+    expect(itemWrapper.findFooter()!.getElement().textContent).toBe("Footer");
+    expect(itemWrapper.findSettings()!.getElement().textContent).toBe("Settings");
   });
 
   test("renders handle aria labels", () => {

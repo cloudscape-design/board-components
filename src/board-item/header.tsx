@@ -14,7 +14,7 @@ export default function WidgetContainerHeader({ handle, children, settings }: Wi
   return (
     <div className={styles.header}>
       <div className={clsx(styles.fixed, styles.handle)}>{handle}</div>
-      <div className={clsx(styles.flexible, styles.children)}>{children}</div>
+      <div className={clsx(styles.flexible, styles["header-content"])}>{children}</div>
       {settings ? <div className={clsx(styles.fixed, styles.settings)}>{settings}</div> : null}
     </div>
   );
