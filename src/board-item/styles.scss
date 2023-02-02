@@ -4,11 +4,9 @@
   display: contents;
 }
 
-.active {
-  /* TODO: use container API instead of styles override */
-  > div:first-child {
-    box-shadow: cs.$shadow-container-active;
-  }
+/* TODO: use container API instead of styles override */
+.container-override.active {
+  box-shadow: cs.$shadow-container-active;
 }
 
 .header {

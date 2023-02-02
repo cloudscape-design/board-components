@@ -28,7 +28,7 @@ export function InternalBoardItem({
   const resizeHandleAriaDescribedBy = useId();
 
   return (
-    <div className={clsx(styles.root, isActive && styles.active)}>
+    <div className={styles.root}>
       <Container
         fitHeight={true}
         disableHeaderPaddings={true}
@@ -50,6 +50,7 @@ export function InternalBoardItem({
         }
         footer={footer}
         disableContentPaddings={disableContentPaddings}
+        className={clsx(styles["container-override"], isActive && styles.active)}
       >
         {children}
       </Container>
