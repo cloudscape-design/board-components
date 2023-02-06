@@ -16,19 +16,19 @@ export interface ItemsPaletteProps<D = DataFallbackType> {
    *
    * The ItemsPaletteProps.Item includes:
    * * `id` (string) - the unique item identifier. The IDs of any two items in a page must be different.
-   * * `definition.minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than 2. Defaults to 2.
-   * * `definition.minColumnSpan` (number, optional) - the minimal number of columns the item is allowed to take (in 4-column layout). It can't be less than 1. Defaults to 1.
+   * * `definition.minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
+   * * `definition.minColumnSpan` (number, optional) - the minimal number of columns the item is allowed to take (in a 4 column layout). It can't be less than one. Defaults to one.
    * * `definition.defaultRowSpan` (number) - the number or rows the item will take when inserted to the board. It can't be less than `definition.minRowSpan`.
-   * * `definition.defaultColumnSpan` (number) - the number or columns the item will take (in 4-column layout) when inserted to the board. It can't be less than `definition.minColumnSpan`.
-   * * `data` (D) - the optional item's data which can include item's specific configuration, title etc.
+   * * `definition.defaultColumnSpan` (number) - the number or columns the item will take (in a 4 column layout) when inserted to the board. It can't be less than `definition.minColumnSpan`.
+   * * `data` (D) - optional item data which can include the specific configurations of an item, such as its title.
    */
   items: ReadonlyArray<ItemsPaletteProps.Item<D>>;
 
   /**
-   * Specifies a function to render a palette item content. The return value must include board item component.
+   * Specifies a function to render content for a palette item. The return value must include board item component.
    *
    * The function takes the item and its associated context (ItemsPaletteProps.ItemContext) that include:
-   * * `showPreview` (boolean) - a flag that indicates if the item's content needs to be rendered in the preview mode.
+   * * `showPreview` (boolean) - a flag that indicates if the item's content needs to be rendered in preview mode.
    */
   renderItem: (item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => JSX.Element;
 
@@ -36,8 +36,8 @@ export interface ItemsPaletteProps<D = DataFallbackType> {
    * An object containing all the necessary localized strings required by the component.
    *
    * Live announcements:
-   * * `liveAnnouncementDndStarted` (string) - the live announcement string for the DnD start.
-   * * `liveAnnouncementDndDiscarded` (string) - the live announcement string for the DnD discard.
+   * * `liveAnnouncementDndStarted` (string) - live announcement string to indicate start of DnD.
+   * * `liveAnnouncementDndDiscarded` (string) - live announcement string to indicate discard of DnD.
    *
    * Navigation labels:
    * * `navigationAriaLabel` (string) - the ARIA label for the accessible board navigation element.
