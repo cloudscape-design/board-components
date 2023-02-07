@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useRef, useState } from "react";
+import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
@@ -11,7 +12,12 @@ import { getDefaultItemSize } from "../internal/utils/layout";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
-export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: ItemsPaletteProps<D>) {
+export function InternalItemsPalette<D>({
+  items,
+  renderItem,
+  i18nStrings,
+  __internalRootRef,
+}: ItemsPaletteProps<D> & InternalBaseComponentProps) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
@@ -68,7 +74,7 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
   };
 
   return (
-    <>
+    <div ref={__internalRootRef}>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}
@@ -105,6 +111,6 @@ export function InternalItemsPalette<D>({ items, renderItem, i18nStrings }: Item
       </div>
 
       <LiveRegion>{announcement}</LiveRegion>
-    </>
+    </div>
   );
 }

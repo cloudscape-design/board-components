@@ -36,7 +36,7 @@ export const mockDraggable = {
   submitTransition: vi.fn(),
   discardTransition: vi.fn(),
   getDroppables: vi.fn(),
-};
+} as any;
 
 export function useDraggable() {
   return mockDraggable;

@@ -3,6 +3,7 @@
 import Container from "@cloudscape-design/components/container";
 import clsx from "clsx";
 import { useId } from "react";
+import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import DragHandle from "../internal/drag-handle";
 import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";
@@ -18,7 +19,8 @@ export function InternalBoardItem({
   disableContentPaddings,
   footer,
   i18nStrings,
-}: BoardItemProps) {
+  __internalRootRef,
+}: BoardItemProps & InternalBaseComponentProps) {
   const { dragHandle, resizeHandle, isActive } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();
@@ -28,7 +30,7 @@ export function InternalBoardItem({
   const resizeHandleAriaDescribedBy = useId();
 
   return (
-    <div className={styles.root}>
+    <div ref={__internalRootRef} className={styles.root}>
       <Container
         fitHeight={true}
         disableHeaderPaddings={true}

@@ -3,6 +3,7 @@
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
+import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
@@ -26,7 +27,14 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { getDefaultItemHeight, getDefaultItemWidth } from "./utils/layout";
 
-export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
+export function InternalBoard<D>({
+  items,
+  renderItem,
+  onItemsChange,
+  empty,
+  i18nStrings,
+  __internalRootRef,
+}: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -214,7 +222,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
 
   return (
-    <>
+    <div ref={__internalRootRef}>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}
@@ -280,6 +288,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
       </div>
 
       <LiveRegion>{announcement}</LiveRegion>
-    </>
+    </div>
   );
 }
