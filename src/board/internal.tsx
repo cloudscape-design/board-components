@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import { Coordinates } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
@@ -10,11 +11,9 @@ import { BoardItemDefinition, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { queryFixedRects } from "../internal/utils/dom";
 import { createCustomEvent } from "../internal/utils/events";
 import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { getIntersectionArea } from "../internal/utils/rects";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 
@@ -90,46 +89,36 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  // Transition is ignored when draggable intersects with at least one blocked rect.
-  const blockedRectsRef = useRef<null | readonly DOMRect[]>(null);
-
-  function isBlocked(element: HTMLElement) {
-    const draggableRect = element.getBoundingClientRect();
-    const draggableRectArea = (draggableRect.right - draggableRect.left) * (draggableRect.bottom - draggableRect.top);
-    for (const blockedRect of blockedRectsRef.current ?? []) {
-      const intersectionArea = getIntersectionArea(draggableRect, blockedRect);
-      if (intersectionArea > draggableRectArea / 2) {
-        return true;
-      }
-    }
-    return false;
+  function isBlocked(coordinates: Coordinates) {
+    const elementUnderCursor = document.elementFromPoint(coordinates.x, coordinates.y);
+    const boardElement = containerAccessRef.current!;
+    return boardElement !== elementUnderCursor && !boardElement.contains(elementUnderCursor);
   }
 
-  useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
-    if (interactionType === "pointer") {
-      blockedRectsRef.current = queryFixedRects(draggableElement);
+  useDragSubscription(
+    "start",
+    ({ operation, interactionType, draggableItem, draggableElement, collisionIds, coordinates }) => {
+      dispatch({
+        type: "init",
+        operation,
+        interactionType,
+        itemsLayout,
+        // TODO: resolve any
+        // The code only works assuming the board can take any draggable.
+        // If draggables can be of different types a check of some sort is required here.
+        draggableItem: draggableItem as any,
+        draggableElement,
+        collisionIds: !isBlocked(coordinates) ? collisionIds : [],
+      });
+
+      autoScrollHandlers.addPointerEventHandlers();
     }
+  );
 
-    dispatch({
-      type: "init",
-      operation,
-      interactionType,
-      itemsLayout,
-      // TODO: resolve any
-      // The code only works assuming the board can take any draggable.
-      // If draggables can be of different types a check of some sort is required here.
-      draggableItem: draggableItem as any,
-      draggableElement,
-      collisionIds: !isBlocked(draggableElement) ? collisionIds : [],
-    });
-
-    autoScrollHandlers.addPointerEventHandlers();
-  });
-
-  useDragSubscription("update", ({ collisionIds, positionOffset, draggableElement }) => {
+  useDragSubscription("update", ({ collisionIds, positionOffset, coordinates }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: !isBlocked(draggableElement) ? collisionIds : [],
+      collisionIds: !isBlocked(coordinates) ? collisionIds : [],
       positionOffset,
     });
   });
@@ -138,8 +127,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     dispatch({ type: "submit" });
 
     autoScrollHandlers.removePointerEventHandlers();
-
-    blockedRectsRef.current = null;
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -165,8 +152,6 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     dispatch({ type: "discard" });
 
     autoScrollHandlers.removePointerEventHandlers();
-
-    blockedRectsRef.current = null;
   });
 
   useDragSubscription("acquire", ({ droppableId, draggableItem }) => {
