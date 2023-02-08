@@ -297,6 +297,7 @@ function ItemContainerComponent(
     itemTransitionStyle.top = transition.positionTransform?.y;
     itemTransitionStyle.width = transition.sizeTransform?.width;
     itemTransitionStyle.height = transition.sizeTransform?.height;
+    itemTransitionStyle.pointerEvents = "none";
   }
   // Make the borrowed item dimmed.
   else if (transition && transition.isBorrowed) {
