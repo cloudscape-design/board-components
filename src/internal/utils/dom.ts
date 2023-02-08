@@ -20,7 +20,8 @@ export function queryFixedRects(target: HTMLElement): readonly DOMRect[] {
     const computedStyle = getComputedStyle(element);
     const isDisplayed = computedStyle.display !== "none";
     const isFixedOrSticky = computedStyle.position === "fixed" || computedStyle.position === "sticky";
-    if (isDisplayed && isFixedOrSticky) {
+    const isPointerEventsAllowed = computedStyle.pointerEvents !== "none";
+    if (isDisplayed && isFixedOrSticky && isPointerEventsAllowed) {
       rects.push(element.getBoundingClientRect());
     }
   }
