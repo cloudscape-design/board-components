@@ -1,5 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
+// test
+
 import process from "node:process";
 import { defineConfig } from "vite";
 import functional from "./vite.e2e-functional.config.js";
