@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { Coordinates } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
@@ -89,36 +88,34 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function isBlocked(coordinates: Coordinates) {
-    const elementUnderCursor = document.elementFromPoint(coordinates.x, coordinates.y);
+  function isBlocked(draggableElement: HTMLElement) {
+    const rect = draggableElement.getBoundingClientRect();
+    const coveredElement = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
     const boardElement = containerAccessRef.current!;
-    return boardElement !== elementUnderCursor && !boardElement.contains(elementUnderCursor);
+    return boardElement !== coveredElement && !boardElement.contains(coveredElement);
   }
 
-  useDragSubscription(
-    "start",
-    ({ operation, interactionType, draggableItem, draggableElement, collisionIds, coordinates }) => {
-      dispatch({
-        type: "init",
-        operation,
-        interactionType,
-        itemsLayout,
-        // TODO: resolve any
-        // The code only works assuming the board can take any draggable.
-        // If draggables can be of different types a check of some sort is required here.
-        draggableItem: draggableItem as any,
-        draggableElement,
-        collisionIds: interactionType === "keyboard" || !isBlocked(coordinates) ? collisionIds : [],
-      });
+  useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
+    dispatch({
+      type: "init",
+      operation,
+      interactionType,
+      itemsLayout,
+      // TODO: resolve any
+      // The code only works assuming the board can take any draggable.
+      // If draggables can be of different types a check of some sort is required here.
+      draggableItem: draggableItem as any,
+      draggableElement,
+      collisionIds: interactionType === "keyboard" || !isBlocked(draggableElement) ? collisionIds : [],
+    });
 
-      autoScrollHandlers.addPointerEventHandlers();
-    }
-  );
+    autoScrollHandlers.addPointerEventHandlers();
+  });
 
-  useDragSubscription("update", ({ collisionIds, positionOffset, coordinates }) => {
+  useDragSubscription("update", ({ collisionIds, positionOffset, draggableElement }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: !isBlocked(coordinates) ? collisionIds : [],
+      collisionIds: !isBlocked(draggableElement) ? collisionIds : [],
       positionOffset,
     });
   });
