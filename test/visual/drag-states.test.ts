@@ -191,3 +191,19 @@ test(
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
+
+test(
+  "collisions disabled when item moves outside the board",
+  setupTest("/index.html#/with-app-layout/integ", async (page) => {
+    await page.setWindowSize({ width: 2000, height: 800 });
+
+    // Moving item to the left but its center is still above the board.
+    await page.mouseDown(boardWrapper.findItemById("D").findDragHandle().toSelector());
+    await page.mouseMove(-150, 0);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+
+    // Moving item further to the left so that its center is outside the board.
+    await page.mouseMove(-50, 0);
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
