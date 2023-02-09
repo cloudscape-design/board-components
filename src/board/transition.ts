@@ -5,6 +5,7 @@ import { InteractionType, Operation } from "../internal/dnd-controller/controlle
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
+import { getMinItemSize } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
@@ -250,6 +251,19 @@ function updateTransitionWithKeyboardEvent<D>(
     const lastPosition = transition.path[transition.path.length - 1];
     const nextPosition = new Position({ x: lastPosition.x + xDelta, y: lastPosition.y + yDelta });
     const nextPath = [...transition.path, nextPosition];
+
+    // Check resizing below min size.
+    const layout = transition.layoutShift?.next ?? transition.itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const minSize = getMinItemSize(transition.draggableItem);
+    if (
+      transition.operation === "resize" &&
+      layoutItem &&
+      (layoutItem.width + xDelta < minSize.width || layoutItem.height + yDelta < minSize.height)
+    ) {
+      return state;
+    }
+
     try {
       const layoutShift = getLayoutShift(transition, nextPath);
       const nextTransition = { ...transition, layoutShift, path: nextPath };
@@ -258,7 +272,7 @@ function updateTransitionWithKeyboardEvent<D>(
         removeTransition: null,
         announcement: createOperationAnnouncement(nextTransition, direction),
       };
-    } catch {
+    } catch (e) {
       // Can't create next layout because the next path is out of bounds.
       return state;
     }

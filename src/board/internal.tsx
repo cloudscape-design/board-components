@@ -108,7 +108,7 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
         // If draggables can be of different types a check of some sort is required here.
         draggableItem: draggableItem as any,
         draggableElement,
-        collisionIds: !isBlocked(coordinates) ? collisionIds : [],
+        collisionIds: interactionType === "keyboard" || !isBlocked(coordinates) ? collisionIds : [],
       });
 
       autoScrollHandlers.addPointerEventHandlers();

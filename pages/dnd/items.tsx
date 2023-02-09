@@ -32,11 +32,11 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    definition: { defaultColumnSpan: 2, defaultRowSpan: 1 },
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 4, minRowSpan: 4 },
     data: {
       title: "Demo widget",
       description: "Most minimal widget",
-      content: <DefaultContainer>Hello world!</DefaultContainer>,
+      content: <DefaultContainer>My minimal row span is 4.</DefaultContainer>,
     },
   },
   counter: {

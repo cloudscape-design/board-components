@@ -94,14 +94,20 @@ function ItemContainerComponent(
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
+  const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
 
-  const onPointerMove = useThrottledEventHandler(
-    (event: PointerEvent) => draggableApi.updateTransition(Coordinates.fromEvent(event)),
-    10
-  );
+  const onPointerMove = useThrottledEventHandler((event: PointerEvent) => {
+    const coordinates = Coordinates.fromEvent(event);
+    draggableApi.updateTransition(
+      new Coordinates({
+        x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
+        y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
+      })
+    );
+  }, 10);
   const onPointerUp = useStableEventHandler(() => {
     onPointerMove.cancel();
     draggableApi.submitTransition();
@@ -266,6 +272,7 @@ function ItemContainerComponent(
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.left, y: event.clientY - rect.top });
     originalSizeRef.current = { width: rect.width, height: rect.height };
+    pointerBoundariesRef.current = null;
 
     draggableApi.start(!gridContext ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
   }
@@ -279,6 +286,15 @@ function ItemContainerComponent(
     const rect = itemRef.current!.getBoundingClientRect();
     pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.right, y: event.clientY - rect.bottom });
     originalSizeRef.current = { width: rect.width, height: rect.height };
+
+    // Calculate boundaries below which the cursor cannot move.
+    const itemMinSize = getMinItemSize(item);
+    const minWidth = gridContext?.getWidth(itemMinSize.width) ?? 0;
+    const minHeight = gridContext?.getHeight(itemMinSize.height) ?? 0;
+    pointerBoundariesRef.current = new Coordinates({
+      x: event.clientX - rect.width + minWidth,
+      y: event.clientY - rect.height + minHeight,
+    });
 
     draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
   }
