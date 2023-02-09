@@ -8,6 +8,7 @@ import { DndPageObject } from "./dnd-page-object.js";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
+const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
@@ -174,6 +175,84 @@ test(
 
       await page.mouseMove(0, 900);
       await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(14 * 4);
+    }
+  )
+);
+
+test(
+  "can't resize items below min size with pointer",
+  setupTest(
+    // X item has min columns = 2 and min rows = 4.
+    makeQueryUrl(
+      [
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.mouseDown(boardWrapper.findItemById("X").findResizeHandle().toSelector());
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        [" ", " ", " ", " "],
+      ]);
+
+      await page.mouseMove(-500, -500);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        [" ", " ", " ", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "can't resize items below min size with keyboard",
+  setupTest(
+    // X item has min columns = 2 and min rows = 4.
+    makeQueryUrl(
+      [
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+      ],
+      []
+    ),
+    async (page) => {
+      await page.focus(boardItemResizeHandle("X"));
+      await page.keys(["Enter"]);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        ["X", "X", "X", " "],
+        [" ", " ", " ", " "],
+      ]);
+
+      await page.keys(["ArrowLeft"]);
+      await page.keys(["ArrowLeft"]);
+      await page.keys(["ArrowUp"]);
+      await page.keys(["ArrowUp"]);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        [" ", " ", " ", " "],
+      ]);
     }
   )
 );
