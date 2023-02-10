@@ -1,11 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import fs from "node:fs";
-import { writeSourceFile } from "./utils.js";
+import { writeJSON } from "./utils.js";
 
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
 
 mainPackage();
+themablePackage();
 
 function mainPackage() {
   writeJSON("lib/components/package.json", {
@@ -15,6 +16,11 @@ function mainPackage() {
   });
 }
 
-function writeJSON(path, content) {
-  writeSourceFile(path, JSON.stringify(content, null, 2) + "\n");
+function themablePackage() {
+  writeJSON("lib/components-themeable/package.json", {
+    name: "@cloudscape-design/board-components-themeable",
+    version: pkg.version,
+    repository: pkg.repository,
+    homepage: pkg.homepage,
+  });
 }

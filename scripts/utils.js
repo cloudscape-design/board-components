@@ -35,3 +35,7 @@ export function writeSourceFile(filepath, content) {
   fs.mkdirSync(path.dirname(filepath), { recursive: true });
   fs.writeFileSync(filepath, content);
 }
+
+export function writeJSON(path, content) {
+  writeSourceFile(path, JSON.stringify(content, null, 2) + "\n");
+}
