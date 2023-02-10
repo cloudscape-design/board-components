@@ -125,6 +125,29 @@ export function InternalBoard<D>({ items: itemsProp, renderItem, onItemsChange, 
     });
   });
 
+  function extrapolateFullItems(newItems: readonly BoardProps.Item<D>[]) {
+    if (containerSize === "full") {
+      return { small: newItems, full: newItems };
+    }
+
+    const smallItemById = new Map(itemsProp.small.map((it) => [it.id, it]));
+    const fullItemById = new Map(itemsProp.full.map((it) => [it.id, it]));
+    const fullItems = newItems.map((item) => {
+      const smallItem = smallItemById.get(item.id);
+      const fullItem = fullItemById.get(item.id);
+      if (!fullItem) {
+        return item;
+      }
+      return {
+        ...item,
+        columnOffset: fullItem.columnOffset,
+        columnSpan: fullItem.columnSpan,
+        rowSpan: item.rowSpan !== smallItem?.rowSpan ? item.rowSpan : fullItem.rowSpan,
+      };
+    });
+    return { small: newItems, full: fullItems };
+  }
+
   useDragSubscription("submit", () => {
     dispatch({ type: "submit" });
 
@@ -141,12 +164,12 @@ export function InternalBoard<D>({ items: itemsProp, renderItem, onItemsChange, 
     if (transition.operation === "insert") {
       const newItems = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
       const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: { small: newItems, full: newItems }, addedItem }));
+      onItemsChange(createCustomEvent({ items: extrapolateFullItems(newItems), addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
       const newItems = exportItemsLayout(transition.layoutShift.next, items);
-      onItemsChange(createCustomEvent({ items: { small: newItems, full: newItems } }));
+      onItemsChange(createCustomEvent({ items: extrapolateFullItems(newItems) }));
     }
   });
 
@@ -178,10 +201,7 @@ export function InternalBoard<D>({ items: itemsProp, renderItem, onItemsChange, 
 
     onItemsChange(
       createCustomEvent({
-        items: {
-          small: items.filter((it) => it !== removedItem),
-          full: items.filter((it) => it !== removedItem),
-        },
+        items: extrapolateFullItems(items.filter((it) => it !== removedItem)),
         removedItem,
       })
     );

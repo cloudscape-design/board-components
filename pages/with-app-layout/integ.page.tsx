@@ -12,18 +12,18 @@ import { WidgetsPalette } from "./widgets-palette";
 
 export default function Page() {
   const [boardWidgetsLoading, setBoardWidgetsLoading] = useState(false);
-  const [boardWidgets, setBoardWidgets] = useState(demoLayoutItems);
+  const [boardWidgets, setBoardWidgets] = useState({ small: demoLayoutItems, full: demoLayoutItems });
 
   const [paletteWidgetsLoading, setPaletteWidgetsLoading] = useState(false);
   const [paletteWidgets, setPaletteWidgets] = useState(demoPaletteItems);
 
   useEffect(() => {
     if (boardWidgetsLoading) {
-      setBoardWidgets([]);
+      setBoardWidgets({ small: [], full: [] });
 
       const timeoutId = setTimeout(() => {
         setBoardWidgetsLoading(false);
-        setBoardWidgets(demoLayoutItems);
+        setBoardWidgets({ small: demoLayoutItems, full: demoLayoutItems });
       }, 5 * 1000);
 
       return () => clearTimeout(timeoutId);
@@ -44,7 +44,7 @@ export default function Page() {
   }, [paletteWidgetsLoading]);
 
   const onChange = ({ items, addedItem, removedItem }: BoardProps.ItemsChangeDetail<ItemData>) => {
-    setBoardWidgets(items.full);
+    setBoardWidgets(items);
     if (addedItem) {
       setPaletteWidgets((paletteWidgets) => paletteWidgets.filter((item) => item.id !== addedItem.id));
     }
