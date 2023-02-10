@@ -140,14 +140,14 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
       const newItems = exportItemsLayout(
         transition.layoutShift.next,
         [...items, transition.draggableItem],
-        columns === 1
+        containerSize === "full"
       );
       const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ items: newItems, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = exportItemsLayout(transition.layoutShift.next, items, columns === 1);
+      const newItems = exportItemsLayout(transition.layoutShift.next, items, containerSize === "full");
       onItemsChange(createCustomEvent({ items: newItems }));
     }
   });

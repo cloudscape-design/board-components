@@ -50,7 +50,7 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 export function exportItemsLayout<D>(
   grid: GridLayout,
   sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[],
-  responsive?: boolean
+  updateColumns: boolean
 ): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
@@ -68,8 +68,8 @@ export function exportItemsLayout<D>(
     const item = getItem(id);
     boardItems.push({
       ...item,
-      columnOffset: responsive && "columnOffset" in item ? item.columnOffset : x,
-      columnSpan: responsive && "columnSpan" in item ? item.columnSpan : width,
+      columnOffset: !updateColumns && "columnOffset" in item ? item.columnOffset : x,
+      columnSpan: !updateColumns && "columnSpan" in item ? item.columnSpan : width,
       rowSpan: height,
     });
   }
