@@ -5,24 +5,26 @@ import PageLayout from "../app/page-layout";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 
+const items = [
+  {
+    id: "1",
+    columnOffset: 0,
+    columnSpan: 4,
+    rowSpan: 1,
+    data: {
+      title: "",
+      description: "",
+      content: null,
+    },
+  },
+];
+
 export default function KeyboardPage() {
   return (
     <PageLayout header={<h1>Widget Container - Keyboard</h1>}>
       <Board<ItemData>
         i18nStrings={i18nStrings.boardI18nStrings}
-        items={[
-          {
-            id: "1",
-            columnOffset: 0,
-            columnSpan: 4,
-            rowSpan: 1,
-            data: {
-              title: "",
-              description: "",
-              content: null,
-            },
-          },
-        ]}
+        items={{ small: items, full: items }}
         renderItem={() => (
           <BoardItem
             header={<span tabIndex={0}>Header</span>}

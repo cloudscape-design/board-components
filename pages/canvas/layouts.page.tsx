@@ -64,7 +64,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={singleItem}
+            items={{ small: singleItem, full: singleItem }}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -73,7 +73,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={spacedOutItems}
+            items={{ small: spacedOutItems, full: spacedOutItems }}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -82,7 +82,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={nextRowItems}
+            items={{ small: nextRowItems, full: nextRowItems }}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"

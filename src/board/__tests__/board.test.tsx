@@ -44,7 +44,7 @@ describe("Board", () => {
   test("renders empty board", () => {
     render(
       <Board
-        items={[]}
+        items={{ small: [], full: [] }}
         renderItem={() => <>{null}</>}
         onItemsChange={() => undefined}
         i18nStrings={i18nStrings}

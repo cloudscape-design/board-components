@@ -25,7 +25,7 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { getDefaultItemHeight, getDefaultItemWidth } from "./utils/layout";
 
-export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
+export function InternalBoard<D>({ items: itemsProp, renderItem, onItemsChange, empty, i18nStrings }: BoardProps<D>) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery(
     (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
@@ -42,6 +42,8 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
+
+  let items = containerSize === "small" ? itemsProp.small : itemsProp.full;
 
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
@@ -139,12 +141,12 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
     if (transition.operation === "insert") {
       const newItems = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem]);
       const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
+      onItemsChange(createCustomEvent({ items: { small: newItems, full: newItems }, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
       const newItems = exportItemsLayout(transition.layoutShift.next, items);
-      onItemsChange(createCustomEvent({ items: newItems }));
+      onItemsChange(createCustomEvent({ items: { small: newItems, full: newItems } }));
     }
   });
 
@@ -174,7 +176,15 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    onItemsChange(createCustomEvent({ items: items.filter((it) => it !== removedItem), removedItem }));
+    onItemsChange(
+      createCustomEvent({
+        items: {
+          small: items.filter((it) => it !== removedItem),
+          full: items.filter((it) => it !== removedItem),
+        },
+        removedItem,
+      })
+    );
   };
 
   function focusItem(itemId: ItemId) {

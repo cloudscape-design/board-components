@@ -30,7 +30,7 @@ export function EnginePageTemplate({
       <div className={classnames[`layout-${layout}`]}>
         <Board
           i18nStrings={boardI18nStrings}
-          items={items}
+          items={{ small: items, full: items }}
           renderItem={(item, actions) => (
             <BoardItem
               header={<Header>{item.data.title}</Header>}
@@ -49,7 +49,7 @@ export function EnginePageTemplate({
             </BoardItem>
           )}
           onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-            setItems(items);
+            setItems(items.full);
             if (addedItem) {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }

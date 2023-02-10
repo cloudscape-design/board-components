@@ -44,7 +44,7 @@ export default function Page() {
   }, [paletteWidgetsLoading]);
 
   const onChange = ({ items, addedItem, removedItem }: BoardProps.ItemsChangeDetail<ItemData>) => {
-    setBoardWidgets(items);
+    setBoardWidgets(items.full);
     if (addedItem) {
       setPaletteWidgets((paletteWidgets) => paletteWidgets.filter((item) => item.id !== addedItem.id));
     }

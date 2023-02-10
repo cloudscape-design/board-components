@@ -31,7 +31,7 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
           )}
         </Box>
       }
-      items={widgets}
+      items={{ small: widgets, full: widgets }}
       onItemsChange={({ detail }) => onWidgetsChange(detail)}
       renderItem={(item, actions) => (
         <>
