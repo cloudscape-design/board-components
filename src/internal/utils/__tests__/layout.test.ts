@@ -107,9 +107,28 @@ describe("exportItemsLayout", () => {
         [" ", " ", "C"],
         [" ", " ", "C"],
       ]),
-      [makeItem("A", 0, 1, 1), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 1)]
+      [makeItem("A", 0, 1, 1), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 1)],
+      true
     );
     expect(exported).toEqual([makeItem("A", 0, 2, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
+  });
+
+  test("Updates items columnOffset and columnSpan when updateColumns=true", () => {
+    const exported = exportItemsLayout(
+      fromMatrix([["A"], ["A"], ["B"], ["C"], ["C"]]),
+      [makeItem("A", 0, 1, 1), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 1)],
+      true
+    );
+    expect(exported).toEqual([makeItem("A", 0, 1, 2), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 2)]);
+  });
+
+  test("Keeps items columnOffset and columnSpan when updateColumns=false", () => {
+    const exported = exportItemsLayout(
+      fromMatrix([["A"], ["A"], ["B"], ["C"], ["C"]]),
+      [makeItem("A", 0, 1, 1), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 1)],
+      false
+    );
+    expect(exported).toEqual([makeItem("A", 0, 1, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
   });
 });
 

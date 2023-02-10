@@ -30,7 +30,7 @@ export class DndPageObject extends BasePageObject {
     });
   }
 
-  async getGrid() {
+  async getGrid(columns = 4) {
     await this.pause(50);
 
     const widgets = await this.browser.execute(
@@ -64,7 +64,6 @@ export class DndPageObject extends BasePageObject {
       return null;
     }
 
-    const columns = 4;
     const rows = Math.floor(placeholderRects.length / columns);
     const grid: string[][] = [...new Array(rows)].map(() => [...new Array(columns)]);
     for (let row = 0; row < rows; row++) {

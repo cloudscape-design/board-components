@@ -7,7 +7,7 @@ import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
-const boardItemHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
+const boardItemDragHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 
@@ -30,7 +30,7 @@ describe("items reordered with keyboard", () => {
   test(
     "item move can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(boardItemHandle("A"));
+      await page.focus(boardItemDragHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
       await page.keys(["ArrowRight"]);
@@ -51,7 +51,7 @@ describe("items reordered with keyboard", () => {
   test(
     "item move can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-      await page.focus(boardItemHandle("A"));
+      await page.focus(boardItemDragHandle("A"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowRight"]);
       await page.keys(["Escape"]);
