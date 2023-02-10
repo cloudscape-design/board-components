@@ -2,8 +2,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import fs from "fs";
-import { createRequire } from "module";
+import fs from "node:fs";
+import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 
 /**
