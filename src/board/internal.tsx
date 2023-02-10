@@ -88,11 +88,17 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function isBlocked(draggableElement: HTMLElement) {
+  function isElementOverBoard(draggableElement: HTMLElement) {
+    const board = containerAccessRef.current!;
+    const boardContains = (target: null | Element) => board === target || board.contains(target);
+
     const rect = draggableElement.getBoundingClientRect();
-    const coveredElement = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-    const boardElement = containerAccessRef.current!;
-    return boardElement !== coveredElement && !boardElement.contains(coveredElement);
+    return (
+      boardContains(document.elementFromPoint(rect.left, rect.top)) ||
+      boardContains(document.elementFromPoint(rect.right, rect.top)) ||
+      boardContains(document.elementFromPoint(rect.right, rect.bottom)) ||
+      boardContains(document.elementFromPoint(rect.left, rect.bottom))
+    );
   }
 
   useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
@@ -106,16 +112,16 @@ export function InternalBoard<D>({ items, renderItem, onItemsChange, empty, i18n
       // If draggables can be of different types a check of some sort is required here.
       draggableItem: draggableItem as any,
       draggableElement,
-      collisionIds: interactionType === "keyboard" || !isBlocked(draggableElement) ? collisionIds : [],
+      collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
     });
 
     autoScrollHandlers.addPointerEventHandlers();
   });
 
-  useDragSubscription("update", ({ collisionIds, positionOffset, draggableElement }) => {
+  useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, draggableElement }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: !isBlocked(draggableElement) ? collisionIds : [],
+      collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
       positionOffset,
     });
   });
