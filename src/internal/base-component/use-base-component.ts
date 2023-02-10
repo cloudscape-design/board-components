@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { initAwsUiVersions, useComponentMetadata } from "@cloudscape-design/component-toolkit/internal/base-component";
+import { initAwsUiVersions, useComponentMetadata } from "@cloudscape-design/component-toolkit/internal";
 import { MutableRefObject } from "react";
 import { PACKAGE_SOURCE, PACKAGE_VERSION } from "../environment";
 import { useTelemetry } from "./use-telemetry";
