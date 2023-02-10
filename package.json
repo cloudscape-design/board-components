@@ -30,6 +30,7 @@
     "build:src:test-utils": "node scripts/test-utils.js",
     "build:src:copy": "cp README.md lib/components/",
     "build:src:docs": "node scripts/docs.js",
+    "build:src:environment": "node scripts/environment",
     "build:pages:vite": "vite build",
     "build:pages:tsc": "tsc -p pages/tsconfig.json"
   },
