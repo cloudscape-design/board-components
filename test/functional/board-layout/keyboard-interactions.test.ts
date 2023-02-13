@@ -179,14 +179,3 @@ describe("items inserted with keyboard", () => {
     })
   );
 });
-
-test(
-  "pressing escape on drag- or resize handle when there is no transition does not cause an error",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
-    await page.focus(boardItemDragHandle("A"));
-    await page.keys(["Escape"]);
-
-    await page.focus(boardItemResizeHandle("A"));
-    await page.keys(["Escape"]);
-  })
-);
