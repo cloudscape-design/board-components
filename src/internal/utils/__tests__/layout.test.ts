@@ -82,6 +82,23 @@ describe("createItemsLayout", () => {
   ])("Transforms board items to internal grid layout", (items, columns, expectation) => {
     expect(toString(createItemsLayout(items, columns))).toBe(toString(expectation));
   });
+
+  test("normalizes columnOffset and columnSpan for tablet layout", () => {
+    const layout = createItemsLayout(
+      [makeItem("A", 0, 1, 2), makeItem("B", 1, 2, 2), makeItem("C", 0, 3, 2), makeItem("D", 0, 4, 2)],
+      2
+    );
+    expect(toString(layout)).toBe(
+      toString([
+        ["A", "B"],
+        ["A", "B"],
+        ["C", "C"],
+        ["C", "C"],
+        ["D", "D"],
+        ["D", "D"],
+      ])
+    );
+  });
 });
 
 describe("createPlaceholdersLayout", () => {
@@ -108,25 +125,38 @@ describe("exportItemsLayout", () => {
         [" ", " ", "C"],
       ]),
       [makeItem("A", 0, 1, 1), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 1)],
-      true
+      4
     );
     expect(exported).toEqual([makeItem("A", 0, 2, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
   });
 
-  test("Updates items columnOffset and columnSpan when updateColumns=true", () => {
+  test("Updates items columnOffset and columnSpan when columns=4", () => {
     const exported = exportItemsLayout(
       fromMatrix([["A"], ["A"], ["B"], ["C"], ["C"]]),
       [makeItem("A", 0, 1, 1), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 1)],
-      true
+      4
     );
     expect(exported).toEqual([makeItem("A", 0, 1, 2), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 2)]);
   });
 
-  test("Keeps items columnOffset and columnSpan when updateColumns=false", () => {
+  test("Doubles items columnOffset and columnSpan when columns=2", () => {
+    const exported = exportItemsLayout(
+      fromMatrix([
+        ["A", "A"],
+        ["B", "C"],
+        [" ", "C"],
+      ]),
+      [makeItem("A", 1, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 1, 1, 1)],
+      2
+    );
+    expect(exported).toEqual([makeItem("A", 0, 4, 1), makeItem("B", 0, 2, 1), makeItem("C", 2, 2, 2)]);
+  });
+
+  test("Keeps items columnOffset and columnSpan when columns=1", () => {
     const exported = exportItemsLayout(
       fromMatrix([["A"], ["A"], ["B"], ["C"], ["C"]]),
       [makeItem("A", 0, 1, 1), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 1)],
-      false
+      1
     );
     expect(exported).toEqual([makeItem("A", 0, 1, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
   });

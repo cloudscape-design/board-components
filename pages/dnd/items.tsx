@@ -243,7 +243,7 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
     return null;
   }
 
-  const layoutItems = exportItemsLayout(fromMatrix(grid), Object.values(letterWidgets), true);
+  const layoutItems = exportItemsLayout(fromMatrix(grid), Object.values(letterWidgets), 4);
 
   const usedLetterItems = new Set(layoutItems.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(

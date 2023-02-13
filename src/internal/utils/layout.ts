@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
+import { COLUMNS_MOBILE, COLUMNS_TABLET, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import { BoardItemDefinition, BoardItemDefinitionBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[], columns: number): GridLayout {
@@ -10,20 +10,20 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
 
   for (const { id, columnSpan, rowSpan, columnOffset, definition } of items) {
     const startCol = Math.min(columns - 1, columnOffset);
-    const allowedColSpan = Math.min(
-      columns,
-      Math.max(definition?.minColumnSpan ?? MIN_COL_SPAN, Math.min(columns - startCol, columnSpan))
+    const normalizedColumnSpan = Math.max(
+      definition?.minColumnSpan ?? MIN_COL_SPAN,
+      Math.min(columns - startCol, getColumnSpanForColumns(columnSpan, columns))
     );
     const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition?.minRowSpan ?? MIN_ROW_SPAN, rowSpan);
 
     let itemRow = 0;
-    for (let col = startCol; col < startCol + allowedColSpan; col++) {
+    for (let col = startCol; col < startCol + normalizedColumnSpan; col++) {
       itemRow = Math.max(itemRow, colAffordance[col] + 1);
     }
 
-    layoutItems.push({ id, width: allowedColSpan, height: allowedRowSpan, x: startCol, y: itemRow });
+    layoutItems.push({ id, width: normalizedColumnSpan, height: allowedRowSpan, x: startCol, y: itemRow });
 
-    for (let col = startCol; col < startCol + allowedColSpan; col++) {
+    for (let col = startCol; col < startCol + normalizedColumnSpan; col++) {
       colAffordance[col] = itemRow + allowedRowSpan - 1;
     }
   }
@@ -33,6 +33,16 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
   layoutItems.sort(itemComparator);
 
   return { items: layoutItems, columns, rows };
+}
+
+function getColumnSpanForColumns(columnSpan: number, columns: number) {
+  if (columns === COLUMNS_MOBILE) {
+    return 1;
+  }
+  if (columns === COLUMNS_TABLET) {
+    return columnSpan <= 2 ? 1 : 2;
+  }
+  return columnSpan;
 }
 
 export function createPlaceholdersLayout(rows: number, columns: number): GridLayout {
@@ -50,7 +60,7 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 export function exportItemsLayout<D>(
   grid: GridLayout,
   sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[],
-  updateColumns: boolean
+  columns: number
 ): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
@@ -66,12 +76,19 @@ export function exportItemsLayout<D>(
   const boardItems: BoardItemDefinition<D>[] = [];
   for (const { id, x, width, height } of sortedLayout) {
     const item = getItem(id);
-    boardItems.push({
-      ...item,
-      columnOffset: !updateColumns && "columnOffset" in item ? item.columnOffset : x,
-      columnSpan: !updateColumns && "columnSpan" in item ? item.columnSpan : width,
-      rowSpan: height,
-    });
+
+    let columnOffset = x;
+    let columnSpan = width;
+    if (columns === COLUMNS_MOBILE && "columnOffset" in item && "columnSpan" in item) {
+      columnOffset = item.columnOffset;
+      columnSpan = item.columnSpan;
+    }
+    if (columns === COLUMNS_TABLET) {
+      columnOffset = x * 2;
+      columnSpan = width * 2;
+    }
+
+    boardItems.push({ ...item, columnOffset, columnSpan, rowSpan: height });
   }
   return boardItems;
 }

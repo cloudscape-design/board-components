@@ -4,7 +4,14 @@ import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
-import { BREAKPOINT_SMALL, COLUMNS_FULL, COLUMNS_SMALL, TRANSITION_DURATION_MS } from "../internal/constants";
+import {
+  BREAKPOINT_MOBILE,
+  BREAKPOINT_TABLET,
+  COLUMNS_DESKTOP,
+  COLUMNS_MOBILE,
+  COLUMNS_TABLET,
+  TRANSITION_DURATION_MS,
+} from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, Direction, ItemId } from "../internal/interfaces";
@@ -25,6 +32,8 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { getDefaultItemHeight, getDefaultItemWidth } from "./utils/layout";
 
+const boardSizes = { mobile: COLUMNS_MOBILE, tablet: COLUMNS_TABLET, desktop: COLUMNS_DESKTOP };
+
 export function InternalBoard<D>({
   items,
   renderItem,
@@ -34,12 +43,17 @@ export function InternalBoard<D>({
   __internalRootRef,
 }: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
-  const [containerSize, containerQueryRef] = useContainerQuery(
-    (entry) => (entry.contentBoxWidth < BREAKPOINT_SMALL ? "small" : "full"),
-    []
-  );
+  const [containerSize, containerQueryRef] = useContainerQuery((entry) => {
+    if (entry.contentBoxWidth < BREAKPOINT_MOBILE) {
+      return "mobile";
+    }
+    if (entry.contentBoxWidth < BREAKPOINT_TABLET) {
+      return "tablet";
+    }
+    return "desktop";
+  }, []);
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
-  const columns = containerSize === "small" ? COLUMNS_SMALL : COLUMNS_FULL;
+  const columns = boardSizes[containerSize ?? "desktop"];
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
   const autoScrollHandlers = useAutoScroll();
@@ -148,17 +162,13 @@ export function InternalBoard<D>({
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newItems = exportItemsLayout(
-        transition.layoutShift.next,
-        [...items, transition.draggableItem],
-        containerSize === "full"
-      );
+      const newItems = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem], columns);
       const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ items: newItems, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = exportItemsLayout(transition.layoutShift.next, items, containerSize === "full");
+      const newItems = exportItemsLayout(transition.layoutShift.next, items, columns);
       onItemsChange(createCustomEvent({ items: newItems }));
     }
   });
