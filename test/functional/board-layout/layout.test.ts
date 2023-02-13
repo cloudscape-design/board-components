@@ -21,7 +21,7 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
   return useBrowser(async (browser) => {
     await browser.url(url);
     const page = new DndPageObject(browser);
-    await page.setWindowSize({ width: 1200, height: 800 });
+    await page.setWindowSize({ width: 1600, height: 800 });
     await page.waitForVisible("main");
     await testFn(page, browser);
   });
@@ -169,7 +169,7 @@ test(
     async (page) => {
       const placeholderSelector = `.${gridStyles.default.grid__item}[data-row-span="1"]`;
 
-      await page.setWindowSize({ width: 1200, height: 1800 });
+      await page.setWindowSize({ width: 1600, height: 1800 });
       await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(10 * 4);
 
       await page.mouseDown(boardWrapper.findItemById("A").findDragHandle().toSelector());
@@ -276,7 +276,7 @@ test(
       await page.dragAndDropTo(boardItemDragHandle("A"), boardItemDragHandle("B"));
       await expect(page.getGrid(1)).resolves.toEqual([["B"], ["B"], ["A"], ["A"]]);
 
-      await page.setWindowSize({ width: 1200, height: 800 });
+      await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
         ["A", "A", "B", "B"],
         ["A", "A", "B", "B"],
@@ -304,7 +304,7 @@ test(
       await page.dragAndDropTo(boardItemDragHandle("A"), boardItemDragHandle("D"));
       await expect(page.getGrid(1)).resolves.toEqual([["B"], ["B"], ["C"], ["C"], ["D"], ["D"], ["A"], ["A"]]);
 
-      await page.setWindowSize({ width: 1200, height: 800 });
+      await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
         ["C", "C", "B", "B"],
         ["C", "C", "B", "B"],
@@ -334,7 +334,7 @@ test(
       await page.dragAndDropTo(boardItemResizeHandle("A"), boardItemResizeHandle("B"));
       await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);
 
-      await page.setWindowSize({ width: 1200, height: 800 });
+      await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
         ["A", "A", "B", "B"],
         ["A", "A", "B", "B"],
@@ -372,7 +372,7 @@ test(
       await page.pause(200);
       await expect(page.getGrid(1)).resolves.toEqual([["D"], ["D"], ["B"], ["B"], ["C"], ["C"]]);
 
-      await page.setWindowSize({ width: 1200, height: 800 });
+      await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
         ["D", " ", "B", "B"],
         ["D", " ", "B", "B"],

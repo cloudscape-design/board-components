@@ -15,6 +15,7 @@ test.each(routes)("matches snapshot for %s", (route) => {
   return setupTest(async (browser) => {
     await browser.url(route);
     const page = new ScreenshotPageObject(browser);
+    await page.setWindowSize({ width: 1600, height: 800 });
     await page.waitForVisible("main");
 
     const hasScreenshotArea = await page.isExisting(".screenshot-area");

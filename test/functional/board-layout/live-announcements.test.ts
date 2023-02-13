@@ -15,6 +15,7 @@ function setupTest(url: string, testFn: (page: DndPageObject, browser: Webdriver
   return useBrowser(async (browser) => {
     await browser.url(url);
     const page = new DndPageObject(browser);
+    await page.setWindowSize({ width: 1600, height: 800 });
     await page.waitForVisible("main");
     await page.useLiveAnnouncements();
     await testFn(page, browser);
