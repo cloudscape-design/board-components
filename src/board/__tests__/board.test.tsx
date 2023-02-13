@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { KeyCode } from "@cloudscape-design/test-utils-core/dist/utils";
+import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
