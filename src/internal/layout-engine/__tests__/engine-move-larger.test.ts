@@ -466,7 +466,7 @@ describe("escape moves", () => {
   });
 });
 
-test("Float moves has low priority and don't interfere with swaps", () => {
+test("Float moves don't interfere with swaps", () => {
   const grid = fromMatrix([
     ["A", "B"],
     ["A", "B"],
