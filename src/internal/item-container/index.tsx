@@ -241,6 +241,12 @@ function ItemContainerComponent(
       }
     };
 
+    const discard = () => {
+      if (transition || acquired) {
+        draggableApi.discardTransition();
+      }
+    };
+
     switch (event.key) {
       case "ArrowUp":
         return move("up");
@@ -254,7 +260,7 @@ function ItemContainerComponent(
       case "Enter":
         return onKeyboardTransitionToggle(operation);
       case "Escape":
-        return draggableApi.discardTransition();
+        return discard();
     }
   }
 
