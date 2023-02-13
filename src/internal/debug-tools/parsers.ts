@@ -3,6 +3,7 @@
 
 import { GridLayout } from "../interfaces";
 import { GridLayoutItem, ItemId } from "../interfaces";
+import { Position } from "../utils/position";
 import { GridMatrix } from "./interfaces";
 
 const LETTER_INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -76,5 +77,5 @@ export function fromTextPath(textPath: string, gridArg: GridLayout | GridMatrix)
   // Adjust path to target's top-left point.
   const yOffset = start.y - moveTarget.y;
   const xOffset = start.x - moveTarget.x;
-  return { itemId: moveTarget.id, path: rest.map(({ y, x }) => ({ y: y - yOffset, x: x - xOffset })) };
+  return { itemId: moveTarget.id, path: rest.map(({ y, x }) => new Position({ y: y - yOffset, x: x - xOffset })) };
 }
