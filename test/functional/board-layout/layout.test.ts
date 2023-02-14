@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
 import gridStyles from "../../../lib/components/internal/grid/styles.selectors.js";
 import createWrapper from "../../../lib/components/test-utils/selectors";
+import { setupTest } from "../../setup-test.js";
 import { DndPageObject } from "./dnd-page-object.js";
 
 const boardWrapper = createWrapper().findBoard();
@@ -15,16 +15,6 @@ const paletteItemDragHandle = (id: string) => itemsPaletteWrapper.findItemById(i
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
   return `/index.html#/dnd/engine-query-test?${query}`;
-}
-
-function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
-  return useBrowser(async (browser) => {
-    await browser.url(url);
-    const page = new DndPageObject(browser);
-    await page.setWindowSize({ width: 1600, height: 800 });
-    await page.waitForVisible("main");
-    await testFn(page, browser);
-  });
 }
 
 test(
@@ -39,6 +29,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.mouseDown(boardWrapper.findItemById("A").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
@@ -78,6 +69,7 @@ test(
       ],
       ["I", "X"]
     ),
+    DndPageObject,
     async (page) => {
       await page.mouseDown(itemsPaletteWrapper.findItemById("I").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
@@ -117,6 +109,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.mouseDown(boardWrapper.findItemById("A").findResizeHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
@@ -166,6 +159,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       const placeholderSelector = `.${gridStyles.default.grid__item}[data-row-span="1"]`;
 
@@ -195,6 +189,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.mouseDown(boardWrapper.findItemById("X").findResizeHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
@@ -232,6 +227,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.focus(boardItemResizeHandle("X"));
       await page.keys(["Enter"]);
@@ -269,6 +265,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.setWindowSize({ width: 800, height: 800 });
       await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"]]);
@@ -297,6 +294,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.setWindowSize({ width: 800, height: 800 });
       await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"], ["C"], ["C"], ["D"], ["D"]]);
@@ -327,6 +325,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.setWindowSize({ width: 800, height: 800 });
       await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);
@@ -359,6 +358,7 @@ test(
       ],
       ["D"]
     ),
+    DndPageObject,
     async (page) => {
       await page.setWindowSize({ width: 800, height: 800 });
       await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);

@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
 import createWrapper from "../../lib/components/test-utils/selectors";
+import { setupTest } from "../setup-test";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
@@ -85,19 +85,9 @@ function makeQueryUrl(layout: string[][], palette: string[]) {
   return `/index.html#/dnd/engine-query-test?${query}`;
 }
 
-function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
-  return useBrowser(async (browser) => {
-    await browser.url(url);
-    const page = new DndPageObject(browser);
-    await page.setWindowSize({ width: 1600, height: 800 });
-    await page.waitForVisible("main");
-    await testFn(page, browser);
-  });
-}
-
 test(
   "active item overlays other items",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.focus(boardItemHandle("A"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowDown"]);
@@ -119,6 +109,7 @@ test(
       ],
       []
     ),
+    DndPageObject,
     async (page) => {
       await page.focus(boardItemResizeHandle("A"));
       await page.keys(["Enter"]);
@@ -137,7 +128,7 @@ test(
 
 test(
   "palette item size remains the same after drag start",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.mouseDown(itemsPaletteWrapper.findItemById("L").findDragHandle().toSelector());
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
 
@@ -151,7 +142,7 @@ test(
 
 test(
   "palette item size adjusts to board item size when moved over board",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.mouseDown(itemsPaletteWrapper.findItemById("K").findDragHandle().toSelector());
     await page.mouseMove(-200, 0);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
@@ -163,7 +154,7 @@ test(
 
 test(
   "palette item with min colspan=2 can be inserted into 1-column layout",
-  setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2p-test", DndPageObject, async (page) => {
     await page.setWindowSize({ width: 800, height: 800 });
 
     await page.focus(itemsPaletteWrapper.findItemById("R").findDragHandle().toSelector());
@@ -179,7 +170,7 @@ test(
 
 test(
   "split-panel prevents collisions when inserting an item from the palette at the bottom",
-  setupTest("/index.html#/with-app-layout/integ", async (page) => {
+  setupTest("/index.html#/with-app-layout/integ", DndPageObject, async (page) => {
     await page.setWindowSize({ width: 600, height: 800 });
 
     await page.click(`[data-testid="add-widget"]`);
@@ -194,7 +185,7 @@ test(
 
 test(
   "collisions disabled when item moves outside the board",
-  setupTest("/index.html#/with-app-layout/integ", async (page) => {
+  setupTest("/index.html#/with-app-layout/integ", DndPageObject, async (page) => {
     await page.setWindowSize({ width: 2200, height: 800 });
 
     // Moving item to the left but it still touches the board.

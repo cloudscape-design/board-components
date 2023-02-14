@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
+import { setupTest } from "../../setup-test";
 
 class PageObject extends ScreenshotPageObject {
   containsFocused(selector: string) {
@@ -14,19 +14,9 @@ class PageObject extends ScreenshotPageObject {
   }
 }
 
-function setupTest(testFn: (browser: PageObject) => Promise<void>) {
-  return useBrowser(async (browser) => {
-    await browser.url("/index.html#/widget-container/keyboard");
-    const page = new PageObject(browser);
-    await page.waitForVisible("main");
-
-    await testFn(page);
-  });
-}
-
 test(
   "follows visual tab order",
-  setupTest(async (page) => {
+  setupTest("/index.html#/widget-container/keyboard", PageObject, async (page) => {
     await page.click("h1");
 
     const firstItem = createWrapper().findBoardItem();
