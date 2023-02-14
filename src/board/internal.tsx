@@ -162,13 +162,13 @@ export function InternalBoard<D>({
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newItems = exportItemsLayout(transition.layoutShift.next, [...items, transition.draggableItem], columns);
+      const newItems = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], columns);
       const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ items: newItems, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = exportItemsLayout(transition.layoutShift.next, items, columns);
+      const newItems = exportItemsLayout(transition.layoutShift, items, columns);
       onItemsChange(createCustomEvent({ items: newItems }));
     }
   });

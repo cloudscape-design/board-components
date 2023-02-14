@@ -3,8 +3,8 @@
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
 import { BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { fromMatrix } from "../../lib/components/internal/debug-tools";
-import { BoardItemDefinitionBase } from "../../lib/components/internal/interfaces";
-import { exportItemsLayout } from "../../lib/components/internal/utils/layout";
+import { BoardItemDefinition, BoardItemDefinitionBase } from "../../lib/components/internal/interfaces";
+import { GridLayout } from "../../lib/components/internal/interfaces";
 import { ItemData } from "../shared/interfaces";
 import { Counter } from "./commons";
 import {
@@ -243,7 +243,7 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
     return null;
   }
 
-  const layoutItems = exportItemsLayout(fromMatrix(grid), Object.values(letterWidgets), 4);
+  const layoutItems = applyLayout(fromMatrix(grid), Object.values(letterWidgets));
 
   const usedLetterItems = new Set(layoutItems.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(
@@ -251,4 +251,32 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
   );
 
   return { layoutItems, paletteItems };
+}
+
+function applyLayout<D>(
+  layout: GridLayout,
+  sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[]
+): readonly BoardItemDefinition<D>[] {
+  const itemById = new Map(sourceItems.map((item) => [item.id, item]));
+  const getItem = (itemId: string) => {
+    const item = itemById.get(itemId);
+    if (!item) {
+      throw new Error("Invariant violation: no matching source item found.");
+    }
+    return item;
+  };
+
+  const sortedLayout = layout.items.slice().sort((a, b) => {
+    if (a.y !== b.y) {
+      return a.y > b.y ? 1 : -1;
+    }
+    return a.x > b.x ? 1 : -1;
+  });
+
+  return sortedLayout.map(({ id, x, width, height }) => ({
+    ...getItem(id),
+    columnOffset: x,
+    columnSpan: width,
+    rowSpan: height,
+  }));
 }
