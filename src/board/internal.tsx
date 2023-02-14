@@ -5,11 +5,11 @@ import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import {
-  BREAKPOINT_MOBILE,
-  BREAKPOINT_TABLET,
-  COLUMNS_DESKTOP,
-  COLUMNS_MOBILE,
-  COLUMNS_TABLET,
+  BREAKPOINT_M,
+  BREAKPOINT_XS,
+  COLUMNS_DEFAULT,
+  COLUMNS_M,
+  COLUMNS_XS,
   TRANSITION_DURATION_MS,
 } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
@@ -32,7 +32,7 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { getDefaultItemHeight, getDefaultItemWidth } from "./utils/layout";
 
-const boardSizes = { mobile: COLUMNS_MOBILE, tablet: COLUMNS_TABLET, desktop: COLUMNS_DESKTOP };
+const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
   items,
@@ -44,16 +44,16 @@ export function InternalBoard<D>({
 }: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [containerSize, containerQueryRef] = useContainerQuery((entry) => {
-    if (entry.contentBoxWidth < BREAKPOINT_MOBILE) {
-      return "mobile";
+    if (entry.contentBoxWidth < BREAKPOINT_XS) {
+      return "xs";
     }
-    if (entry.contentBoxWidth < BREAKPOINT_TABLET) {
-      return "tablet";
+    if (entry.contentBoxWidth < BREAKPOINT_M) {
+      return "m";
     }
-    return "desktop";
+    return "default";
   }, []);
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
-  const columns = boardSizes[containerSize ?? "desktop"];
+  const columns = boardSizes[containerSize ?? "default"];
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
   const autoScrollHandlers = useAutoScroll();

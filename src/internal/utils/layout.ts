@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { COLUMNS_MOBILE, COLUMNS_TABLET, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
+import { COLUMNS_M, COLUMNS_XS, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import { BoardItemDefinition, BoardItemDefinitionBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[], columns: number): GridLayout {
@@ -36,10 +36,10 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
 }
 
 function getColumnSpanForColumns(columnSpan: number, columns: number) {
-  if (columns === COLUMNS_MOBILE) {
+  if (columns === COLUMNS_XS) {
     return 1;
   }
-  if (columns === COLUMNS_TABLET) {
+  if (columns === COLUMNS_M) {
     return columnSpan <= 2 ? 1 : 2;
   }
   return columnSpan;
@@ -79,11 +79,11 @@ export function exportItemsLayout<D>(
 
     let columnOffset = x;
     let columnSpan = width;
-    if (columns === COLUMNS_MOBILE && "columnOffset" in item && "columnSpan" in item) {
+    if (columns === COLUMNS_XS && "columnOffset" in item && "columnSpan" in item) {
       columnOffset = item.columnOffset;
       columnSpan = item.columnSpan;
     }
-    if (columns === COLUMNS_TABLET) {
+    if (columns === COLUMNS_M) {
       columnOffset = x * 2;
       columnSpan = width * 2;
     }
