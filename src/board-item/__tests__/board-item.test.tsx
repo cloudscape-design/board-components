@@ -18,9 +18,14 @@ function render(jsx: ReactElement) {
   return libRender(jsx, {
     wrapper: function ItemContextWrapper({ children }) {
       return (
-        <GridContextProvider value={{ getWidth: () => 1, getHeight: () => 1 }}>
+        <GridContextProvider
+          value={{ getWidth: () => 1, getHeight: () => 1, getRowOffset: () => 0, getColOffset: () => 0 }}
+        >
           <ItemContainer
-            item={{ id: "1", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: null }}
+            acquired={false}
+            transform={undefined}
+            inTransition={false}
+            item={{ id: "1", data: null }}
             itemSize={{ width: 1, height: 1 }}
             itemMaxSize={{ width: 1, height: 1 }}
           >

@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode } from "react";
-import { GridLayoutItem, ItemId, Transform } from "../interfaces";
+import { GridLayoutItem } from "../interfaces";
 
 export interface GridProps {
   layout: GridLayoutItem[];
   columns: number;
   rows: number;
-  inTransition?: boolean;
-  transforms?: { [id: ItemId]: Transform };
   children?: ReactNode;
 }

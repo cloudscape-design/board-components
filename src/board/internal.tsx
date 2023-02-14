@@ -236,13 +236,7 @@ export function InternalBoard<D>({
 
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
-          <Grid
-            columns={columns}
-            rows={rows}
-            layout={[...placeholdersLayout.items, ...itemsLayout.items]}
-            transforms={transforms}
-            inTransition={!!layoutShift}
-          >
+          <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
             {/* Placeholders are rendered even when there is no transition to support the first collisions check. */}
             {placeholdersLayout.items.map((placeholder) => (
               <Placeholder
@@ -274,6 +268,8 @@ export function InternalBoard<D>({
                   }}
                   key={item.id}
                   item={item}
+                  transform={transforms[item.id]}
+                  inTransition={!!layoutShift}
                   acquired={item.id === acquiredItem?.id}
                   itemSize={itemSize}
                   itemMaxSize={itemMaxSize}

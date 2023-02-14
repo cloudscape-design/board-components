@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import {
   CSSProperties,
@@ -7,6 +8,7 @@ import {
   ReactNode,
   PointerEvent as ReactPointerEvent,
   Ref,
+  RefObject,
   createContext,
   forwardRef,
   useContext,
@@ -23,7 +25,7 @@ import {
   useDraggable,
 } from "../dnd-controller/controller";
 import { useGridContext } from "../grid-context";
-import { BoardItemDefinitionBase, Direction, ItemId } from "../interfaces";
+import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
@@ -39,7 +41,7 @@ export interface ItemContainerRef {
 export interface ItemContext {
   isActive: boolean;
   dragHandle: {
-    ref: React.RefObject<HTMLButtonElement>;
+    ref: RefObject<HTMLButtonElement>;
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
   };
@@ -79,7 +81,9 @@ interface Transition {
  */
 export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
-  acquired?: boolean;
+  acquired: boolean;
+  inTransition: boolean;
+  transform: Transform | undefined;
   itemSize: { width: number; height: number };
   itemMaxSize: { width: number; height: number };
   onKeyMove?(direction: Direction): void;
@@ -89,7 +93,7 @@ export interface ItemContainerProps {
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, itemSize, itemMaxSize, onKeyMove, children }: ItemContainerProps,
+  { item, acquired, inTransition, transform, itemSize, itemMaxSize, onKeyMove, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
@@ -312,18 +316,44 @@ function ItemContainerComponent(
   const itemTransitionStyle: CSSProperties = {};
   const itemTransitionClassNames: string[] = [];
 
-  // Adjust the dragged/resized item to the pointer's location.
-  if (transition && transition.interactionType === "pointer") {
-    itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
-    itemTransitionStyle.left = transition.positionTransform?.x;
-    itemTransitionStyle.top = transition.positionTransform?.y;
-    itemTransitionStyle.width = transition.sizeTransform?.width;
-    itemTransitionStyle.height = transition.sizeTransform?.height;
-    itemTransitionStyle.pointerEvents = "none";
+  if (inTransition) {
+    itemTransitionClassNames.push(styles.inTransition);
   }
-  // Make the borrowed item dimmed.
-  else if (transition && transition.isBorrowed) {
-    itemTransitionClassNames.push(styles.borrowed);
+
+  if (transition) {
+    // Adjust the dragged/resized item to the pointer's location.
+    if (transition.interactionType === "pointer") {
+      itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
+      itemTransitionStyle.left = transition.positionTransform?.x;
+      itemTransitionStyle.top = transition.positionTransform?.y;
+      itemTransitionStyle.width = transition.sizeTransform?.width;
+      itemTransitionStyle.height = transition.sizeTransform?.height;
+      itemTransitionStyle.pointerEvents = "none";
+    }
+    // Make the borrowed item dimmed.
+    else if (transition.isBorrowed) {
+      itemTransitionClassNames.push(styles.borrowed);
+    }
+  }
+
+  if (gridContext && transform) {
+    // The moved items positions are altered with CSS transform.
+    if (transform.type === "move") {
+      itemTransitionClassNames.push(styles.transformed);
+      itemTransitionStyle.transform = CSSUtil.Transform.toString({
+        x: gridContext.getColOffset(transform.x),
+        y: gridContext.getRowOffset(transform.y),
+        scaleX: 1,
+        scaleY: 1,
+      });
+      itemTransitionStyle.width = gridContext.getWidth(transform.width) + "px";
+      itemTransitionStyle.height = gridContext.getHeight(transform.height) + "px";
+    }
+    // The item is removed from the DOM after animations play.
+    // During the animations the removed item is hidden with styles.
+    if (transform.type === "remove") {
+      itemTransitionClassNames.push(styles.removed);
+    }
   }
 
   const dragHandleRef = useRef<HTMLButtonElement>(null);
