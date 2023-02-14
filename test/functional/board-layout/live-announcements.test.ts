@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
+import { setupTest } from "../../setup-test";
 import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
@@ -11,19 +11,15 @@ const boardItemHandle = (id: string) => boardWrapper.findItemById(id).findDragHa
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 
-function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
-  return useBrowser(async (browser) => {
-    await browser.url(url);
-    const page = new DndPageObject(browser);
-    await page.waitForVisible("main");
-    await page.useLiveAnnouncements();
-    await testFn(page, browser);
-  });
+class PageObject extends DndPageObject {
+  init() {
+    return this.useLiveAnnouncements();
+  }
 }
 
 test(
   "item reorder committed",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(boardItemHandle("A"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowDown"]);
@@ -41,7 +37,7 @@ test(
 
 test(
   "item reorder discarded",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(boardItemHandle("A"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowRight"]);
@@ -57,7 +53,7 @@ test(
 
 test(
   "item resize committed",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(boardItemResizeHandle("A"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowDown"]);
@@ -75,7 +71,7 @@ test(
 
 test(
   "item resize discarded",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(boardItemResizeHandle("A"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowRight"]);
@@ -93,7 +89,7 @@ test(
 
 test(
   "item insert committed",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(paletteItemHandle("I"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowLeft"]);
@@ -113,7 +109,7 @@ test(
 
 test(
   "item insert discarded",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(paletteItemHandle("I"));
     await page.keys(["Enter"]);
     await page.keys(["ArrowLeft"]);
@@ -131,7 +127,7 @@ test(
 
 test(
   "item insert discarded in palette",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(paletteItemHandle("I"));
     await page.keys(["Enter"]);
     await page.keys(["Enter"]);
@@ -149,7 +145,7 @@ test(
 
 test(
   "item removed",
-  setupTest("/index.html#/dnd/engine-a2h-test", async (page) => {
+  setupTest("/index.html#/dnd/engine-a2h-test", PageObject, async (page) => {
     await page.focus(boardItemHandle("A"));
     await page.keys(["Tab"]);
     await page.keys(["Enter"]);

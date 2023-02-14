@@ -1,26 +1,17 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 import { describe, expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
+import { setupTest } from "../../setup-test";
 import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
 const boardItemHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
 
-function setupTest(url: string, testFn: (page: DndPageObject, browser: WebdriverIO.Browser) => Promise<void>) {
-  return useBrowser(async (browser) => {
-    await browser.url(url);
-    const page = new DndPageObject(browser);
-    await page.waitForVisible("main");
-    await testFn(page, browser);
-  });
-}
-
 describe("items removal", () => {
   test(
     "focus is transitioned after non-last item removal",
-    setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
+    setupTest("/index.html#/dnd/engine-a2p-test", DndPageObject, async (page) => {
       // Remove Widget F.
       await page.focus(boardItemHandle("F"));
       await page.keys(["Tab", "Enter", "Enter"]);
@@ -53,7 +44,7 @@ describe("items removal", () => {
 
   test(
     "focus is transitioned after last item removal",
-    setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
+    setupTest("/index.html#/dnd/engine-a2p-test", DndPageObject, async (page) => {
       // Remove Widget P.
       await page.focus(boardItemHandle("P"));
       await page.keys(["Tab", "Enter", "Enter"]);
@@ -88,7 +79,7 @@ describe("items removal", () => {
 
   test(
     "tab order is remains linear after removing an item in the middle",
-    setupTest("/index.html#/dnd/engine-a2p-test", async (page) => {
+    setupTest("/index.html#/dnd/engine-a2p-test", DndPageObject, async (page) => {
       // Remove Widget F.
       await page.focus(boardItemHandle("F"));
       await page.keys(["Tab", "Enter", "Enter"]);
@@ -104,7 +95,7 @@ describe("items removal", () => {
 
   test(
     "focus is transitioned correctly when delete confirmation dialog is required",
-    setupTest("index.html#/with-app-layout/integ", async (page) => {
+    setupTest("index.html#/with-app-layout/integ", DndPageObject, async (page) => {
       // Remove Widget 5.
       await page.focus(boardItemHandle("5"));
       await page.keys(["Tab", "Enter", "Enter", "Tab", "Tab", "Enter"]);

@@ -4,6 +4,7 @@
 import { describe, expect, test } from "vitest";
 import { fromMatrix, toString } from "../../debug-tools";
 import { BoardItemDefinition } from "../../interfaces";
+import { CommittedMove, LayoutShift } from "../../layout-engine/interfaces";
 import {
   createItemsLayout,
   createPlaceholdersLayout,
@@ -28,6 +29,13 @@ function makeItem(
     definition: { defaultRowSpan: 1, defaultColumnSpan: 1, minColumnSpan, minRowSpan },
     data: null,
   };
+}
+
+function makeLayoutShift(
+  layout: string[][],
+  moves: CommittedMove[] = [{ itemId: "A", type: "MOVE", x: 0, y: 0, width: 0, height: 0 }]
+): LayoutShift {
+  return { current: fromMatrix(layout), next: fromMatrix(layout), moves, conflicts: [] };
 }
 
 describe("createItemsLayout", () => {
@@ -82,6 +90,23 @@ describe("createItemsLayout", () => {
   ])("Transforms board items to internal grid layout", (items, columns, expectation) => {
     expect(toString(createItemsLayout(items, columns))).toBe(toString(expectation));
   });
+
+  test("normalizes columnOffset and columnSpan for tablet layout", () => {
+    const layout = createItemsLayout(
+      [makeItem("A", 0, 1, 2), makeItem("B", 1, 2, 2), makeItem("C", 0, 3, 2), makeItem("D", 0, 4, 2)],
+      2
+    );
+    expect(toString(layout)).toBe(
+      toString([
+        ["A", "B"],
+        ["A", "B"],
+        ["C", "C"],
+        ["C", "C"],
+        ["D", "D"],
+        ["D", "D"],
+      ])
+    );
+  });
 });
 
 describe("createPlaceholdersLayout", () => {
@@ -100,7 +125,7 @@ describe("createPlaceholdersLayout", () => {
 describe("exportItemsLayout", () => {
   test("Transforms internal grid layout to board items", () => {
     const exported = exportItemsLayout(
-      fromMatrix([
+      makeLayoutShift([
         ["A", "A", " "],
         ["A", "A", " "],
         [" ", "B", "B"],
@@ -108,25 +133,81 @@ describe("exportItemsLayout", () => {
         [" ", " ", "C"],
       ]),
       [makeItem("A", 0, 1, 1), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 1)],
-      true
+      4
     );
     expect(exported).toEqual([makeItem("A", 0, 2, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
   });
 
-  test("Updates items columnOffset and columnSpan when updateColumns=true", () => {
+  test("Updates items columnOffset and columnSpan when columns=4", () => {
     const exported = exportItemsLayout(
-      fromMatrix([["A"], ["A"], ["B"], ["C"], ["C"]]),
+      makeLayoutShift([["A"], ["A"], ["B"], ["C"], ["C"]]),
       [makeItem("A", 0, 1, 1), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 1)],
-      true
+      4
     );
     expect(exported).toEqual([makeItem("A", 0, 1, 2), makeItem("B", 0, 1, 1), makeItem("C", 0, 1, 2)]);
   });
 
-  test("Keeps items columnOffset and columnSpan when updateColumns=false", () => {
+  test("Scales 2-column layout to default when columns=2 and there are more than 2 item moves", () => {
     const exported = exportItemsLayout(
-      fromMatrix([["A"], ["A"], ["B"], ["C"], ["C"]]),
+      makeLayoutShift(
+        [
+          ["A", "A"],
+          ["B", "C"],
+          [" ", "C"],
+        ],
+        [
+          { itemId: "A", type: "MOVE", x: 0, y: 0, width: 0, height: 0 },
+          { itemId: "B", type: "VACANT", x: 0, y: 0, width: 0, height: 0 },
+          { itemId: "C", type: "VACANT", x: 0, y: 0, width: 0, height: 0 },
+        ]
+      ),
+      [makeItem("A", 1, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 1, 1, 1)],
+      2
+    );
+    expect(exported).toEqual([makeItem("A", 0, 4, 1), makeItem("B", 0, 2, 1), makeItem("C", 2, 2, 2)]);
+  });
+
+  test("Updates only affected items when columns=2 and there are 2 item moves", () => {
+    const exported = exportItemsLayout(
+      makeLayoutShift(
+        [
+          ["A", "A"],
+          ["B", "C"],
+          [" ", "C"],
+        ],
+        [
+          { itemId: "A", type: "MOVE", x: 0, y: 0, width: 0, height: 0 },
+          { itemId: "C", type: "VACANT", x: 0, y: 0, width: 0, height: 0 },
+        ]
+      ),
+      [makeItem("A", 1, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 1, 1, 1)],
+      2
+    );
+    expect(exported).toEqual([makeItem("A", 0, 4, 1), makeItem("B", 1, 1, 1), makeItem("C", 2, 2, 2)]);
+  });
+
+  test("Updates target item columnSpan and rowSpan when columns=2 and resize move was made", () => {
+    const exported = exportItemsLayout(
+      makeLayoutShift(
+        [
+          ["A", "A"],
+          ["A", "A"],
+          ["B", "C"],
+          [" ", "C"],
+        ],
+        [{ itemId: "A", type: "RESIZE", x: 0, y: 0, width: 0, height: 0 }]
+      ),
+      [makeItem("A", 1, 1, 1), makeItem("B", 1, 1, 1), makeItem("C", 1, 1, 2)],
+      2
+    );
+    expect(exported).toEqual([makeItem("A", 1, 4, 2), makeItem("B", 1, 1, 1), makeItem("C", 1, 1, 2)]);
+  });
+
+  test("Keeps items columnOffset and columnSpan when columns=1", () => {
+    const exported = exportItemsLayout(
+      makeLayoutShift([["A"], ["A"], ["B"], ["C"], ["C"]]),
       [makeItem("A", 0, 1, 1), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 1)],
-      false
+      1
     );
     expect(exported).toEqual([makeItem("A", 0, 1, 2), makeItem("B", 1, 2, 1), makeItem("C", 2, 1, 2)]);
   });

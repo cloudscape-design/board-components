@@ -465,3 +465,30 @@ describe("escape moves", () => {
     expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBe(2);
   });
 });
+
+test("Float moves don't interfere with swaps", () => {
+  const grid = fromMatrix([
+    ["A", "B"],
+    ["A", "B"],
+    ["A", "C"],
+    ["A", "C"],
+    ["D", "E"],
+    ["D", "E"],
+    [" ", "F"],
+    [" ", "F"],
+  ]);
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("B3 B2 B1", grid)).getLayoutShift();
+
+  expect(toString(layoutShift.next)).toBe(
+    toString([
+      ["A", "C"],
+      ["A", "C"],
+      ["A", "B"],
+      ["A", "B"],
+      ["D", "E"],
+      ["D", "E"],
+      [" ", "F"],
+      [" ", "F"],
+    ])
+  );
+});

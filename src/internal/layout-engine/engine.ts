@@ -179,7 +179,9 @@ export class LayoutEngine {
 
     tryVacantMoves();
 
-    this.refloatGrid(activeId);
+    if (this.conflicts.size === 0) {
+      this.refloatGrid(activeId);
+    }
   }
 
   // Retrieves prioritized list of directions to look for a resolution move.
