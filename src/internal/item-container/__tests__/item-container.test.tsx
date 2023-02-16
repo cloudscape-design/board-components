@@ -14,13 +14,11 @@ vi.mock("../../../../lib/components/internal/dnd-controller/controller");
 const defaultProps: ItemContainerProps = {
   item: {
     id: "ID",
-    definition: {
-      defaultRowSpan: 1,
-      defaultColumnSpan: 1,
-    },
     data: { title: "Title" },
   },
   acquired: false,
+  transform: undefined,
+  inTransition: false,
   itemSize: { width: 1, height: 1 },
   itemMaxSize: { width: 4, height: 999 },
   children: <Item />,

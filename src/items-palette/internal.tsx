@@ -97,14 +97,15 @@ export function InternalItemsPalette<D>({
               }}
               key={item.id}
               item={item}
+              acquired={false}
+              transform={undefined}
+              inTransition={false}
               itemSize={getDefaultItemSize(item)}
               itemMaxSize={getDefaultItemSize(item)}
             >
-              <div data-item-id={item.id}>
-                {renderItem(item, {
-                  showPreview: dropState?.id === item.id && dropState.isExpanded,
-                })}
-              </div>
+              {renderItem(item, {
+                showPreview: dropState?.id === item.id && dropState.isExpanded,
+              })}
             </ItemContainer>
           ))}
         </SpaceBetween>

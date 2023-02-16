@@ -2,7 +2,19 @@
   touch-action: none;
   position: relative;
   height: 100%;
-  display: grid;
+}
+
+.inTransition {
+  transition: transform 200ms;
+  transition-timing-function: ease;
+}
+
+.transformed {
+  position: absolute;
+  z-index: 1;
+}
+.removed {
+  display: none;
 }
 .dragged {
   z-index: 5000;

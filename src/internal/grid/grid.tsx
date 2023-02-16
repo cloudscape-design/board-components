@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { CSS as CSSUtil } from "@dnd-kit/utilities";
-import clsx from "clsx";
 import { Children } from "react";
 import { GridContextProvider } from "../grid-context";
 import { zipTwoArrays } from "../utils/zip-arrays";
@@ -17,7 +15,7 @@ const GRID_GAP = 16;
 /* Matches grid-auto-rows in CSS. */
 const ROWSPAN_HEIGHT = 100;
 
-export default function Grid({ layout, children, columns, rows, transforms, inTransition }: GridProps) {
+export default function Grid({ layout, children, columns, rows }: GridProps) {
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
   const zipped = zipTwoArrays(layout, Children.toArray(children));
 
@@ -32,41 +30,13 @@ export default function Grid({ layout, children, columns, rows, transforms, inTr
   const getRowOffset = (y: number) => getHeight(y) + GRID_GAP;
 
   return (
-    <GridContextProvider value={{ getWidth, getHeight }}>
+    <GridContextProvider value={{ getWidth, getHeight, getColOffset, getRowOffset }}>
       <div ref={containerQueryRef} data-columns={columns} data-rows={rows} className={styles.grid}>
-        {zipped.map(([item, children]) => {
-          const contentTransform = transforms?.[item.id];
-          const contentClassNames: string[] = [];
-          const contentStyle: React.CSSProperties = {};
-
-          // When there is an active transition grid items use animations.
-          if (inTransition) {
-            contentClassNames.push(styles["in-transition"]);
-          }
-          // The moved items positions are altered with CSS transform.
-          if (contentTransform?.type === "move") {
-            contentClassNames.push(styles.transformed);
-            contentStyle.transform = CSSUtil.Transform.toString({
-              x: getColOffset(contentTransform.x),
-              y: getRowOffset(contentTransform.y),
-              scaleX: 1,
-              scaleY: 1,
-            });
-            contentStyle.width = getWidth(contentTransform.width) + "px";
-            contentStyle.height = getHeight(contentTransform.height) + "px";
-          }
-          // The item is removed from the DOM after animations play.
-          // During the animations the removed item is hidden with styles.
-          if (contentTransform?.type === "remove") {
-            contentClassNames.push(styles.removed);
-          }
-
-          return (
-            <GridItem key={item.id} item={item} contentClassName={clsx(contentClassNames)} contentStyle={contentStyle}>
-              {children}
-            </GridItem>
-          );
-        })}
+        {zipped.map(([item, children]) => (
+          <GridItem key={item.id} item={item}>
+            {children}
+          </GridItem>
+        ))}
       </div>
     </GridContextProvider>
   );
