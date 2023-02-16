@@ -382,3 +382,30 @@ test(
     }
   )
 );
+
+test(
+  "always inserts item with default dimensions",
+  setupTest(
+    makeQueryUrl(
+      [],
+      // X item has min columns = 2 and min rows = 4.
+      ["X"]
+    ),
+    DndPageObject,
+    async (page) => {
+      await page.setWindowSize({ width: 800, height: 800 });
+      await page.focus(paletteItemDragHandle("X"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowLeft"]);
+      await page.keys(["Enter"]);
+
+      await page.setWindowSize({ width: 1600, height: 800 });
+      await expect(page.getGrid(4)).resolves.toEqual([
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+        ["X", "X", " ", " "],
+      ]);
+    }
+  )
+);

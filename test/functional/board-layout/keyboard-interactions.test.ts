@@ -9,7 +9,7 @@ const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
 const boardItemDragHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
-const paletteItemHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
+const paletteItemDragHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 
 function makeQueryUrl(layout: string[][], palette: string[]) {
   const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
@@ -129,7 +129,7 @@ describe("items inserted with keyboard", () => {
   test(
     "item insert can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.focus(paletteItemHandle("I"));
+      await page.focus(paletteItemDragHandle("I"));
       await page.keys(["Enter"]);
 
       await page.keys(["ArrowLeft"]);
@@ -155,7 +155,7 @@ describe("items inserted with keyboard", () => {
   test(
     "item insert can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.focus(paletteItemHandle("I"));
+      await page.focus(paletteItemDragHandle("I"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowDown"]);
       await page.keys(["ArrowDown"]);
