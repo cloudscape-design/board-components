@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
-import { setupTest } from "../../setup-test";
+import { setupTest } from "../../utils";
 import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();

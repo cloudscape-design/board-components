@@ -3,13 +3,13 @@
 
 import { ScreenshotArea } from "../screenshot-area";
 import { EnginePageTemplate } from "./engine-page-template";
-import { demoLayoutItems, demoPaletteItems, demoWidgets } from "./items";
+import { demoBoardItems, demoPaletteItems, demoWidgets } from "./items";
 
 export default function () {
   return (
     <ScreenshotArea>
       <EnginePageTemplate
-        initialLayoutItems={demoLayoutItems}
+        initialBoardItems={demoBoardItems}
         initialPaletteItems={demoPaletteItems}
         widgets={demoWidgets}
       />

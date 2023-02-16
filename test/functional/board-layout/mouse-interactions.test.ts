@@ -2,16 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
-import { setupTest } from "../../setup-test";
-import { DndPageObject } from "./dnd-page-object.js";
+import { makeQueryUrl, setupTest } from "../../utils";
+import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
-
-function makeQueryUrl(layout: string[][], palette: string[]) {
-  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
-  return `/index.html#/dnd/engine-query-test?${query}`;
-}
 
 test(
   "item reorder with pointer",

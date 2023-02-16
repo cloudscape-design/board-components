@@ -23,3 +23,8 @@ export function setupTest<P extends BasePageObject & { init?(): Promise<void> }>
     await test(page);
   });
 }
+
+export function makeQueryUrl(board: string[][], palette: string[]) {
+  const query = `board=${JSON.stringify(board)}&palette=${JSON.stringify(palette)}`;
+  return `/index.html#/dnd/engine-query-test?${query}`;
+}

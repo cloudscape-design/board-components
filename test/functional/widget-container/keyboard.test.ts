@@ -3,7 +3,7 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import { expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
-import { setupTest } from "../../setup-test";
+import { setupTest } from "../../utils";
 
 class PageObject extends ScreenshotPageObject {
   containsFocused(selector: string) {

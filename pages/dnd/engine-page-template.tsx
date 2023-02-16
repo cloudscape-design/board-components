@@ -12,17 +12,17 @@ import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
 
 export function EnginePageTemplate({
-  initialLayoutItems,
+  initialBoardItems,
   initialPaletteItems,
   widgets,
   layout = "grid",
 }: {
-  initialLayoutItems: readonly BoardProps.Item<ItemData>[];
+  initialBoardItems: readonly BoardProps.Item<ItemData>[];
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
 }) {
-  const [items, setItems] = useState(initialLayoutItems);
+  const [items, setItems] = useState(initialBoardItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (

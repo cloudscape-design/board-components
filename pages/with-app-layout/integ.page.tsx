@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { BoardProps } from "../../lib/components";
-import { demoLayoutItems, demoPaletteItems } from "../dnd/items";
+import { demoBoardItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import { ItemData } from "../shared/interfaces";
 import { ClientAppLayout } from "./app-layout";
@@ -12,7 +12,7 @@ import { WidgetsPalette } from "./widgets-palette";
 
 export default function Page() {
   const [boardWidgetsLoading, setBoardWidgetsLoading] = useState(false);
-  const [boardWidgets, setBoardWidgets] = useState(demoLayoutItems);
+  const [boardWidgets, setBoardWidgets] = useState(demoBoardItems);
 
   const [paletteWidgetsLoading, setPaletteWidgetsLoading] = useState(false);
   const [paletteWidgets, setPaletteWidgets] = useState(demoPaletteItems);
@@ -23,7 +23,7 @@ export default function Page() {
 
       const timeoutId = setTimeout(() => {
         setBoardWidgetsLoading(false);
-        setBoardWidgets(demoLayoutItems);
+        setBoardWidgets(demoBoardItems);
       }, 5 * 1000);
 
       return () => clearTimeout(timeoutId);
