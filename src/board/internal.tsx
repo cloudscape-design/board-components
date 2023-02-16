@@ -14,7 +14,7 @@ import {
 } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItemDefinition, Direction, ItemId } from "../internal/interfaces";
+import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
@@ -132,7 +132,7 @@ export function InternalBoard<D>({
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
-      draggableItem: draggableItem as any,
+      draggableItem: draggableItem as BoardItemDefinitionBase<any>,
       draggableElement,
       collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
     });

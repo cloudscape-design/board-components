@@ -1,19 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { COLUMNS_M, COLUMNS_XS, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
+import { getDefaultItemWidth } from "../../board/utils/layout";
+import { COLUMNS_DEFAULT, COLUMNS_M, COLUMNS_XS, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import { BoardItemDefinition, BoardItemDefinitionBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 import { LayoutShift } from "../layout-engine/interfaces";
 
 export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[], columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
-  const colAffordance = Array(columns).fill(-1);
+  const colAffordance = Array(COLUMNS_DEFAULT * 2).fill(-1);
 
   for (const { id, columnSpan, rowSpan, columnOffset, definition } of items) {
     const startCol = Math.min(columns - 1, columnOffset);
-    const normalizedColumnSpan = Math.max(
-      definition?.minColumnSpan ?? MIN_COL_SPAN,
-      Math.min(columns - startCol, getColumnSpanForColumns(columnSpan, columns))
+    const normalizedColumnSpan = Math.min(
+      columns - startCol,
+      Math.max(definition?.minColumnSpan ?? MIN_COL_SPAN, getColumnSpanForColumns(columnSpan, columns))
     );
     const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition?.minRowSpan ?? MIN_ROW_SPAN, rowSpan);
 
@@ -92,9 +93,9 @@ export function exportItemsLayout<D>(
     // That means that the layout updates applied when in mobile or tablet layout are only partially applied.
     let columnOffset = x;
     let columnSpan = width;
-    if ((columns === COLUMNS_XS || columns === COLUMNS_M) && "columnOffset" in item && "columnSpan" in item) {
-      columnOffset = item.columnOffset;
-      columnSpan = item.columnSpan;
+    if (columns === COLUMNS_XS || columns === COLUMNS_M) {
+      columnOffset = "columnOffset" in item ? item.columnOffset : x;
+      columnSpan = "columnSpan" in item ? item.columnSpan : getDefaultItemWidth(item, COLUMNS_DEFAULT);
     }
 
     // Partial items update when a change is made in tablet layout.
