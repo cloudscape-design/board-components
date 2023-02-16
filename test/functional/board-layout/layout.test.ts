@@ -409,3 +409,34 @@ test(
     }
   )
 );
+
+test(
+  "when item is inserted to 2-column layout its default width is adjusted",
+  setupTest(
+    // X,Y items have min columns = 2 and min rows = 4.
+    makeQueryUrl([], ["X", "Y"]),
+    DndPageObject,
+    async (page) => {
+      await page.setWindowSize({ width: 1200, height: 800 });
+
+      await page.focus(paletteItemDragHandle("X"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowLeft"]);
+      await page.keys(["Enter"]);
+      await expect(page.getGrid(2)).resolves.toEqual([
+        [" ", "X"],
+        [" ", "X"],
+        [" ", "X"],
+        [" ", "X"],
+      ]);
+
+      await page.dragAndDropTo(paletteItemDragHandle("Y"), boardItemDragHandle("X"));
+      await expect(page.getGrid(2)).resolves.toEqual([
+        ["X", "Y"],
+        ["X", "Y"],
+        ["X", "Y"],
+        ["X", "Y"],
+      ]);
+    }
+  )
+);
