@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { getDefaultItemWidth } from "../../board/utils/layout";
 import { COLUMNS_DEFAULT, COLUMNS_M, COLUMNS_XS, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import { BoardItemDefinition, BoardItemDefinitionBase, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 import { LayoutShift } from "../layout-engine/interfaces";
@@ -10,22 +9,23 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
   const layoutItems: GridLayoutItem[] = [];
   const colAffordance = Array(COLUMNS_DEFAULT * 2).fill(-1);
 
-  for (const { id, columnSpan, rowSpan, columnOffset, definition } of items) {
-    const startCol = Math.min(columns - 1, columnOffset);
-    const normalizedColumnSpan = Math.min(
+  for (const item of items) {
+    const startCol = Math.min(columns - 1, item.columnOffset);
+    const minSize = getMinItemSize(item);
+    const allowedColSpan = Math.min(
       columns - startCol,
-      Math.max(definition?.minColumnSpan ?? MIN_COL_SPAN, getColumnSpanForColumns(columnSpan, columns))
+      adjustColumnSpanForColumns(Math.max(minSize.width, item.columnSpan), columns)
     );
-    const allowedRowSpan = Math.max(MIN_ROW_SPAN, definition?.minRowSpan ?? MIN_ROW_SPAN, rowSpan);
+    const allowedRowSpan = Math.max(minSize.height, item.rowSpan);
 
     let itemRow = 0;
-    for (let col = startCol; col < startCol + normalizedColumnSpan; col++) {
+    for (let col = startCol; col < startCol + allowedColSpan; col++) {
       itemRow = Math.max(itemRow, colAffordance[col] + 1);
     }
 
-    layoutItems.push({ id, width: normalizedColumnSpan, height: allowedRowSpan, x: startCol, y: itemRow });
+    layoutItems.push({ id: item.id, width: allowedColSpan, height: allowedRowSpan, x: startCol, y: itemRow });
 
-    for (let col = startCol; col < startCol + normalizedColumnSpan; col++) {
+    for (let col = startCol; col < startCol + allowedColSpan; col++) {
       colAffordance[col] = itemRow + allowedRowSpan - 1;
     }
   }
@@ -35,16 +35,6 @@ export function createItemsLayout(items: readonly BoardItemDefinition<unknown>[]
   layoutItems.sort(itemComparator);
 
   return { items: layoutItems, columns, rows };
-}
-
-function getColumnSpanForColumns(columnSpan: number, columns: number) {
-  if (columns === COLUMNS_XS) {
-    return 1;
-  }
-  if (columns === COLUMNS_M) {
-    return columnSpan <= 2 ? 1 : 2;
-  }
-  return columnSpan;
 }
 
 export function createPlaceholdersLayout(rows: number, columns: number): GridLayout {
@@ -95,7 +85,7 @@ export function exportItemsLayout<D>(
     let columnSpan = width;
     if (columns === COLUMNS_XS || columns === COLUMNS_M) {
       columnOffset = "columnOffset" in item ? item.columnOffset : x;
-      columnSpan = "columnSpan" in item ? item.columnSpan : getDefaultItemWidth(item, COLUMNS_DEFAULT);
+      columnSpan = "columnSpan" in item ? item.columnSpan : getDefaultItemSize(item).width;
     }
 
     // Partial items update when a change is made in tablet layout.
@@ -137,6 +127,16 @@ export function getDefaultItemSize(item: BoardItemDefinitionBase<unknown>) {
     width: Math.max(getMinItemSize(item).width, item.definition?.defaultColumnSpan ?? MIN_COL_SPAN),
     height: Math.max(getMinItemSize(item).height, item.definition?.defaultRowSpan ?? MIN_ROW_SPAN),
   };
+}
+
+export function adjustColumnSpanForColumns(columnSpan: number, columns: number) {
+  if (columns === COLUMNS_XS) {
+    return 1;
+  }
+  if (columns === COLUMNS_M) {
+    return columnSpan <= 2 ? 1 : 2;
+  }
+  return Math.min(columns, columnSpan);
 }
 
 function itemComparator(a: GridLayoutItem, b: GridLayoutItem) {

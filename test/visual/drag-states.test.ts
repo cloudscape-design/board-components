@@ -3,7 +3,7 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import { expect, test } from "vitest";
 import createWrapper from "../../lib/components/test-utils/selectors";
-import { setupTest } from "../setup-test";
+import { makeQueryUrl, setupTest } from "../utils";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
@@ -78,11 +78,6 @@ class DndPageObject extends ScreenshotPageObject {
     await this.pause(100);
     return super.fullPageScreenshot();
   }
-}
-
-function makeQueryUrl(layout: string[][], palette: string[]) {
-  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
-  return `/index.html#/dnd/engine-query-test?${query}`;
 }
 
 test(

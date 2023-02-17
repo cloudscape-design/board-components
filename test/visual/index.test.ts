@@ -3,7 +3,7 @@
 import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import { expect, test } from "vitest";
 import { routes } from "../../pages/pages";
-import { setupTest } from "../setup-test";
+import { setupTest } from "../utils";
 
 test.each(routes)("matches snapshot for %s", (route) =>
   setupTest(route, ScreenshotPageObject, async (page) => {

@@ -197,7 +197,7 @@ export const storedPositions = [
   { id: "10", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
 ];
 
-export const demoLayoutItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
+export const demoBoardItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
   const config = demoWidgets[pos.id];
   return {
     ...pos,
@@ -243,14 +243,14 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
     return null;
   }
 
-  const layoutItems = applyLayout(fromMatrix(grid), Object.values(letterWidgets));
+  const boardItems = applyLayout(fromMatrix(grid), Object.values(letterWidgets));
 
-  const usedLetterItems = new Set(layoutItems.map((item) => item.id));
+  const usedLetterItems = new Set(boardItems.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(
     (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id))
   );
 
-  return { layoutItems, paletteItems };
+  return { boardItems, paletteItems };
 }
 
 function applyLayout<D>(

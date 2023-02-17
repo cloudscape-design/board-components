@@ -11,8 +11,8 @@ import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
 import {
-  getDefaultItemHeight,
-  getDefaultItemWidth,
+  getInsertingItemHeight,
+  getInsertingItemWidth,
   getInsertionDirection,
   getLayoutPlaceholders,
   getLayoutRows,
@@ -205,8 +205,8 @@ function updateTransitionWithPointerEvent<D>(
 
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemWidth = layoutItem ? layoutItem.width : getDefaultItemWidth(transition.draggableItem, layout.columns);
-  const itemHeight = layoutItem ? layoutItem.height : getDefaultItemHeight(transition.draggableItem);
+  const itemWidth = layoutItem ? layoutItem.width : getInsertingItemWidth(transition.draggableItem, layout.columns);
+  const itemHeight = layoutItem ? layoutItem.height : getInsertingItemHeight(transition.draggableItem);
   const itemSize = itemWidth * itemHeight;
 
   const isOutOfBoundaries =
@@ -308,7 +308,7 @@ function acquireTransitionItem<D>(
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.
-  const width = getDefaultItemWidth(transition.draggableItem, columns);
+  const width = getInsertingItemWidth(transition.draggableItem, columns);
   position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
   const path = [...transition.path, position];

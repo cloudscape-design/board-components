@@ -30,7 +30,7 @@ import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
-import { getDefaultItemHeight, getDefaultItemWidth } from "./utils/layout";
+import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, default: COLUMNS_DEFAULT };
 
@@ -251,8 +251,8 @@ export function InternalBoard<D>({
               const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
               const itemSize = layoutItem ?? {
-                width: getDefaultItemWidth(item, columns),
-                height: getDefaultItemHeight(item),
+                width: getInsertingItemWidth(item, columns),
+                height: getInsertingItemHeight(item),
               };
 
               const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;

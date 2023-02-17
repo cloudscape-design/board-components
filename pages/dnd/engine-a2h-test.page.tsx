@@ -12,7 +12,7 @@ const letterItems = createLetterItems([
 export default function () {
   return (
     <EnginePageTemplate
-      initialLayoutItems={letterItems.layoutItems}
+      initialBoardItems={letterItems.boardItems}
       initialPaletteItems={letterItems.paletteItems}
       widgets={letterWidgets}
     />

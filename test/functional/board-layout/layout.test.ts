@@ -3,19 +3,14 @@
 import { expect, test } from "vitest";
 import gridStyles from "../../../lib/components/internal/grid/styles.selectors.js";
 import createWrapper from "../../../lib/components/test-utils/selectors";
-import { setupTest } from "../../setup-test.js";
-import { DndPageObject } from "./dnd-page-object.js";
+import { makeQueryUrl, setupTest } from "../../utils";
+import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
 const boardItemDragHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemDragHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
-
-function makeQueryUrl(layout: string[][], palette: string[]) {
-  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
-  return `/index.html#/dnd/engine-query-test?${query}`;
-}
 
 test(
   "for reorder creates extra placeholder rows based on draggable height",
@@ -405,6 +400,37 @@ test(
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "when item is inserted to 2-column layout its default width is adjusted",
+  setupTest(
+    // X,Y items have min columns = 2 and min rows = 4.
+    makeQueryUrl([], ["X", "Y"]),
+    DndPageObject,
+    async (page) => {
+      await page.setWindowSize({ width: 1200, height: 800 });
+
+      await page.focus(paletteItemDragHandle("X"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowLeft"]);
+      await page.keys(["Enter"]);
+      await expect(page.getGrid(2)).resolves.toEqual([
+        [" ", "X"],
+        [" ", "X"],
+        [" ", "X"],
+        [" ", "X"],
+      ]);
+
+      await page.dragAndDropTo(paletteItemDragHandle("Y"), boardItemDragHandle("X"));
+      await expect(page.getGrid(2)).resolves.toEqual([
+        ["X", "Y"],
+        ["X", "Y"],
+        ["X", "Y"],
+        ["X", "Y"],
       ]);
     }
   )

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, test } from "vitest";
 import createWrapper from "../../../lib/components/test-utils/selectors";
-import { setupTest } from "../../setup-test";
+import { makeQueryUrl, setupTest } from "../../utils";
 import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
@@ -10,11 +10,6 @@ const itemsPaletteWrapper = createWrapper().findItemsPalette();
 const boardItemDragHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemDragHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
-
-function makeQueryUrl(layout: string[][], palette: string[]) {
-  const query = `layout=${JSON.stringify(layout)}&palette=${JSON.stringify(palette)}`;
-  return `/index.html#/dnd/engine-query-test?${query}`;
-}
 
 describe("items reordered with keyboard", () => {
   test(
