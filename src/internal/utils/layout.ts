@@ -52,14 +52,15 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 export function exportItemsLayout<D>(
   layoutShift: LayoutShift,
   sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[],
-  columns: number
+  currentColumns: number,
+  targetColumns: number
 ): readonly BoardItemDefinition<D>[] {
   // No changes are needed when no moves are committed.
   if (layoutShift.moves.length === 0) {
     return sourceItems as BoardItemDefinition<D>[];
   }
 
-  const itemById = new Map(sourceItems.map((item) => [item.id, item]));
+  const itemById = new Map(sourceItems.map((item, index) => [item.id, { index, item }]));
   const getItem = (itemId: ItemId) => {
     const item = itemById.get(itemId);
     if (!item) {
@@ -69,50 +70,98 @@ export function exportItemsLayout<D>(
   };
 
   const sortedLayout = layoutShift.next.items.slice().sort(itemComparator);
-
-  const resizeTargets = new Set(layoutShift.moves.filter((m) => m.type === "RESIZE").map((m) => m.itemId));
-  const moveTargets = new Set(
-    layoutShift.moves.filter((m) => m.type !== "RESIZE" && m.type !== "FLOAT").map((m) => m.itemId)
-  );
-
+  const resizeTarget = getResizeTarget(layoutShift);
+  const colAffordance = Array(COLUMNS_DEFAULT * 2).fill(0);
   const boardItems: BoardItemDefinition<D>[] = [];
-  for (const { id, x, width, height } of sortedLayout) {
-    const item = getItem(id);
 
-    // Column offset and column span values are taken as is from the layout shift for default layout but kept unchanged for mobile and tablet layout.
-    // That means that the layout updates applied when in mobile or tablet layout are only partially applied.
-    let columnOffset = x;
-    let columnSpan = width;
-    if (columns === COLUMNS_XS || columns === COLUMNS_M) {
-      columnOffset = "columnOffset" in item ? item.columnOffset : x;
-      columnSpan = "columnSpan" in item ? item.columnSpan : getDefaultItemSize(item).width;
+  function getColumnSpan(item: BoardItemDefinitionBase<D> | BoardItemDefinition<D>, width: number) {
+    if (item.id === resizeTarget) {
+      return Math.round(width * (targetColumns / currentColumns));
     }
-
-    // Partial items update when a change is made in tablet layout.
-    if (columns === COLUMNS_M) {
-      // When resize happens only update target item's column/row span.
-      // Other layout changes will be automatically adjusted from the items structure.
-      if (resizeTargets.has(id)) {
-        columnSpan = width * 2;
-      }
-      // When move/resize happens and no more than two items are affected (assuming simple swap) only update those.
-      // In that case we can likely maintain the original layout in an acceptable state.
-      else if (resizeTargets.size === 0 && moveTargets.size <= 2) {
-        if (moveTargets.has(id)) {
-          columnOffset = x * 2;
-          columnSpan = width * 2;
-        }
-      }
-      // When there are more than two items moved "scale" the 2-column layout to default.
-      else if (resizeTargets.size === 0) {
-        columnOffset = x * 2;
-        columnSpan = width * 2;
-      }
-    }
-
-    boardItems.push({ ...item, columnOffset, columnSpan, rowSpan: height });
+    return "columnSpan" in item ? item.columnSpan : getDefaultItemSize(item).width;
   }
+
+  function getColumnOffset(item: BoardItemDefinitionBase<D> | BoardItemDefinition<D>) {
+    return "columnOffset" in item ? item.columnOffset : 0;
+  }
+
+  function findNextColumnOffset(currentColumnOffset: number, columnSpan: number, rowSpan: number): number {
+    const maxRowOffset = Math.max(...colAffordance);
+
+    for (
+      let attemptedColumnOffset = currentColumnOffset;
+      attemptedColumnOffset <= targetColumns - columnSpan;
+      attemptedColumnOffset++
+    ) {
+      let attemptedMaxRowOffset = 0;
+      for (let spanIndex = 0; spanIndex < columnSpan; spanIndex++) {
+        attemptedMaxRowOffset = Math.max(
+          attemptedMaxRowOffset,
+          colAffordance[attemptedColumnOffset + spanIndex] + rowSpan
+        );
+      }
+      if (attemptedMaxRowOffset <= maxRowOffset) {
+        return attemptedColumnOffset;
+      }
+    }
+
+    return currentColumnOffset;
+  }
+
+  // Translate layout shift result to the items directly if current layout matches target layout.
+  if (currentColumns === targetColumns) {
+    for (const { id, x, width, height } of sortedLayout) {
+      boardItems.push({ ...getItem(id).item, columnOffset: x, columnSpan: width, rowSpan: height });
+    }
+  }
+  // Otherwise - re-create target layout maintaining item indices when possible.
+  else {
+    let currentColumnOffset = 0;
+    let keepOriginalOffset = true;
+
+    for (let index = 0; index < sortedLayout.length; index++) {
+      const { id, height: rowSpan, width } = sortedLayout[index];
+      const { index: originalIndex, item } = getItem(id);
+      const columnSpan = getColumnSpan(item, width);
+
+      // Can't preserve original item locations after the first discrepancy.
+      if (index !== originalIndex) {
+        keepOriginalOffset = false;
+      }
+
+      const columnOffset = keepOriginalOffset
+        ? getColumnOffset(item)
+        : findNextColumnOffset(currentColumnOffset, columnSpan, rowSpan);
+      currentColumnOffset = columnOffset + columnSpan < targetColumns ? columnOffset + columnSpan : 0;
+
+      for (let columnIndex = columnOffset; columnIndex < columnOffset + columnSpan; columnIndex++) {
+        colAffordance[columnIndex] += rowSpan;
+      }
+
+      // Resized item can keep its original offset but the following items need to adapt.
+      if (item.id === resizeTarget) {
+        keepOriginalOffset = false;
+      }
+
+      boardItems.push({ ...item, columnOffset, columnSpan, rowSpan });
+    }
+  }
+
   return boardItems;
+}
+
+/**
+ * Returns ID of an item which width has been changed or null of no such item exists.
+ */
+function getResizeTarget(layoutShift: LayoutShift): null | ItemId {
+  const resizeTarget = layoutShift.moves.find((m) => m.type === "RESIZE")?.itemId ?? null;
+  if (!resizeTarget) {
+    return null;
+  }
+
+  const originalItem = layoutShift.current.items.find((it) => it.id === resizeTarget)!;
+  const nextItem = layoutShift.next.items.find((it) => it.id === resizeTarget)!;
+  return originalItem.width !== nextItem.width ? resizeTarget : null;
 }
 
 export function getMinItemSize(item: BoardItemDefinitionBase<unknown>) {

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import Header from "@cloudscape-design/components/header";
-import { Board, BoardItem } from "../../lib/components";
+import { Board, BoardItem, BoardProps } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { demoWidgets } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
@@ -12,6 +12,10 @@ const position = (columnOffset: number, columnSpan: number, rowSpan: number) => 
   columnSpan,
   rowSpan,
 });
+
+function toItems<T>(defaultItems: BoardProps.Item<T>[]): BoardProps.Items<T> {
+  return { xs: defaultItems, m: defaultItems, xl: defaultItems, default: defaultItems };
+}
 
 const responsive = demoWidgets.responsive!.data;
 const large = demoWidgets.large!.data;
@@ -29,7 +33,7 @@ export default function WidgetContainerPermutations() {
               {item.data.content}
             </BoardItem>
           )}
-          items={[
+          items={toItems([
             // simple 1x1
             { id: "responsive-11", data: responsive, ...position(0, 1, 1) },
             { id: "large-11", data: large, ...position(1, 1, 1) },
@@ -47,7 +51,7 @@ export default function WidgetContainerPermutations() {
             { id: "all-metrics-11", data: allMetrics, ...position(0, 1, 1) },
             { id: "all-metrics-12", data: allMetrics, ...position(1, 1, 2) },
             { id: "all-metrics-22", data: allMetrics, ...position(2, 2, 2) },
-          ]}
+          ])}
           empty="No items"
           onItemsChange={() => {
             /*readonly grid*/

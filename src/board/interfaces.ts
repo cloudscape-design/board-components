@@ -38,7 +38,7 @@ export interface BoardProps<D = DataFallbackType> {
    * * `columnSpan` (number) - the item's vertical size starting from one. The value is updated by `onItemsChange` after an update is committed.
    * * `data` (D) - optional item data which can include the specific configurations of an item, such as its title.
    */
-  items: ReadonlyArray<BoardProps.Item<D>>;
+  items: BoardProps.Items<D>;
 
   /**
    * Specifies a function to render content for board items. The return value must include board item component.
@@ -86,6 +86,13 @@ export interface BoardProps<D = DataFallbackType> {
 }
 
 export namespace BoardProps {
+  export interface Items<D = DataFallbackType> {
+    xs: ReadonlyArray<Item<D>>;
+    m: ReadonlyArray<Item<D>>;
+    xl: ReadonlyArray<Item<D>>;
+    default: ReadonlyArray<Item<D>>;
+  }
+
   export type Item<D = DataFallbackType> = BoardItemDefinition<D>;
 
   export interface ItemActions {
@@ -93,7 +100,7 @@ export namespace BoardProps {
   }
 
   export interface ItemsChangeDetail<D = DataFallbackType> {
-    items: ReadonlyArray<Item<D>>;
+    items: Items<D>;
     addedItem?: Item<D>;
     removedItem?: Item<D>;
   }

@@ -6,9 +6,11 @@ import { useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import {
   BREAKPOINT_M,
+  BREAKPOINT_XL,
   BREAKPOINT_XS,
   COLUMNS_DEFAULT,
   COLUMNS_M,
+  COLUMNS_XL,
   COLUMNS_XS,
   TRANSITION_DURATION_MS,
 } from "../internal/constants";
@@ -32,10 +34,10 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 
-const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, default: COLUMNS_DEFAULT };
+const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
-  items,
+  items: allItems,
   renderItem,
   onItemsChange,
   empty,
@@ -50,6 +52,9 @@ export function InternalBoard<D>({
     if (entry.contentBoxWidth < BREAKPOINT_M) {
       return "m";
     }
+    if (entry.contentBoxWidth < BREAKPOINT_XL) {
+      return "xl";
+    }
     return "default";
   }, []);
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
@@ -63,6 +68,8 @@ export function InternalBoard<D>({
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
+
+  let items = allItems[containerSize ?? "default"];
 
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
@@ -160,17 +167,25 @@ export function InternalBoard<D>({
       return null;
     }
 
-    // Commit new layout for insert case.
-    if (transition.operation === "insert") {
-      const newItems = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], columns);
-      const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
-    }
-    // Commit new layout for reorder/resize case.
-    else {
-      const newItems = exportItemsLayout(transition.layoutShift, items, columns);
-      onItemsChange(createCustomEvent({ items: newItems }));
-    }
+    const newItems = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], columns, columns);
+    const matchedItem = newItems.find((item) => item.id === transition.draggableItem.id);
+    const addedItem = transition.operation === "insert" ? matchedItem! : undefined;
+    onItemsChange(
+      createCustomEvent({
+        items: {
+          xs: exportItemsLayout(transition.layoutShift, [...allItems.xs, transition.draggableItem], columns, 1),
+          m: exportItemsLayout(transition.layoutShift, [...allItems.m, transition.draggableItem], columns, 2),
+          xl: exportItemsLayout(transition.layoutShift, [...allItems.xl, transition.draggableItem], columns, 4),
+          default: exportItemsLayout(
+            transition.layoutShift,
+            [...allItems.default, transition.draggableItem],
+            columns,
+            6
+          ),
+        },
+        addedItem,
+      })
+    );
   });
 
   useDragSubscription("discard", () => {
@@ -199,7 +214,17 @@ export function InternalBoard<D>({
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    onItemsChange(createCustomEvent({ items: items.filter((it) => it !== removedItem), removedItem }));
+    onItemsChange(
+      createCustomEvent({
+        items: {
+          xs: allItems.xs.filter((it) => it !== removedItem),
+          m: allItems.m.filter((it) => it !== removedItem),
+          xl: allItems.xl.filter((it) => it !== removedItem),
+          default: allItems.default.filter((it) => it !== removedItem),
+        },
+        removedItem,
+      })
+    );
   };
 
   function focusItem(itemId: ItemId) {

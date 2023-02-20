@@ -5,11 +5,15 @@ export const BREAKPOINT_XS = 688;
 
 export const BREAKPOINT_M = 1120;
 
+export const BREAKPOINT_XL = 1840;
+
 export const COLUMNS_XS = 1;
 
 export const COLUMNS_M = 2;
 
-export const COLUMNS_DEFAULT = 4;
+export const COLUMNS_XL = 4;
+
+export const COLUMNS_DEFAULT = 6;
 
 export const MIN_ROW_SPAN = 2;
 

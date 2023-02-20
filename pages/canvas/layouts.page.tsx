@@ -52,6 +52,10 @@ const nextRowItems: BoardProps.Item<any>[] = [
   },
 ];
 
+function toItems<T>(defaultItems: BoardProps.Item<T>[]): BoardProps.Items<T> {
+  return { xs: defaultItems, m: defaultItems, xl: defaultItems, default: defaultItems };
+}
+
 const noop = () => {
   /* readonly demos */
 };
@@ -64,7 +68,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={singleItem}
+            items={toItems(singleItem)}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -73,7 +77,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={spacedOutItems}
+            items={toItems(spacedOutItems)}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -82,7 +86,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={nextRowItems}
+            items={toItems(nextRowItems)}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"

@@ -13,7 +13,7 @@ import { clientI18nStrings } from "./i18n";
 
 interface WidgetsBoardProps {
   loading: boolean;
-  widgets: readonly BoardProps.Item<ItemData>[];
+  widgets: BoardProps.Items<ItemData>;
   onWidgetsChange: (detail: BoardProps.ItemsChangeDetail<ItemData>) => void;
 }
 
