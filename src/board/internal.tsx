@@ -221,7 +221,7 @@ export function InternalBoard<D>({
 
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
-          <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+          <Grid columns={columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
             {(gridContext) => {
               const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
               const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves, gridContext) : {};

@@ -11,58 +11,20 @@ $grid-col-width: minmax(0, 1fr);
   grid-auto-rows: 100px;
 }
 
-.grid[data-columns="1"] {
+.grid.columns-1 {
   grid-template-columns: $grid-col-width;
 }
 
-.grid[data-columns="2"] {
+.grid.columns-2 {
   grid-template-columns: repeat(2, $grid-col-width);
 }
 
-.grid[data-columns="4"] {
+.grid.columns-4 {
   grid-template-columns: repeat(4, $grid-col-width);
 }
 
-.grid[data-columns="6"] {
+.grid.columns-6 {
   grid-template-columns: repeat(6, $grid-col-width);
-}
-
-$columns: 6;
-
-@for $i from 1 through $columns {
-  .grid[data-columns="1"] > .grid__item[data-column-span="#{$i}"] {
-    grid-column-end: span 1;
-  }
-
-  .grid[data-columns="2"] > .grid__item[data-column-span="#{$i}"] {
-    grid-column-end: span $i;
-  }
-
-  .grid[data-columns="4"] > .grid__item[data-column-span="#{$i}"] {
-    grid-column-end: span $i;
-  }
-
-  .grid[data-columns="6"] > .grid__item[data-column-span="#{$i}"] {
-    grid-column-end: span $i;
-  }
-}
-
-@for $i from 1 through $columns {
-  .grid[data-columns="1"] > .grid__item[data-column-offset="#{$i}"] {
-    grid-column-start: 1;
-  }
-
-  .grid[data-columns="2"] > .grid__item[data-column-offset="#{$i}"] {
-    grid-column-start: $i;
-  }
-
-  .grid[data-columns="4"] > .grid__item[data-column-offset="#{$i}"] {
-    grid-column-start: $i;
-  }
-
-  .grid[data-columns="6"] > .grid__item[data-column-offset="#{$i}"] {
-    grid-column-start: $i;
-  }
 }
 
 .grid__item {
