@@ -2,15 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Button, ButtonDropdown, SpaceBetween } from "@cloudscape-design/components";
 import Header from "@cloudscape-design/components/header";
-import { Board, BoardItem, BoardProps } from "../../lib/components";
+import { Board, BoardItem } from "../../lib/components";
 import PageLayout from "../app/page-layout";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
-
-function toItems<T>(defaultItems: BoardProps.Item<T>[]): BoardProps.Items<T> {
-  return { xs: defaultItems, m: defaultItems, xl: defaultItems, default: defaultItems };
-}
+import { createItemsBreakpoints } from "../utils/items";
 
 const fullWidthItem = {
   columnOffset: 0,
@@ -28,7 +25,7 @@ export default function WidgetContainerPermutations() {
           onItemsChange={() => {
             /*readonly grid*/
           }}
-          items={toItems([
+          items={createItemsBreakpoints([
             {
               id: "1",
               ...fullWidthItem,

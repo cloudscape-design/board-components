@@ -6,6 +6,7 @@ import { Board, BoardProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
 import { boardI18nStrings } from "../shared/i18n";
+import { createItemsBreakpoints } from "../utils/items";
 import classnames from "./layouts.module.css";
 
 const singleItem: BoardProps.Item<any>[] = [
@@ -52,10 +53,6 @@ const nextRowItems: BoardProps.Item<any>[] = [
   },
 ];
 
-function toItems<T>(defaultItems: BoardProps.Item<T>[]): BoardProps.Items<T> {
-  return { xs: defaultItems, m: defaultItems, xl: defaultItems, default: defaultItems };
-}
-
 const noop = () => {
   /* readonly demos */
 };
@@ -68,7 +65,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={toItems(singleItem)}
+            items={createItemsBreakpoints(singleItem)}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -77,7 +74,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={toItems(spacedOutItems)}
+            items={createItemsBreakpoints(spacedOutItems)}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -86,7 +83,7 @@ export default function BoardPage() {
         <TestBed>
           <Board
             i18nStrings={boardI18nStrings}
-            items={toItems(nextRowItems)}
+            items={createItemsBreakpoints(nextRowItems)}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"

@@ -11,6 +11,10 @@ interface ItemData {
   title: string;
 }
 
+function createItemsBreakpoints<T>(defaultItems: BoardProps.Item<T>[]): BoardProps.Items<T> {
+  return { xs: defaultItems, m: defaultItems, xl: defaultItems, default: defaultItems };
+}
+
 const i18nStrings: BoardProps.I18nStrings<ItemData> = {
   liveAnnouncementDndStarted() {
     return "Operation started";
@@ -51,7 +55,7 @@ describe("Board", () => {
   test("renders empty board", () => {
     render(
       <Board
-        items={[]}
+        items={createItemsBreakpoints<ItemData>([])}
         renderItem={() => <>{null}</>}
         onItemsChange={() => undefined}
         i18nStrings={i18nStrings}
@@ -66,10 +70,10 @@ describe("Board", () => {
   test("renders board with items", () => {
     render(
       <Board
-        items={[
+        items={createItemsBreakpoints([
           { id: "1", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 1" } },
           { id: "2", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 2" } },
-        ]}
+        ])}
         renderItem={(item) => <div>{item.data.title}</div>}
         onItemsChange={() => undefined}
         i18nStrings={i18nStrings}
@@ -84,10 +88,10 @@ describe("Board", () => {
   test("pressing 'Escape' when there is no transition does not cause errors", () => {
     render(
       <Board
-        items={[
+        items={createItemsBreakpoints([
           { id: "1", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 1" } },
           { id: "2", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 2" } },
-        ]}
+        ])}
         renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
         onItemsChange={() => undefined}
         i18nStrings={i18nStrings}

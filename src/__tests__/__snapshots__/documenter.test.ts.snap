@@ -22,7 +22,7 @@ The change detail has the following properties:
           {
             "name": "items",
             "optional": false,
-            "type": "ReadonlyArray<BoardProps.Item<D>>",
+            "type": "BoardProps.Items<D>",
           },
           {
             "name": "removedItem",
@@ -129,9 +129,35 @@ The BoardProps.Item includes:
 * \`columnSpan\` (number) - the item's vertical size starting from one. The value is updated by \`onItemsChange\` after an update is committed.
 * \`data\` (D) - optional item data which can include the specific configurations of an item, such as its title.
 ",
+      "inlineType": {
+        "name": "BoardProps.Items",
+        "properties": [
+          {
+            "name": "default",
+            "optional": false,
+            "type": "ReadonlyArray<BoardProps.Item<D>>",
+          },
+          {
+            "name": "m",
+            "optional": false,
+            "type": "ReadonlyArray<BoardProps.Item<D>>",
+          },
+          {
+            "name": "xl",
+            "optional": false,
+            "type": "ReadonlyArray<BoardProps.Item<D>>",
+          },
+          {
+            "name": "xs",
+            "optional": false,
+            "type": "ReadonlyArray<BoardProps.Item<D>>",
+          },
+        ],
+        "type": "object",
+      },
       "name": "items",
       "optional": false,
-      "type": "ReadonlyArray<BoardProps.Item<D>>",
+      "type": "BoardProps.Items<D>",
     },
     {
       "description": "Specifies a function to render content for board items. The return value must include board item component.

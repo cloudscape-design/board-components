@@ -74,10 +74,7 @@ export function exportItemsLayout<D>(
   const colAffordance = Array(COLUMNS_DEFAULT * 2).fill(0);
   const boardItems: BoardItemDefinition<D>[] = [];
 
-  function getColumnSpan(item: BoardItemDefinitionBase<D> | BoardItemDefinition<D>, width: number) {
-    if (item.id === resizeTarget) {
-      return Math.round(width * (targetColumns / currentColumns));
-    }
+  function getColumnSpan(item: BoardItemDefinitionBase<D> | BoardItemDefinition<D>) {
     return "columnSpan" in item ? item.columnSpan : getDefaultItemSize(item).width;
   }
 
@@ -122,13 +119,17 @@ export function exportItemsLayout<D>(
     for (let index = 0; index < sortedLayout.length; index++) {
       const { id, height: rowSpan, width } = sortedLayout[index];
       const { index: originalIndex, item } = getItem(id);
-      const columnSpan = getColumnSpan(item, width);
+
+      // Column span is only updated when the item width has been changed.
+      const columnSpan =
+        item.id === resizeTarget ? Math.round(width * (targetColumns / currentColumns)) : getColumnSpan(item);
 
       // Can't preserve original item locations after the first discrepancy.
       if (index !== originalIndex) {
         keepOriginalOffset = false;
       }
 
+      // Use original column offset or find the best alternative offset to keep the order and reduce the gaps.
       const columnOffset = keepOriginalOffset
         ? getColumnOffset(item)
         : findNextColumnOffset(currentColumnOffset, columnSpan, rowSpan);
@@ -154,14 +155,12 @@ export function exportItemsLayout<D>(
  * Returns ID of an item which width has been changed or null of no such item exists.
  */
 function getResizeTarget(layoutShift: LayoutShift): null | ItemId {
-  const resizeTarget = layoutShift.moves.find((m) => m.type === "RESIZE")?.itemId ?? null;
+  const resizeTarget = layoutShift.moves.find((m) => m.type === "RESIZE") ?? null;
   if (!resizeTarget) {
     return null;
   }
-
-  const originalItem = layoutShift.current.items.find((it) => it.id === resizeTarget)!;
-  const nextItem = layoutShift.next.items.find((it) => it.id === resizeTarget)!;
-  return originalItem.width !== nextItem.width ? resizeTarget : null;
+  const originalItem = layoutShift.current.items.find((it) => it.id === resizeTarget.itemId)!;
+  return originalItem.width !== resizeTarget.width ? resizeTarget.itemId : null;
 }
 
 export function getMinItemSize(item: BoardItemDefinitionBase<unknown>) {
