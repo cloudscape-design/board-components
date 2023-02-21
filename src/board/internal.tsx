@@ -167,21 +167,19 @@ export function InternalBoard<D>({
       return null;
     }
 
-    const newItems = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], columns, columns);
+    const getItems = (items: readonly BoardProps.Item<D>[]) =>
+      transition.operation === "insert" ? [...items, transition.draggableItem] : items;
+
+    const newItems = exportItemsLayout(transition.layoutShift, getItems(items), columns, columns);
     const matchedItem = newItems.find((item) => item.id === transition.draggableItem.id);
     const addedItem = transition.operation === "insert" ? matchedItem! : undefined;
     onItemsChange(
       createCustomEvent({
         items: {
-          xs: exportItemsLayout(transition.layoutShift, [...allItems.xs, transition.draggableItem], columns, 1),
-          m: exportItemsLayout(transition.layoutShift, [...allItems.m, transition.draggableItem], columns, 2),
-          xl: exportItemsLayout(transition.layoutShift, [...allItems.xl, transition.draggableItem], columns, 4),
-          default: exportItemsLayout(
-            transition.layoutShift,
-            [...allItems.default, transition.draggableItem],
-            columns,
-            6
-          ),
+          xs: exportItemsLayout(transition.layoutShift, getItems(allItems.xs), columns, 1),
+          m: exportItemsLayout(transition.layoutShift, getItems(allItems.m), columns, 2),
+          xl: exportItemsLayout(transition.layoutShift, getItems(allItems.xl), columns, 4),
+          default: exportItemsLayout(transition.layoutShift, getItems(allItems.default), columns, 6),
         },
         addedItem,
       })
