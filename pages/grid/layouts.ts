@@ -66,7 +66,7 @@ export const cross: GridLayoutItem[] = [
 export const board: GridLayoutItem[] = [
   { id: "extralarge-1", x: 0, width: 4, height: 1, y: 0 },
   { id: "large-1", x: 0, width: 3, height: 3, y: 1 },
-  { id: "small-1", x: 4, width: 1, height: 3, y: 1 },
+  { id: "small-1", x: 3, width: 1, height: 3, y: 1 },
   { id: "medium-1", x: 0, width: 2, height: 3, y: 4 },
   { id: "medium-2", x: 2, width: 2, height: 3, y: 4 },
   { id: "small-2", x: 0, width: 1, height: 3, y: 7 },
