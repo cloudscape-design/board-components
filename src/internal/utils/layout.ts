@@ -102,7 +102,7 @@ export function exportItemsLayout<D>(
       }
     }
 
-    return currentColumnOffset;
+    return currentColumnOffset + columnSpan <= targetColumns ? currentColumnOffset : 0;
   }
 
   // Translate layout shift result to the items directly if current layout matches target layout.

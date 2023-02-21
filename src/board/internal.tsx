@@ -215,10 +215,10 @@ export function InternalBoard<D>({
     onItemsChange(
       createCustomEvent({
         items: {
-          xs: allItems.xs.filter((it) => it !== removedItem),
-          m: allItems.m.filter((it) => it !== removedItem),
-          xl: allItems.xl.filter((it) => it !== removedItem),
-          default: allItems.default.filter((it) => it !== removedItem),
+          xs: allItems.xs.filter((it) => it.id !== removedItem.id),
+          m: allItems.m.filter((it) => it.id !== removedItem.id),
+          xl: allItems.xl.filter((it) => it.id !== removedItem.id),
+          default: allItems.default.filter((it) => it.id !== removedItem.id),
         },
         removedItem,
       })
