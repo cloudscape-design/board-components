@@ -37,7 +37,7 @@ import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
-  items: allItems,
+  items,
   renderItem,
   onItemsChange,
   empty,
@@ -68,8 +68,6 @@ export function InternalBoard<D>({
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
-
-  let items = allItems[containerSize ?? "default"];
 
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
@@ -170,20 +168,10 @@ export function InternalBoard<D>({
     const getItems = (items: readonly BoardProps.Item<D>[]) =>
       transition.operation === "insert" ? [...items, transition.draggableItem] : items;
 
-    const newItems = exportItemsLayout(transition.layoutShift, getItems(items), columns, columns);
+    const newItems = exportItemsLayout(transition.layoutShift, getItems(items));
     const matchedItem = newItems.find((item) => item.id === transition.draggableItem.id);
     const addedItem = transition.operation === "insert" ? matchedItem! : undefined;
-    onItemsChange(
-      createCustomEvent({
-        items: {
-          xs: exportItemsLayout(transition.layoutShift, getItems(allItems.xs), columns, 1),
-          m: exportItemsLayout(transition.layoutShift, getItems(allItems.m), columns, 2),
-          xl: exportItemsLayout(transition.layoutShift, getItems(allItems.xl), columns, 4),
-          default: exportItemsLayout(transition.layoutShift, getItems(allItems.default), columns, 6),
-        },
-        addedItem,
-      })
-    );
+    onItemsChange(createCustomEvent({ items: newItems, addedItem }));
   });
 
   useDragSubscription("discard", () => {
@@ -214,12 +202,7 @@ export function InternalBoard<D>({
 
     onItemsChange(
       createCustomEvent({
-        items: {
-          xs: allItems.xs.filter((it) => it.id !== removedItem.id),
-          m: allItems.m.filter((it) => it.id !== removedItem.id),
-          xl: allItems.xl.filter((it) => it.id !== removedItem.id),
-          default: allItems.default.filter((it) => it.id !== removedItem.id),
-        },
+        items: items.filter((it) => it.id !== removedItem.id),
         removedItem,
       })
     );

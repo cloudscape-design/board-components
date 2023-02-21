@@ -27,7 +27,6 @@ import {
 import { useGridContext } from "../grid-context";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
 import { useStableEventHandler } from "../utils/use-stable-event-handler";
 import { useThrottledEventHandler } from "../utils/use-throttled-event-handler";
@@ -132,7 +131,8 @@ function ItemContainerComponent(
       const pointerOffset = pointerOffsetRef.current;
 
       if (operation === "resize") {
-        const itemMinSize = getMinItemSize(draggableItem);
+        // TODO: fix this
+        const itemMinSize = { width: 1, height: 2 };
         setTransition((transition) => ({
           operation,
           interactionType,
@@ -298,7 +298,8 @@ function ItemContainerComponent(
     originalSizeRef.current = { width: rect.width, height: rect.height };
 
     // Calculate boundaries below which the cursor cannot move.
-    const itemMinSize = getMinItemSize(item);
+    // TODO: fix these
+    const itemMinSize = { width: 1, height: 2 };
     const minWidth = gridContext?.getWidth(itemMinSize.width) ?? 0;
     const minHeight = gridContext?.getHeight(itemMinSize.height) ?? 0;
     pointerBoundariesRef.current = new Coordinates({

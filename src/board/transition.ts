@@ -5,7 +5,7 @@ import { InteractionType, Operation } from "../internal/dnd-controller/controlle
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { getMinItemSize } from "../internal/utils/layout";
+import { getMinItemColumns, getMinItemRows } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
@@ -255,11 +255,12 @@ function updateTransitionWithKeyboardEvent<D>(
     // Check resizing below min size.
     const layout = transition.layoutShift?.next ?? transition.itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const minSize = getMinItemSize(transition.draggableItem);
+    const minColumns = getMinItemColumns(transition.draggableItem, transition.itemsLayout.columns);
+    const minRows = getMinItemRows(transition.draggableItem);
     if (
       transition.operation === "resize" &&
       layoutItem &&
-      (layoutItem.width + xDelta < minSize.width || layoutItem.height + yDelta < minSize.height)
+      (layoutItem.width + xDelta < minColumns || layoutItem.height + yDelta < minRows)
     ) {
       return state;
     }
@@ -315,8 +316,8 @@ function acquireTransitionItem<D>(
 
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
-  // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
-  const acquiredItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
+  // The offset, width and rows are of no use as of being overridden by the layout shift.
+  const acquiredItem = { ...transition.draggableItem, offset: 0, width: 1 / 6, rows: 1 };
 
   const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), layoutShift, path, acquiredItem };
   return {

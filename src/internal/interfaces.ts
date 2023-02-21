@@ -9,18 +9,18 @@ export type DataFallbackType = Record<string, unknown>;
 export interface BoardItemDefinitionBase<D = DataFallbackType> {
   id: ItemId;
   definition?: {
-    minRowSpan?: number;
-    minColumnSpan?: number;
-    defaultRowSpan?: number;
-    defaultColumnSpan?: number;
+    minWidth?: number;
+    defaultWidth?: number;
+    minRows?: number;
+    defaultRows?: number;
   };
   data: D;
 }
 
 export interface BoardItemDefinition<D = DataFallbackType> extends BoardItemDefinitionBase<D> {
-  columnOffset: number;
-  rowSpan: number;
-  columnSpan: number;
+  offset: number;
+  width: number;
+  rows: number;
 }
 
 // Internal grid item representation used for position calculations.

@@ -7,7 +7,6 @@ import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
-import { createItemsBreakpoints } from "../utils/items";
 
 export default function GridWithWidgetContainerPage() {
   return (
@@ -16,19 +15,19 @@ export default function GridWithWidgetContainerPage() {
         <TestBed>
           <Board<ItemData>
             i18nStrings={i18nStrings.boardI18nStrings}
-            items={createItemsBreakpoints([
+            items={[
               {
                 id: "1",
-                columnOffset: 0,
-                columnSpan: 2,
-                rowSpan: 1,
+                offset: 0,
+                width: 1 / 2,
+                rows: 1,
                 data: { title: "One", description: "", content: "Content Area" },
               },
               {
                 id: "2",
-                columnOffset: 2,
-                columnSpan: 1,
-                rowSpan: 1,
+                offset: 2 / 4,
+                width: 1 / 6,
+                rows: 1,
                 data: {
                   title: "Two",
                   description: "",
@@ -37,26 +36,26 @@ export default function GridWithWidgetContainerPage() {
               },
               {
                 id: "3",
-                columnOffset: 3,
-                columnSpan: 1,
-                rowSpan: 1,
+                offset: 3 / 4,
+                width: 1 / 6,
+                rows: 1,
                 data: { title: "Three", description: "", content: "Content Area" },
               },
               {
                 id: "4",
-                columnOffset: 0,
-                columnSpan: 1,
-                rowSpan: 1,
+                offset: 0,
+                width: 1 / 6,
+                rows: 1,
                 data: { title: "Four", description: "", content: "Content Area" },
               },
               {
                 id: "5",
-                columnOffset: 2,
-                columnSpan: 2,
-                rowSpan: 2,
+                offset: 2 / 4,
+                width: 1 / 2,
+                rows: 2,
                 data: { title: "Five", description: "", content: "Content Area" },
               },
-            ])}
+            ]}
             renderItem={(item) => (
               <BoardItem
                 header={<Header variant="h2">{item.data.title}</Header>}

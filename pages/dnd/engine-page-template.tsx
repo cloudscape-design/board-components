@@ -17,7 +17,7 @@ export function EnginePageTemplate({
   widgets,
   layout = "grid",
 }: {
-  initialBoardItems: BoardProps.Items<ItemData>;
+  initialBoardItems: readonly BoardProps.Item<ItemData>[];
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";

@@ -8,7 +8,6 @@ import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { getDefaultItemSize } from "../internal/utils/layout";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
@@ -100,8 +99,9 @@ export function InternalItemsPalette<D>({
               acquired={false}
               transform={undefined}
               inTransition={false}
-              itemSize={getDefaultItemSize(item)}
-              itemMaxSize={getDefaultItemSize(item)}
+              // TODO: fix these
+              itemSize={{ width: 1, height: 1 }}
+              itemMaxSize={{ width: 1, height: 1 }}
             >
               {renderItem(item, {
                 showPreview: dropState?.id === item.id && dropState.isExpanded,

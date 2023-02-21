@@ -19,7 +19,7 @@ export default function Page() {
 
   useEffect(() => {
     if (boardWidgetsLoading) {
-      setBoardWidgets({ xs: [], m: [], xl: [], default: [] });
+      setBoardWidgets([]);
 
       const timeoutId = setTimeout(() => {
         setBoardWidgetsLoading(false);

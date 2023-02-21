@@ -7,13 +7,8 @@ import PageLayout from "../app/page-layout";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
-import { createItemsBreakpoints } from "../utils/items";
 
-const fullWidthItem = {
-  columnOffset: 0,
-  columnSpan: 4,
-  rowSpan: 1,
-};
+const fullWidthItem = { offset: 0, width: 1, rows: 1 };
 
 export default function WidgetContainerPermutations() {
   return (
@@ -25,7 +20,7 @@ export default function WidgetContainerPermutations() {
           onItemsChange={() => {
             /*readonly grid*/
           }}
-          items={createItemsBreakpoints([
+          items={[
             {
               id: "1",
               ...fullWidthItem,
@@ -184,7 +179,7 @@ export default function WidgetContainerPermutations() {
                 ),
               },
             },
-          ])}
+          ]}
           empty="No items"
         />
       </PageLayout>
