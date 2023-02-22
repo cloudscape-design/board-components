@@ -11,9 +11,9 @@ import classnames from "./layouts.module.css";
 const singleItem: BoardProps.Item<any>[] = [
   {
     id: "1-1",
-    width: 1 / 6,
-    rows: 1,
-    offset: 0,
+    columnSpan: 10,
+    rowSpan: 1,
+    columnOffset: 0,
     data: {},
   },
 ];
@@ -21,16 +21,16 @@ const singleItem: BoardProps.Item<any>[] = [
 const spacedOutItems: BoardProps.Item<any>[] = [
   {
     id: "2-1",
-    width: 1 / 6,
-    rows: 1,
-    offset: 0,
+    columnSpan: 10,
+    rowSpan: 1,
+    columnOffset: 0,
     data: {},
   },
   {
     id: "2-2",
-    width: 1 / 6,
-    rows: 1,
-    offset: 3 / 4,
+    columnSpan: 10,
+    rowSpan: 1,
+    columnOffset: 50,
     data: {},
   },
 ];
@@ -38,16 +38,16 @@ const spacedOutItems: BoardProps.Item<any>[] = [
 const nextRowItems: BoardProps.Item<any>[] = [
   {
     id: "3-1",
-    width: 2 / 6,
-    rows: 1,
-    offset: 0,
+    columnSpan: 33,
+    rowSpan: 1,
+    columnOffset: 0,
     data: {},
   },
   {
     id: "3-2",
-    width: 1 / 6,
-    rows: 1,
-    offset: 0,
+    columnSpan: 10,
+    rowSpan: 1,
+    columnOffset: 0,
     data: {},
   },
 ];

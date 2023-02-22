@@ -7,7 +7,7 @@ import { demoWidgets } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 
-const position = (offset: number, width: number, rows: number) => ({ offset, width, rows });
+const position = (columnOffset: number, columnSpan: number, rowSpan: number) => ({ columnOffset, columnSpan, rowSpan });
 
 const responsive = demoWidgets.responsive!.data;
 const large = demoWidgets.large!.data;
@@ -27,22 +27,22 @@ export default function WidgetContainerPermutations() {
           )}
           items={[
             // simple 1x1
-            { id: "responsive-11", data: responsive, ...position(0, 1 / 6, 1) },
-            { id: "large-11", data: large, ...position(1 / 4, 1 / 6, 1) },
-            { id: "scrollable-11", data: scrollable, ...position(0, 1 / 6, 1) },
+            { id: "responsive-11", data: responsive, ...position(0, 10, 1) },
+            { id: "large-11", data: large, ...position(0, 10, 1) },
+            { id: "scrollable-11", data: scrollable, ...position(0, 10, 1) },
             // simple 1x2
-            { id: "large-12", data: large, ...position(2 / 4, 1 / 6, 2) },
-            { id: "scrollable-12", data: scrollable, ...position(3 / 4, 1 / 6, 2) },
+            { id: "large-12", data: large, ...position(0, 10, 2) },
+            { id: "scrollable-12", data: scrollable, ...position(0, 10, 2) },
             // simple 2x1
-            { id: "large-21", data: large, ...position(0, 1 / 2, 1) },
-            { id: "scrollable-21", data: scrollable, ...position(2 / 4, 1 / 2, 1) },
+            { id: "large-21", data: large, ...position(0, 50, 1) },
+            { id: "scrollable-21", data: scrollable, ...position(0, 50, 1) },
             // simple 2x2
-            { id: "large-22", data: large, ...position(0, 1 / 2, 2) },
-            { id: "scrollable-22", data: scrollable, ...position(2 / 4, 1 / 2, 2) },
+            { id: "large-22", data: large, ...position(0, 50, 2) },
+            { id: "scrollable-22", data: scrollable, ...position(0, 50, 2) },
             // all metrics
-            { id: "all-metrics-11", data: allMetrics, ...position(0, 1 / 6, 1) },
-            { id: "all-metrics-12", data: allMetrics, ...position(1 / 4, 1 / 6, 2) },
-            { id: "all-metrics-22", data: allMetrics, ...position(2 / 4, 1 / 2, 2) },
+            { id: "all-metrics-11", data: allMetrics, ...position(0, 10, 1) },
+            { id: "all-metrics-12", data: allMetrics, ...position(0, 10, 2) },
+            { id: "all-metrics-22", data: allMetrics, ...position(0, 50, 2) },
           ]}
           empty="No items"
           onItemsChange={() => {

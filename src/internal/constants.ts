@@ -15,8 +15,8 @@ export const COLUMNS_XL = 4;
 
 export const COLUMNS_DEFAULT = 6;
 
-export const MIN_ROWS = 2;
+export const MIN_ROW_SPAN = 2;
 
-export const MIN_WIDTH = 1 / 6;
+export const MIN_COLUMN_SPAN = 1;
 
 export const TRANSITION_DURATION_MS = 200;

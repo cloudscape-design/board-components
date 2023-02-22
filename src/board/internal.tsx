@@ -21,7 +21,13 @@ import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
-import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
+import {
+  createItemsLayout,
+  createPlaceholdersLayout,
+  exportItemsLayout,
+  getDefaultItemColumnSpan,
+  getDefaultItemRowSpan,
+} from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
@@ -166,9 +172,19 @@ export function InternalBoard<D>({
     }
 
     const getItems = (items: readonly BoardProps.Item<D>[]) =>
-      transition.operation === "insert" ? [...items, transition.draggableItem] : items;
+      transition.operation === "insert"
+        ? [
+            ...items,
+            {
+              ...transition.draggableItem,
+              columnOffset: 0,
+              columnSpan: getDefaultItemColumnSpan(transition.draggableItem),
+              rowSpan: getDefaultItemRowSpan(transition.draggableItem),
+            },
+          ]
+        : items;
 
-    const newItems = exportItemsLayout(transition.layoutShift, getItems(items));
+    const newItems = exportItemsLayout(getItems(items), transition.layoutShift);
     const matchedItem = newItems.find((item) => item.id === transition.draggableItem.id);
     const addedItem = transition.operation === "insert" ? matchedItem! : undefined;
     onItemsChange(createCustomEvent({ items: newItems, addedItem }));

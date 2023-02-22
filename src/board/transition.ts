@@ -5,7 +5,12 @@ import { InteractionType, Operation } from "../internal/dnd-controller/controlle
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { getMinItemColumns, getMinItemRows } from "../internal/utils/layout";
+import {
+  getDefaultItemColumnSpan,
+  getDefaultItemRowSpan,
+  getMinItemColumns,
+  getMinItemRowSpan,
+} from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
@@ -256,7 +261,7 @@ function updateTransitionWithKeyboardEvent<D>(
     const layout = transition.layoutShift?.next ?? transition.itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
     const minColumns = getMinItemColumns(transition.draggableItem, transition.itemsLayout.columns);
-    const minRows = getMinItemRows(transition.draggableItem);
+    const minRows = getMinItemRowSpan(transition.draggableItem);
     if (
       transition.operation === "resize" &&
       layoutItem &&
@@ -316,8 +321,12 @@ function acquireTransitionItem<D>(
 
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
-  // The offset, width and rows are of no use as of being overridden by the layout shift.
-  const acquiredItem = { ...transition.draggableItem, offset: 0, width: 1 / 6, rows: 1 };
+  const acquiredItem = {
+    ...transition.draggableItem,
+    columnOffset: 0,
+    columnSpan: getDefaultItemColumnSpan(transition.draggableItem),
+    rowSpan: getDefaultItemRowSpan(transition.draggableItem),
+  };
 
   const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), layoutShift, path, acquiredItem };
   return {

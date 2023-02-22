@@ -32,7 +32,7 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    definition: { defaultWidth: 1 / 2, defaultRows: 4, minRows: 4 },
+    definition: { defaultColumnSpan: 50, defaultRows: 4, minRows: 4 },
     data: {
       title: "Demo widget",
       description: "Most minimal widget",
@@ -40,7 +40,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   counter: {
-    definition: { defaultRows: 2, defaultWidth: 1 / 2 },
+    definition: { defaultRows: 2, defaultColumnSpan: 50 },
     data: {
       title: "Counter",
       description: "State management demo",
@@ -81,7 +81,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   revenue: {
-    definition: { defaultWidth: 1 / 6, defaultRows: 2, minWidth: 1 / 6, minRows: 2 },
+    definition: { defaultColumnSpan: 10, defaultRows: 2, minColumnSpan: 10, minRows: 2 },
     data: {
       title: "Revenue",
       description: "Revenue over time chart",
@@ -93,7 +93,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   resourceCount: {
-    definition: { defaultWidth: 1 / 6, defaultRows: 2, minWidth: 1 / 6, minRows: 2 },
+    definition: { defaultColumnSpan: 10, defaultRows: 2, minColumnSpan: 10, minRows: 2 },
     data: {
       title: "Resource count",
       description: "Resource count pie chart",
@@ -114,7 +114,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   allMetrics: {
-    definition: { defaultWidth: 1 / 2, defaultRows: 2, minWidth: 1 / 2, minRows: 2 },
+    definition: { defaultColumnSpan: 50, defaultRows: 2, minColumnSpan: 50, minRows: 2 },
     data: {
       title: "All metrics",
       description: "Revenue and resource count charts",
@@ -162,7 +162,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   events: {
-    definition: { defaultWidth: 1 / 2, defaultRows: 1, minWidth: 1 / 2, minRows: 1 },
+    definition: { defaultColumnSpan: 50, defaultRows: 1, minColumnSpan: 50, minRows: 1 },
     data: {
       title: "Events",
       description: "Service events table",
@@ -185,16 +185,16 @@ for (let i = 2; i <= 10; i++) {
 }
 
 export const storedPositions = [
-  { id: "D", offset: 0, rows: 1, width: 1 / 6 },
-  { id: "2", offset: 1, rows: 1, width: 1 / 2 },
-  { id: "3", offset: 3, rows: 1, width: 1 / 6 },
-  { id: "4", offset: 0, rows: 1, width: 1 / 6 },
-  { id: "5", offset: 1, rows: 1, width: 1 / 6 },
-  { id: "6", offset: 2, rows: 1, width: 1 / 6 },
-  { id: "7", offset: 0, rows: 1, width: 1 / 6 },
-  { id: "8", offset: 1, rows: 1, width: 1 / 6 },
-  { id: "9", offset: 2, rows: 1, width: 1 / 6 },
-  { id: "10", offset: 0, rows: 1, width: 1 / 6 },
+  { id: "D", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "2", columnOffset: 0, rowSpan: 2, columnSpan: 50 },
+  { id: "3", columnOffset: 25, rowSpan: 2, columnSpan: 10 },
+  { id: "4", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "5", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "6", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "7", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "8", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "9", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
+  { id: "10", columnOffset: 0, rowSpan: 2, columnSpan: 10 },
 ];
 
 export const demoBoardItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
@@ -216,15 +216,15 @@ export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Obj
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
   const definitions: { [letter: string]: BoardItemDefinitionBase["definition"] } = {
-    R: { defaultRows: 1, defaultWidth: 1 / 2, minRows: 1, minWidth: 1 / 2 },
-    S: { defaultRows: 1, defaultWidth: 1 / 2, minRows: 1, minWidth: 1 / 2 },
-    T: { defaultRows: 1, defaultWidth: 1 / 2, minRows: 1, minWidth: 1 / 2 },
-    U: { defaultRows: 4, defaultWidth: 1 / 6, minRows: 4, minWidth: 1 / 6 },
-    V: { defaultRows: 4, defaultWidth: 1 / 6, minRows: 4, minWidth: 1 / 6 },
-    W: { defaultRows: 4, defaultWidth: 1 / 6, minRows: 4, minWidth: 1 / 6 },
-    X: { defaultRows: 4, defaultWidth: 1 / 2, minRows: 4, minWidth: 1 / 2 },
-    Y: { defaultRows: 4, defaultWidth: 1 / 2, minRows: 4, minWidth: 1 / 2 },
-    Z: { defaultRows: 4, defaultWidth: 1 / 2, minRows: 4, minWidth: 1 / 2 },
+    R: { defaultRows: 1, defaultColumnSpan: 50, minRows: 1, minColumnSpan: 50 },
+    S: { defaultRows: 1, defaultColumnSpan: 50, minRows: 1, minColumnSpan: 50 },
+    T: { defaultRows: 1, defaultColumnSpan: 50, minRows: 1, minColumnSpan: 50 },
+    U: { defaultRows: 4, defaultColumnSpan: 10, minRows: 4, minColumnSpan: 10 },
+    V: { defaultRows: 4, defaultColumnSpan: 10, minRows: 4, minColumnSpan: 10 },
+    W: { defaultRows: 4, defaultColumnSpan: 10, minRows: 4, minColumnSpan: 10 },
+    X: { defaultRows: 4, defaultColumnSpan: 50, minRows: 4, minColumnSpan: 50 },
+    Y: { defaultRows: 4, defaultColumnSpan: 50, minRows: 4, minColumnSpan: 50 },
+    Z: { defaultRows: 4, defaultColumnSpan: 50, minRows: 4, minColumnSpan: 50 },
   };
   acc[letter] = {
     id: letter,
@@ -276,8 +276,8 @@ function applyLayout<D>(
   return sortedLayout.map(({ id, width, height }) => ({
     ...getItem(id),
     // TODO: calculate offsets properly
-    offset: 0,
-    width: width / 4,
-    rows: height,
+    columnOffset: 0,
+    columnSpan: (100 * width) / 4,
+    rowSpan: height,
   }));
 }

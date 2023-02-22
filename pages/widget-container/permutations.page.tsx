@@ -8,7 +8,7 @@ import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 
-const fullWidthItem = { offset: 0, width: 1, rows: 1 };
+const fullWidthItem = { columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
 export default function WidgetContainerPermutations() {
   return (

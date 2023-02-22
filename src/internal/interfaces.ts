@@ -6,11 +6,13 @@ export type ItemId = string;
 
 export type DataFallbackType = Record<string, unknown>;
 
+export type Percentage = number;
+
 export interface BoardItemDefinitionBase<D = DataFallbackType> {
   id: ItemId;
   definition?: {
-    minWidth?: number;
-    defaultWidth?: number;
+    minColumnSpan?: Percentage;
+    defaultColumnSpan?: Percentage;
     minRows?: number;
     defaultRows?: number;
   };
@@ -18,9 +20,9 @@ export interface BoardItemDefinitionBase<D = DataFallbackType> {
 }
 
 export interface BoardItemDefinition<D = DataFallbackType> extends BoardItemDefinitionBase<D> {
-  offset: number;
-  width: number;
-  rows: number;
+  columnOffset: Percentage;
+  columnSpan: Percentage;
+  rowSpan: number;
 }
 
 // Internal grid item representation used for position calculations.
