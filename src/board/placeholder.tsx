@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
 import { useRef } from "react";
+import { MIN_COLUMN_SPAN } from "../internal/constants";
 import { useDroppable } from "../internal/dnd-controller/controller";
 import { useGridContext } from "../internal/grid-context";
 import styles from "./styles.css.js";
@@ -11,9 +12,10 @@ export type PlaceholderState = "default" | "active" | "hover";
 export interface PlaceholderProps {
   id: string;
   state: PlaceholderState;
+  columns: number;
 }
 
-export default function Placeholder({ id, state }: PlaceholderProps) {
+export default function Placeholder({ id, state, columns }: PlaceholderProps) {
   const gridContext = useGridContext();
 
   if (!gridContext) {
@@ -24,7 +26,7 @@ export default function Placeholder({ id, state }: PlaceholderProps) {
 
   const dropTargetContext = {
     scale: ({ width, height }: { width: number; height: number }) => ({
-      width: gridContext.getWidth(width),
+      width: gridContext.getWidth(Math.round((width * columns) / 100) || MIN_COLUMN_SPAN),
       height: gridContext.getHeight(height),
     }),
   };

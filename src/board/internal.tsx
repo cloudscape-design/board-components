@@ -38,7 +38,6 @@ import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
-import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
@@ -243,7 +242,9 @@ export function InternalBoard<D>({
     delete transforms[transition.draggableItem.id];
   }
 
-  const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
+  const announcement = transitionAnnouncement
+    ? announcementToString(columns, transitionAnnouncement, items, i18nStrings)
+    : "";
 
   return (
     <div ref={__internalRootRef}>
@@ -265,6 +266,7 @@ export function InternalBoard<D>({
                 key={placeholder.id}
                 id={placeholder.id}
                 state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
+                columns={columns}
               />
             ))}
 
@@ -272,12 +274,20 @@ export function InternalBoard<D>({
               const layoutItem = layoutItemById.get(item.id);
               const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
-              const itemSize = layoutItem ?? {
-                width: getInsertingItemWidth(item, columns),
-                height: getInsertingItemHeight(item),
-              };
+              const itemSize = layoutItem
+                ? {
+                    width: 100 * (layoutItem.width / columns),
+                    height: layoutItem.height,
+                  }
+                : {
+                    width: getDefaultItemColumnSpan(item),
+                    height: getDefaultItemRowSpan(item),
+                  };
 
-              const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
+              const itemMaxSize =
+                isResizing && layoutItem
+                  ? { width: 100 * ((columns - layoutItem.x) / columns), height: 999 }
+                  : itemSize;
 
               return (
                 <ItemContainer
@@ -294,6 +304,7 @@ export function InternalBoard<D>({
                   inTransition={!!layoutShift}
                   acquired={item.id === acquiredItem?.id}
                   itemSize={itemSize}
+                  // TODO: add itemMinSize
                   itemMaxSize={itemMaxSize}
                   onKeyMove={onItemMove}
                 >

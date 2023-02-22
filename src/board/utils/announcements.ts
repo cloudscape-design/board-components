@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, ItemId } from "../../internal/interfaces";
+import { getMinItemColumns, getMinItemRowSpan } from "../../internal/utils/layout";
 import {
   BoardProps,
   DndActionAnnouncement,
@@ -59,6 +60,7 @@ export function createOperationAnnouncement<D>(
  * Applies i18nStrings to the announcement object to produce a string for the live region.
  */
 export function announcementToString<D>(
+  columns: number,
   announcement: TransitionAnnouncement,
   items: readonly BoardProps.Item<D>[],
   i18nStrings: BoardProps.I18nStrings<D>
@@ -82,6 +84,9 @@ export function announcementToString<D>(
     const conflicts = [...announcement.conflicts].map(toItem);
     const disturbed = [...announcement.disturbed].map(toItem);
 
+    const minimalColumns = getMinItemColumns(item, columns);
+    const minimalRows = getMinItemRowSpan(item);
+
     switch (announcement.operation) {
       case "reorder":
         return i18nStrings.liveAnnouncementDndItemReordered({
@@ -96,9 +101,8 @@ export function announcementToString<D>(
           item,
           placement,
           direction: direction!,
-          // TODO: fix these
-          isMinimalColumnsReached: false, // placement.width === (item.definition?.minColumnSpan ?? MIN_COL_SPAN),
-          isMinimalRowsReached: false, // placement.height === (item.definition?.minRowSpan ?? MIN_ROW_SPAN),
+          isMinimalColumnsReached: placement.width === minimalColumns,
+          isMinimalRowsReached: placement.height === minimalRows,
           conflicts,
           disturbed,
         });
