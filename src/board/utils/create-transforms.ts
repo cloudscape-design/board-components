@@ -1,12 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { GridContext } from "../../internal/grid/interfaces";
 import { GridLayout, ItemId, Transform } from "../../internal/interfaces";
 import { CommittedMove } from "../../internal/layout-engine/interfaces";
 
 /**
  * Creates a mapping of between items and transforms to be applied while in transition.
  */
-export function createTransforms(grid: GridLayout, moves: readonly CommittedMove[]) {
+export function createTransforms(grid: GridLayout, moves: readonly CommittedMove[], gridContext: GridContext) {
   const transforms: Record<ItemId, Transform> = {};
 
   for (const move of moves) {
@@ -17,10 +18,10 @@ export function createTransforms(grid: GridLayout, moves: readonly CommittedMove
     } else if (item) {
       transforms[item.id] = {
         type: "move",
-        x: move.x - item.x,
-        y: move.y - item.y,
-        width: move.width,
-        height: move.height,
+        x: gridContext.getColOffset(move.x - item.x),
+        y: gridContext.getRowOffset(move.y - item.y),
+        width: gridContext.getWidth(move.width),
+        height: gridContext.getHeight(move.height),
       };
     }
   }

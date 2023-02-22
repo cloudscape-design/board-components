@@ -3,7 +3,6 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { mockDraggable } from "../../../../lib/components/internal/dnd-controller/__mocks__/controller";
-import Grid from "../../../../lib/components/internal/grid/grid";
 import { ItemContainer, ItemContainerProps, useItemContext } from "../../../../lib/components/internal/item-container";
 import { Coordinates } from "../../../../lib/components/internal/utils/coordinates";
 
@@ -16,11 +15,11 @@ const defaultProps: ItemContainerProps = {
     id: "ID",
     data: { title: "Title" },
   },
+  placed: false,
   acquired: false,
   transform: undefined,
   inTransition: false,
-  itemSize: { width: 1, height: 1 },
-  itemMaxSize: { width: 4, height: 999 },
+  getItemSize: () => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 }),
   children: <Item />,
 };
 
@@ -45,11 +44,7 @@ test("renders item container", () => {
 });
 
 test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
-  const { getByTestId } = render(
-    <Grid layout={[{ id: "ID", x: 0, y: 0, width: 1, height: 1 }]} columns={4} rows={1}>
-      <ItemContainer {...defaultProps} />
-    </Grid>
-  );
+  const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   getByTestId("drag-handle").click();
   expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
 });
@@ -61,11 +56,7 @@ test("starts insert transition when drag handle is clicked and item does not bel
 });
 
 test("starts resize transition when resize handle is clicked", () => {
-  const { getByTestId } = render(
-    <Grid layout={[{ id: "ID", x: 0, y: 0, width: 1, height: 1 }]} columns={4} rows={1}>
-      <ItemContainer {...defaultProps} />
-    </Grid>
-  );
+  const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   getByTestId("resize-handle").click();
   expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
 });

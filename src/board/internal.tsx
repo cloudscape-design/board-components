@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
-import { useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import {
   BREAKPOINT_M,
@@ -19,7 +19,12 @@ import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
-import { createItemsLayout, createPlaceholdersLayout, exportItemsLayout } from "../internal/utils/layout";
+import {
+  createItemsLayout,
+  createPlaceholdersLayout,
+  exportItemsLayout,
+  getMinItemSize,
+} from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
@@ -213,14 +218,6 @@ export function InternalBoard<D>({
     }
   }
 
-  const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
-  const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves) : {};
-
-  // Exclude drag target from transforms.
-  if (transition && transition.interactionType === "pointer") {
-    delete transforms[transition.draggableItem.id];
-  }
-
   const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
 
   return (
@@ -237,48 +234,73 @@ export function InternalBoard<D>({
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
           <Grid columns={columns} rows={rows} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
-            {/* Placeholders are rendered even when there is no transition to support the first collisions check. */}
-            {placeholdersLayout.items.map((placeholder) => (
-              <Placeholder
-                key={placeholder.id}
-                id={placeholder.id}
-                state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
-              />
-            ))}
+            {(gridContext) => {
+              const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
+              const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves, gridContext) : {};
 
-            {items.map((item) => {
-              const layoutItem = layoutItemById.get(item.id);
-              const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
+              // Exclude drag target from transforms.
+              if (transition && transition.interactionType === "pointer") {
+                delete transforms[transition.draggableItem.id];
+              }
 
-              const itemSize = layoutItem ?? {
-                width: getInsertingItemWidth(item, columns),
-                height: getInsertingItemHeight(item),
-              };
+              const children: ReactNode[] = [];
 
-              const itemMaxSize = isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
-
-              return (
-                <ItemContainer
-                  ref={(elem) => {
-                    if (elem) {
-                      itemContainerRef.current[item.id] = elem;
-                    } else {
-                      delete itemContainerRef.current[item.id];
-                    }
-                  }}
-                  key={item.id}
-                  item={item}
-                  transform={transforms[item.id]}
-                  inTransition={!!layoutShift}
-                  acquired={item.id === acquiredItem?.id}
-                  itemSize={itemSize}
-                  itemMaxSize={itemMaxSize}
-                  onKeyMove={onItemMove}
-                >
-                  {renderItem(item, { removeItem: () => removeItemAction(item) })}
-                </ItemContainer>
+              /* Placeholders are rendered even when there is no transition to support the first collisions check. */
+              placeholdersLayout.items.forEach((placeholder) =>
+                children.push(
+                  <Placeholder
+                    key={placeholder.id}
+                    id={placeholder.id}
+                    state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
+                    gridContext={gridContext}
+                  />
+                )
               );
-            })}
+
+              items.forEach((item) => {
+                const layoutItem = layoutItemById.get(item.id);
+                const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
+
+                const itemSize = layoutItem ?? {
+                  width: getInsertingItemWidth(item, columns),
+                  height: getInsertingItemHeight(item),
+                };
+
+                const itemMaxSize =
+                  isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
+
+                children.push(
+                  <ItemContainer
+                    key={item.id}
+                    ref={(elem) => {
+                      if (elem) {
+                        itemContainerRef.current[item.id] = elem;
+                      } else {
+                        delete itemContainerRef.current[item.id];
+                      }
+                    }}
+                    item={item}
+                    transform={transforms[item.id]}
+                    inTransition={!!layoutShift}
+                    placed={true}
+                    acquired={item.id === acquiredItem?.id}
+                    getItemSize={() => ({
+                      width: gridContext.getWidth(itemSize.width),
+                      minWidth: gridContext.getWidth(getMinItemSize(item).width),
+                      maxWidth: gridContext.getWidth(itemMaxSize.width),
+                      height: gridContext.getHeight(itemSize.height),
+                      minHeight: gridContext.getHeight(getMinItemSize(item).height),
+                      maxHeight: gridContext.getHeight(itemMaxSize.height),
+                    })}
+                    onKeyMove={onItemMove}
+                  >
+                    {renderItem(item, { removeItem: () => removeItemAction(item) })}
+                  </ItemContainer>
+                );
+              });
+
+              return children;
+            }}
           </Grid>
         ) : (
           empty

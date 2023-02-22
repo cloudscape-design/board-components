@@ -12,7 +12,7 @@ const defaultProps: GridProps = {
     { id: "one", x: 0, width: 2, y: 0, height: 1 },
     { id: "two", x: 2, width: 2, y: 0, height: 1 },
   ],
-  children: (
+  children: () => (
     <>
       <span key="one" data-testid="child" />
       <span key="two" data-testid="child" />
