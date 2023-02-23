@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { useRef } from "react";
 import { useDroppable } from "../internal/dnd-controller/controller";
-import { useGridContext } from "../internal/grid-context";
+import { GridContext } from "../internal/grid/interfaces";
 import styles from "./styles.css.js";
 
 export type PlaceholderState = "default" | "active" | "hover";
@@ -11,15 +11,10 @@ export type PlaceholderState = "default" | "active" | "hover";
 export interface PlaceholderProps {
   id: string;
   state: PlaceholderState;
+  gridContext: GridContext;
 }
 
-export default function Placeholder({ id, state }: PlaceholderProps) {
-  const gridContext = useGridContext();
-
-  if (!gridContext) {
-    throw new Error("Invariant violation: droppable is used outside grid context.");
-  }
-
+export default function Placeholder({ id, state, gridContext }: PlaceholderProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const dropTargetContext = {

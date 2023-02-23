@@ -97,11 +97,17 @@ export function InternalItemsPalette<D>({
               }}
               key={item.id}
               item={item}
+              placed={false}
               acquired={false}
               transform={undefined}
               inTransition={false}
-              itemSize={getDefaultItemSize(item)}
-              itemMaxSize={getDefaultItemSize(item)}
+              getItemSize={(dropContext) => {
+                if (!dropContext) {
+                  throw new Error("Invariant violation: cannot query palette item size with no drop context.");
+                }
+                const { width, height } = dropContext.scale(getDefaultItemSize(item));
+                return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
+              }}
             >
               {renderItem(item, {
                 showPreview: dropState?.id === item.id && dropState.isExpanded,

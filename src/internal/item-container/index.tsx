@@ -19,15 +19,14 @@ import {
 } from "react";
 import {
   DragAndDropData,
+  DropTargetContext,
   InteractionType,
   Operation,
   useDragSubscription,
   useDraggable,
 } from "../dnd-controller/controller";
-import { useGridContext } from "../grid-context";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getMinItemSize } from "../utils/layout";
 import { getNormalizedElementRect } from "../utils/screen";
 import { useStableEventHandler } from "../utils/use-stable-event-handler";
 import { useThrottledEventHandler } from "../utils/use-throttled-event-handler";
@@ -74,18 +73,27 @@ interface Transition {
  * Defines item's parameters and its relation with the layout.
  *
  * `item` - the unique board item base object to be used in d&d context.
+ * `placed` - specifies if the item already belongs to the board.
  * `acquired` - specifies if the item is essentially a copy temporarily acquired by a droppable but not submitted yet.
- * `itemSize` - the actual item's size in units.
- * `itemMaxSize` - the item's size in units it is allowed to grow to (to constrain resize).
+ * `inTransition` - specifies if the item is currently being moved.
+ * `transform` - specifies if the item's position needs to be altered.
+ * `getItemSize` - item size getter that takes droppable context as argument.
  * `onKeyMove` - a callback that fires when arrow keys are pressed in drag- or resize handle.
  */
 export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
+  placed: boolean;
   acquired: boolean;
   inTransition: boolean;
   transform: Transform | undefined;
-  itemSize: { width: number; height: number };
-  itemMaxSize: { width: number; height: number };
+  getItemSize: (context: null | DropTargetContext) => {
+    width: number;
+    minWidth: number;
+    maxWidth: number;
+    height: number;
+    minHeight: number;
+    maxHeight: number;
+  };
   onKeyMove?(direction: Direction): void;
   children: ReactNode;
 }
@@ -93,7 +101,7 @@ export interface ItemContainerProps {
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, acquired, inTransition, transform, itemSize, itemMaxSize, onKeyMove, children }: ItemContainerProps,
+  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
@@ -117,8 +125,6 @@ function ItemContainerComponent(
     draggableApi.submitTransition();
   });
 
-  const gridContext = useGridContext();
-
   function updateTransition({
     operation,
     interactionType,
@@ -132,20 +138,14 @@ function ItemContainerComponent(
       const pointerOffset = pointerOffsetRef.current;
 
       if (operation === "resize") {
-        const itemMinSize = getMinItemSize(draggableItem);
         setTransition((transition) => ({
           operation,
           interactionType,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget
-            ? {
-                width: Math.max(
-                  dropTarget.scale(itemMinSize).width,
-                  Math.min(dropTarget.scale(itemMaxSize).width, width - pointerOffset.x)
-                ),
-                height: Math.max(dropTarget.scale(itemMinSize).height, height - pointerOffset.y),
-              }
-            : null,
+          sizeTransform: {
+            width: Math.max(getItemSize(null).minWidth, Math.min(getItemSize(null).maxWidth, width - pointerOffset.x)),
+            height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
+          },
           positionTransform: null,
           isBorrowed: !!transition?.isBorrowed,
         }));
@@ -154,7 +154,7 @@ function ItemContainerComponent(
           operation,
           interactionType,
           itemId: draggableItem.id,
-          sizeTransform: dropTarget ? dropTarget.scale(itemSize) : originalSizeRef.current,
+          sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
           isBorrowed: !!transition?.isBorrowed,
         }));
@@ -201,7 +201,7 @@ function ItemContainerComponent(
         y: operation === "drag" ? rect.top : rect.bottom,
       });
 
-      if (operation === "drag" && !gridContext) {
+      if (operation === "drag" && !placed) {
         draggableApi.start("insert", "keyboard", coordinates);
       } else if (operation === "drag") {
         draggableApi.start("reorder", "keyboard", coordinates);
@@ -233,7 +233,7 @@ function ItemContainerComponent(
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
-    const canInsert = transition && operation === "drag" && !gridContext;
+    const canInsert = transition && operation === "drag" && !placed;
     const canNavigate = transition || operation === "drag";
 
     // The insert is handled by the item and the navigation is delegated to the containing layout.
@@ -284,7 +284,7 @@ function ItemContainerComponent(
     originalSizeRef.current = { width: rect.width, height: rect.height };
     pointerBoundariesRef.current = null;
 
-    draggableApi.start(!gridContext ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -298,9 +298,8 @@ function ItemContainerComponent(
     originalSizeRef.current = { width: rect.width, height: rect.height };
 
     // Calculate boundaries below which the cursor cannot move.
-    const itemMinSize = getMinItemSize(item);
-    const minWidth = gridContext?.getWidth(itemMinSize.width) ?? 0;
-    const minHeight = gridContext?.getHeight(itemMinSize.height) ?? 0;
+    const minWidth = getItemSize(null).minWidth;
+    const minHeight = getItemSize(null).minHeight;
     pointerBoundariesRef.current = new Coordinates({
       x: event.clientX - rect.width + minWidth,
       y: event.clientY - rect.height + minHeight,
@@ -336,18 +335,18 @@ function ItemContainerComponent(
     }
   }
 
-  if (gridContext && transform) {
+  if (placed && transform) {
     // The moved items positions are altered with CSS transform.
     if (transform.type === "move") {
       itemTransitionClassNames.push(styles.transformed);
       itemTransitionStyle.transform = CSSUtil.Transform.toString({
-        x: gridContext.getColOffset(transform.x),
-        y: gridContext.getRowOffset(transform.y),
+        x: transform.x,
+        y: transform.y,
         scaleX: 1,
         scaleY: 1,
       });
-      itemTransitionStyle.width = gridContext.getWidth(transform.width) + "px";
-      itemTransitionStyle.height = gridContext.getHeight(transform.height) + "px";
+      itemTransitionStyle.width = transform.width + "px";
+      itemTransitionStyle.height = transform.height + "px";
     }
     // The item is removed from the DOM after animations play.
     // During the animations the removed item is hidden with styles.
@@ -377,7 +376,7 @@ function ItemContainerComponent(
             onPointerDown: onDragHandlePointerDown,
             onKeyDown: onDragHandleKeyDown,
           },
-          resizeHandle: gridContext
+          resizeHandle: placed
             ? {
                 onPointerDown: onResizeHandlePointerDown,
                 onKeyDown: onResizeHandleKeyDown,
