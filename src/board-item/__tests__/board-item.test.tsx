@@ -5,7 +5,6 @@ import { cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement } from "react";
 import { afterEach, describe, expect, test } from "vitest";
 import BoardItem from "../../../lib/components/board-item";
-import { GridContextProvider } from "../../../lib/components/internal/grid-context";
 import { ItemContainer } from "../../../lib/components/internal/item-container";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
@@ -18,20 +17,16 @@ function render(jsx: ReactElement) {
   return libRender(jsx, {
     wrapper: function ItemContextWrapper({ children }) {
       return (
-        <GridContextProvider
-          value={{ getWidth: () => 1, getHeight: () => 1, getRowOffset: () => 0, getColOffset: () => 0 }}
+        <ItemContainer
+          placed={true}
+          acquired={false}
+          transform={undefined}
+          inTransition={false}
+          item={{ id: "1", data: null }}
+          getItemSize={() => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 })}
         >
-          <ItemContainer
-            acquired={false}
-            transform={undefined}
-            inTransition={false}
-            item={{ id: "1", data: null }}
-            itemSize={{ width: 1, height: 1 }}
-            itemMaxSize={{ width: 1, height: 1 }}
-          >
-            {children}
-          </ItemContainer>
-        </GridContextProvider>
+          {children}
+        </ItemContainer>
       );
     },
   });

@@ -8,5 +8,12 @@ export interface GridProps {
   layout: GridLayoutItem[];
   columns: number;
   rows: number;
-  children?: ReactNode;
+  children?: (context: GridContext) => ReactNode;
+}
+
+export interface GridContext {
+  getWidth: (colspan: number) => number;
+  getHeight: (rowspan: number) => number;
+  getColOffset: (x: number) => number;
+  getRowOffset: (y: number) => number;
 }

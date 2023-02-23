@@ -15,8 +15,6 @@ export type InteractionType = "pointer" | "keyboard";
  *
  * The `scale` function transforms draggable's width/height in relative units
  * to the absolute width/height in pixels the droppable expects.
- *
- * The `acquire` function notifies the droppable of the intention to drop the item to it.
  */
 export interface DropTargetContext {
   scale: (size: { width: number; height: number }) => { width: number; height: number };
