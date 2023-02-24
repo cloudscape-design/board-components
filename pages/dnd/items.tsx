@@ -29,7 +29,7 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    defaultColumnSpan: { default: 2 },
+    defaultColumnSpan: { 4: 2 },
     defaultRowSpan: 4,
     minRowSpan: 4,
     data: {
@@ -40,7 +40,7 @@ export const demoWidgets: ItemWidgets = {
   },
   counter: {
     defaultRowSpan: 2,
-    defaultColumnSpan: { default: 2 },
+    defaultColumnSpan: { 4: 2 },
     data: {
       title: "Counter",
       description: "State management demo",
@@ -81,9 +81,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   revenue: {
-    defaultColumnSpan: { default: 1 },
     defaultRowSpan: 2,
-    minColumnSpan: { default: 1 },
     minRowSpan: 2,
     data: {
       title: "Revenue",
@@ -96,9 +94,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   resourceCount: {
-    defaultColumnSpan: { default: 1 },
     defaultRowSpan: 2,
-    minColumnSpan: { default: 1 },
     minRowSpan: 2,
     data: {
       title: "Resource count",
@@ -229,15 +225,15 @@ export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Obj
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
   const definitions: { [letter: string]: Omit<BoardItem, "id" | "data"> } = {
-    R: { defaultRowSpan: 1, defaultColumnSpan: { default: 2 }, minRowSpan: 1, minColumnSpan: { default: 2 } },
-    S: { defaultRowSpan: 1, defaultColumnSpan: { default: 2 }, minRowSpan: 1, minColumnSpan: { default: 2 } },
-    T: { defaultRowSpan: 1, defaultColumnSpan: { default: 2 }, minRowSpan: 1, minColumnSpan: { default: 2 } },
-    U: { defaultRowSpan: 4, defaultColumnSpan: { default: 1 }, minRowSpan: 4, minColumnSpan: { default: 1 } },
-    V: { defaultRowSpan: 4, defaultColumnSpan: { default: 1 }, minRowSpan: 4, minColumnSpan: { default: 1 } },
-    W: { defaultRowSpan: 4, defaultColumnSpan: { default: 1 }, minRowSpan: 4, minColumnSpan: { default: 1 } },
-    X: { defaultRowSpan: 4, defaultColumnSpan: { default: 2 }, minRowSpan: 4, minColumnSpan: { default: 2 } },
-    Y: { defaultRowSpan: 4, defaultColumnSpan: { default: 2 }, minRowSpan: 4, minColumnSpan: { default: 2 } },
-    Z: { defaultRowSpan: 4, defaultColumnSpan: { default: 2 }, minRowSpan: 4, minColumnSpan: { default: 2 } },
+    R: { defaultRowSpan: 1, defaultColumnSpan: { 4: 2 }, minRowSpan: 1, minColumnSpan: { 4: 2 } },
+    S: { defaultRowSpan: 1, defaultColumnSpan: { 4: 2 }, minRowSpan: 1, minColumnSpan: { 4: 2 } },
+    T: { defaultRowSpan: 1, defaultColumnSpan: { 4: 2 }, minRowSpan: 1, minColumnSpan: { 4: 2 } },
+    U: { defaultRowSpan: 4, defaultColumnSpan: { 4: 1 }, minRowSpan: 4, minColumnSpan: { 4: 1 } },
+    V: { defaultRowSpan: 4, defaultColumnSpan: { 4: 1 }, minRowSpan: 4, minColumnSpan: { 4: 1 } },
+    W: { defaultRowSpan: 4, defaultColumnSpan: { 4: 1 }, minRowSpan: 4, minColumnSpan: { 4: 1 } },
+    X: { defaultRowSpan: 4, defaultColumnSpan: { 4: 2 }, minRowSpan: 4, minColumnSpan: { 4: 2 } },
+    Y: { defaultRowSpan: 4, defaultColumnSpan: { 4: 2 }, minRowSpan: 4, minColumnSpan: { 4: 2 } },
+    Z: { defaultRowSpan: 4, defaultColumnSpan: { 4: 2 }, minRowSpan: 4, minColumnSpan: { 4: 2 } },
   };
   acc[letter] = {
     id: letter,

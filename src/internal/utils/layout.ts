@@ -162,13 +162,12 @@ function getColumnSpanForColumns(columnSpan: BoardItemColumnSpan | undefined, co
   if (!columnSpan) {
     return MIN_COL_SPAN;
   }
-
-  for (let i = columns; i <= COLUMNS_DEFAULT; i++) {
-    if (columnSpan[i]) {
+  for (let i = columns; i >= 0; i--) {
+    if (columnSpan[i] !== undefined) {
       return columnSpan[i];
     }
   }
-  return columnSpan.default ?? MIN_COL_SPAN;
+  return MIN_COL_SPAN;
 }
 
 export function getItemMinRowSpan(item: BoardItem<unknown>) {

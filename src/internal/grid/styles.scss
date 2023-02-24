@@ -19,6 +19,10 @@ $grid-col-width: minmax(0, 1fr);
   grid-template-columns: repeat(2, $grid-col-width);
 }
 
+.grid[data-columns="4"] {
+  grid-template-columns: repeat(4, $grid-col-width);
+}
+
 .grid[data-columns="6"] {
   grid-template-columns: repeat(6, $grid-col-width);
 }

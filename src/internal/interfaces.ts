@@ -22,7 +22,6 @@ export interface BoardItem<D = DataFallbackType> {
 
 export interface BoardItemColumnSpan {
   [columns: number]: number;
-  default?: number;
 }
 
 export interface BoardLayoutEntry {
