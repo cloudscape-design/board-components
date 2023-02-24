@@ -8,7 +8,7 @@ import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { getDefaultItemSize } from "../internal/utils/layout";
+import { getItemDefaultColumnSpan, getItemDefaultRowSpan } from "../internal/utils/layout";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
@@ -105,12 +105,16 @@ export function InternalItemsPalette<D>({
                 if (!dropContext) {
                   throw new Error("Invariant violation: cannot query palette item size with no drop context.");
                 }
-                const { width, height } = dropContext.scale(getDefaultItemSize(item));
+                const { width, height } = dropContext.scale({
+                  // TODO: match columns
+                  width: getItemDefaultColumnSpan(item, 1),
+                  height: getItemDefaultRowSpan(item),
+                });
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
               }}
             >
               {renderItem(item, {
-                showPreview: dropState?.id === item.id && dropState.isExpanded,
+                showPreview: dropState?.id === item.id && !!dropState?.isExpanded,
               })}
             </ItemContainer>
           ))}

@@ -14,7 +14,7 @@ import {
 } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
+import { BoardItem, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
@@ -23,7 +23,8 @@ import {
   createItemsLayout,
   createPlaceholdersLayout,
   exportItemsLayout,
-  getMinItemSize,
+  getItemMinColumnSpan,
+  getItemMinRowSpan,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
@@ -40,7 +41,7 @@ import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
-  items,
+  data,
   renderItem,
   onItemsChange,
   empty,
@@ -69,13 +70,15 @@ export function InternalBoard<D>({
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
 
+  let items: readonly BoardItem<D>[] = data.items;
+
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = createItemsLayout(items, columns);
+  const itemsLayout = createItemsLayout({ ...data, items }, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
@@ -137,7 +140,7 @@ export function InternalBoard<D>({
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
-      draggableItem: draggableItem as BoardItemDefinitionBase<any>,
+      draggableItem: draggableItem as BoardItem<any>,
       draggableElement,
       collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
     });
@@ -167,14 +170,18 @@ export function InternalBoard<D>({
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newItems = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], columns);
-      const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
+      const newData = exportItemsLayout(
+        transition.layoutShift,
+        { ...data, items: [...items, transition.draggableItem] },
+        columns
+      );
+      const addedItem = newData.items.find((item) => item.id === transition.draggableItem.id)!;
+      onItemsChange(createCustomEvent({ data: newData, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = exportItemsLayout(transition.layoutShift, items, columns);
-      onItemsChange(createCustomEvent({ items: newItems }));
+      const newData = exportItemsLayout(transition.layoutShift, { ...data, items }, columns);
+      onItemsChange(createCustomEvent({ data: newData }));
     }
   });
 
@@ -201,10 +208,13 @@ export function InternalBoard<D>({
     focusNextRenderIdRef.current = draggableItem.id;
   });
 
-  const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
+  const removeItemAction = (removedItem: BoardItem<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    onItemsChange(createCustomEvent({ items: items.filter((it) => it !== removedItem), removedItem }));
+    // TODO: update layout when item is removed!
+    const updatedItems = items.filter((it) => it !== removedItem);
+
+    onItemsChange(createCustomEvent({ data: { ...data, items: updatedItems }, removedItem }));
   };
 
   function focusItem(itemId: ItemId) {
@@ -286,10 +296,10 @@ export function InternalBoard<D>({
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
                       width: gridContext.getWidth(itemSize.width),
-                      minWidth: gridContext.getWidth(getMinItemSize(item).width),
+                      minWidth: gridContext.getWidth(getItemMinColumnSpan(item, columns)),
                       maxWidth: gridContext.getWidth(itemMaxSize.width),
                       height: gridContext.getHeight(itemSize.height),
-                      minHeight: gridContext.getHeight(getMinItemSize(item).height),
+                      minHeight: gridContext.getHeight(getItemMinRowSpan(item)),
                       maxHeight: gridContext.getHeight(itemMaxSize.height),
                     })}
                     onKeyMove={onItemMove}

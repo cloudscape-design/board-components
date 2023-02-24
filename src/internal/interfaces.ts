@@ -6,18 +6,26 @@ export type ItemId = string;
 
 export type DataFallbackType = Record<string, unknown>;
 
-export interface BoardItemDefinitionBase<D = DataFallbackType> {
-  id: ItemId;
-  definition?: {
-    minRowSpan?: number;
-    minColumnSpan?: number;
-    defaultRowSpan?: number;
-    defaultColumnSpan?: number;
-  };
-  data: D;
+export interface BoardData<D = DataFallbackType> {
+  items: ReadonlyArray<BoardItem<D>>;
+  layout: { [columns: number]: ReadonlyArray<BoardLayoutEntry> };
 }
 
-export interface BoardItemDefinition<D = DataFallbackType> extends BoardItemDefinitionBase<D> {
+export interface BoardItem<D = DataFallbackType> {
+  id: ItemId;
+  data: D;
+  minRowSpan?: number;
+  minColumnSpan?: BoardItemColumnSpan;
+  defaultRowSpan?: number;
+  defaultColumnSpan?: BoardItemColumnSpan;
+}
+
+export interface BoardItemColumnSpan {
+  [columns: number]: number;
+  default?: number;
+}
+
+export interface BoardLayoutEntry {
   columnOffset: number;
   rowSpan: number;
   columnSpan: number;

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
-import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
+import { BoardItem, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { getMinItemSize } from "../internal/utils/layout";
+import { getItemMinColumnSpan, getItemMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
@@ -40,14 +40,14 @@ interface InitAction<D> {
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  draggableItem: BoardItemDefinitionBase<D>;
+  draggableItem: BoardItem<D>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
 }
 interface InitRemoveAction<D> {
   type: "init-remove";
   items: readonly BoardProps.Item<D>[];
-  removedItem: BoardItemDefinitionBase<D>;
+  removedItem: BoardItem<D>;
   itemsLayout: GridLayout;
 }
 interface SubmitAction {
@@ -255,11 +255,12 @@ function updateTransitionWithKeyboardEvent<D>(
     // Check resizing below min size.
     const layout = transition.layoutShift?.next ?? transition.itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const minSize = getMinItemSize(transition.draggableItem);
+    const minWidth = getItemMinColumnSpan(transition.draggableItem, transition.itemsLayout.columns);
+    const minHeight = getItemMinRowSpan(transition.draggableItem);
     if (
       transition.operation === "resize" &&
       layoutItem &&
-      (layoutItem.width + xDelta < minSize.width || layoutItem.height + yDelta < minSize.height)
+      (layoutItem.width + xDelta < minWidth || layoutItem.height + yDelta < minHeight)
     ) {
       return state;
     }

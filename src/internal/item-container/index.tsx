@@ -25,7 +25,7 @@ import {
   useDragSubscription,
   useDraggable,
 } from "../dnd-controller/controller";
-import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
+import { BoardItem, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getNormalizedElementRect } from "../utils/screen";
 import { useStableEventHandler } from "../utils/use-stable-event-handler";
@@ -81,7 +81,7 @@ interface Transition {
  * `onKeyMove` - a callback that fires when arrow keys are pressed in drag- or resize handle.
  */
 export interface ItemContainerProps {
-  item: BoardItemDefinitionBase<unknown>;
+  item: BoardItem<unknown>;
   placed: boolean;
   acquired: boolean;
   inTransition: boolean;

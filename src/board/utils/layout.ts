@@ -1,22 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { BoardItemDefinitionBase, Direction } from "../../internal/interfaces";
+import { BoardItem, Direction } from "../../internal/interfaces";
 import { LayoutEngine } from "../../internal/layout-engine/engine";
 import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
-import { adjustColumnSpanForColumns, createPlaceholdersLayout, getDefaultItemSize } from "../../internal/utils/layout";
+import { createPlaceholdersLayout, getItemDefaultColumnSpan, getItemDefaultRowSpan } from "../../internal/utils/layout";
 import { Position } from "../../internal/utils/position";
 import { Transition } from "../interfaces";
 import { normalizeInsertionPath } from "./path";
 
-export function getInsertingItemWidth(item: BoardItemDefinitionBase<unknown>, columns: number): number {
-  const defaultWidth = Math.min(columns, getDefaultItemSize(item).width);
-  return adjustColumnSpanForColumns(defaultWidth, columns);
+export function getInsertingItemWidth(item: BoardItem<unknown>, columns: number): number {
+  return getItemDefaultColumnSpan(item, columns);
 }
 
-export function getInsertingItemHeight(item: BoardItemDefinitionBase<unknown>): number {
-  return getDefaultItemSize(item).height;
+export function getInsertingItemHeight(item: BoardItem<unknown>): number {
+  return getItemDefaultRowSpan(item);
 }
 
 export function getLayoutColumns<D>(transition: Transition<D>) {

@@ -12,17 +12,17 @@ import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
 
 export function EnginePageTemplate({
-  initialBoardItems,
+  initialBoardData,
   initialPaletteItems,
   widgets,
   layout = "grid",
 }: {
-  initialBoardItems: readonly BoardProps.Item<ItemData>[];
+  initialBoardData: BoardProps.Data<ItemData>;
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
 }) {
-  const [items, setItems] = useState(initialBoardItems);
+  const [data, setData] = useState(initialBoardData);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
@@ -30,7 +30,7 @@ export function EnginePageTemplate({
       <div className={classnames[`layout-${layout}`]}>
         <Board
           i18nStrings={boardI18nStrings}
-          items={items}
+          data={data}
           renderItem={(item, actions) => (
             <BoardItem
               header={<Header>{item.data.title}</Header>}
@@ -48,8 +48,8 @@ export function EnginePageTemplate({
               {item.data.content}
             </BoardItem>
           )}
-          onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-            setItems(items);
+          onItemsChange={({ detail: { data, addedItem, removedItem } }) => {
+            setData(data);
             if (addedItem) {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }

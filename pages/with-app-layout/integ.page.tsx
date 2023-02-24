@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { BoardProps } from "../../lib/components";
-import { demoBoardItems, demoPaletteItems } from "../dnd/items";
+import { demoBoardData, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";
 import { ItemData } from "../shared/interfaces";
 import { ClientAppLayout } from "./app-layout";
@@ -12,18 +12,18 @@ import { WidgetsPalette } from "./widgets-palette";
 
 export default function Page() {
   const [boardWidgetsLoading, setBoardWidgetsLoading] = useState(false);
-  const [boardWidgets, setBoardWidgets] = useState(demoBoardItems);
+  const [boardWidgets, setBoardWidgets] = useState(demoBoardData);
 
   const [paletteWidgetsLoading, setPaletteWidgetsLoading] = useState(false);
   const [paletteWidgets, setPaletteWidgets] = useState(demoPaletteItems);
 
   useEffect(() => {
     if (boardWidgetsLoading) {
-      setBoardWidgets([]);
+      setBoardWidgets({ items: [], layout: {} });
 
       const timeoutId = setTimeout(() => {
         setBoardWidgetsLoading(false);
-        setBoardWidgets(demoBoardItems);
+        setBoardWidgets(demoBoardData);
       }, 5 * 1000);
 
       return () => clearTimeout(timeoutId);
@@ -43,8 +43,8 @@ export default function Page() {
     }
   }, [paletteWidgetsLoading]);
 
-  const onChange = ({ items, addedItem, removedItem }: BoardProps.ItemsChangeDetail<ItemData>) => {
-    setBoardWidgets(items);
+  const onChange = ({ data, addedItem, removedItem }: BoardProps.ItemsChangeDetail<ItemData>) => {
+    setBoardWidgets(data);
     if (addedItem) {
       setPaletteWidgets((paletteWidgets) => paletteWidgets.filter((item) => item.id !== addedItem.id));
     }

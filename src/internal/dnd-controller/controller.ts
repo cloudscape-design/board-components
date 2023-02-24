@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
-import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
+import { BoardItem, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getCollisionRect, getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
@@ -23,7 +23,7 @@ export interface DropTargetContext {
 export interface DragAndDropData {
   operation: Operation;
   interactionType: InteractionType;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItem<unknown>;
   draggableElement: HTMLElement;
   positionOffset: Coordinates;
   coordinates: Coordinates;
@@ -40,13 +40,13 @@ export interface Droppable {
 interface DragDetail {
   operation: Operation;
   interactionType: InteractionType;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItem<unknown>;
   draggableElement: HTMLElement;
 }
 
 interface AcquireData {
   droppableId: ItemId;
-  draggableItem: BoardItemDefinitionBase<unknown>;
+  draggableItem: BoardItem<unknown>;
 }
 
 export interface DragAndDropEvents {
@@ -73,7 +73,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   public start(
     operation: Operation,
     interactionType: InteractionType,
-    draggableItem: BoardItemDefinitionBase<unknown>,
+    draggableItem: BoardItem<unknown>,
     draggableElement: HTMLElement,
     startCoordinates: Coordinates
   ) {
@@ -175,13 +175,7 @@ export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K,
   useEffect(() => controller.on(event, handler), [event, handler]);
 }
 
-export function useDraggable({
-  item,
-  getElement,
-}: {
-  item: BoardItemDefinitionBase<unknown>;
-  getElement: () => HTMLElement;
-}) {
+export function useDraggable({ item, getElement }: { item: BoardItem<unknown>; getElement: () => HTMLElement }) {
   return {
     start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates) {
       controller.start(operation, interactionType, item, getElement(), startCoordinates);

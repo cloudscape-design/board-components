@@ -13,7 +13,7 @@ import { clientI18nStrings } from "./i18n";
 
 interface WidgetsBoardProps {
   loading: boolean;
-  widgets: readonly BoardProps.Item<ItemData>[];
+  widgets: BoardProps.Data<ItemData>;
   onWidgetsChange: (detail: BoardProps.ItemsChangeDetail<ItemData>) => void;
 }
 
@@ -31,7 +31,7 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
           )}
         </Box>
       }
-      items={widgets}
+      data={widgets}
       onItemsChange={({ detail }) => onWidgetsChange(detail)}
       renderItem={(item, actions) => (
         <>

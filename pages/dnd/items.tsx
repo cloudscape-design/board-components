@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Box, Link, SpaceBetween } from "@cloudscape-design/components";
-import { BoardProps, ItemsPaletteProps } from "../../lib/components";
+import { ItemsPaletteProps } from "../../lib/components";
 import { fromMatrix } from "../../lib/components/internal/debug-tools";
-import { BoardItemDefinition, BoardItemDefinitionBase } from "../../lib/components/internal/interfaces";
+import { BoardData, BoardItem, BoardLayoutEntry } from "../../lib/components/internal/interfaces";
 import { GridLayout } from "../../lib/components/internal/interfaces";
 import { ItemData } from "../shared/interfaces";
 import { Counter } from "./commons";
@@ -19,10 +19,7 @@ import { EventsTable } from "./events-table";
 import { ResourceCountChart } from "./resource-count-chart";
 import { RevenueChart } from "./revenue-chart";
 
-export type ItemWidgets = Record<
-  string,
-  { data: ItemData; definition?: ItemsPaletteProps.Item["definition"] } | undefined
->;
+export type ItemWidgets = Record<string, Omit<BoardItem<ItemData>, "id"> | undefined>;
 
 const createDefaultWidget = (id: string) => ({
   title: `Widget ${id}`,
@@ -32,7 +29,9 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    definition: { defaultColumnSpan: 2, defaultRowSpan: 4, minRowSpan: 4 },
+    defaultColumnSpan: { default: 2 },
+    defaultRowSpan: 4,
+    minRowSpan: 4,
     data: {
       title: "Demo widget",
       description: "Most minimal widget",
@@ -40,7 +39,8 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   counter: {
-    definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
+    defaultRowSpan: 2,
+    defaultColumnSpan: { default: 2 },
     data: {
       title: "Counter",
       description: "State management demo",
@@ -81,7 +81,10 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   revenue: {
-    definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+    defaultColumnSpan: { default: 1 },
+    defaultRowSpan: 2,
+    minColumnSpan: { default: 1 },
+    minRowSpan: 2,
     data: {
       title: "Revenue",
       description: "Revenue over time chart",
@@ -93,7 +96,10 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   resourceCount: {
-    definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+    defaultColumnSpan: { default: 1 },
+    defaultRowSpan: 2,
+    minColumnSpan: { default: 1 },
+    minRowSpan: 2,
     data: {
       title: "Resource count",
       description: "Resource count pie chart",
@@ -114,7 +120,10 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   allMetrics: {
-    definition: { defaultColumnSpan: 2, defaultRowSpan: 2, minColumnSpan: 2, minRowSpan: 2 },
+    defaultColumnSpan: { 2: 1, 4: 2 },
+    defaultRowSpan: 2,
+    minColumnSpan: { 2: 1, 4: 2 },
+    minRowSpan: 2,
     data: {
       title: "All metrics",
       description: "Revenue and resource count charts",
@@ -162,7 +171,10 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   events: {
-    definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
+    defaultColumnSpan: { 2: 1, 4: 2 },
+    defaultRowSpan: 1,
+    minColumnSpan: { 2: 1, 4: 2 },
+    minRowSpan: 1,
     data: {
       title: "Events",
       description: "Service events table",
@@ -197,38 +209,39 @@ export const storedPositions = [
   { id: "10", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
 ];
 
-export const demoBoardItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
-  const config = demoWidgets[pos.id];
-  return {
-    ...pos,
-    data: config?.data ?? createDefaultWidget(pos.id),
-    definition: config?.definition,
-  };
-});
+export const demoBoardData: BoardData<ItemData> = {
+  items: storedPositions.map((pos) => {
+    const config = demoWidgets[pos.id];
+    return { id: pos.id, ...config, data: config?.data ?? createDefaultWidget(pos.id) };
+  }),
+  layout: {
+    4: storedPositions.map(({ columnOffset, rowSpan, columnSpan }) => ({ columnOffset, rowSpan, columnSpan })),
+  },
+};
 
 export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Object.entries(demoWidgets)
   .filter(([key]) => !storedPositions.find((pos) => pos.id === key))
   .map(([key, widget]) => ({
     id: key,
-    definition: widget?.definition,
+    ...widget,
     data: widget?.data ?? createDefaultWidget(key),
   }));
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
-  const definitions: { [letter: string]: BoardItemDefinitionBase["definition"] } = {
-    R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    U: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
-    V: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
-    W: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
-    X: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
-    Y: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
-    Z: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+  const definitions: { [letter: string]: Omit<BoardItem, "id" | "data"> } = {
+    R: { defaultRowSpan: 1, defaultColumnSpan: { default: 2 }, minRowSpan: 1, minColumnSpan: { default: 2 } },
+    S: { defaultRowSpan: 1, defaultColumnSpan: { default: 2 }, minRowSpan: 1, minColumnSpan: { default: 2 } },
+    T: { defaultRowSpan: 1, defaultColumnSpan: { default: 2 }, minRowSpan: 1, minColumnSpan: { default: 2 } },
+    U: { defaultRowSpan: 4, defaultColumnSpan: { default: 1 }, minRowSpan: 4, minColumnSpan: { default: 1 } },
+    V: { defaultRowSpan: 4, defaultColumnSpan: { default: 1 }, minRowSpan: 4, minColumnSpan: { default: 1 } },
+    W: { defaultRowSpan: 4, defaultColumnSpan: { default: 1 }, minRowSpan: 4, minColumnSpan: { default: 1 } },
+    X: { defaultRowSpan: 4, defaultColumnSpan: { default: 2 }, minRowSpan: 4, minColumnSpan: { default: 2 } },
+    Y: { defaultRowSpan: 4, defaultColumnSpan: { default: 2 }, minRowSpan: 4, minColumnSpan: { default: 2 } },
+    Z: { defaultRowSpan: 4, defaultColumnSpan: { default: 2 }, minRowSpan: 4, minColumnSpan: { default: 2 } },
   };
   acc[letter] = {
     id: letter,
-    definition: definitions[letter],
+    ...definitions[letter],
     data: {
       title: `Widget ${letter}`,
       description: "Empty widget",
@@ -236,27 +249,24 @@ export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, lett
     },
   };
   return acc;
-}, {} as { [id: string]: BoardItemDefinitionBase<ItemData> });
+}, {} as { [id: string]: BoardItem<ItemData> });
 
 export function createLetterItems(grid: null | string[][], palette?: string[]) {
   if (!grid) {
     return null;
   }
 
-  const boardItems = applyLayout(fromMatrix(grid), Object.values(letterWidgets));
+  const boardData = applyLayout(fromMatrix(grid), Object.values(letterWidgets));
 
-  const usedLetterItems = new Set(boardItems.map((item) => item.id));
+  const usedLetterItems = new Set(boardData.items.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(
     (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id))
   );
 
-  return { boardItems, paletteItems };
+  return { boardData, paletteItems };
 }
 
-function applyLayout<D>(
-  layout: GridLayout,
-  sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[]
-): readonly BoardItemDefinition<D>[] {
+function applyLayout<D>(gridLayout: GridLayout, sourceItems: readonly BoardItem<D>[]): BoardData<D> {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: string) => {
     const item = itemById.get(itemId);
@@ -266,17 +276,20 @@ function applyLayout<D>(
     return item;
   };
 
-  const sortedLayout = layout.items.slice().sort((a, b) => {
+  const sortedLayout = gridLayout.items.slice().sort((a, b) => {
     if (a.y !== b.y) {
       return a.y > b.y ? 1 : -1;
     }
     return a.x > b.x ? 1 : -1;
   });
 
-  return sortedLayout.map(({ id, x, width, height }) => ({
-    ...getItem(id),
-    columnOffset: x,
-    columnSpan: width,
-    rowSpan: height,
-  }));
+  const items: BoardItem<D>[] = [];
+  const layout: { [columns: number]: BoardLayoutEntry[] } = { 4: [] };
+
+  for (const { id, x, width, height } of sortedLayout) {
+    items.push(getItem(id));
+    layout[4].push({ columnOffset: x, columnSpan: width, rowSpan: height });
+  }
+
+  return { items, layout };
 }

@@ -10,19 +10,21 @@ export default function KeyboardPage() {
     <PageLayout header={<h1>Widget Container - Keyboard</h1>}>
       <Board<ItemData>
         i18nStrings={i18nStrings.boardI18nStrings}
-        items={[
-          {
-            id: "1",
-            columnOffset: 0,
-            columnSpan: 4,
-            rowSpan: 1,
-            data: {
-              title: "",
-              description: "",
-              content: null,
+        data={{
+          items: [
+            {
+              id: "1",
+              data: {
+                title: "",
+                description: "",
+                content: null,
+              },
             },
+          ],
+          layout: {
+            4: [{ columnOffset: 0, columnSpan: 4, rowSpan: 1 }],
           },
-        ]}
+        }}
         renderItem={() => (
           <BoardItem
             header={<span tabIndex={0}>Header</span>}

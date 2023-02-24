@@ -25,7 +25,7 @@ export default function QueryTestPage() {
 
   const layout = createLetterItems(boardQuery.value ?? [], paletteQuery.value ?? []);
 
-  if (layout && layout.boardItems.length + layout.paletteItems.length === 0) {
+  if (layout && layout.boardData.items.length + layout.paletteItems.length === 0) {
     return (
       <PageLayout>
         <form
@@ -66,7 +66,7 @@ export default function QueryTestPage() {
 
   return (
     <EnginePageTemplate
-      initialBoardItems={layout?.boardItems ?? []}
+      initialBoardData={layout?.boardData ?? { items: [], layout: {} }}
       initialPaletteItems={layout?.paletteItems ?? []}
       widgets={letterWidgets}
     />
