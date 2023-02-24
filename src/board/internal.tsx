@@ -16,8 +16,9 @@ import {
 } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItem, BoardLayoutEntry, Direction, ItemId } from "../internal/interfaces";
+import { BoardItem, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
@@ -216,14 +217,10 @@ export function InternalBoard<D>({
   const removeItemAction = (removedItem: BoardItem<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    const removedItemIndex = items.findIndex((it) => it.id === removedItem.id);
-    const newItems = [...items].splice(removedItemIndex, 1);
-    const newLayout: { [columns: number]: readonly BoardLayoutEntry[] } = {};
-    for (const key of Object.keys(data.layout)) {
-      newLayout[parseInt(key)] = [...data.layout[parseInt(key)]].splice(removedItemIndex);
-    }
+    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    const newData = exportItemsLayout(layoutShift, { ...data, items }, columns);
 
-    onItemsChange(createCustomEvent({ data: { items: newItems, layout: newLayout }, removedItem }));
+    onItemsChange(createCustomEvent({ data: newData, removedItem }));
   };
 
   function focusItem(itemId: ItemId) {

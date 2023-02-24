@@ -21,18 +21,18 @@ export function createItemsLayout({ items, layout }: BoardData<unknown>, columns
   const columnsLayout = layout[columns];
 
   function getColumnOffset(index: number): number {
-    return columnsLayout?.[index].columnOffset ?? currentColumnOffset;
+    return columnsLayout?.[index]?.columnOffset ?? currentColumnOffset;
   }
 
   function getColumnSpan(index: number): number {
     const minColumnSpan = getItemMinColumnSpan(items[index], columns);
-    const columnSpan = columnsLayout?.[index].columnSpan ?? getItemDefaultColumnSpan(items[index], columns);
+    const columnSpan = columnsLayout?.[index]?.columnSpan ?? getItemDefaultColumnSpan(items[index], columns);
     return Math.max(minColumnSpan, columnSpan);
   }
 
   function getRowSpan(index: number): number {
     const minRowSpan = getItemMinRowSpan(items[index]);
-    const rowSpan = columnsLayout?.[index].rowSpan ?? getItemDefaultRowSpan(items[index]);
+    const rowSpan = columnsLayout?.[index]?.rowSpan ?? getItemDefaultRowSpan(items[index]);
     return Math.max(minRowSpan, rowSpan);
   }
 
@@ -98,7 +98,7 @@ export function exportItemsLayout<D>(
   const layoutKeys = Object.keys(sourceBoardData.layout).map((k) => parseInt(k));
   const changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceBoardData.items[index].id !== id);
 
-  function updateSourceLayout(key: number, index: number, newOffset: number) {
+  function updateSourceLayout(key: number, index: number) {
     if (key === columns) {
       return;
     }
@@ -107,10 +107,9 @@ export function exportItemsLayout<D>(
     if (!layout[key]) {
       layout[key] = [];
     }
-    const columnOffset = index < changeFromIndex ? sourceLayout[index]?.columnOffset ?? newOffset : newOffset;
-    const columnSpan = sourceLayout[index]?.columnSpan ?? getItemDefaultColumnSpan(items[index], key);
-    const rowSpan = sourceLayout[index]?.rowSpan ?? getItemDefaultRowSpan(items[index]);
-    layout[key].push({ columnOffset, columnSpan, rowSpan });
+    if (index < changeFromIndex && sourceLayout[index]) {
+      layout[key].push(sourceLayout[index]);
+    }
   }
 
   function writeCurrentLayout(columnOffset: number, columnSpan: number, rowSpan: number) {
@@ -126,7 +125,7 @@ export function exportItemsLayout<D>(
     items.push(getItem(id));
 
     for (const layoutKey of layoutKeys) {
-      updateSourceLayout(layoutKey, index, x);
+      updateSourceLayout(layoutKey, index);
     }
 
     writeCurrentLayout(x, width, height);
