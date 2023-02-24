@@ -6,9 +6,11 @@ import { ReactNode, useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import {
   BREAKPOINT_M,
+  BREAKPOINT_XL,
   BREAKPOINT_XS,
   COLUMNS_DEFAULT,
   COLUMNS_M,
+  COLUMNS_XL,
   COLUMNS_XS,
   TRANSITION_DURATION_MS,
 } from "../internal/constants";
@@ -38,7 +40,7 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 
-const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, default: COLUMNS_DEFAULT };
+const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
   data,
@@ -55,6 +57,9 @@ export function InternalBoard<D>({
     }
     if (entry.contentBoxWidth < BREAKPOINT_M) {
       return "m";
+    }
+    if (entry.contentBoxWidth < BREAKPOINT_XL) {
+      return "xl";
     }
     return "default";
   }, []);
