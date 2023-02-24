@@ -16,7 +16,7 @@ import {
 } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItem, Direction, ItemId } from "../internal/interfaces";
+import { BoardItem, BoardLayoutEntry, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
@@ -216,10 +216,14 @@ export function InternalBoard<D>({
   const removeItemAction = (removedItem: BoardItem<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    // TODO: update layout when item is removed!
-    const updatedItems = items.filter((it) => it !== removedItem);
+    const removedItemIndex = items.findIndex((it) => it.id === removedItem.id);
+    const newItems = [...items].splice(removedItemIndex, 1);
+    const newLayout: { [columns: number]: readonly BoardLayoutEntry[] } = {};
+    for (const key of Object.keys(data.layout)) {
+      newLayout[parseInt(key)] = [...data.layout[parseInt(key)]].splice(removedItemIndex);
+    }
 
-    onItemsChange(createCustomEvent({ data: { ...data, items: updatedItems }, removedItem }));
+    onItemsChange(createCustomEvent({ data: { items: newItems, layout: newLayout }, removedItem }));
   };
 
   function focusItem(itemId: ItemId) {
@@ -233,7 +237,9 @@ export function InternalBoard<D>({
     }
   }
 
-  const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
+  const announcement = transitionAnnouncement
+    ? announcementToString(transitionAnnouncement, items, i18nStrings, columns)
+    : "";
 
   return (
     <div ref={__internalRootRef}>
@@ -268,6 +274,7 @@ export function InternalBoard<D>({
                     id={placeholder.id}
                     state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
                     gridContext={gridContext}
+                    columns={columns}
                   />
                 )
               );

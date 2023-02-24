@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, ItemId } from "../../internal/interfaces";
+import { getItemMinColumnSpan, getItemMinRowSpan } from "../../internal/utils/layout";
 import {
   BoardProps,
   DndActionAnnouncement,
@@ -61,7 +62,8 @@ export function createOperationAnnouncement<D>(
 export function announcementToString<D>(
   announcement: TransitionAnnouncement,
   items: readonly BoardProps.Item<D>[],
-  i18nStrings: BoardProps.I18nStrings<D>
+  i18nStrings: BoardProps.I18nStrings<D>,
+  columns: number
 ): string {
   if (!announcement) {
     return "";
@@ -96,9 +98,8 @@ export function announcementToString<D>(
           item,
           placement,
           direction: direction!,
-          // TODO: fix these
-          isMinimalColumnsReached: false, // placement.width === (item.definition?.minColumnSpan ?? MIN_COL_SPAN),
-          isMinimalRowsReached: false, // placement.height === (item.definition?.minRowSpan ?? MIN_ROW_SPAN),
+          isMinimalColumnsReached: placement.width === getItemMinColumnSpan(item, columns),
+          isMinimalRowsReached: placement.height === getItemMinRowSpan(item),
           conflicts,
           disturbed,
         });

@@ -17,7 +17,7 @@ export type InteractionType = "pointer" | "keyboard";
  * to the absolute width/height in pixels the droppable expects.
  */
 export interface DropTargetContext {
-  scale: (size: { width: number; height: number }) => { width: number; height: number };
+  scale: (item: BoardItem<unknown>, size?: { width: number; height: number }) => { width: number; height: number };
 }
 
 export interface DragAndDropData {
