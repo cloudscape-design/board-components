@@ -3,8 +3,8 @@
 import { ReactNode } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import {
-  BoardData,
   BoardItem,
+  BoardLayout,
   DataFallbackType,
   Direction,
   GridLayout,
@@ -24,13 +24,9 @@ import { Position } from "../internal/utils/position";
 
 export interface BoardProps<D = DataFallbackType> {
   /**
-   * Specifies the items displayed in the board and items layouts for supported board widths.
+   * Specifies the items displayed in the board.
    *
-   * The board data includes:
-   * * `items` (array) - the array of item definitions.
-   * * `layout` (mapping) - item positions for all board widths.
-   *
-   * The board data item includes:
+   * The BoardProps.Item includes:
    * * `id` (string) - the unique item identifier. The IDs of any two items in a page must be different.
    * * `minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
    * * `minColumnSpan` (mapping, optional) - the minimal number of columns the item is allowed to take per layout. It can't be less than one. Defaults to one.
@@ -38,7 +34,14 @@ export interface BoardProps<D = DataFallbackType> {
    * * `defaultColumnSpan` (mapping, optional) - the number or columns the item will take when inserted in the board per layout. It can't be less than `minColumnSpan`.
    * * `data` (D) - optional item data which can include the specific configurations of an item, such as its title.
    */
-  data: BoardProps.Data<D>;
+  items: ReadonlyArray<BoardProps.Item<D>>;
+
+  /**
+   * Specifies items positions in the board.
+   *
+   * TBA
+   */
+  layout: BoardProps.Layout;
 
   /**
    * Specifies a function to render content for board items. The return value must include board item component.
@@ -86,16 +89,16 @@ export interface BoardProps<D = DataFallbackType> {
 }
 
 export namespace BoardProps {
-  export type Data<D = DataFallbackType> = BoardData<D>;
-
   export type Item<D = DataFallbackType> = BoardItem<D>;
+  export type Layout = BoardLayout;
 
   export interface ItemActions {
     removeItem(): void;
   }
 
   export interface ItemsChangeDetail<D = DataFallbackType> {
-    data: Data<D>;
+    items: ReadonlyArray<Item<D>>;
+    layout: Layout;
     addedItem?: Item<D>;
     removedItem?: Item<D>;
   }

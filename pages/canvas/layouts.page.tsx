@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode } from "react";
-import { Board, BoardProps } from "../../lib/components";
+import { Board } from "../../lib/components";
+import { BoardData } from "../../lib/components/internal/interfaces";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
 import { boardI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import classnames from "./layouts.module.css";
 
-const singleItem: BoardProps.Data<ItemData> = {
+const singleItem: BoardData<ItemData> = {
   items: [
     {
       id: "1-1",
@@ -19,7 +20,7 @@ const singleItem: BoardProps.Data<ItemData> = {
   layout: {},
 };
 
-const spacedOutItems: BoardProps.Data<ItemData> = {
+const spacedOutItems: BoardData<ItemData> = {
   items: [
     {
       id: "2-1",
@@ -38,7 +39,7 @@ const spacedOutItems: BoardProps.Data<ItemData> = {
   },
 };
 
-const nextRowItems: BoardProps.Data<ItemData> = {
+const nextRowItems: BoardData<ItemData> = {
   items: [
     {
       id: "3-1",
@@ -68,8 +69,8 @@ export default function BoardPage() {
       <main>
         <TestBed>
           <Board
+            {...singleItem}
             i18nStrings={boardI18nStrings}
-            data={singleItem}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -77,8 +78,8 @@ export default function BoardPage() {
         </TestBed>
         <TestBed>
           <Board
+            {...spacedOutItems}
             i18nStrings={boardI18nStrings}
-            data={spacedOutItems}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -86,8 +87,8 @@ export default function BoardPage() {
         </TestBed>
         <TestBed>
           <Board
+            {...nextRowItems}
             i18nStrings={boardI18nStrings}
-            data={nextRowItems}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"

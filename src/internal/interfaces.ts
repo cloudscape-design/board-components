@@ -7,8 +7,8 @@ export type ItemId = string;
 export type DataFallbackType = Record<string, unknown>;
 
 export interface BoardData<D = DataFallbackType> {
-  items: ReadonlyArray<BoardItem<D>>;
-  layout: { [columns: number]: ReadonlyArray<BoardLayoutEntry> };
+  items: readonly BoardItem<D>[];
+  layout: BoardLayout;
 }
 
 export interface BoardItem<D = DataFallbackType> {
@@ -22,6 +22,10 @@ export interface BoardItem<D = DataFallbackType> {
 
 export interface BoardItemColumnSpan {
   [columns: number]: number;
+}
+
+export interface BoardLayout {
+  [columns: number]: ReadonlyArray<BoardLayoutEntry>;
 }
 
 export interface BoardLayoutEntry {

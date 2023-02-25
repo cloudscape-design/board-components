@@ -15,62 +15,60 @@ export default function GridWithWidgetContainerPage() {
         <TestBed>
           <Board<ItemData>
             i18nStrings={i18nStrings.boardI18nStrings}
-            data={{
-              items: [
+            items={[
+              {
+                id: "1",
+                data: { title: "One", description: "", content: "Content Area" },
+              },
+              {
+                id: "2",
+                data: {
+                  title: "Two",
+                  description: "",
+                  content: <div style={{ minHeight: 300 }}>Content Area with min-height of 300px</div>,
+                },
+              },
+              {
+                id: "3",
+                data: { title: "Three", description: "", content: "Content Area" },
+              },
+              {
+                id: "4",
+                data: { title: "Four", description: "", content: "Content Area" },
+              },
+              {
+                id: "5",
+                data: { title: "Five", description: "", content: "Content Area" },
+              },
+            ]}
+            layout={{
+              4: [
                 {
-                  id: "1",
-                  data: { title: "One", description: "", content: "Content Area" },
+                  columnOffset: 0,
+                  columnSpan: 2,
+                  rowSpan: 1,
                 },
                 {
-                  id: "2",
-                  data: {
-                    title: "Two",
-                    description: "",
-                    content: <div style={{ minHeight: 300 }}>Content Area with min-height of 300px</div>,
-                  },
+                  columnOffset: 2,
+                  columnSpan: 1,
+                  rowSpan: 1,
                 },
                 {
-                  id: "3",
-                  data: { title: "Three", description: "", content: "Content Area" },
+                  columnOffset: 3,
+                  columnSpan: 1,
+                  rowSpan: 1,
                 },
                 {
-                  id: "4",
-                  data: { title: "Four", description: "", content: "Content Area" },
+                  columnOffset: 0,
+                  columnSpan: 1,
+                  rowSpan: 1,
                 },
                 {
-                  id: "5",
-                  data: { title: "Five", description: "", content: "Content Area" },
+                  columnOffset: 2,
+                  columnSpan: 2,
+                  rowSpan: 2,
                 },
               ],
-              layout: {
-                4: [
-                  {
-                    columnOffset: 0,
-                    columnSpan: 2,
-                    rowSpan: 1,
-                  },
-                  {
-                    columnOffset: 2,
-                    columnSpan: 1,
-                    rowSpan: 1,
-                  },
-                  {
-                    columnOffset: 3,
-                    columnSpan: 1,
-                    rowSpan: 1,
-                  },
-                  {
-                    columnOffset: 0,
-                    columnSpan: 1,
-                    rowSpan: 1,
-                  },
-                  {
-                    columnOffset: 2,
-                    columnSpan: 2,
-                    rowSpan: 2,
-                  },
-                ],
-              },
             }}
             renderItem={(item) => (
               <BoardItem

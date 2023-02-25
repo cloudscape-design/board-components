@@ -3,9 +3,9 @@
 
 import { COLUMNS_DEFAULT, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import {
-  BoardData,
   BoardItem,
   BoardItemColumnSpan,
+  BoardLayout,
   BoardLayoutEntry,
   GridLayout,
   GridLayoutItem,
@@ -13,7 +13,7 @@ import {
 } from "../interfaces";
 import { LayoutShift } from "../layout-engine/interfaces";
 
-export function createItemsLayout({ items, layout }: BoardData<unknown>, columns: number): GridLayout {
+export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: BoardLayout, columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
   const colAffordance = Array(COLUMNS_DEFAULT * 2).fill(0);
 
@@ -74,15 +74,16 @@ export function createItemsLayout({ items, layout }: BoardData<unknown>, columns
 
 export function exportItemsLayout<D>(
   layoutShift: LayoutShift,
-  sourceBoardData: BoardData<D>,
+  sourceItems: readonly BoardItem<D>[],
+  sourceLayout: BoardLayout,
   columns: number
-): BoardData<D> {
+): { items: readonly BoardItem<D>[]; layout: BoardLayout } {
   // No changes are needed when no moves are committed.
   if (layoutShift.moves.length === 0) {
-    return sourceBoardData;
+    return { items: sourceItems, layout: sourceLayout };
   }
 
-  const itemById = new Map(sourceBoardData.items.map((item) => [item.id, item]));
+  const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
     const item = itemById.get(itemId);
     if (!item) {
@@ -95,20 +96,20 @@ export function exportItemsLayout<D>(
 
   const items: BoardItem<D>[] = [];
   const layout: { [columns: number]: BoardLayoutEntry[] } = {};
-  const layoutKeys = Object.keys(sourceBoardData.layout).map((k) => parseInt(k));
-  const changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceBoardData.items[index].id !== id);
+  const layoutKeys = Object.keys(sourceLayout).map((k) => parseInt(k));
+  const changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceItems[index].id !== id);
 
   function updateSourceLayout(key: number, index: number) {
     if (key === columns) {
       return;
     }
 
-    const sourceLayout = sourceBoardData.layout[key];
+    const sourceLayoutEntry = sourceLayout[key];
     if (!layout[key]) {
       layout[key] = [];
     }
-    if (index < changeFromIndex && sourceLayout[index]) {
-      layout[key].push(sourceLayout[index]);
+    if (index < changeFromIndex && sourceLayoutEntry[index]) {
+      layout[key].push(sourceLayoutEntry[index]);
     }
   }
 

@@ -44,7 +44,8 @@ import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
-  data,
+  items,
+  layout,
   renderItem,
   onItemsChange,
   empty,
@@ -76,15 +77,13 @@ export function InternalBoard<D>({
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
 
-  let items: readonly BoardItem<D>[] = data.items;
-
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = createItemsLayout({ ...data, items }, columns);
+  const itemsLayout = createItemsLayout(items, layout, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
@@ -174,20 +173,18 @@ export function InternalBoard<D>({
       return null;
     }
 
+    // TODO: export items layout should also gen addedItem/removedItem
+
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newData = exportItemsLayout(
-        transition.layoutShift,
-        { ...data, items: [...items, transition.draggableItem] },
-        columns
-      );
+      const newData = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], layout, columns);
       const addedItem = newData.items.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ data: newData, addedItem }));
+      onItemsChange(createCustomEvent({ ...newData, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newData = exportItemsLayout(transition.layoutShift, { ...data, items }, columns);
-      onItemsChange(createCustomEvent({ data: newData }));
+      const newData = exportItemsLayout(transition.layoutShift, items, layout, columns);
+      onItemsChange(createCustomEvent({ ...newData }));
     }
   });
 
@@ -218,9 +215,9 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const newData = exportItemsLayout(layoutShift, { ...data, items }, columns);
+    const newData = exportItemsLayout(layoutShift, items, layout, columns);
 
-    onItemsChange(createCustomEvent({ data: newData, removedItem }));
+    onItemsChange(createCustomEvent({ ...newData, removedItem }));
   };
 
   function focusItem(itemId: ItemId) {

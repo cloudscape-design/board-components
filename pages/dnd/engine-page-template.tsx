@@ -3,7 +3,8 @@
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import { Board, BoardItem, BoardProps, ItemsPalette } from "../../lib/components";
+import { Board, BoardItem, ItemsPalette } from "../../lib/components";
+import { BoardData } from "../../lib/components/internal/interfaces";
 import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
 import PageLayout from "../app/page-layout";
 import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
@@ -17,7 +18,7 @@ export function EnginePageTemplate({
   widgets,
   layout = "grid",
 }: {
-  initialBoardData: BoardProps.Data<ItemData>;
+  initialBoardData: BoardData<ItemData>;
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
@@ -29,8 +30,8 @@ export function EnginePageTemplate({
     <PageLayout header={<Header variant="h1">Configurable board demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
         <Board
+          {...data}
           i18nStrings={boardI18nStrings}
-          data={data}
           renderItem={(item, actions) => (
             <BoardItem
               header={<Header>{item.data.title}</Header>}
@@ -48,8 +49,8 @@ export function EnginePageTemplate({
               {item.data.content}
             </BoardItem>
           )}
-          onItemsChange={({ detail: { data, addedItem, removedItem } }) => {
-            setData(data);
+          onItemsChange={({ detail: { items, layout, addedItem, removedItem } }) => {
+            setData({ items, layout });
             if (addedItem) {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }
