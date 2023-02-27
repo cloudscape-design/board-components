@@ -112,7 +112,9 @@ export function exportItemsLayout<D>(
   const items: BoardItem<D>[] = [];
   const layout: { [columns: number]: BoardLayoutEntry[] } = {};
   const layoutKeys = Object.keys(sourceLayout).map((k) => parseInt(k));
-  const changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceItems[index].id !== id);
+
+  let changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceItems[index].id !== id);
+  changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length - 1;
 
   function updateSourceLayout(key: number, index: number) {
     if (key === columns) {
