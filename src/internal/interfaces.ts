@@ -29,9 +29,9 @@ export interface BoardLayout {
 }
 
 export interface BoardLayoutEntry {
-  columnOffset: number;
-  rowSpan: number;
-  columnSpan: number;
+  columnOffset?: number;
+  rowSpan?: number;
+  columnSpan?: number;
 }
 
 // Internal grid item representation used for position calculations.

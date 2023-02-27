@@ -110,6 +110,11 @@ export function exportItemsLayout<D>(
     }
     if (index < changeFromIndex && sourceLayoutEntry[index]) {
       layout[key].push(sourceLayoutEntry[index]);
+    } else if (sourceLayoutEntry[index]) {
+      layout[key].push({
+        columnSpan: sourceLayoutEntry[index].columnSpan,
+        rowSpan: sourceLayoutEntry[index].rowSpan,
+      });
     }
   }
 
