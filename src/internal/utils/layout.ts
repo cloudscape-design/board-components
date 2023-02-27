@@ -36,13 +36,27 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
     return Math.max(minRowSpan, rowSpan);
   }
 
+  function findOptimalColumnOffset(colSpan: number, rowSpan: number): number {
+    const rows = Math.max(...colAffordance);
+    for (let colOffset = 0; colOffset + colSpan <= columns; colOffset++) {
+      let nextRows = 0;
+      for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
+        nextRows = Math.max(nextRows, colAffordance[colOffset + spanIndex] + rowSpan);
+      }
+      if (nextRows <= rows) {
+        return colOffset;
+      }
+    }
+    return 0;
+  }
+
   for (let index = 0; index < items.length; index++) {
     currentColumnOffset = getColumnOffset(index);
     const colSpan = getColumnSpan(index);
     const rowSpan = getRowSpan(index);
 
     if (currentColumnOffset + colSpan > columns) {
-      currentColumnOffset = 0;
+      currentColumnOffset = findOptimalColumnOffset(colSpan, rowSpan);
     }
 
     let currentRowOffset = 0;
@@ -110,11 +124,11 @@ export function exportItemsLayout<D>(
     }
     if (index < changeFromIndex && sourceLayoutEntry[index]) {
       layout[key].push(sourceLayoutEntry[index]);
-    } else if (sourceLayoutEntry[index]) {
-      layout[key].push({
-        columnSpan: sourceLayoutEntry[index].columnSpan,
-        rowSpan: sourceLayoutEntry[index].rowSpan,
-      });
+    } else {
+      const originalIndex = sourceItems.findIndex(({ id }) => id === items[index].id);
+      const columnSpan = sourceLayoutEntry?.[originalIndex]?.columnSpan;
+      const rowSpan = sourceLayoutEntry?.[originalIndex]?.rowSpan;
+      layout[key].push({ columnSpan, rowSpan });
     }
   }
 
