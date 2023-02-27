@@ -20,10 +20,6 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
   let currentColumnOffset = 0;
   const columnsLayout = layout[columns];
 
-  function getColumnOffset(index: number): number {
-    return columnsLayout?.[index]?.columnOffset ?? currentColumnOffset;
-  }
-
   function getColumnSpan(index: number): number {
     const minColumnSpan = getItemMinColumnSpan(items[index], columns);
     const columnSpan = columnsLayout?.[index]?.columnSpan ?? getItemDefaultColumnSpan(items[index], columns);
@@ -38,6 +34,15 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
 
   function findOptimalColumnOffset(colSpan: number, rowSpan: number): number {
     const rows = Math.max(...colAffordance);
+    for (let colOffset = currentColumnOffset; colOffset + colSpan <= columns; colOffset++) {
+      let nextRows = 0;
+      for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
+        nextRows = Math.max(nextRows, colAffordance[colOffset + spanIndex] + rowSpan);
+      }
+      if (nextRows <= rows) {
+        return colOffset;
+      }
+    }
     for (let colOffset = 0; colOffset + colSpan <= columns; colOffset++) {
       let nextRows = 0;
       for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
@@ -47,17 +52,13 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
         return colOffset;
       }
     }
-    return 0;
+    return currentColumnOffset + colSpan <= columns ? currentColumnOffset : 0;
   }
 
   for (let index = 0; index < items.length; index++) {
-    currentColumnOffset = getColumnOffset(index);
     const colSpan = getColumnSpan(index);
     const rowSpan = getRowSpan(index);
-
-    if (currentColumnOffset + colSpan > columns) {
-      currentColumnOffset = findOptimalColumnOffset(colSpan, rowSpan);
-    }
+    currentColumnOffset = columnsLayout?.[index]?.columnOffset ?? findOptimalColumnOffset(colSpan, rowSpan);
 
     let currentRowOffset = 0;
     for (let col = currentColumnOffset; col < currentColumnOffset + colSpan; col++) {
