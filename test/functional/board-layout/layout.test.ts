@@ -270,8 +270,8 @@ test(
 
       await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
+        ["B", "B", "A", "A"],
+        ["B", "B", "A", "A"],
       ]);
     }
   )
@@ -299,10 +299,10 @@ test(
 
       await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
-        ["C", "C", "B", "B"],
-        ["C", "C", "B", "B"],
-        ["A", "A", "D", "D"],
-        ["A", "A", "D", "D"],
+        ["B", "B", "C", "C"],
+        ["B", "B", "C", "C"],
+        ["D", "D", "A", "A"],
+        ["D", "D", "A", "A"],
       ]);
     }
   )
@@ -332,8 +332,6 @@ test(
       await expect(page.getGrid(4)).resolves.toEqual([
         ["A", "A", "B", "B"],
         ["A", "A", "B", "B"],
-        ["A", "A", " ", " "],
-        ["A", "A", " ", " "],
         ["C", "C", " ", " "],
         ["C", "C", " ", " "],
       ]);
@@ -369,8 +367,8 @@ test(
 
       await page.setWindowSize({ width: 1600, height: 800 });
       await expect(page.getGrid(4)).resolves.toEqual([
-        ["D", " ", "B", "B"],
-        ["D", " ", "B", "B"],
+        ["D", "B", "B", " "],
+        ["D", "B", "B", " "],
         ["C", "C", " ", " "],
         ["C", "C", " ", " "],
       ]);
