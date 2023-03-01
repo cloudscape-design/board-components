@@ -11,38 +11,46 @@ import {
   GridLayoutItem,
   ItemId,
 } from "../interfaces";
-import { LayoutShift } from "../layout-engine/interfaces";
 
+/**
+ * The function produces grid layout from board items and given number of columns.
+ * The positional data is taken from the items when available or the default placement is used otherwise.
+ */
 export function interpretItems<D>(items: readonly BoardItem<D>[], layout: BoardLayout, columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
+  const layoutData = layout[columns];
   const columnHeights = Array(columns).fill(0);
-
-  const columnsLayout = layout[columns];
 
   function getColumnSpan(index: number): number {
     const minColumnSpan = getItemMinColumnSpan(items[index], columns);
-    const columnSpan = columnsLayout?.[index]?.columnSpan ?? getItemDefaultColumnSpan(items[index], columns);
+    const columnSpan = layoutData?.[index]?.columnSpan ?? getItemDefaultColumnSpan(items[index], columns);
     return Math.max(minColumnSpan, columnSpan);
   }
 
   function getRowSpan(index: number): number {
     const minRowSpan = getItemMinRowSpan(items[index]);
-    const rowSpan = columnsLayout?.[index]?.rowSpan ?? getItemDefaultRowSpan(items[index]);
+    const rowSpan = layoutData?.[index]?.rowSpan ?? getItemDefaultRowSpan(items[index]);
     return Math.max(minRowSpan, rowSpan);
   }
 
-  function findOptimalColumnOffset(currentColumnOffset: number, colSpan: number, rowSpan: number): number {
-    for (let colOffset = currentColumnOffset; colOffset + colSpan <= columns; colOffset++) {
-      if (getRowOffset(colOffset, colSpan) + rowSpan <= getRowOffset(0, columns)) {
+  function getColumnOffset(index: number, currentOffset: number): number {
+    const columnSpan = getColumnSpan(index);
+    const rowSpan = getRowSpan(index);
+    return layoutData?.[index]?.columnOffset ?? findOptimalColumnOffset(currentOffset, columnSpan, rowSpan);
+  }
+
+  function findOptimalColumnOffset(currentColumnOffset: number, columnSpan: number, rowSpan: number): number {
+    for (let colOffset = currentColumnOffset; colOffset + columnSpan <= columns; colOffset++) {
+      if (getRowOffset(colOffset, columnSpan) + rowSpan <= getRowOffset(0, columns)) {
         return colOffset;
       }
     }
-    for (let colOffset = 0; colOffset + colSpan <= columns; colOffset++) {
-      if (getRowOffset(colOffset, colSpan) + rowSpan <= getRowOffset(0, columns)) {
+    for (let colOffset = 0; colOffset + columnSpan <= columns; colOffset++) {
+      if (getRowOffset(colOffset, columnSpan) + rowSpan <= getRowOffset(0, columns)) {
         return colOffset;
       }
     }
-    return currentColumnOffset + colSpan <= columns ? currentColumnOffset : 0;
+    return currentColumnOffset + columnSpan <= columns ? currentColumnOffset : 0;
   }
 
   function getRowOffset(columnOffset: number, columnSpan: number) {
@@ -54,43 +62,34 @@ export function interpretItems<D>(items: readonly BoardItem<D>[], layout: BoardL
   }
 
   for (let index = 0, columnOffset = 0, rowOffset = 0; index < items.length; index++, rowOffset = 0) {
-    const colSpan = getColumnSpan(index);
+    const columnSpan = getColumnSpan(index);
     const rowSpan = getRowSpan(index);
-    columnOffset = columnsLayout?.[index]?.columnOffset ?? findOptimalColumnOffset(columnOffset, colSpan, rowSpan);
-    rowOffset = getRowOffset(columnOffset, colSpan);
+    columnOffset = getColumnOffset(index, columnOffset);
+    rowOffset = getRowOffset(columnOffset, columnSpan);
 
-    layoutItems.push({
-      id: items[index].id,
-      width: colSpan,
-      height: rowSpan,
-      x: columnOffset,
-      y: rowOffset,
-    });
+    layoutItems.push({ id: items[index].id, width: columnSpan, height: rowSpan, x: columnOffset, y: rowOffset });
 
-    for (let col = columnOffset; col < columnOffset + colSpan; col++) {
+    for (let col = columnOffset; col < columnOffset + columnSpan; col++) {
       columnHeights[col] = rowOffset + rowSpan;
     }
 
-    columnOffset += colSpan;
+    columnOffset += columnSpan;
   }
-
-  const rows = getRowOffset(0, columns);
 
   layoutItems.sort(itemComparator);
 
-  return { items: layoutItems, columns, rows };
+  return { items: layoutItems, columns, rows: getRowOffset(0, columns) };
 }
 
+/**
+ * The function produces new items from the current state and updated grid layout.
+ * The positional data for the given number of columns is preserved as is while the other layouts are partially invalidated.
+ */
 export function transformItems<D>(
   sourceItems: readonly BoardItem<D>[],
   sourceLayout: BoardLayout,
-  layoutShift: LayoutShift
+  gridLayout: GridLayout
 ): { items: readonly BoardItem<D>[]; layout: BoardLayout } {
-  // No changes are needed when no moves are committed.
-  if (layoutShift.moves.length === 0) {
-    return { items: sourceItems, layout: sourceLayout };
-  }
-
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
     const item = itemById.get(itemId);
@@ -100,7 +99,7 @@ export function transformItems<D>(
     return item;
   };
 
-  const sortedLayout = layoutShift.next.items.slice().sort(itemComparator);
+  const sortedLayout = gridLayout.items.slice().sort(itemComparator);
 
   const items: BoardItem<D>[] = [];
   const layout: { [columns: number]: BoardLayoutEntry[] } = {};
@@ -110,7 +109,7 @@ export function transformItems<D>(
   changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length - 1;
 
   function updateSourceLayout(key: number, index: number) {
-    if (key === layoutShift.current.columns) {
+    if (key === gridLayout.columns) {
       return;
     }
 
@@ -129,10 +128,10 @@ export function transformItems<D>(
   }
 
   function writeCurrentLayout(columnOffset: number, columnSpan: number, rowSpan: number) {
-    if (!layout[layoutShift.current.columns]) {
-      layout[layoutShift.current.columns] = [];
+    if (!layout[gridLayout.columns]) {
+      layout[gridLayout.columns] = [];
     }
-    layout[layoutShift.current.columns].push({ columnOffset, columnSpan, rowSpan });
+    layout[gridLayout.columns].push({ columnOffset, columnSpan, rowSpan });
   }
 
   for (let index = 0; index < sortedLayout.length; index++) {

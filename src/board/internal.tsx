@@ -169,7 +169,11 @@ export function InternalBoard<D>({
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
-    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
+    if (
+      !transition.layoutShift ||
+      transition.layoutShift.conflicts.length > 0 ||
+      transition.layoutShift.moves.length === 0
+    ) {
       return null;
     }
 
@@ -177,13 +181,13 @@ export function InternalBoard<D>({
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newData = transformItems([...items, transition.draggableItem], layout, transition.layoutShift);
+      const newData = transformItems([...items, transition.draggableItem], layout, transition.layoutShift.next);
       const addedItem = newData.items.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ ...newData, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newData = transformItems(items, layout, transition.layoutShift);
+      const newData = transformItems(items, layout, transition.layoutShift.next);
       onItemsChange(createCustomEvent({ ...newData }));
     }
   });
@@ -215,7 +219,7 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const newData = transformItems(items, layout, layoutShift);
+    const newData = transformItems(items, layout, layoutShift.next);
 
     onItemsChange(createCustomEvent({ ...newData, removedItem }));
   };
