@@ -30,11 +30,13 @@ const spacedOutItems: BoardProps.Item<any>[] = [
 const nextRowItems: BoardProps.Item<any>[] = [
   {
     id: "3-1",
+    columnOffset: { 4: 0 },
     columnSpan: { 4: 2 },
     data: {},
   },
   {
     id: "3-2",
+    columnOffset: { 4: 0 },
     data: {},
   },
 ];
