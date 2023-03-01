@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, ItemId } from "../../internal/interfaces";
-import { getItemMinColumnSpan, getItemMinRowSpan } from "../../internal/utils/layout";
+import { getMinColumnSpan, getMinRowSpan } from "../../internal/utils/layout";
 import {
   BoardProps,
   DndActionAnnouncement,
@@ -98,8 +98,8 @@ export function announcementToString<D>(
           item,
           placement,
           direction: direction!,
-          isMinimalColumnsReached: placement.width === getItemMinColumnSpan(item, columns),
-          isMinimalRowsReached: placement.height === getItemMinRowSpan(item),
+          isMinimalColumnsReached: placement.width === getMinColumnSpan(item, columns),
+          isMinimalRowsReached: placement.height === getMinRowSpan(item),
           conflicts,
           disturbed,
         });

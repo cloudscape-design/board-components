@@ -36,6 +36,7 @@ export interface BoardProps<D = DataFallbackType> {
    * * `columnOffset` (mapping, optional) - the item's offset from the first column (per layout) starting from zero. The value is updated by `onItemsChange` after an update is committed.
    * * `rowSpan` (number, optional) - the item's vertical size starting from two. The value is updated by `onItemsChange` after an update is committed.
    * * `columnSpan` (mapping, optional) - the item's vertical size (per layout) starting from one. The value is updated by `onItemsChange` after an update is committed.
+   * * `data` (D) - optional item data which can include the specific configurations of an item, such as its title.
    */
   items: ReadonlyArray<BoardProps.Item<D>>;
 

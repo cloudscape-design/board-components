@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { useDroppable } from "../internal/dnd-controller/controller";
 import { GridContext } from "../internal/grid/interfaces";
 import { BoardItemDefinitionBase } from "../internal/interfaces";
-import { getItemDefaultColumnSpan, getItemDefaultRowSpan } from "../internal/utils/layout";
+import { getDefaultColumnSpan, getDefaultRowSpan } from "../internal/utils/layout";
 import styles from "./styles.css.js";
 
 export type PlaceholderState = "default" | "active" | "hover";
@@ -22,8 +22,8 @@ export default function Placeholder({ id, state, gridContext, columns }: Placeho
 
   const dropTargetContext = {
     scale: (item: BoardItemDefinitionBase<unknown>, size?: { width: number; height: number }) => {
-      const width = size?.width ?? getItemDefaultColumnSpan(item, columns);
-      const height = size?.height ?? getItemDefaultRowSpan(item);
+      const width = size?.width ?? getDefaultColumnSpan(item, columns);
+      const height = size?.height ?? getDefaultRowSpan(item);
       return {
         width: gridContext.getWidth(width),
         height: gridContext.getHeight(height),

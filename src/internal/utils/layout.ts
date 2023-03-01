@@ -15,14 +15,14 @@ export function interpretItems(items: readonly Item[], columns: number): GridLay
   const columnHeights = Array(columns).fill(0);
 
   function getColumnSpan(item: Item): number {
-    const minColumnSpan = getItemMinColumnSpan(item, columns);
-    const columnSpan = item.columnSpan?.[columns] ?? getItemDefaultColumnSpan(item, columns);
+    const minColumnSpan = getMinColumnSpan(item, columns);
+    const columnSpan = item.columnSpan?.[columns] ?? getDefaultColumnSpan(item, columns);
     return Math.max(minColumnSpan, columnSpan);
   }
 
   function getRowSpan(item: Item): number {
-    const minRowSpan = getItemMinRowSpan(item);
-    const rowSpan = item.rowSpan?.[columns] ?? getItemDefaultRowSpan(item);
+    const minRowSpan = getMinRowSpan(item);
+    const rowSpan = item.rowSpan?.[columns] ?? getDefaultRowSpan(item);
     return Math.max(minRowSpan, rowSpan);
   }
 
@@ -96,7 +96,7 @@ export function transformItems<D>(
   const items: BoardItemDefinition<D>[] = [];
 
   let changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceItems[index].id !== id);
-  changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length - 1;
+  changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length;
 
   function writeItemSetting(
     item: Item,
@@ -121,7 +121,7 @@ export function transformItems<D>(
 
     writeItemSetting(item, "columnOffset", gridLayout.columns, x);
     writeItemSetting(item, "columnSpan", gridLayout.columns, width);
-    writeItemSetting(item, "rowSpan", gridLayout.rows, height);
+    writeItemSetting(item, "rowSpan", gridLayout.columns, height);
 
     items.push(item);
   }
@@ -141,15 +141,23 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
   return { items: layoutItems, columns, rows };
 }
 
-export function getItemMinColumnSpan(item: Item, columns: number) {
+export function getMinColumnSpan(item: Item, columns: number) {
   return Math.max(MIN_COL_SPAN, getColumnSpanForColumns(item.definition?.minColumnSpan, columns));
 }
 
-export function getItemDefaultColumnSpan(item: Item, columns: number) {
+export function getDefaultColumnSpan(item: Item, columns: number) {
   return Math.min(
     columns,
-    Math.max(getItemMinColumnSpan(item, columns), getColumnSpanForColumns(item.definition?.defaultColumnSpan, columns))
+    Math.max(getMinColumnSpan(item, columns), getColumnSpanForColumns(item.definition?.defaultColumnSpan, columns))
   );
+}
+
+export function getMinRowSpan(item: Item) {
+  return Math.max(MIN_ROW_SPAN, item.definition?.minRowSpan ?? 0);
+}
+
+export function getDefaultRowSpan(item: Item) {
+  return Math.max(getMinRowSpan(item), item.definition?.defaultRowSpan ?? 0);
 }
 
 function getColumnSpanForColumns(columnSpan: BoardItemLayoutSetting | undefined, columns: number): number {
@@ -162,14 +170,6 @@ function getColumnSpanForColumns(columnSpan: BoardItemLayoutSetting | undefined,
     }
   }
   return MIN_COL_SPAN;
-}
-
-export function getItemMinRowSpan(item: Item) {
-  return Math.max(MIN_ROW_SPAN, item.definition?.minRowSpan ?? 0);
-}
-
-export function getItemDefaultRowSpan(item: Item) {
-  return Math.max(getItemMinRowSpan(item), item.definition?.defaultRowSpan ?? 0);
 }
 
 function itemComparator(a: GridLayoutItem, b: GridLayoutItem) {

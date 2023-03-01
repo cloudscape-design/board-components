@@ -5,7 +5,7 @@ import { InteractionType, Operation } from "../internal/dnd-controller/controlle
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { getItemMinColumnSpan, getItemMinRowSpan } from "../internal/utils/layout";
+import { getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
@@ -255,8 +255,8 @@ function updateTransitionWithKeyboardEvent<D>(
     // Check resizing below min size.
     const layout = transition.layoutShift?.next ?? transition.itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const minWidth = getItemMinColumnSpan(transition.draggableItem, transition.itemsLayout.columns);
-    const minHeight = getItemMinRowSpan(transition.draggableItem);
+    const minWidth = getMinColumnSpan(transition.draggableItem, transition.itemsLayout.columns);
+    const minHeight = getMinRowSpan(transition.draggableItem);
     if (
       transition.operation === "resize" &&
       layoutItem &&

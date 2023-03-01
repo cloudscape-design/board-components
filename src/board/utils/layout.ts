@@ -5,17 +5,17 @@ import { BoardItemDefinitionBase, Direction } from "../../internal/interfaces";
 import { LayoutEngine } from "../../internal/layout-engine/engine";
 import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
-import { createPlaceholdersLayout, getItemDefaultColumnSpan, getItemDefaultRowSpan } from "../../internal/utils/layout";
+import { createPlaceholdersLayout, getDefaultColumnSpan, getDefaultRowSpan } from "../../internal/utils/layout";
 import { Position } from "../../internal/utils/position";
 import { Transition } from "../interfaces";
 import { normalizeInsertionPath } from "./path";
 
 export function getInsertingItemWidth(item: BoardItemDefinitionBase<unknown>, columns: number): number {
-  return getItemDefaultColumnSpan(item, columns);
+  return getDefaultColumnSpan(item, columns);
 }
 
 export function getInsertingItemHeight(item: BoardItemDefinitionBase<unknown>): number {
-  return getItemDefaultRowSpan(item);
+  return getDefaultRowSpan(item);
 }
 
 export function getLayoutColumns<D>(transition: Transition<D>) {

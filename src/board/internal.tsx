@@ -24,8 +24,8 @@ import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-naviga
 import { createCustomEvent } from "../internal/utils/events";
 import {
   createPlaceholdersLayout,
-  getItemMinColumnSpan,
-  getItemMinRowSpan,
+  getMinColumnSpan,
+  getMinRowSpan,
   interpretItems,
   transformItems,
 } from "../internal/utils/layout";
@@ -176,8 +176,6 @@ export function InternalBoard<D>({
       return null;
     }
 
-    // TODO: export items layout should also gen addedItem/removedItem
-
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
       const newItems = transformItems([...items, transition.draggableItem], transition.layoutShift.next);
@@ -305,10 +303,10 @@ export function InternalBoard<D>({
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
                       width: gridContext.getWidth(itemSize.width),
-                      minWidth: gridContext.getWidth(getItemMinColumnSpan(item, columns)),
+                      minWidth: gridContext.getWidth(getMinColumnSpan(item, columns)),
                       maxWidth: gridContext.getWidth(itemMaxSize.width),
                       height: gridContext.getHeight(itemSize.height),
-                      minHeight: gridContext.getHeight(getItemMinRowSpan(item)),
+                      minHeight: gridContext.getHeight(getMinRowSpan(item)),
                       maxHeight: gridContext.getHeight(itemMaxSize.height),
                     })}
                     onKeyMove={onItemMove}
