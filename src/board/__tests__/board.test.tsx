@@ -67,8 +67,8 @@ describe("Board", () => {
     render(
       <Board
         items={[
-          { id: "1", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 1" } },
-          { id: "2", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 2" } },
+          { id: "1", data: { title: "Item 1" } },
+          { id: "2", data: { title: "Item 2" } },
         ]}
         renderItem={(item) => <div>{item.data.title}</div>}
         onItemsChange={() => undefined}
@@ -85,8 +85,8 @@ describe("Board", () => {
     render(
       <Board
         items={[
-          { id: "1", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 1" } },
-          { id: "2", columnOffset: 0, columnSpan: 1, rowSpan: 1, data: { title: "Item 2" } },
+          { id: "1", data: { title: "Item 1" } },
+          { id: "2", data: { title: "Item 2" } },
         ]}
         renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
         onItemsChange={() => undefined}

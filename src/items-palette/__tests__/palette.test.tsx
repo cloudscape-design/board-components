@@ -32,8 +32,8 @@ const defaultProps: ItemsPaletteProps = {
     navigationItemAriaLabel: (item) => item.id,
   },
   items: [
-    { id: "first", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },
-    { id: "second", definition: { defaultColumnSpan: 1, defaultRowSpan: 1 }, data: {} },
+    { id: "first", data: {} },
+    { id: "second", data: {} },
   ],
   renderItem: (item, { showPreview }) => (
     <div className={itemStyles.root}>
