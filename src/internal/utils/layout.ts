@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { COLUMNS_DEFAULT, MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
+import { MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
 import {
   BoardItem,
   BoardItemColumnSpan,
@@ -13,9 +13,9 @@ import {
 } from "../interfaces";
 import { LayoutShift } from "../layout-engine/interfaces";
 
-export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: BoardLayout, columns: number): GridLayout {
+export function interpretItems<D>(items: readonly BoardItem<D>[], layout: BoardLayout, columns: number): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
-  const colAffordance = Array(COLUMNS_DEFAULT * 2).fill(0);
+  const columnHeights = Array(columns).fill(0);
 
   let currentColumnOffset = 0;
   const columnsLayout = layout[columns];
@@ -33,11 +33,11 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
   }
 
   function findOptimalColumnOffset(colSpan: number, rowSpan: number): number {
-    const rows = Math.max(...colAffordance);
+    const rows = Math.max(...columnHeights);
     for (let colOffset = currentColumnOffset; colOffset + colSpan <= columns; colOffset++) {
       let nextRows = 0;
       for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
-        nextRows = Math.max(nextRows, colAffordance[colOffset + spanIndex] + rowSpan);
+        nextRows = Math.max(nextRows, columnHeights[colOffset + spanIndex] + rowSpan);
       }
       if (nextRows <= rows) {
         return colOffset;
@@ -46,7 +46,7 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
     for (let colOffset = 0; colOffset + colSpan <= columns; colOffset++) {
       let nextRows = 0;
       for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
-        nextRows = Math.max(nextRows, colAffordance[colOffset + spanIndex] + rowSpan);
+        nextRows = Math.max(nextRows, columnHeights[colOffset + spanIndex] + rowSpan);
       }
       if (nextRows <= rows) {
         return colOffset;
@@ -62,7 +62,7 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
 
     let currentRowOffset = 0;
     for (let col = currentColumnOffset; col < currentColumnOffset + colSpan; col++) {
-      currentRowOffset = Math.max(currentRowOffset, colAffordance[col]);
+      currentRowOffset = Math.max(currentRowOffset, columnHeights[col]);
     }
 
     layoutItems.push({
@@ -74,24 +74,23 @@ export function createItemsLayout<D>(items: readonly BoardItem<D>[], layout: Boa
     });
 
     for (let col = currentColumnOffset; col < currentColumnOffset + colSpan; col++) {
-      colAffordance[col] = currentRowOffset + rowSpan;
+      columnHeights[col] = currentRowOffset + rowSpan;
     }
 
     currentColumnOffset += colSpan;
   }
 
-  const rows = Math.max(...colAffordance);
+  const rows = Math.max(...columnHeights);
 
   layoutItems.sort(itemComparator);
 
   return { items: layoutItems, columns, rows };
 }
 
-export function exportItemsLayout<D>(
-  layoutShift: LayoutShift,
+export function transformItems<D>(
   sourceItems: readonly BoardItem<D>[],
   sourceLayout: BoardLayout,
-  columns: number
+  layoutShift: LayoutShift
 ): { items: readonly BoardItem<D>[]; layout: BoardLayout } {
   // No changes are needed when no moves are committed.
   if (layoutShift.moves.length === 0) {
@@ -117,7 +116,7 @@ export function exportItemsLayout<D>(
   changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length - 1;
 
   function updateSourceLayout(key: number, index: number) {
-    if (key === columns) {
+    if (key === layoutShift.current.columns) {
       return;
     }
 
@@ -136,10 +135,10 @@ export function exportItemsLayout<D>(
   }
 
   function writeCurrentLayout(columnOffset: number, columnSpan: number, rowSpan: number) {
-    if (!layout[columns]) {
-      layout[columns] = [];
+    if (!layout[layoutShift.current.columns]) {
+      layout[layoutShift.current.columns] = [];
     }
-    layout[columns].push({ columnOffset, columnSpan, rowSpan });
+    layout[layoutShift.current.columns].push({ columnOffset, columnSpan, rowSpan });
   }
 
   for (let index = 0; index < sortedLayout.length; index++) {

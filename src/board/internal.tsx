@@ -23,11 +23,11 @@ import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { createCustomEvent } from "../internal/utils/events";
 import {
-  createItemsLayout,
   createPlaceholdersLayout,
-  exportItemsLayout,
   getItemMinColumnSpan,
   getItemMinRowSpan,
+  interpretItems,
+  transformItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
@@ -83,7 +83,7 @@ export function InternalBoard<D>({
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = createItemsLayout(items, layout, columns);
+  const itemsLayout = interpretItems(items, layout, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
@@ -177,13 +177,13 @@ export function InternalBoard<D>({
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newData = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], layout, columns);
+      const newData = transformItems([...items, transition.draggableItem], layout, transition.layoutShift);
       const addedItem = newData.items.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ ...newData, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newData = exportItemsLayout(transition.layoutShift, items, layout, columns);
+      const newData = transformItems(items, layout, transition.layoutShift);
       onItemsChange(createCustomEvent({ ...newData }));
     }
   });
@@ -215,7 +215,7 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const newData = exportItemsLayout(layoutShift, items, layout, columns);
+    const newData = transformItems(items, layout, layoutShift);
 
     onItemsChange(createCustomEvent({ ...newData, removedItem }));
   };
