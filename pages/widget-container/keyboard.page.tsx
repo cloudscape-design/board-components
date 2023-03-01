@@ -13,6 +13,7 @@ export default function KeyboardPage() {
         items={[
           {
             id: "1",
+            columnSpan: { 4: 4 },
             data: {
               title: "",
               description: "",
@@ -20,9 +21,6 @@ export default function KeyboardPage() {
             },
           },
         ]}
-        layout={{
-          4: [{ columnOffset: 0, columnSpan: 4, rowSpan: 1 }],
-        }}
         renderItem={() => (
           <BoardItem
             header={<span tabIndex={0}>Header</span>}

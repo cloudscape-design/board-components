@@ -2,61 +2,42 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode } from "react";
-import { Board } from "../../lib/components";
-import { BoardData } from "../../lib/components/internal/interfaces";
+import { Board, BoardProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
 import { boardI18nStrings } from "../shared/i18n";
-import { ItemData } from "../shared/interfaces";
 import classnames from "./layouts.module.css";
 
-const singleItem: BoardData<ItemData> = {
-  items: [
-    {
-      id: "1-1",
-      data: { title: "", description: "", content: "" },
-    },
-  ],
-  layout: {},
-};
-
-const spacedOutItems: BoardData<ItemData> = {
-  items: [
-    {
-      id: "2-1",
-      data: { title: "", description: "", content: "" },
-    },
-    {
-      id: "2-2",
-      data: { title: "", description: "", content: "" },
-    },
-  ],
-  layout: {
-    4: [
-      { columnSpan: 1, rowSpan: 1, columnOffset: 0 },
-      { columnSpan: 1, rowSpan: 1, columnOffset: 3 },
-    ],
+const singleItem: BoardProps.Item<any>[] = [
+  {
+    id: "1-1",
+    data: {},
   },
-};
+];
 
-const nextRowItems: BoardData<ItemData> = {
-  items: [
-    {
-      id: "3-1",
-      data: { title: "", description: "", content: "" },
-    },
-    {
-      id: "3-2",
-      data: { title: "", description: "", content: "" },
-    },
-  ],
-  layout: {
-    4: [
-      { columnSpan: 2, rowSpan: 1, columnOffset: 0 },
-      { columnSpan: 1, rowSpan: 1, columnOffset: 0 },
-    ],
+const spacedOutItems: BoardProps.Item<any>[] = [
+  {
+    id: "2-1",
+    data: {},
   },
-};
+  {
+    id: "2-2",
+    columnOffset: { 4: 3 },
+    data: {},
+  },
+];
+
+const nextRowItems: BoardProps.Item<any>[] = [
+  {
+    id: "3-1",
+    columnSpan: { 4: 2 },
+    data: {},
+  },
+  {
+    id: "3-2",
+    data: {},
+  },
+];
 
 const noop = () => {
   /* readonly demos */
@@ -69,8 +50,8 @@ export default function BoardPage() {
       <main>
         <TestBed>
           <Board
-            {...singleItem}
             i18nStrings={boardI18nStrings}
+            items={singleItem}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -78,8 +59,8 @@ export default function BoardPage() {
         </TestBed>
         <TestBed>
           <Board
-            {...spacedOutItems}
             i18nStrings={boardI18nStrings}
+            items={spacedOutItems}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"
@@ -87,8 +68,8 @@ export default function BoardPage() {
         </TestBed>
         <TestBed>
           <Board
-            {...nextRowItems}
             i18nStrings={boardI18nStrings}
+            items={nextRowItems}
             renderItem={(item) => <CustomBoardItem>{item.id}</CustomBoardItem>}
             onItemsChange={noop}
             empty="No items"

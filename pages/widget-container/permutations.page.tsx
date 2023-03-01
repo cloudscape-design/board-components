@@ -9,9 +9,7 @@ import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 
 const fullWidthItem = {
-  columnOffset: 0,
-  columnSpan: 4,
-  rowSpan: 1,
+  columnSpan: { 1: 1, 2: 2, 4: 4, 6: 6 },
 };
 
 export default function WidgetContainerPermutations() {
@@ -27,6 +25,7 @@ export default function WidgetContainerPermutations() {
           items={[
             {
               id: "1",
+              ...fullWidthItem,
               data: {
                 title: "Text header",
                 description: "",
@@ -40,6 +39,7 @@ export default function WidgetContainerPermutations() {
             },
             {
               id: "2",
+              ...fullWidthItem,
               data: {
                 title: "Text header with settings",
                 description: "",
@@ -62,6 +62,7 @@ export default function WidgetContainerPermutations() {
             },
             {
               id: "3",
+              ...fullWidthItem,
               data: {
                 title: "Text header with actions",
                 description: "",
@@ -96,6 +97,7 @@ export default function WidgetContainerPermutations() {
             },
             {
               id: "4",
+              ...fullWidthItem,
               data: {
                 title: "Text header wraps",
                 description: "",
@@ -123,6 +125,7 @@ export default function WidgetContainerPermutations() {
             },
             {
               id: "5",
+              ...fullWidthItem,
               data: {
                 title: "Text header with actions",
                 description: "",
@@ -148,6 +151,7 @@ export default function WidgetContainerPermutations() {
             },
             {
               id: "6",
+              ...fullWidthItem,
               data: {
                 title: "Text header",
                 description: "",
@@ -164,6 +168,7 @@ export default function WidgetContainerPermutations() {
             },
             {
               id: "7",
+              ...fullWidthItem,
               data: {
                 title: "Text header",
                 description: "",
@@ -177,17 +182,6 @@ export default function WidgetContainerPermutations() {
               },
             },
           ]}
-          layout={{
-            4: [
-              fullWidthItem,
-              fullWidthItem,
-              fullWidthItem,
-              fullWidthItem,
-              fullWidthItem,
-              fullWidthItem,
-              fullWidthItem,
-            ],
-          }}
           empty="No items"
         />
       </PageLayout>

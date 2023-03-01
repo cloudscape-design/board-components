@@ -18,10 +18,16 @@ export default function GridWithWidgetContainerPage() {
             items={[
               {
                 id: "1",
+                columnOffset: { 4: 0 },
+                columnSpan: { 4: 2 },
+                rowSpan: { 4: 1 },
                 data: { title: "One", description: "", content: "Content Area" },
               },
               {
                 id: "2",
+                columnOffset: { 4: 2 },
+                columnSpan: { 4: 1 },
+                rowSpan: { 4: 1 },
                 data: {
                   title: "Two",
                   description: "",
@@ -30,46 +36,26 @@ export default function GridWithWidgetContainerPage() {
               },
               {
                 id: "3",
+                columnOffset: { 4: 3 },
+                columnSpan: { 4: 1 },
+                rowSpan: { 4: 1 },
                 data: { title: "Three", description: "", content: "Content Area" },
               },
               {
                 id: "4",
+                columnOffset: { 4: 0 },
+                columnSpan: { 4: 1 },
+                rowSpan: { 4: 1 },
                 data: { title: "Four", description: "", content: "Content Area" },
               },
               {
                 id: "5",
+                columnOffset: { 4: 2 },
+                columnSpan: { 4: 2 },
+                rowSpan: { 4: 2 },
                 data: { title: "Five", description: "", content: "Content Area" },
               },
             ]}
-            layout={{
-              4: [
-                {
-                  columnOffset: 0,
-                  columnSpan: 2,
-                  rowSpan: 1,
-                },
-                {
-                  columnOffset: 2,
-                  columnSpan: 1,
-                  rowSpan: 1,
-                },
-                {
-                  columnOffset: 3,
-                  columnSpan: 1,
-                  rowSpan: 1,
-                },
-                {
-                  columnOffset: 0,
-                  columnSpan: 1,
-                  rowSpan: 1,
-                },
-                {
-                  columnOffset: 2,
-                  columnSpan: 2,
-                  rowSpan: 2,
-                },
-              ],
-            }}
             renderItem={(item) => (
               <BoardItem
                 header={<Header variant="h2">{item.data.title}</Header>}

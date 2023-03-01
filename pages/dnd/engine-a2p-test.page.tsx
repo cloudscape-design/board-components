@@ -14,7 +14,7 @@ const letterItems = createLetterItems([
 export default function () {
   return (
     <EnginePageTemplate
-      initialBoardData={letterItems.boardData}
+      initialBoardItems={letterItems.boardItems}
       initialPaletteItems={letterItems.paletteItems}
       widgets={letterWidgets}
     />

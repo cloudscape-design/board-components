@@ -16,7 +16,7 @@ import {
 } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItem, Direction, ItemId } from "../internal/interfaces";
+import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
@@ -45,7 +45,6 @@ const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLU
 
 export function InternalBoard<D>({
   items,
-  layout,
   renderItem,
   onItemsChange,
   empty,
@@ -83,7 +82,7 @@ export function InternalBoard<D>({
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = interpretItems(items, layout, columns);
+  const itemsLayout = interpretItems(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
@@ -145,7 +144,7 @@ export function InternalBoard<D>({
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
-      draggableItem: draggableItem as BoardItem<any>,
+      draggableItem: draggableItem as BoardItemDefinitionBase<any>,
       draggableElement,
       collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
     });
@@ -181,14 +180,14 @@ export function InternalBoard<D>({
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newData = transformItems([...items, transition.draggableItem], layout, transition.layoutShift.next);
-      const addedItem = newData.items.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ ...newData, addedItem }));
+      const newItems = transformItems([...items, transition.draggableItem], transition.layoutShift.next);
+      const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
+      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newData = transformItems(items, layout, transition.layoutShift.next);
-      onItemsChange(createCustomEvent({ ...newData }));
+      const newItems = transformItems(items, transition.layoutShift.next);
+      onItemsChange(createCustomEvent({ items: newItems }));
     }
   });
 
@@ -215,13 +214,13 @@ export function InternalBoard<D>({
     focusNextRenderIdRef.current = draggableItem.id;
   });
 
-  const removeItemAction = (removedItem: BoardItem<D>) => {
+  const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const newData = transformItems(items, layout, layoutShift.next);
+    const newItems = transformItems(items, layoutShift.next);
 
-    onItemsChange(createCustomEvent({ ...newData, removedItem }));
+    onItemsChange(createCustomEvent({ items: newItems, removedItem }));
   };
 
   function focusItem(itemId: ItemId) {

@@ -1,10 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect } from "react";
-import { BoardItem, ItemId, Rect } from "../interfaces";
+import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getCollisionRect, getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
+
+type Item = BoardItemDefinitionBase<unknown>;
 
 export type Operation = "reorder" | "resize" | "insert";
 
@@ -17,13 +19,13 @@ export type InteractionType = "pointer" | "keyboard";
  * to the absolute width/height in pixels the droppable expects.
  */
 export interface DropTargetContext {
-  scale: (item: BoardItem<unknown>, size?: { width: number; height: number }) => { width: number; height: number };
+  scale: (item: Item, size?: { width: number; height: number }) => { width: number; height: number };
 }
 
 export interface DragAndDropData {
   operation: Operation;
   interactionType: InteractionType;
-  draggableItem: BoardItem<unknown>;
+  draggableItem: Item;
   draggableElement: HTMLElement;
   positionOffset: Coordinates;
   coordinates: Coordinates;
@@ -40,13 +42,13 @@ export interface Droppable {
 interface DragDetail {
   operation: Operation;
   interactionType: InteractionType;
-  draggableItem: BoardItem<unknown>;
+  draggableItem: Item;
   draggableElement: HTMLElement;
 }
 
 interface AcquireData {
   droppableId: ItemId;
-  draggableItem: BoardItem<unknown>;
+  draggableItem: Item;
 }
 
 export interface DragAndDropEvents {
@@ -73,7 +75,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   public start(
     operation: Operation,
     interactionType: InteractionType,
-    draggableItem: BoardItem<unknown>,
+    draggableItem: Item,
     draggableElement: HTMLElement,
     startCoordinates: Coordinates
   ) {
@@ -175,7 +177,7 @@ export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K,
   useEffect(() => controller.on(event, handler), [event, handler]);
 }
 
-export function useDraggable({ item, getElement }: { item: BoardItem<unknown>; getElement: () => HTMLElement }) {
+export function useDraggable({ item, getElement }: { item: Item; getElement: () => HTMLElement }) {
   return {
     start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates) {
       controller.start(operation, interactionType, item, getElement(), startCoordinates);

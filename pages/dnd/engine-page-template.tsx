@@ -3,8 +3,7 @@
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
-import { Board, BoardItem, ItemsPalette } from "../../lib/components";
-import { BoardData } from "../../lib/components/internal/interfaces";
+import { Board, BoardItem, BoardProps, ItemsPalette } from "../../lib/components";
 import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
 import PageLayout from "../app/page-layout";
 import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
@@ -13,25 +12,25 @@ import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
 
 export function EnginePageTemplate({
-  initialBoardData,
+  initialBoardItems,
   initialPaletteItems,
   widgets,
   layout = "grid",
 }: {
-  initialBoardData: BoardData<ItemData>;
+  initialBoardItems: readonly BoardProps.Item<ItemData>[];
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
 }) {
-  const [data, setData] = useState(initialBoardData);
+  const [boardItems, setBoardItems] = useState(initialBoardItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
     <PageLayout header={<Header variant="h1">Configurable board demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
         <Board
-          {...data}
           i18nStrings={boardI18nStrings}
+          items={boardItems}
           renderItem={(item, actions) => (
             <BoardItem
               header={<Header>{item.data.title}</Header>}
@@ -49,8 +48,8 @@ export function EnginePageTemplate({
               {item.data.content}
             </BoardItem>
           )}
-          onItemsChange={({ detail: { items, layout, addedItem, removedItem } }) => {
-            setData({ items, layout });
+          onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
+            setBoardItems(items);
             if (addedItem) {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }

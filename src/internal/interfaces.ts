@@ -6,32 +6,25 @@ export type ItemId = string;
 
 export type DataFallbackType = Record<string, unknown>;
 
-export interface BoardData<D = DataFallbackType> {
-  items: readonly BoardItem<D>[];
-  layout: BoardLayout;
-}
-
-export interface BoardItem<D = DataFallbackType> {
+export interface BoardItemDefinitionBase<D = DataFallbackType> {
   id: ItemId;
   data: D;
-  minRowSpan?: number;
-  minColumnSpan?: BoardItemColumnSpan;
-  defaultRowSpan?: number;
-  defaultColumnSpan?: BoardItemColumnSpan;
+  definition?: {
+    minRowSpan?: number;
+    minColumnSpan?: BoardItemLayoutSetting;
+    defaultRowSpan?: number;
+    defaultColumnSpan?: BoardItemLayoutSetting;
+  };
 }
 
-export interface BoardItemColumnSpan {
+export interface BoardItemDefinition<D = DataFallbackType> extends BoardItemDefinitionBase<D> {
+  columnOffset?: BoardItemLayoutSetting;
+  rowSpan?: BoardItemLayoutSetting;
+  columnSpan?: BoardItemLayoutSetting;
+}
+
+export interface BoardItemLayoutSetting {
   [columns: number]: number;
-}
-
-export interface BoardLayout {
-  [columns: number]: ReadonlyArray<BoardLayoutEntry>;
-}
-
-export interface BoardLayoutEntry {
-  columnOffset?: number;
-  rowSpan?: number;
-  columnSpan?: number;
 }
 
 // Internal grid item representation used for position calculations.

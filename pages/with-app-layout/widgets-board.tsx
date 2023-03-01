@@ -5,7 +5,6 @@ import { Box, Header } from "@cloudscape-design/components";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
 import { Board, BoardItem, BoardProps } from "../../lib/components";
-import { BoardData } from "../../lib/components/internal/interfaces";
 import LiveRegion from "../../lib/components/internal/live-region";
 import { boardI18nStrings, boardItemI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
@@ -14,7 +13,7 @@ import { clientI18nStrings } from "./i18n";
 
 interface WidgetsBoardProps {
   loading: boolean;
-  widgets: BoardData<ItemData>;
+  widgets: readonly BoardProps.Item<ItemData>[];
   onWidgetsChange: (detail: BoardProps.ItemsChangeDetail<ItemData>) => void;
 }
 
@@ -22,7 +21,7 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
   const [deleteConfirmation, setDeleteConfirmation] = useState<null | string>(null);
   return (
     <Board
-      {...widgets}
+      items={widgets}
       i18nStrings={boardI18nStrings}
       empty={
         <Box margin={{ top: "xxxl" }}>

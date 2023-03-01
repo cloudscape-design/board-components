@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { BoardItem, Direction } from "../../internal/interfaces";
+import { BoardItemDefinitionBase, Direction } from "../../internal/interfaces";
 import { LayoutEngine } from "../../internal/layout-engine/engine";
 import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
@@ -10,11 +10,11 @@ import { Position } from "../../internal/utils/position";
 import { Transition } from "../interfaces";
 import { normalizeInsertionPath } from "./path";
 
-export function getInsertingItemWidth(item: BoardItem<unknown>, columns: number): number {
+export function getInsertingItemWidth(item: BoardItemDefinitionBase<unknown>, columns: number): number {
   return getItemDefaultColumnSpan(item, columns);
 }
 
-export function getInsertingItemHeight(item: BoardItem<unknown>): number {
+export function getInsertingItemHeight(item: BoardItemDefinitionBase<unknown>): number {
   return getItemDefaultRowSpan(item);
 }
 

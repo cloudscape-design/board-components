@@ -3,8 +3,8 @@
 import { ReactNode } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import {
-  BoardItem,
-  BoardLayout,
+  BoardItemDefinition,
+  BoardItemDefinitionBase,
   DataFallbackType,
   Direction,
   GridLayout,
@@ -24,24 +24,20 @@ import { Position } from "../internal/utils/position";
 
 export interface BoardProps<D = DataFallbackType> {
   /**
-   * Specifies the items displayed in the board.
+   * Specifies the items displayed in the board. Each item includes its position on the board and
+   * optional data. The content of an item is controlled by the `renderItem` property.
    *
    * The BoardProps.Item includes:
    * * `id` (string) - the unique item identifier. The IDs of any two items in a page must be different.
-   * * `minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
-   * * `minColumnSpan` (mapping, optional) - the minimal number of columns the item is allowed to take per layout. It can't be less than one. Defaults to one.
-   * * `defaultRowSpan` (number, optional) - the number or rows the item will take when inserted to the board. It can't be less than `minRowSpan`.
-   * * `defaultColumnSpan` (mapping, optional) - the number or columns the item will take when inserted in the board per layout. It can't be less than `minColumnSpan`.
-   * * `data` (D) - optional item data which can include the specific configurations of an item, such as its title.
+   * * `definition.minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
+   * * `definition.minColumnSpan` (mapping, optional) - the minimal number of columns the item is allowed to take (per layout). It can't be less than one. Defaults to one.
+   * * `definition.defaultRowSpan` (number, optional) - the number or rows the item will take when inserted to the board. It can't be less than `definition.minRowSpan`.
+   * * `definition.defaultColumnSpan` (mapping, optional) - the number or columns the item will take (per layout) when inserted in the board. It can't be less than `definition.minColumnSpan`.
+   * * `columnOffset` (mapping, optional) - the item's offset from the first column (per layout) starting from zero. The value is updated by `onItemsChange` after an update is committed.
+   * * `rowSpan` (number, optional) - the item's vertical size starting from two. The value is updated by `onItemsChange` after an update is committed.
+   * * `columnSpan` (mapping, optional) - the item's vertical size (per layout) starting from one. The value is updated by `onItemsChange` after an update is committed.
    */
   items: ReadonlyArray<BoardProps.Item<D>>;
-
-  /**
-   * Specifies items positions in the board.
-   *
-   * TBA
-   */
-  layout: BoardProps.Layout;
 
   /**
    * Specifies a function to render content for board items. The return value must include board item component.
@@ -89,8 +85,7 @@ export interface BoardProps<D = DataFallbackType> {
 }
 
 export namespace BoardProps {
-  export type Item<D = DataFallbackType> = BoardItem<D>;
-  export type Layout = BoardLayout;
+  export type Item<D = DataFallbackType> = BoardItemDefinition<D>;
 
   export interface ItemActions {
     removeItem(): void;
@@ -98,7 +93,6 @@ export namespace BoardProps {
 
   export interface ItemsChangeDetail<D = DataFallbackType> {
     items: ReadonlyArray<Item<D>>;
-    layout: Layout;
     addedItem?: Item<D>;
     removedItem?: Item<D>;
   }
@@ -161,9 +155,9 @@ export interface Transition<D> {
   interactionType: InteractionType;
   itemsLayout: GridLayout;
   insertionDirection: null | Direction;
-  draggableItem: BoardItem<D>;
+  draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
-  acquiredItem: null | BoardItem<D>;
+  acquiredItem: null | BoardItemDefinitionBase<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
   path: readonly Position[];
@@ -171,7 +165,7 @@ export interface Transition<D> {
 
 export interface RemoveTransition<D> {
   items: readonly BoardProps.Item<D>[];
-  removedItem: BoardItem<D>;
+  removedItem: BoardItemDefinitionBase<D>;
   layoutShift: LayoutShift;
 }
 
@@ -184,12 +178,12 @@ export type TransitionAnnouncement =
 
 export interface DndStartedAnnouncement {
   type: "dnd-started";
-  item: BoardItem<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
 export interface DndActionAnnouncement {
   type: "dnd-action";
-  item: BoardItem<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
   placement: Omit<GridLayoutItem, "id">;
   direction: null | Direction;
@@ -198,16 +192,16 @@ export interface DndActionAnnouncement {
 }
 export interface DndCommittedAnnouncement {
   type: "dnd-committed";
-  item: BoardItem<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
 export interface DndDiscardedAnnouncement {
   type: "dnd-discarded";
-  item: BoardItem<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   operation: Operation;
 }
 export interface ItemRemovedAnnouncement {
   type: "item-removed";
-  item: BoardItem<unknown>;
+  item: BoardItemDefinitionBase<unknown>;
   disturbed: Set<ItemId>;
 }

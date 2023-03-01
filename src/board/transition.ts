@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
-import { BoardItem, Direction, GridLayout, ItemId } from "../internal/interfaces";
+import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getItemMinColumnSpan, getItemMinRowSpan } from "../internal/utils/layout";
@@ -40,14 +40,14 @@ interface InitAction<D> {
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
-  draggableItem: BoardItem<D>;
+  draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
   collisionIds: readonly ItemId[];
 }
 interface InitRemoveAction<D> {
   type: "init-remove";
   items: readonly BoardProps.Item<D>[];
-  removedItem: BoardItem<D>;
+  removedItem: BoardItemDefinitionBase<D>;
   itemsLayout: GridLayout;
 }
 interface SubmitAction {

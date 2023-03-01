@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { useRef } from "react";
 import { useDroppable } from "../internal/dnd-controller/controller";
 import { GridContext } from "../internal/grid/interfaces";
-import { BoardItem } from "../internal/interfaces";
+import { BoardItemDefinitionBase } from "../internal/interfaces";
 import { getItemDefaultColumnSpan, getItemDefaultRowSpan } from "../internal/utils/layout";
 import styles from "./styles.css.js";
 
@@ -21,7 +21,7 @@ export default function Placeholder({ id, state, gridContext, columns }: Placeho
   const ref = useRef<HTMLDivElement>(null);
 
   const dropTargetContext = {
-    scale: (item: BoardItem<unknown>, size?: { width: number; height: number }) => {
+    scale: (item: BoardItemDefinitionBase<unknown>, size?: { width: number; height: number }) => {
       const width = size?.width ?? getItemDefaultColumnSpan(item, columns);
       const height = size?.height ?? getItemDefaultRowSpan(item);
       return {

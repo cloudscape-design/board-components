@@ -8,9 +8,9 @@ import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 
 const position = (columnOffset: number, columnSpan: number, rowSpan: number) => ({
-  columnOffset,
-  columnSpan,
-  rowSpan,
+  columnOffset: { 4: columnOffset },
+  columnSpan: { 4: columnSpan },
+  rowSpan: { 4: rowSpan },
 });
 
 const responsive = demoWidgets.responsive!.data;
@@ -31,39 +31,23 @@ export default function WidgetContainerPermutations() {
           )}
           items={[
             // simple 1x1
-            { id: "responsive-11", data: responsive },
-            { id: "large-11", data: large },
-            { id: "scrollable-11", data: scrollable },
+            { id: "responsive-11", data: responsive, ...position(0, 1, 1) },
+            { id: "large-11", data: large, ...position(1, 1, 1) },
+            { id: "scrollable-11", data: scrollable, ...position(0, 1, 1) },
             // simple 1x2
-            { id: "large-12", data: large },
-            { id: "scrollable-12", data: scrollable },
+            { id: "large-12", data: large, ...position(2, 1, 2) },
+            { id: "scrollable-12", data: scrollable, ...position(3, 1, 2) },
             // simple 2x1
-            { id: "large-21", data: large },
-            { id: "scrollable-21", data: scrollable },
+            { id: "large-21", data: large, ...position(0, 2, 1) },
+            { id: "scrollable-21", data: scrollable, ...position(2, 2, 1) },
             // simple 2x2
-            { id: "large-22", data: large },
-            { id: "scrollable-22", data: scrollable },
+            { id: "large-22", data: large, ...position(0, 2, 2) },
+            { id: "scrollable-22", data: scrollable, ...position(2, 2, 2) },
             // all metrics
-            { id: "all-metrics-11", data: allMetrics },
-            { id: "all-metrics-12", data: allMetrics },
-            { id: "all-metrics-22", data: allMetrics },
+            { id: "all-metrics-11", data: allMetrics, ...position(0, 1, 1) },
+            { id: "all-metrics-12", data: allMetrics, ...position(1, 1, 2) },
+            { id: "all-metrics-22", data: allMetrics, ...position(2, 2, 2) },
           ]}
-          layout={{
-            4: [
-              position(0, 1, 1),
-              position(1, 1, 1),
-              position(0, 1, 1),
-              position(2, 1, 2),
-              position(3, 1, 2),
-              position(0, 2, 1),
-              position(2, 2, 1),
-              position(0, 2, 2),
-              position(2, 2, 2),
-              position(0, 1, 1),
-              position(1, 1, 2),
-              position(2, 2, 2),
-            ],
-          }}
           empty="No items"
           onItemsChange={() => {
             /*readonly grid*/
