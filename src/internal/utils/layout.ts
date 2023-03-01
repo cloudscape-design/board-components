@@ -17,7 +17,6 @@ export function interpretItems<D>(items: readonly BoardItem<D>[], layout: BoardL
   const layoutItems: GridLayoutItem[] = [];
   const columnHeights = Array(columns).fill(0);
 
-  let currentColumnOffset = 0;
   const columnsLayout = layout[columns];
 
   function getColumnSpan(index: number): number {
@@ -32,55 +31,50 @@ export function interpretItems<D>(items: readonly BoardItem<D>[], layout: BoardL
     return Math.max(minRowSpan, rowSpan);
   }
 
-  function findOptimalColumnOffset(colSpan: number, rowSpan: number): number {
-    const rows = Math.max(...columnHeights);
+  function findOptimalColumnOffset(currentColumnOffset: number, colSpan: number, rowSpan: number): number {
     for (let colOffset = currentColumnOffset; colOffset + colSpan <= columns; colOffset++) {
-      let nextRows = 0;
-      for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
-        nextRows = Math.max(nextRows, columnHeights[colOffset + spanIndex] + rowSpan);
-      }
-      if (nextRows <= rows) {
+      if (getRowOffset(colOffset, colSpan) + rowSpan <= getRowOffset(0, columns)) {
         return colOffset;
       }
     }
     for (let colOffset = 0; colOffset + colSpan <= columns; colOffset++) {
-      let nextRows = 0;
-      for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
-        nextRows = Math.max(nextRows, columnHeights[colOffset + spanIndex] + rowSpan);
-      }
-      if (nextRows <= rows) {
+      if (getRowOffset(colOffset, colSpan) + rowSpan <= getRowOffset(0, columns)) {
         return colOffset;
       }
     }
     return currentColumnOffset + colSpan <= columns ? currentColumnOffset : 0;
   }
 
-  for (let index = 0; index < items.length; index++) {
+  function getRowOffset(columnOffset: number, columnSpan: number) {
+    let rowOffset = 0;
+    for (let col = columnOffset; col < columnOffset + columnSpan; col++) {
+      rowOffset = Math.max(rowOffset, columnHeights[col]);
+    }
+    return rowOffset;
+  }
+
+  for (let index = 0, columnOffset = 0, rowOffset = 0; index < items.length; index++, rowOffset = 0) {
     const colSpan = getColumnSpan(index);
     const rowSpan = getRowSpan(index);
-    currentColumnOffset = columnsLayout?.[index]?.columnOffset ?? findOptimalColumnOffset(colSpan, rowSpan);
-
-    let currentRowOffset = 0;
-    for (let col = currentColumnOffset; col < currentColumnOffset + colSpan; col++) {
-      currentRowOffset = Math.max(currentRowOffset, columnHeights[col]);
-    }
+    columnOffset = columnsLayout?.[index]?.columnOffset ?? findOptimalColumnOffset(columnOffset, colSpan, rowSpan);
+    rowOffset = getRowOffset(columnOffset, colSpan);
 
     layoutItems.push({
       id: items[index].id,
       width: colSpan,
       height: rowSpan,
-      x: currentColumnOffset,
-      y: currentRowOffset,
+      x: columnOffset,
+      y: rowOffset,
     });
 
-    for (let col = currentColumnOffset; col < currentColumnOffset + colSpan; col++) {
-      columnHeights[col] = currentRowOffset + rowSpan;
+    for (let col = columnOffset; col < columnOffset + colSpan; col++) {
+      columnHeights[col] = rowOffset + rowSpan;
     }
 
-    currentColumnOffset += colSpan;
+    columnOffset += colSpan;
   }
 
-  const rows = Math.max(...columnHeights);
+  const rows = getRowOffset(0, columns);
 
   layoutItems.sort(itemComparator);
 
