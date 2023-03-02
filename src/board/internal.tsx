@@ -24,6 +24,8 @@ import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-naviga
 import { createCustomEvent } from "../internal/utils/events";
 import {
   createPlaceholdersLayout,
+  getDefaultColumnSpan,
+  getDefaultRowSpan,
   getMinColumnSpan,
   getMinRowSpan,
   interpretItems,
@@ -39,7 +41,6 @@ import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
-import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
 
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
@@ -279,8 +280,8 @@ export function InternalBoard<D>({
                 const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
                 const itemSize = layoutItem ?? {
-                  width: getInsertingItemWidth(item, columns),
-                  height: getInsertingItemHeight(item),
+                  width: getDefaultColumnSpan(item, columns),
+                  height: getDefaultRowSpan(item),
                 };
 
                 const itemMaxSize =

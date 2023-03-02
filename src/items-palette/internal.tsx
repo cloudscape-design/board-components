@@ -109,7 +109,7 @@ export function InternalItemsPalette<D>({
               }}
             >
               {renderItem(item, {
-                showPreview: dropState?.id === item.id && !!dropState?.isExpanded,
+                showPreview: dropState?.id === item.id && dropState.isExpanded,
               })}
             </ItemContainer>
           ))}

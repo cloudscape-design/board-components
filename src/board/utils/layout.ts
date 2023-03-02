@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { BoardItemDefinitionBase, Direction } from "../../internal/interfaces";
+import { Direction } from "../../internal/interfaces";
 import { LayoutEngine } from "../../internal/layout-engine/engine";
 import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
@@ -9,14 +9,6 @@ import { createPlaceholdersLayout, getDefaultColumnSpan, getDefaultRowSpan } fro
 import { Position } from "../../internal/utils/position";
 import { Transition } from "../interfaces";
 import { normalizeInsertionPath } from "./path";
-
-export function getInsertingItemWidth(item: BoardItemDefinitionBase<unknown>, columns: number): number {
-  return getDefaultColumnSpan(item, columns);
-}
-
-export function getInsertingItemHeight(item: BoardItemDefinitionBase<unknown>): number {
-  return getDefaultRowSpan(item);
-}
 
 export function getLayoutColumns<D>(transition: Transition<D>) {
   return transition.itemsLayout.columns;
@@ -27,7 +19,7 @@ export function getLayoutRows<D>(transition: Transition<D>) {
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
 
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemHeight = layoutItem?.height ?? getInsertingItemHeight(transition.draggableItem);
+  const itemHeight = layoutItem?.height ?? getDefaultRowSpan(transition.draggableItem);
   // Add extra row for resize when already at the bottom.
   if (transition.operation === "resize") {
     return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
@@ -79,8 +71,8 @@ export function getLayoutShift<D>(
   }
 
   const engine = new LayoutEngine(transition.itemsLayout);
-  const width = getInsertingItemWidth(transition.draggableItem, getLayoutColumns(transition));
-  const height = getInsertingItemHeight(transition.draggableItem);
+  const width = getDefaultColumnSpan(transition.draggableItem, getLayoutColumns(transition));
+  const height = getDefaultRowSpan(transition.draggableItem);
   const rows = getLayoutRows(transition);
   const columns = getLayoutColumns(transition);
 
