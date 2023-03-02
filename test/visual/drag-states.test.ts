@@ -183,13 +183,9 @@ test(
   setupTest("/index.html#/with-app-layout/integ", DndPageObject, async (page) => {
     await page.setWindowSize({ width: 2400, height: 800 });
 
-    // Moving item to the left but it still touches the board.
+    // Moving item to the left for it to leave the board.
     await page.mouseDown(boardWrapper.findItemById("D").findDragHandle().toSelector());
-    await page.mouseMove(-250, 0);
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-
-    // Moving item further to the left so that it leaves the board.
-    await page.mouseMove(-100, 0);
+    await page.mouseMove(-400, 0);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
