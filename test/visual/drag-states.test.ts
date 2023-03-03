@@ -177,15 +177,3 @@ test(
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
   })
 );
-
-test(
-  "collisions disabled when item moves outside the board",
-  setupTest("/index.html#/with-app-layout/integ", DndPageObject, async (page) => {
-    await page.setWindowSize({ width: 2400, height: 800 });
-
-    // Moving item to the left for it to leave the board.
-    await page.mouseDown(boardWrapper.findItemById("D").findDragHandle().toSelector());
-    await page.mouseMove(-400, 0);
-    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
-);

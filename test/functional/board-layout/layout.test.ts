@@ -429,3 +429,33 @@ test(
     ]);
   })
 );
+
+test(
+  "collisions disabled when item moves outside the board",
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
+    await page.setWindowSize({ width: 2400, height: 800 });
+
+    // Moving item to the right slightly.
+    await page.mouseDown(boardWrapper.findItemById("D").findDragHandle().toSelector());
+    await page.mouseMove(200, 0);
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["A", "B", "C", "_"],
+      ["A", "B", "C", "_"],
+      ["E", "F", "G", "H"],
+      ["E", "F", "G", "H"],
+      [" ", " ", " ", " "],
+      [" ", " ", " ", " "],
+    ]);
+
+    // Moving item further to the right for it to leave the board.
+    await page.mouseMove(300, 0);
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["A", "B", "C", " "],
+      ["A", "B", "C", " "],
+      ["E", "F", "G", "H"],
+      ["E", "F", "G", "H"],
+      [" ", " ", " ", " "],
+      [" ", " ", " ", " "],
+    ]);
+  })
+);
