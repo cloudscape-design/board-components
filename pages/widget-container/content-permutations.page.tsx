@@ -8,7 +8,7 @@ import { ScreenshotArea } from "../screenshot-area";
 import * as i18nStrings from "../shared/i18n";
 
 const position = (columnOffset: number, columnSpan: number, rowSpan: number) => ({
-  columnOffset,
+  columnOffset: { 4: columnOffset },
   columnSpan,
   rowSpan,
 });

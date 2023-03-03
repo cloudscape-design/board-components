@@ -6,9 +6,11 @@ import { ReactNode, useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import {
   BREAKPOINT_M,
+  BREAKPOINT_XL,
   BREAKPOINT_XS,
   COLUMNS_DEFAULT,
   COLUMNS_M,
+  COLUMNS_XL,
   COLUMNS_XS,
   TRANSITION_DURATION_MS,
 } from "../internal/constants";
@@ -16,14 +18,16 @@ import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { createCustomEvent } from "../internal/utils/events";
 import {
-  createItemsLayout,
   createPlaceholdersLayout,
-  exportItemsLayout,
-  getMinItemSize,
+  getDefaultColumnSpan,
+  getDefaultRowSpan,
+  getMinColumnSpan,
+  getMinRowSpan,
+  interpretItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
@@ -35,9 +39,9 @@ import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
-import { getInsertingItemHeight, getInsertingItemWidth } from "./utils/layout";
+import { createItemsChangeEvent } from "./utils/events";
 
-const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, default: COLUMNS_DEFAULT };
+const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
   items,
@@ -54,6 +58,9 @@ export function InternalBoard<D>({
     }
     if (entry.contentBoxWidth < BREAKPOINT_M) {
       return "m";
+    }
+    if (entry.contentBoxWidth < BREAKPOINT_XL) {
+      return "xl";
     }
     return "default";
   }, []);
@@ -75,7 +82,7 @@ export function InternalBoard<D>({
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = createItemsLayout(items, columns);
+  const itemsLayout = interpretItems(items, columns);
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
@@ -161,20 +168,21 @@ export function InternalBoard<D>({
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
     }
-    if (!transition.layoutShift || transition.layoutShift.conflicts.length > 0) {
+    if (
+      !transition.layoutShift ||
+      transition.layoutShift.conflicts.length > 0 ||
+      transition.layoutShift.moves.length === 0
+    ) {
       return null;
     }
 
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newItems = exportItemsLayout(transition.layoutShift, [...items, transition.draggableItem], columns);
-      const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
+      onItemsChange(createItemsChangeEvent([...items, transition.draggableItem], transition.layoutShift));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = exportItemsLayout(transition.layoutShift, items, columns);
-      onItemsChange(createCustomEvent({ items: newItems }));
+      onItemsChange(createItemsChangeEvent(items, transition.layoutShift));
     }
   });
 
@@ -204,7 +212,9 @@ export function InternalBoard<D>({
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    onItemsChange(createCustomEvent({ items: items.filter((it) => it !== removedItem), removedItem }));
+    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+
+    onItemsChange(createItemsChangeEvent(items, layoutShift));
   };
 
   function focusItem(itemId: ItemId) {
@@ -218,7 +228,9 @@ export function InternalBoard<D>({
     }
   }
 
-  const announcement = transitionAnnouncement ? announcementToString(transitionAnnouncement, items, i18nStrings) : "";
+  const announcement = transitionAnnouncement
+    ? announcementToString(transitionAnnouncement, items, i18nStrings, columns)
+    : "";
 
   return (
     <div ref={__internalRootRef}>
@@ -253,6 +265,7 @@ export function InternalBoard<D>({
                     id={placeholder.id}
                     state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
                     gridContext={gridContext}
+                    columns={columns}
                   />
                 )
               );
@@ -262,8 +275,8 @@ export function InternalBoard<D>({
                 const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
                 const itemSize = layoutItem ?? {
-                  width: getInsertingItemWidth(item, columns),
-                  height: getInsertingItemHeight(item),
+                  width: getDefaultColumnSpan(item, columns),
+                  height: getDefaultRowSpan(item),
                 };
 
                 const itemMaxSize =
@@ -286,10 +299,10 @@ export function InternalBoard<D>({
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
                       width: gridContext.getWidth(itemSize.width),
-                      minWidth: gridContext.getWidth(getMinItemSize(item).width),
+                      minWidth: gridContext.getWidth(getMinColumnSpan(item, columns)),
                       maxWidth: gridContext.getWidth(itemMaxSize.width),
                       height: gridContext.getHeight(itemSize.height),
-                      minHeight: gridContext.getHeight(getMinItemSize(item).height),
+                      minHeight: gridContext.getHeight(getMinRowSpan(item)),
                       maxHeight: gridContext.getHeight(itemMaxSize.height),
                     })}
                     onKeyMove={onItemMove}

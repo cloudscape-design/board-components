@@ -18,14 +18,14 @@ export default function GridWithWidgetContainerPage() {
             items={[
               {
                 id: "1",
-                columnOffset: 0,
+                columnOffset: { 4: 0 },
                 columnSpan: 2,
                 rowSpan: 1,
                 data: { title: "One", description: "", content: "Content Area" },
               },
               {
                 id: "2",
-                columnOffset: 2,
+                columnOffset: { 4: 2 },
                 columnSpan: 1,
                 rowSpan: 1,
                 data: {
@@ -36,21 +36,21 @@ export default function GridWithWidgetContainerPage() {
               },
               {
                 id: "3",
-                columnOffset: 3,
+                columnOffset: { 4: 3 },
                 columnSpan: 1,
                 rowSpan: 1,
                 data: { title: "Three", description: "", content: "Content Area" },
               },
               {
                 id: "4",
-                columnOffset: 0,
+                columnOffset: { 4: 0 },
                 columnSpan: 1,
                 rowSpan: 1,
                 data: { title: "Four", description: "", content: "Content Area" },
               },
               {
                 id: "5",
-                columnOffset: 2,
+                columnOffset: { 4: 2 },
                 columnSpan: 2,
                 rowSpan: 2,
                 data: { title: "Five", description: "", content: "Content Area" },

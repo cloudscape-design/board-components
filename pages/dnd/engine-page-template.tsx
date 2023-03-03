@@ -22,7 +22,7 @@ export function EnginePageTemplate({
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
 }) {
-  const [items, setItems] = useState(initialBoardItems);
+  const [boardItems, setBoardItems] = useState(initialBoardItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
@@ -30,7 +30,7 @@ export function EnginePageTemplate({
       <div className={classnames[`layout-${layout}`]}>
         <Board
           i18nStrings={boardI18nStrings}
-          items={items}
+          items={boardItems}
           renderItem={(item, actions) => (
             <BoardItem
               header={<Header>{item.data.title}</Header>}
@@ -49,7 +49,7 @@ export function EnginePageTemplate({
             </BoardItem>
           )}
           onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-            setItems(items);
+            setBoardItems(items);
             if (addedItem) {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }

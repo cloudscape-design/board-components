@@ -21,6 +21,7 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
   const [deleteConfirmation, setDeleteConfirmation] = useState<null | string>(null);
   return (
     <Board
+      items={widgets}
       i18nStrings={boardI18nStrings}
       empty={
         <Box margin={{ top: "xxxl" }}>
@@ -31,7 +32,6 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
           )}
         </Box>
       }
-      items={widgets}
       onItemsChange={({ detail }) => onWidgetsChange(detail)}
       renderItem={(item, actions) => (
         <>

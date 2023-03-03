@@ -3,7 +3,6 @@
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { Children } from "react";
-import { adjustColumnSpanForColumns } from "../utils/layout";
 import { zipTwoArrays } from "../utils/zip-arrays";
 
 import { GridProps } from "./interfaces";
@@ -20,7 +19,7 @@ export default function Grid({ layout, children: render, columns, rows }: GridPr
 
   // The below getters translate relative grid units into size/offset values in pixels.
   const getWidth = (colspan: number) => {
-    colspan = adjustColumnSpanForColumns(columns, colspan);
+    colspan = Math.min(columns, colspan);
     const cellWidth = ((gridWidth || 0) - (columns - 1) * GRID_GAP) / columns;
     return colspan * cellWidth + (colspan - 1) * GRID_GAP;
   };

@@ -8,7 +8,6 @@ import { DndPageObject } from "./dnd-page-object";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();
-const boardItemDragHandle = (id: string) => boardWrapper.findItemById(id).findDragHandle().toSelector();
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemDragHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 
@@ -251,134 +250,6 @@ test(
 );
 
 test(
-  "recovers full layout from 1-column layout when items within one row were swapped",
-  setupTest(
-    makeQueryUrl(
-      [
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-      ],
-      []
-    ),
-    DndPageObject,
-    async (page) => {
-      await page.setWindowSize({ width: 800, height: 800 });
-      await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"]]);
-
-      await page.dragAndDropTo(boardItemDragHandle("A"), boardItemDragHandle("B"));
-      await expect(page.getGrid(1)).resolves.toEqual([["B"], ["B"], ["A"], ["A"]]);
-
-      await page.setWindowSize({ width: 1600, height: 800 });
-      await expect(page.getGrid(4)).resolves.toEqual([
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-      ]);
-    }
-  )
-);
-
-test(
-  "recovers full layout from 1-column layout when items between different rows were swapped",
-  setupTest(
-    makeQueryUrl(
-      [
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-        ["C", "C", "D", "D"],
-        ["C", "C", "D", "D"],
-      ],
-      []
-    ),
-    DndPageObject,
-    async (page) => {
-      await page.setWindowSize({ width: 800, height: 800 });
-      await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"], ["C"], ["C"], ["D"], ["D"]]);
-
-      await page.dragAndDropTo(boardItemDragHandle("A"), boardItemDragHandle("D"));
-      await expect(page.getGrid(1)).resolves.toEqual([["B"], ["B"], ["C"], ["C"], ["D"], ["D"], ["A"], ["A"]]);
-
-      await page.setWindowSize({ width: 1600, height: 800 });
-      await expect(page.getGrid(4)).resolves.toEqual([
-        ["C", "C", "B", "B"],
-        ["C", "C", "B", "B"],
-        ["A", "A", "D", "D"],
-        ["A", "A", "D", "D"],
-      ]);
-    }
-  )
-);
-
-test(
-  "recovers full layout from 1-column layout when item was resized",
-  setupTest(
-    makeQueryUrl(
-      [
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-        ["C", "C", " ", " "],
-        ["C", "C", " ", " "],
-      ],
-      []
-    ),
-    DndPageObject,
-    async (page) => {
-      await page.setWindowSize({ width: 800, height: 800 });
-      await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);
-
-      await page.dragAndDropTo(boardItemResizeHandle("A"), boardItemResizeHandle("B"));
-      await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);
-
-      await page.setWindowSize({ width: 1600, height: 800 });
-      await expect(page.getGrid(4)).resolves.toEqual([
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-        ["A", "A", " ", " "],
-        ["A", "A", " ", " "],
-        ["C", "C", " ", " "],
-        ["C", "C", " ", " "],
-      ]);
-    }
-  )
-);
-
-test(
-  "recovers full layout from 1-column layout when item was removed or added",
-  setupTest(
-    makeQueryUrl(
-      [
-        ["A", "A", "B", "B"],
-        ["A", "A", "B", "B"],
-        ["C", "C", " ", " "],
-        ["C", "C", " ", " "],
-      ],
-      ["D"]
-    ),
-    DndPageObject,
-    async (page) => {
-      await page.setWindowSize({ width: 800, height: 800 });
-      await expect(page.getGrid(1)).resolves.toEqual([["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);
-
-      await page.dragAndDropTo(paletteItemDragHandle("D"), boardItemDragHandle("A"));
-      await expect(page.getGrid(1)).resolves.toEqual([["D"], ["D"], ["A"], ["A"], ["B"], ["B"], ["C"], ["C"]]);
-
-      // Remove Widget A.
-      await page.focus(boardItemDragHandle("A"));
-      await page.keys(["Tab", "Enter", "Enter"]);
-      await page.pause(200);
-      await expect(page.getGrid(1)).resolves.toEqual([["D"], ["D"], ["B"], ["B"], ["C"], ["C"]]);
-
-      await page.setWindowSize({ width: 1600, height: 800 });
-      await expect(page.getGrid(4)).resolves.toEqual([
-        ["D", " ", "B", "B"],
-        ["D", " ", "B", "B"],
-        ["C", "C", " ", " "],
-        ["C", "C", " ", " "],
-      ]);
-    }
-  )
-);
-
-test(
   "always inserts item with default dimensions",
   setupTest(
     makeQueryUrl(
@@ -406,32 +277,155 @@ test(
 );
 
 test(
-  "when item is inserted to 2-column layout its default width is adjusted",
-  setupTest(
-    // X,Y items have min columns = 2 and min rows = 4.
-    makeQueryUrl([], ["X", "Y"]),
-    DndPageObject,
-    async (page) => {
-      await page.setWindowSize({ width: 1200, height: 800 });
-
-      await page.focus(paletteItemDragHandle("X"));
+  "uses automatic placement when switching breakpoints",
+  setupTest(makeQueryUrl([], ["A", "B", "C", "X"]), DndPageObject, async (page) => {
+    async function insertWidget(widgetId: string) {
+      await page.focus(paletteItemDragHandle(widgetId));
       await page.keys(["Enter"]);
       await page.keys(["ArrowLeft"]);
+      for (let i = 0; i < 10; i++) {
+        await page.keys(["ArrowDown"]);
+      }
       await page.keys(["Enter"]);
-      await expect(page.getGrid(2)).resolves.toEqual([
-        [" ", "X"],
-        [" ", "X"],
-        [" ", "X"],
-        [" ", "X"],
-      ]);
+    }
 
-      await page.dragAndDropTo(paletteItemDragHandle("Y"), boardItemDragHandle("X"));
-      await expect(page.getGrid(2)).resolves.toEqual([
-        ["X", "Y"],
-        ["X", "Y"],
-        ["X", "Y"],
-        ["X", "Y"],
+    // Use 1-column layout.
+    await page.setWindowSize({ width: 800, height: 800 });
+    await insertWidget("A");
+    await insertWidget("X");
+    await insertWidget("B");
+    await insertWidget("C");
+    await expect(page.getGrid(1)).resolves.toEqual([
+      ["A"],
+      ["A"],
+      ["X"],
+      ["X"],
+      ["X"],
+      ["X"],
+      ["B"],
+      ["B"],
+      ["C"],
+      ["C"],
+    ]);
+
+    // Use 2-column layout.
+    await page.setWindowSize({ width: 1200, height: 800 });
+    await expect(page.getGrid(2)).resolves.toEqual([
+      ["A", " "],
+      ["A", " "],
+      ["X", "X"],
+      ["X", "X"],
+      ["X", "X"],
+      ["X", "X"],
+      ["B", "C"],
+      ["B", "C"],
+    ]);
+
+    // Use 4-column layout.
+    await page.setWindowSize({ width: 1600, height: 800 });
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["A", "X", "X", "B"],
+      ["A", "X", "X", "B"],
+      ["C", "X", "X", " "],
+      ["C", "X", "X", " "],
+    ]);
+
+    // Use 6-column layout.
+    await page.setWindowSize({ width: 3000, height: 800 });
+    await expect(page.getGrid(6)).resolves.toEqual([
+      ["A", "X", "X", "B", "C", " "],
+      ["A", "X", "X", "B", "C", " "],
+      [" ", "X", "X", " ", " ", " "],
+      [" ", "X", "X", " ", " ", " "],
+    ]);
+  })
+);
+
+test(
+  "items preserve sizes when move or remove operation is performed",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
+      ],
+      []
+    ),
+    DndPageObject,
+    async (page) => {
+      // Use 1-column layout.
+      await page.setWindowSize({ width: 800, height: 800 });
+
+      // Swap A and B.
+      await page.dragAndDropTo(
+        boardWrapper.findItemById("A").findDragHandle().toSelector(),
+        boardWrapper.findItemById("B").findDragHandle().toSelector()
+      );
+
+      // Remove C.
+      await page.focus(boardWrapper.findItemById("C").findDragHandle().toSelector());
+      await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
+
+      // Use 4-column layout.
+      await page.setWindowSize({ width: 1600, height: 800 });
+      await expect(page.getGrid(4)).resolves.toEqual([
+        ["B", "A", "A", " "],
+        ["B", "A", "A", " "],
       ]);
     }
   )
+);
+
+test(
+  "resize target size is updated for all layouts",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
+      ],
+      []
+    ),
+    DndPageObject,
+    async (page) => {
+      // Use 1-column layout.
+      await page.setWindowSize({ width: 800, height: 800 });
+
+      // Increase B height.
+      await page.dragAndDrop(boardWrapper.findItemById("B").findResizeHandle().toSelector(), 0, 200);
+
+      // Use 4-column layout.
+      await page.setWindowSize({ width: 1600, height: 800 });
+      await expect(page.getGrid(4)).resolves.toEqual([
+        ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
+        [" ", " ", "B", " "],
+        [" ", " ", "B", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "item min column span is taken when inserted in 1-column layout",
+  setupTest(makeQueryUrl([], ["X"]), DndPageObject, async (page) => {
+    // Use 1-column layout.
+    await page.setWindowSize({ width: 800, height: 800 });
+
+    // Insert X which min size is 2x4.
+    await page.focus(itemsPaletteWrapper.findItemById("X").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
+    await page.keys(["ArrowLeft"]);
+    await page.keys(["Enter"]);
+
+    // Use 4-column layout.
+    await page.setWindowSize({ width: 1600, height: 800 });
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["X", "X", " ", " "],
+      ["X", "X", " ", " "],
+      ["X", "X", " ", " "],
+      ["X", "X", " ", " "],
+    ]);
+  })
 );

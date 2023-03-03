@@ -5,19 +5,12 @@ import { InteractionType, Operation } from "../internal/dnd-controller/controlle
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
-import { getMinItemSize } from "../internal/utils/layout";
+import { getDefaultColumnSpan, getDefaultRowSpan, getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
-import {
-  getInsertingItemHeight,
-  getInsertingItemWidth,
-  getInsertionDirection,
-  getLayoutPlaceholders,
-  getLayoutRows,
-  getLayoutShift,
-} from "./utils/layout";
+import { getInsertionDirection, getLayoutPlaceholders, getLayoutRows, getLayoutShift } from "./utils/layout";
 import { appendMovePath, appendResizePath } from "./utils/path";
 
 export interface TransitionState<D> {
@@ -205,8 +198,8 @@ function updateTransitionWithPointerEvent<D>(
 
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-  const itemWidth = layoutItem ? layoutItem.width : getInsertingItemWidth(transition.draggableItem, layout.columns);
-  const itemHeight = layoutItem ? layoutItem.height : getInsertingItemHeight(transition.draggableItem);
+  const itemWidth = layoutItem ? layoutItem.width : getDefaultColumnSpan(transition.draggableItem, layout.columns);
+  const itemHeight = layoutItem ? layoutItem.height : getDefaultRowSpan(transition.draggableItem);
   const itemSize = itemWidth * itemHeight;
 
   const isOutOfBoundaries =
@@ -255,11 +248,12 @@ function updateTransitionWithKeyboardEvent<D>(
     // Check resizing below min size.
     const layout = transition.layoutShift?.next ?? transition.itemsLayout;
     const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-    const minSize = getMinItemSize(transition.draggableItem);
+    const minWidth = getMinColumnSpan(transition.draggableItem, transition.itemsLayout.columns);
+    const minHeight = getMinRowSpan(transition.draggableItem);
     if (
       transition.operation === "resize" &&
       layoutItem &&
-      (layoutItem.width + xDelta < minSize.width || layoutItem.height + yDelta < minSize.height)
+      (layoutItem.width + xDelta < minWidth || layoutItem.height + yDelta < minHeight)
     ) {
       return state;
     }
@@ -308,7 +302,7 @@ function acquireTransitionItem<D>(
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.
-  const width = getInsertingItemWidth(transition.draggableItem, columns);
+  const width = getDefaultColumnSpan(transition.draggableItem, columns);
   position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
 
   const path = [...transition.path, position];

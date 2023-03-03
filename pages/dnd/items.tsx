@@ -81,7 +81,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   revenue: {
-    definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+    definition: { defaultRowSpan: 2, minRowSpan: 2 },
     data: {
       title: "Revenue",
       description: "Revenue over time chart",
@@ -93,7 +93,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   resourceCount: {
-    definition: { defaultColumnSpan: 1, defaultRowSpan: 2, minColumnSpan: 1, minRowSpan: 2 },
+    definition: { defaultRowSpan: 2, minRowSpan: 2 },
     data: {
       title: "Resource count",
       description: "Resource count pie chart",
@@ -185,16 +185,16 @@ for (let i = 2; i <= 10; i++) {
 }
 
 export const storedPositions = [
-  { id: "D", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
-  { id: "2", columnOffset: 1, rowSpan: 1, columnSpan: 2 },
-  { id: "3", columnOffset: 3, rowSpan: 1, columnSpan: 1 },
-  { id: "4", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
-  { id: "5", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
-  { id: "6", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
-  { id: "7", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
-  { id: "8", columnOffset: 1, rowSpan: 1, columnSpan: 1 },
-  { id: "9", columnOffset: 2, rowSpan: 1, columnSpan: 1 },
-  { id: "10", columnOffset: 0, rowSpan: 1, columnSpan: 1 },
+  { id: "D", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
+  { id: "2", columnOffset: { 4: 1 }, rowSpan: 1, columnSpan: 2 },
+  { id: "3", columnOffset: { 4: 3 }, rowSpan: 1, columnSpan: 1 },
+  { id: "4", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
+  { id: "5", columnOffset: { 4: 1 }, rowSpan: 1, columnSpan: 1 },
+  { id: "6", columnOffset: { 4: 2 }, rowSpan: 1, columnSpan: 1 },
+  { id: "7", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
+  { id: "8", columnOffset: { 4: 1 }, rowSpan: 1, columnSpan: 1 },
+  { id: "9", columnOffset: { 4: 2 }, rowSpan: 1, columnSpan: 1 },
+  { id: "10", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
 ];
 
 export const demoBoardItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
@@ -275,7 +275,7 @@ function applyLayout<D>(
 
   return sortedLayout.map(({ id, x, width, height }) => ({
     ...getItem(id),
-    columnOffset: x,
+    columnOffset: { 4: x, 6: x },
     columnSpan: width,
     rowSpan: height,
   }));

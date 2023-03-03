@@ -30,12 +30,12 @@ export interface BoardProps<D = DataFallbackType> {
    * The BoardProps.Item includes:
    * * `id` (string) - the unique item identifier. The IDs of any two items in a page must be different.
    * * `definition.minRowSpan` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
-   * * `definition.minColumnSpan` (number, optional) - the minimal number of columns the item is allowed to take (in a 4 column layout). It can't be less than one. Defaults to one.
-   * * `definition.defaultRowSpan` (number) - the number or rows the item will take when inserted to the board. It can't be less than `definition.minRowSpan`.
-   * * `definition.defaultColumnSpan` (number) - the number or columns the item will take (in a 4 column layout) when inserted in the board. It can't be less than `definition.minColumnSpan`.
-   * * `columnOffset` (number) - the item's offset from the first column starting from zero. The value is updated by `onItemsChange` after an update is committed.
-   * * `rowSpan` (number) - the item's vertical size starting from two. The value is updated by `onItemsChange` after an update is committed.
-   * * `columnSpan` (number) - the item's vertical size starting from one. The value is updated by `onItemsChange` after an update is committed.
+   * * `definition.minColumnSpan` (number, optional) - the minimal number of columns the item is allowed to take. It can't be less than one. Defaults to one.
+   * * `definition.defaultRowSpan` (number, optional) - the number or rows the item will take when inserted to the board. It can't be less than `definition.minRowSpan`.
+   * * `definition.defaultColumnSpan` (number, optional) - the number or columns the item will take when inserted in the board. It can't be less than `definition.minColumnSpan`.
+   * * `columnOffset` (mapping, optional) - the item's offset from the first column (per layout) starting from zero. The value is updated by `onItemsChange` after an update is committed.
+   * * `rowSpan` (number, optional) - the item's vertical size starting from two. The value is updated by `onItemsChange` after an update is committed.
+   * * `columnSpan` (number, optional) - the item's horizontal size starting from one. The value is updated by `onItemsChange` after an update is committed.
    * * `data` (D) - optional item data which can include the specific configurations of an item, such as its title.
    */
   items: ReadonlyArray<BoardProps.Item<D>>;
@@ -158,7 +158,7 @@ export interface Transition<D> {
   insertionDirection: null | Direction;
   draggableItem: BoardItemDefinitionBase<D>;
   draggableElement: HTMLElement;
-  acquiredItem: null | BoardItemDefinition<D>;
+  acquiredItem: null | BoardItemDefinitionBase<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
   path: readonly Position[];
