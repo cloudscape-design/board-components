@@ -121,9 +121,9 @@ describe("transformItems", () => {
   test("items settings in the other layouts have offsets invalidated from the first index diff", () => {
     const items = transformItems(
       [
-        makeItem("A", {}, { columnOffset: { 6: 0 }, columnSpan: 3, rowSpan: 3 }),
-        makeItem("B", {}, { columnOffset: { 6: 2 }, columnSpan: 3, rowSpan: 3 }),
-        makeItem("C", {}, { columnOffset: { 6: 4 }, columnSpan: 3, rowSpan: 3 }),
+        makeItem("A", {}, { columnOffset: { 6: 0 }, columnSpan: 1, rowSpan: 2 }),
+        makeItem("B", {}, { columnOffset: { 6: 2 }, columnSpan: 1, rowSpan: 2 }),
+        makeItem("C", {}, { columnOffset: { 6: 4 }, columnSpan: 1, rowSpan: 2 }),
       ],
       fromMatrix([
         ["A", "C", "B"],
@@ -131,9 +131,28 @@ describe("transformItems", () => {
       ]),
       null
     );
-    expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0, 6: 0 }, columnSpan: 3, rowSpan: 3 }));
-    expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 1 }, columnSpan: 3, rowSpan: 3 }));
-    expect(items[2]).toEqual(expect.objectContaining({ columnOffset: { 3: 2 }, columnSpan: 3, rowSpan: 3 }));
+    expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0, 6: 0 }, columnSpan: 1, rowSpan: 2 }));
+    expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 1 }, columnSpan: 1, rowSpan: 2 }));
+    expect(items[2]).toEqual(expect.objectContaining({ columnOffset: { 3: 2 }, columnSpan: 1, rowSpan: 2 }));
+  });
+
+  test("resizing an item updates the diff index even if the items keep the order", () => {
+    const items = transformItems(
+      [
+        makeItem("A", {}, { columnOffset: { 6: 0 }, columnSpan: 1, rowSpan: 2 }),
+        makeItem("B", {}, { columnOffset: { 6: 2 }, columnSpan: 1, rowSpan: 2 }),
+        makeItem("C", {}, { columnOffset: { 6: 4 }, columnSpan: 1, rowSpan: 2 }),
+      ],
+      fromMatrix([
+        ["A", "B", "C"],
+        ["A", "B", "C"],
+        [" ", "B", " "],
+      ]),
+      "B"
+    );
+    expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0, 6: 0 }, columnSpan: 1, rowSpan: 2 }));
+    expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 1 }, columnSpan: 1, rowSpan: 3 }));
+    expect(items[2]).toEqual(expect.objectContaining({ columnOffset: { 3: 2 }, columnSpan: 1, rowSpan: 2 }));
   });
 
   test("resize target size is updated but other items remain unchanged", () => {
