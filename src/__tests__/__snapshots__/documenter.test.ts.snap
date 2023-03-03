@@ -121,12 +121,12 @@ optional data. The content of an item is controlled by the \`renderItem\` proper
 The BoardProps.Item includes:
 * \`id\` (string) - the unique item identifier. The IDs of any two items in a page must be different.
 * \`definition.minRowSpan\` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
-* \`definition.minColumnSpan\` (mapping, optional) - the minimal number of columns the item is allowed to take (per layout). It can't be less than one. Defaults to one.
+* \`definition.minColumnSpan\` (number, optional) - the minimal number of columns the item is allowed to take. It can't be less than one. Defaults to one.
 * \`definition.defaultRowSpan\` (number, optional) - the number or rows the item will take when inserted to the board. It can't be less than \`definition.minRowSpan\`.
-* \`definition.defaultColumnSpan\` (mapping, optional) - the number or columns the item will take (per layout) when inserted in the board. It can't be less than \`definition.minColumnSpan\`.
+* \`definition.defaultColumnSpan\` (number, optional) - the number or columns the item will take when inserted in the board. It can't be less than \`definition.minColumnSpan\`.
 * \`columnOffset\` (mapping, optional) - the item's offset from the first column (per layout) starting from zero. The value is updated by \`onItemsChange\` after an update is committed.
 * \`rowSpan\` (number, optional) - the item's vertical size starting from two. The value is updated by \`onItemsChange\` after an update is committed.
-* \`columnSpan\` (mapping, optional) - the item's vertical size (per layout) starting from one. The value is updated by \`onItemsChange\` after an update is committed.
+* \`columnSpan\` (number, optional) - the item's horizontal size starting from one. The value is updated by \`onItemsChange\` after an update is committed.
 * \`data\` (D) - optional item data which can include the specific configurations of an item, such as its title.
 ",
       "name": "items",
