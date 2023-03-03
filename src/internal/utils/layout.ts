@@ -29,7 +29,8 @@ export function interpretItems(items: readonly Item[], columns: number): GridLay
   function getColumnOffset(item: Item, currentOffset: number): number {
     const columnSpan = getColumnSpan(item);
     const rowSpan = getRowSpan(item);
-    return item.columnOffset?.[columns] ?? findOptimalColumnOffset(currentOffset, columnSpan, rowSpan);
+    const columnOffset = item.columnOffset?.[columns] ?? findOptimalColumnOffset(currentOffset, columnSpan, rowSpan);
+    return columnOffset + columnSpan <= columns ? columnOffset : 0;
   }
 
   function findOptimalColumnOffset(currentColumnOffset: number, columnSpan: number, rowSpan: number): number {
@@ -43,7 +44,7 @@ export function interpretItems(items: readonly Item[], columns: number): GridLay
         return colOffset;
       }
     }
-    return currentColumnOffset + columnSpan <= columns ? currentColumnOffset : 0;
+    return currentColumnOffset;
   }
 
   function getRowOffset(columnOffset: number, columnSpan: number) {
@@ -96,7 +97,7 @@ export function transformItems<D>(
 
   const items: BoardItemDefinition<D>[] = [];
 
-  let changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceItems[index].id !== id);
+  let changeFromIndex = sortedLayout.findIndex(({ id }, index) => id !== sourceItems[index].id || id === resizeTarget);
   changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length;
 
   function setColumnOffset(item: Item, layout: number, value: number) {
