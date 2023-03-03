@@ -11,19 +11,19 @@ export interface BoardItemDefinitionBase<D = DataFallbackType> {
   data: D;
   definition?: {
     minRowSpan?: number;
-    minColumnSpan?: BoardItemLayoutSetting;
+    minColumnSpan?: number;
     defaultRowSpan?: number;
-    defaultColumnSpan?: BoardItemLayoutSetting;
+    defaultColumnSpan?: number;
   };
 }
 
 export interface BoardItemDefinition<D = DataFallbackType> extends BoardItemDefinitionBase<D> {
-  columnOffset?: BoardItemLayoutSetting;
-  rowSpan?: BoardItemLayoutSetting;
-  columnSpan?: BoardItemLayoutSetting;
+  columnOffset?: BoardItemColumnOffset;
+  rowSpan?: number;
+  columnSpan?: number;
 }
 
-export interface BoardItemLayoutSetting {
+export interface BoardItemColumnOffset {
   [columns: number]: number;
 }
 

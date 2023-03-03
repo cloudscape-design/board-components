@@ -13,7 +13,7 @@ export default function KeyboardPage() {
         items={[
           {
             id: "1",
-            columnSpan: { 4: 4 },
+            columnSpan: 4,
             data: {
               title: "",
               description: "",

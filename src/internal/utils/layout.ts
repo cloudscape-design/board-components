@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MIN_COL_SPAN, MIN_ROW_SPAN } from "../constants";
-import { BoardItemDefinition, BoardItemLayoutSetting, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
+import { BoardItemDefinition, GridLayout, GridLayoutItem, ItemId } from "../interfaces";
 
 type Item<D = unknown> = BoardItemDefinition<D>;
 
@@ -16,13 +16,13 @@ export function interpretItems(items: readonly Item[], columns: number): GridLay
 
   function getColumnSpan(item: Item): number {
     const minColumnSpan = getMinColumnSpan(item, columns);
-    const columnSpan = item.columnSpan?.[columns] ?? getDefaultColumnSpan(item, columns);
-    return Math.max(minColumnSpan, columnSpan);
+    const columnSpan = item.columnSpan ?? getDefaultColumnSpan(item, columns);
+    return Math.min(columns, Math.max(minColumnSpan, columnSpan));
   }
 
   function getRowSpan(item: Item): number {
     const minRowSpan = getMinRowSpan(item);
-    const rowSpan = item.rowSpan?.[columns] ?? getDefaultRowSpan(item);
+    const rowSpan = item.rowSpan ?? getDefaultRowSpan(item);
     return Math.max(minRowSpan, rowSpan);
   }
 
@@ -80,7 +80,8 @@ export function interpretItems(items: readonly Item[], columns: number): GridLay
  */
 export function transformItems<D>(
   sourceItems: readonly BoardItemDefinition<D>[],
-  gridLayout: GridLayout
+  gridLayout: GridLayout,
+  resizeTarget: null | ItemId
 ): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {
@@ -98,16 +99,11 @@ export function transformItems<D>(
   let changeFromIndex = sortedLayout.findIndex(({ id }, index) => sourceItems[index].id !== id);
   changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length;
 
-  function writeItemSetting(
-    item: Item,
-    name: "columnOffset" | "columnSpan" | "rowSpan",
-    layout: number,
-    value: number
-  ) {
-    if (!item[name]) {
-      item[name] = {};
+  function setColumnOffset(item: Item, layout: number, value: number) {
+    if (!item.columnOffset) {
+      item.columnOffset = {};
     }
-    item[name]![layout] = value;
+    item.columnOffset![layout] = value;
   }
 
   for (let index = 0; index < sortedLayout.length; index++) {
@@ -118,10 +114,12 @@ export function transformItems<D>(
     if (index >= changeFromIndex) {
       item.columnOffset = undefined;
     }
+    setColumnOffset(item, gridLayout.columns, x);
 
-    writeItemSetting(item, "columnOffset", gridLayout.columns, x);
-    writeItemSetting(item, "columnSpan", gridLayout.columns, width);
-    writeItemSetting(item, "rowSpan", gridLayout.columns, height);
+    if (item.id === resizeTarget) {
+      item.columnSpan = width;
+      item.rowSpan = height;
+    }
 
     items.push(item);
   }
@@ -142,14 +140,11 @@ export function createPlaceholdersLayout(rows: number, columns: number): GridLay
 }
 
 export function getMinColumnSpan(item: Item, columns: number) {
-  return Math.max(MIN_COL_SPAN, getColumnSpanForColumns(item.definition?.minColumnSpan, columns));
+  return Math.min(columns, Math.max(MIN_COL_SPAN, item.definition?.minColumnSpan ?? 0));
 }
 
 export function getDefaultColumnSpan(item: Item, columns: number) {
-  return Math.min(
-    columns,
-    Math.max(getMinColumnSpan(item, columns), getColumnSpanForColumns(item.definition?.defaultColumnSpan, columns))
-  );
+  return Math.min(columns, Math.max(getMinColumnSpan(item, columns), item.definition?.defaultColumnSpan ?? 0));
 }
 
 export function getMinRowSpan(item: Item) {
@@ -158,18 +153,6 @@ export function getMinRowSpan(item: Item) {
 
 export function getDefaultRowSpan(item: Item) {
   return Math.max(getMinRowSpan(item), item.definition?.defaultRowSpan ?? 0);
-}
-
-function getColumnSpanForColumns(columnSpan: BoardItemLayoutSetting | undefined, columns: number): number {
-  if (!columnSpan) {
-    return MIN_COL_SPAN;
-  }
-  for (let i = columns; i >= 0; i--) {
-    if (columnSpan[i] !== undefined) {
-      return columnSpan[i];
-    }
-  }
-  return MIN_COL_SPAN;
 }
 
 function itemComparator(a: GridLayoutItem, b: GridLayoutItem) {

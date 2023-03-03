@@ -31,7 +31,7 @@ const nextRowItems: BoardProps.Item<any>[] = [
   {
     id: "3-1",
     columnOffset: { 4: 0 },
-    columnSpan: { 4: 2 },
+    columnSpan: 2,
     data: {},
   },
   {

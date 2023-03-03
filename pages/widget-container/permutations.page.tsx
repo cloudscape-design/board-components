@@ -9,7 +9,7 @@ import * as i18nStrings from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 
 const fullWidthItem = {
-  columnSpan: { 1: 1, 2: 2, 4: 4, 6: 6 },
+  columnSpan: 6,
 };
 
 export default function WidgetContainerPermutations() {

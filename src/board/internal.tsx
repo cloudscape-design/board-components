@@ -177,15 +177,17 @@ export function InternalBoard<D>({
       return null;
     }
 
+    const resizeTarget = transition.layoutShift.moves.find((move) => move.type === "RESIZE")?.itemId ?? null;
+
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newItems = transformItems([...items, transition.draggableItem], transition.layoutShift.next);
+      const newItems = transformItems([...items, transition.draggableItem], transition.layoutShift.next, resizeTarget);
       const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
       onItemsChange(createCustomEvent({ items: newItems, addedItem }));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = transformItems(items, transition.layoutShift.next);
+      const newItems = transformItems(items, transition.layoutShift.next, resizeTarget);
       onItemsChange(createCustomEvent({ items: newItems }));
     }
   });
@@ -217,7 +219,7 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const newItems = transformItems(items, layoutShift.next);
+    const newItems = transformItems(items, layoutShift.next, null);
 
     onItemsChange(createCustomEvent({ items: newItems, removedItem }));
   };

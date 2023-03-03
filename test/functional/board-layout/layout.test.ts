@@ -311,12 +311,14 @@ test(
     // Use 2-column layout.
     await page.setWindowSize({ width: 1200, height: 800 });
     await expect(page.getGrid(2)).resolves.toEqual([
-      ["A", "X"],
-      ["A", "X"],
-      ["B", "X"],
-      ["B", "X"],
-      [" ", "C"],
-      [" ", "C"],
+      ["A", " "],
+      ["A", " "],
+      ["X", "X"],
+      ["X", "X"],
+      ["X", "X"],
+      ["X", "X"],
+      ["B", "C"],
+      ["B", "C"],
     ]);
 
     // Use 4-column layout.
@@ -335,6 +337,95 @@ test(
       ["A", "X", "X", "B", "C", " "],
       [" ", "X", "X", " ", " ", " "],
       [" ", "X", "X", " ", " ", " "],
+    ]);
+  })
+);
+
+test(
+  "items preserve sizes when move or remove operation is performed",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
+      ],
+      []
+    ),
+    DndPageObject,
+    async (page) => {
+      // Use 1-column layout.
+      await page.setWindowSize({ width: 800, height: 800 });
+
+      // Swap A and B.
+      await page.dragAndDropTo(
+        boardWrapper.findItemById("A").findDragHandle().toSelector(),
+        boardWrapper.findItemById("B").findDragHandle().toSelector()
+      );
+
+      // Remove C.
+      await page.focus(boardWrapper.findItemById("C").findDragHandle().toSelector());
+      await page.keys(["Tab", "Enter", "Enter"]);
+      await page.pause(200);
+
+      // Use 4-column layout.
+      await page.setWindowSize({ width: 1600, height: 800 });
+      await expect(page.getGrid(4)).resolves.toEqual([
+        ["B", "A", "A", " "],
+        ["B", "A", "A", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "resize target size is updated for all layouts",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
+      ],
+      []
+    ),
+    DndPageObject,
+    async (page) => {
+      // Use 1-column layout.
+      await page.setWindowSize({ width: 800, height: 800 });
+
+      // Increase B height.
+      await page.dragAndDrop(boardWrapper.findItemById("B").findResizeHandle().toSelector(), 0, 200);
+
+      // Use 4-column layout.
+      await page.setWindowSize({ width: 1600, height: 800 });
+      await expect(page.getGrid(4)).resolves.toEqual([
+        ["A", "A", "B", "C"],
+        ["A", "A", "B", "C"],
+        [" ", " ", "B", " "],
+        [" ", " ", "B", " "],
+      ]);
+    }
+  )
+);
+
+test(
+  "item min column span is taken when inserted in 1-column layout",
+  setupTest(makeQueryUrl([], ["X"]), DndPageObject, async (page) => {
+    // Use 1-column layout.
+    await page.setWindowSize({ width: 800, height: 800 });
+
+    // Insert X which min size is 2x4.
+    await page.focus(itemsPaletteWrapper.findItemById("X").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
+    await page.keys(["ArrowLeft"]);
+    await page.keys(["Enter"]);
+
+    // Use 4-column layout.
+    await page.setWindowSize({ width: 1600, height: 800 });
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["X", "X", " ", " "],
+      ["X", "X", " ", " "],
+      ["X", "X", " ", " "],
+      ["X", "X", " ", " "],
     ]);
   })
 );

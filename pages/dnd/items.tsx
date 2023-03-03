@@ -32,7 +32,7 @@ const createDefaultWidget = (id: string) => ({
 
 export const demoWidgets: ItemWidgets = {
   D: {
-    definition: { defaultColumnSpan: { 4: 2 }, defaultRowSpan: 4, minRowSpan: 4 },
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 4, minRowSpan: 4 },
     data: {
       title: "Demo widget",
       description: "Most minimal widget",
@@ -40,7 +40,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   counter: {
-    definition: { defaultRowSpan: 2, defaultColumnSpan: { 4: 2 } },
+    definition: { defaultRowSpan: 2, defaultColumnSpan: 2 },
     data: {
       title: "Counter",
       description: "State management demo",
@@ -114,7 +114,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   allMetrics: {
-    definition: { defaultColumnSpan: { 4: 2 }, defaultRowSpan: 2, minColumnSpan: { 4: 2 }, minRowSpan: 2 },
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 2, minColumnSpan: 2, minRowSpan: 2 },
     data: {
       title: "All metrics",
       description: "Revenue and resource count charts",
@@ -162,7 +162,7 @@ export const demoWidgets: ItemWidgets = {
     },
   },
   events: {
-    definition: { defaultColumnSpan: { 4: 2 }, defaultRowSpan: 1, minColumnSpan: { 4: 2 }, minRowSpan: 1 },
+    definition: { defaultColumnSpan: 2, defaultRowSpan: 1, minColumnSpan: 2, minRowSpan: 1 },
     data: {
       title: "Events",
       description: "Service events table",
@@ -185,16 +185,16 @@ for (let i = 2; i <= 10; i++) {
 }
 
 export const storedPositions = [
-  { id: "D", columnOffset: { 4: 0 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "2", columnOffset: { 4: 1 }, rowSpan: { 4: 1 }, columnSpan: { 4: 2 } },
-  { id: "3", columnOffset: { 4: 3 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "4", columnOffset: { 4: 0 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "5", columnOffset: { 4: 1 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "6", columnOffset: { 4: 2 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "7", columnOffset: { 4: 0 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "8", columnOffset: { 4: 1 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "9", columnOffset: { 4: 2 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
-  { id: "10", columnOffset: { 4: 0 }, rowSpan: { 4: 1 }, columnSpan: { 4: 1 } },
+  { id: "D", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
+  { id: "2", columnOffset: { 4: 1 }, rowSpan: 1, columnSpan: 2 },
+  { id: "3", columnOffset: { 4: 3 }, rowSpan: 1, columnSpan: 1 },
+  { id: "4", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
+  { id: "5", columnOffset: { 4: 1 }, rowSpan: 1, columnSpan: 1 },
+  { id: "6", columnOffset: { 4: 2 }, rowSpan: 1, columnSpan: 1 },
+  { id: "7", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
+  { id: "8", columnOffset: { 4: 1 }, rowSpan: 1, columnSpan: 1 },
+  { id: "9", columnOffset: { 4: 2 }, rowSpan: 1, columnSpan: 1 },
+  { id: "10", columnOffset: { 4: 0 }, rowSpan: 1, columnSpan: 1 },
 ];
 
 export const demoBoardItems: readonly BoardProps.Item<ItemData>[] = storedPositions.map((pos) => {
@@ -216,15 +216,15 @@ export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Obj
 
 export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
   const definitions: { [letter: string]: BoardItemDefinitionBase["definition"] } = {
-    R: { defaultRowSpan: 1, defaultColumnSpan: { 4: 2 }, minRowSpan: 1, minColumnSpan: { 4: 2 } },
-    S: { defaultRowSpan: 1, defaultColumnSpan: { 4: 2 }, minRowSpan: 1, minColumnSpan: { 4: 2 } },
-    T: { defaultRowSpan: 1, defaultColumnSpan: { 4: 2 }, minRowSpan: 1, minColumnSpan: { 4: 2 } },
-    U: { defaultRowSpan: 4, defaultColumnSpan: { 4: 1 }, minRowSpan: 4, minColumnSpan: { 4: 1 } },
-    V: { defaultRowSpan: 4, defaultColumnSpan: { 4: 1 }, minRowSpan: 4, minColumnSpan: { 4: 1 } },
-    W: { defaultRowSpan: 4, defaultColumnSpan: { 4: 1 }, minRowSpan: 4, minColumnSpan: { 4: 1 } },
-    X: { defaultRowSpan: 4, defaultColumnSpan: { 4: 2 }, minRowSpan: 4, minColumnSpan: { 4: 2 } },
-    Y: { defaultRowSpan: 4, defaultColumnSpan: { 4: 2 }, minRowSpan: 4, minColumnSpan: { 4: 2 } },
-    Z: { defaultRowSpan: 4, defaultColumnSpan: { 4: 2 }, minRowSpan: 4, minColumnSpan: { 4: 2 } },
+    R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+    U: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    V: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    W: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+    X: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    Y: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    Z: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
   };
   acc[letter] = {
     id: letter,
@@ -276,7 +276,7 @@ function applyLayout<D>(
   return sortedLayout.map(({ id, x, width, height }) => ({
     ...getItem(id),
     columnOffset: { 4: x, 6: x },
-    columnSpan: { 4: width, 6: width },
-    rowSpan: { 4: height, 6: height },
+    columnSpan: width,
+    rowSpan: height,
   }));
 }

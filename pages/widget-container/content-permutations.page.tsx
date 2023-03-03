@@ -9,8 +9,8 @@ import * as i18nStrings from "../shared/i18n";
 
 const position = (columnOffset: number, columnSpan: number, rowSpan: number) => ({
   columnOffset: { 4: columnOffset },
-  columnSpan: { 4: columnSpan },
-  rowSpan: { 4: rowSpan },
+  columnSpan,
+  rowSpan,
 });
 
 const responsive = demoWidgets.responsive!.data;
