@@ -3,13 +3,13 @@
 
 export const BREAKPOINT_XS = 688;
 
-export const BREAKPOINT_M = 1120;
+export const BREAKPOINT_S = 912;
 
 export const BREAKPOINT_XL = 2160;
 
 export const COLUMNS_XS = 1;
 
-export const COLUMNS_M = 2;
+export const COLUMNS_S = 2;
 
 export const COLUMNS_XL = 4;
 
