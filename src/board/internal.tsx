@@ -5,11 +5,11 @@ import clsx from "clsx";
 import { ReactNode, useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import {
-  BREAKPOINT_M,
+  BREAKPOINT_S,
   BREAKPOINT_XL,
   BREAKPOINT_XS,
   COLUMNS_DEFAULT,
-  COLUMNS_M,
+  COLUMNS_S,
   COLUMNS_XL,
   COLUMNS_XS,
   TRANSITION_DURATION_MS,
@@ -41,7 +41,7 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { createItemsChangeEvent } from "./utils/events";
 
-const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
+const boardSizes = { xs: COLUMNS_XS, s: COLUMNS_S, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
 export function InternalBoard<D>({
   items,
@@ -56,8 +56,8 @@ export function InternalBoard<D>({
     if (entry.contentBoxWidth < BREAKPOINT_XS) {
       return "xs";
     }
-    if (entry.contentBoxWidth < BREAKPOINT_M) {
-      return "m";
+    if (entry.contentBoxWidth < BREAKPOINT_S) {
+      return "s";
     }
     if (entry.contentBoxWidth < BREAKPOINT_XL) {
       return "xl";
