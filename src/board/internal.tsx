@@ -21,7 +21,6 @@ import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { createCustomEvent } from "../internal/utils/events";
 import {
   createPlaceholdersLayout,
   getDefaultColumnSpan,
@@ -29,7 +28,6 @@ import {
   getMinColumnSpan,
   getMinRowSpan,
   interpretItems,
-  transformItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
@@ -41,6 +39,7 @@ import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
+import { createItemsChangeEvent } from "./utils/events";
 
 const boardSizes = { xs: COLUMNS_XS, m: COLUMNS_M, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
 
@@ -177,18 +176,13 @@ export function InternalBoard<D>({
       return null;
     }
 
-    const resizeTarget = transition.layoutShift.moves.find((move) => move.type === "RESIZE")?.itemId ?? null;
-
     // Commit new layout for insert case.
     if (transition.operation === "insert") {
-      const newItems = transformItems([...items, transition.draggableItem], transition.layoutShift.next, resizeTarget);
-      const addedItem = newItems.find((item) => item.id === transition.draggableItem.id)!;
-      onItemsChange(createCustomEvent({ items: newItems, addedItem }));
+      onItemsChange(createItemsChangeEvent([...items, transition.draggableItem], transition.layoutShift));
     }
     // Commit new layout for reorder/resize case.
     else {
-      const newItems = transformItems(items, transition.layoutShift.next, resizeTarget);
-      onItemsChange(createCustomEvent({ items: newItems }));
+      onItemsChange(createItemsChangeEvent(items, transition.layoutShift));
     }
   });
 
@@ -219,9 +213,8 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
     const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
-    const newItems = transformItems(items, layoutShift.next, null);
 
-    onItemsChange(createCustomEvent({ items: newItems, removedItem }));
+    onItemsChange(createItemsChangeEvent(items, layoutShift));
   };
 
   function focusItem(itemId: ItemId) {
