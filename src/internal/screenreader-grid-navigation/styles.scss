@@ -1,7 +1,6 @@
 .screen-reader-navigation-hidden {
   position: absolute !important;
-  top: -9999px !important;
-  left: -9999px !important;
+  clip-path: circle(0);
 }
 .screen-reader-navigation-visible {
   position: fixed;
