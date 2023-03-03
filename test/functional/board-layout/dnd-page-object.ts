@@ -46,18 +46,33 @@ export class DndPageObject extends BasePageObject {
         [...document.querySelectorAll(placeholderSelector)].map((p) => p.getBoundingClientRect()),
       `.${boardStyles.default.placeholder}`
     );
+    const hoveredPlaceholderRects = await this.browser.execute(
+      (placeholderSelector) =>
+        [...document.querySelectorAll(placeholderSelector)].map((p) => p.getBoundingClientRect()),
+      `.${boardStyles.default["placeholder--hover"]}`
+    );
 
     function matchWidget(placeholderIndex: number): null | string {
       const placeholderRect = placeholderRects[placeholderIndex];
 
-      for (let widgetIndex = 0; widgetIndex < widgets.length; widgetIndex++) {
+      for (let index = 0; index < widgets.length; index++) {
         if (
-          placeholderRect.top >= widgets[widgetIndex][1].top - 2 &&
-          placeholderRect.left >= widgets[widgetIndex][1].left - 2 &&
-          placeholderRect.right <= widgets[widgetIndex][1].right + 2 &&
-          placeholderRect.bottom <= widgets[widgetIndex][1].bottom + 2
+          placeholderRect.top >= widgets[index][1].top - 2 &&
+          placeholderRect.left >= widgets[index][1].left - 2 &&
+          placeholderRect.right <= widgets[index][1].right + 2 &&
+          placeholderRect.bottom <= widgets[index][1].bottom + 2
         ) {
-          return widgets[widgetIndex][0];
+          return widgets[index][0];
+        }
+      }
+      for (let index = 0; index < hoveredPlaceholderRects.length; index++) {
+        if (
+          placeholderRect.top >= hoveredPlaceholderRects[index].top - 2 &&
+          placeholderRect.left >= hoveredPlaceholderRects[index].left - 2 &&
+          placeholderRect.right <= hoveredPlaceholderRects[index].right + 2 &&
+          placeholderRect.bottom <= hoveredPlaceholderRects[index].bottom + 2
+        ) {
+          return "_";
         }
       }
 
