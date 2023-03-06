@@ -7,24 +7,42 @@ import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove } from "./interfaces";
 
 export class LayoutEngineStep {
+  // Engine (shared) state.
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
-  private priority = new Map<ItemId, number>();
-  private overlaps = new StackSet<ItemId>();
   private conflicts = new Set<ItemId>();
 
-  constructor(
-    grid: LayoutEngineGrid,
-    moves: CommittedMove[],
-    priority = new Map<ItemId, number>(),
-    overlaps = new StackSet<ItemId>(),
-    conflicts = new Set<ItemId>()
-  ) {
+  // Engine step state.
+  private priority = new Map<ItemId, number>();
+  private overlaps = new StackSet<ItemId>();
+
+  constructor(grid: LayoutEngineGrid, moves: CommittedMove[], conflicts = new Set<ItemId>()) {
     this.grid = grid;
     this.moves = moves;
-    this.priority = priority;
-    this.overlaps = overlaps;
     this.conflicts = conflicts;
+  }
+
+  public makeMove(move: CommittedMove): void {
+    switch (move.type) {
+      case "ESCAPE":
+      case "FLOAT":
+      case "MOVE":
+      case "VACANT":
+      case "PRIORITY":
+        this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
+        break;
+      case "INSERT":
+        this.grid.insert({ id: move.itemId, ...move }, this.addOverlap.bind(this));
+        break;
+      case "REMOVE":
+        this.grid.remove(move.itemId);
+        break;
+      case "RESIZE":
+        this.grid.resize(move.itemId, move.width, move.height, this.addOverlap.bind(this));
+        break;
+    }
+    this.moves.push(move);
+    this.priority.set(move.itemId, this.getMovePriority(move));
   }
 
   // Issue moves on overlapping items trying to resolve all of them.
@@ -100,12 +118,6 @@ export class LayoutEngineStep {
     if (needAnotherRefloat) {
       this.refloatGrid(activeId);
     }
-  }
-
-  private makeMove(move: CommittedMove): void {
-    this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
-    this.moves.push(move);
-    this.priority.set(move.itemId, this.getMovePriority(move));
   }
 
   private getItemPriority(itemId: ItemId) {
