@@ -42,9 +42,7 @@ export class LayoutEngine {
       this.conflicts = findConflicts(move, this.grid);
 
       const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-
-      stepResolver.makeMove(move);
-      stepResolver.resolveOverlaps(itemId);
+      stepResolver.resolveOverlaps(move);
     }
 
     return new LayoutEngine(this);
@@ -62,8 +60,7 @@ export class LayoutEngine {
       const move: CommittedMove = { itemId, x: resizeTarget.x, y: resizeTarget.y, width, height, type: "RESIZE" };
 
       const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-      stepResolver.makeMove(move);
-      stepResolver.resolveOverlaps(itemId, true);
+      stepResolver.resolveOverlaps(move);
     }
 
     return new LayoutEngine(this);
@@ -75,8 +72,7 @@ export class LayoutEngine {
     const move: CommittedMove = { itemId, ...position, width, height, type: "INSERT" };
 
     const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-    stepResolver.makeMove(move);
-    stepResolver.resolveOverlaps(itemId);
+    stepResolver.resolveOverlaps(move);
 
     return new LayoutEngine(this).move({ itemId, path });
   }
@@ -88,8 +84,7 @@ export class LayoutEngine {
     const move: CommittedMove = { itemId, x, y, width, height, type: "REMOVE" };
 
     const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-    stepResolver.makeMove(move);
-    stepResolver.resolveOverlaps(itemId);
+    stepResolver.resolveOverlaps(move);
 
     return new LayoutEngine(this);
   }

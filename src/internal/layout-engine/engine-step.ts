@@ -5,7 +5,6 @@ import { Direction, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { isUserMove } from "./utils";
 
 export class LayoutEngineStep {
   // Engine (shared) state.
@@ -23,32 +22,16 @@ export class LayoutEngineStep {
     this.conflicts = conflicts;
   }
 
-  public makeMove(move: CommittedMove): void {
-    switch (move.type) {
-      case "ESCAPE":
-      case "FLOAT":
-      case "MOVE":
-      case "VACANT":
-      case "PRIORITY":
-        this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
-        break;
-      case "INSERT":
-        this.grid.insert({ id: move.itemId, ...move }, this.addOverlap.bind(this));
-        break;
-      case "REMOVE":
-        this.grid.remove(move.itemId);
-        break;
-      case "RESIZE":
-        this.grid.resize(move.itemId, move.width, move.height, this.addOverlap.bind(this));
-        break;
-    }
-    this.moves.push(move);
-    this.priority.set(move.itemId, this.getMovePriority(move));
-  }
-
   // Issue moves on overlapping items trying to resolve all of them.
-  public resolveOverlaps(activeId: ItemId, resize = false): void {
+  public resolveOverlaps(userMove: CommittedMove): void {
     this.priority = new Map();
+    this.overlaps = new StackSet();
+
+    const activeId = userMove.itemId;
+    const resize = userMove.type === "RESIZE";
+
+    this.makeMove(userMove);
+
     let priorityOverlaps = new StackSet<ItemId>();
 
     const tryVacantMoves = () => {
@@ -121,20 +104,27 @@ export class LayoutEngineStep {
     }
   }
 
-  private get userMove() {
-    const userMove = this.moves.find(isUserMove);
-    if (!userMove) {
-      throw new Error("Invariant violation: no user move present to resolve.");
+  private makeMove(move: CommittedMove): void {
+    switch (move.type) {
+      case "ESCAPE":
+      case "FLOAT":
+      case "MOVE":
+      case "VACANT":
+      case "PRIORITY":
+        this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
+        break;
+      case "INSERT":
+        this.grid.insert({ id: move.itemId, ...move }, this.addOverlap.bind(this));
+        break;
+      case "REMOVE":
+        this.grid.remove(move.itemId);
+        break;
+      case "RESIZE":
+        this.grid.resize(move.itemId, move.width, move.height, this.addOverlap.bind(this));
+        break;
     }
-    return userMove;
-  }
-
-  private get activeId() {
-    return this.userMove.itemId;
-  }
-
-  private get isResize() {
-    return this.userMove.type === "RESIZE";
+    this.moves.push(move);
+    this.priority.set(move.itemId, this.getMovePriority(move));
   }
 
   private getItemPriority(itemId: ItemId) {
