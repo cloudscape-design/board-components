@@ -44,9 +44,9 @@ export class LayoutEngine {
 
       this.findConflicts(move);
 
-      this.makeMove(move, stepIndex);
+      this.makeMove(move);
 
-      this.tryResolveOverlaps(itemId, stepIndex);
+      this.resolveOverlaps(itemId);
     }
 
     return new LayoutEngine(this);
@@ -66,7 +66,7 @@ export class LayoutEngine {
 
       this.moves.push({ itemId, x: resizeTarget.x, y: resizeTarget.y, width, height, type: "RESIZE" });
 
-      this.tryResolveOverlaps(itemId, stepIndex, true);
+      this.resolveOverlaps(itemId, true);
     }
 
     return new LayoutEngine(this);
@@ -79,7 +79,7 @@ export class LayoutEngine {
 
     this.moves.push({ itemId, ...position, width, height, type: "INSERT" });
 
-    this.tryResolveOverlaps(itemId);
+    this.resolveOverlaps(itemId);
 
     return new LayoutEngine(this).move({ itemId, path });
   }
@@ -125,11 +125,27 @@ export class LayoutEngine {
     }
   }
 
-  private makeMove(move: CommittedMove, priority?: number): void {
+  private makeMove(move: CommittedMove): void {
     this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
     this.moves.push(move);
-    if (priority !== undefined) {
-      this.priority.set(move.itemId, priority);
+    this.priority.set(move.itemId, this.getMovePriority(move));
+  }
+
+  private getItemPriority(itemId: ItemId) {
+    return this.priority.get(itemId) ?? 0;
+  }
+
+  private getMovePriority(move: CommittedMove) {
+    switch (move.type) {
+      case "FLOAT":
+        return 0;
+      case "VACANT":
+        return 1;
+      case "PRIORITY":
+      case "ESCAPE":
+        return 5;
+      default:
+        return 9999;
     }
   }
 
@@ -140,39 +156,35 @@ export class LayoutEngine {
   }
 
   // Issue moves on overlapping items trying to resolve all of them.
-  // It might not be possible to resolve overlaps if conflicts are present.
-  private tryResolveOverlaps(activeId: ItemId, priority = 0, resize = false): void {
-    const priorityOverlaps = new StackSet<ItemId>();
+  private resolveOverlaps(activeId: ItemId, resize = false): void {
+    this.priority = new Map();
+    let priorityOverlaps = new StackSet<ItemId>();
 
     const tryVacantMoves = () => {
-      // Copy priority overlaps back to main stack.
-      let priorityOverlap = priorityOverlaps.pop();
-      while (priorityOverlap) {
-        this.overlaps.push(priorityOverlap);
-        priorityOverlap = priorityOverlaps.pop();
-      }
-
       // Try vacant moves on all overlaps.
       let overlap = this.overlaps.pop();
       while (overlap) {
         const nextMove = this.tryFindVacantMove(overlap, activeId, resize);
         if (nextMove) {
-          this.makeMove(nextMove, priority);
+          this.makeMove(nextMove);
         } else {
           priorityOverlaps.push(overlap);
         }
         overlap = this.overlaps.pop();
       }
 
+      this.overlaps = priorityOverlaps;
+      priorityOverlaps = new StackSet<ItemId>();
+
       tryPriorityMoves();
     };
 
     const tryPriorityMoves = () => {
       // Try priority moves until first success and delegate back to vacant moves check.
-      const overlap = priorityOverlaps.pop();
+      const overlap = this.overlaps.pop();
       if (overlap) {
-        const nextMove = this.findPriorityMove(overlap, activeId, priority, resize);
-        this.makeMove(nextMove, priority);
+        const nextMove = this.findPriorityMove(overlap, activeId, resize);
+        this.makeMove(nextMove);
         tryVacantMoves();
       }
     };
@@ -276,14 +288,14 @@ export class LayoutEngine {
   }
 
   // Find a move that resolves an overlap by moving an item over another item that has not been disturbed yet.
-  private findPriorityMove(overlap: ItemId, activeId: ItemId, priority: number, resize = false): CommittedMove {
+  private findPriorityMove(overlap: ItemId, activeId: ItemId, resize = false): CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
     const directions = resize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "PRIORITY");
-      if (this.validatePriorityMove(move, activeId, priority, resize)) {
+      if (this.validatePriorityMove(move, activeId, resize)) {
         return move;
       }
     }
@@ -298,7 +310,7 @@ export class LayoutEngine {
       type: "ESCAPE",
     };
     for (move.y; move.y < 100; move.y++) {
-      if (this.validatePriorityMove(move, activeId, priority)) {
+      if (this.validatePriorityMove(move, activeId)) {
         return move;
       }
     }
@@ -306,7 +318,7 @@ export class LayoutEngine {
     throw new Error("Invariant violation: can't find escape move.");
   }
 
-  private validatePriorityMove(move: CommittedMove, activeId: ItemId, priority: number, resize = false): boolean {
+  private validatePriorityMove(move: CommittedMove, activeId: ItemId, resize = false): boolean {
     const moveTarget = this.grid.getItem(move.itemId);
 
     for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -325,8 +337,8 @@ export class LayoutEngine {
             return false;
           }
 
-          // The overlapping item has the same priority.
-          if (this.priority.get(item.id) === priority) {
+          // The overlapping item has same or bigger priority.
+          if (this.getItemPriority(item.id) >= this.getMovePriority(move)) {
             return false;
           }
 
