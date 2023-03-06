@@ -20,7 +20,6 @@ export function refloatGrid(grid: LayoutEngineGrid, moves: CommittedMove[], conf
 }
 
 class LayoutEngineStep {
-  // Engine (shared) state.
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
   private conflicts = new Set<ItemId>();
