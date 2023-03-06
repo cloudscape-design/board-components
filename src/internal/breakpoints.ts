@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { Ref } from "react";
 
-export function useContainerColumns(): [number, Ref<HTMLDivElement>] {
+export function useContainerColumns() {
   const [columns, containerQueryRef] = useContainerQuery((entry) => {
     if (entry.contentBoxWidth < 688) {
       return 1;
@@ -12,11 +11,11 @@ export function useContainerColumns(): [number, Ref<HTMLDivElement>] {
     if (entry.contentBoxWidth < 912) {
       return 2;
     }
-    if (entry.contentBoxWidth < 2160) {
+    if (entry.contentBoxWidth < 2100) {
       return 4;
     }
     return 6;
   }, []);
 
-  return [columns ?? 6, containerQueryRef];
+  return [columns ?? 6, containerQueryRef] as const;
 }
