@@ -1,19 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import clsx from "clsx";
 import { ReactNode, useEffect, useRef } from "react";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
-import {
-  BREAKPOINT_S,
-  BREAKPOINT_XL,
-  BREAKPOINT_XS,
-  COLUMNS_DEFAULT,
-  COLUMNS_S,
-  COLUMNS_XL,
-  COLUMNS_XS,
-  TRANSITION_DURATION_MS,
-} from "../internal/constants";
+import { useContainerColumns } from "../internal/breakpoints";
+import { TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
@@ -41,8 +32,6 @@ import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { createItemsChangeEvent } from "./utils/events";
 
-const boardSizes = { xs: COLUMNS_XS, s: COLUMNS_S, xl: COLUMNS_XL, default: COLUMNS_DEFAULT };
-
 export function InternalBoard<D>({
   items,
   renderItem,
@@ -52,20 +41,8 @@ export function InternalBoard<D>({
   __internalRootRef,
 }: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
-  const [containerSize, containerQueryRef] = useContainerQuery((entry) => {
-    if (entry.contentBoxWidth < BREAKPOINT_XS) {
-      return "xs";
-    }
-    if (entry.contentBoxWidth < BREAKPOINT_S) {
-      return "s";
-    }
-    if (entry.contentBoxWidth < BREAKPOINT_XL) {
-      return "xl";
-    }
-    return "default";
-  }, []);
+  const [columns, containerQueryRef] = useContainerColumns();
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
-  const columns = boardSizes[containerSize ?? "default"];
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
   const autoScrollHandlers = useAutoScroll();
