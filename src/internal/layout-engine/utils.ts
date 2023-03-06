@@ -3,6 +3,7 @@
 
 import { GridLayoutItem } from "../interfaces";
 import { Position } from "../utils/position";
+import { CommittedMove } from "./interfaces";
 
 export interface Rect {
   left: number;
@@ -63,6 +64,10 @@ export function normalizeResizePath(origin: Position, path: readonly Position[])
   normalizedPath.reverse();
 
   return normalizePathSteps(origin, normalizedPath);
+}
+
+export function isUserMove(move: CommittedMove): boolean {
+  return move.type === "INSERT" || move.type === "MOVE" || move.type === "REMOVE" || move.type === "RESIZE";
 }
 
 // Removes path prefixes that return to the original location.

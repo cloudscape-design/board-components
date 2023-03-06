@@ -5,6 +5,7 @@ import { Direction, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
 import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove } from "./interfaces";
+import { isUserMove } from "./utils";
 
 export class LayoutEngineStep {
   // Engine (shared) state.
@@ -16,7 +17,7 @@ export class LayoutEngineStep {
   private priority = new Map<ItemId, number>();
   private overlaps = new StackSet<ItemId>();
 
-  constructor(grid: LayoutEngineGrid, moves: CommittedMove[], conflicts = new Set<ItemId>()) {
+  constructor(grid: LayoutEngineGrid, moves: CommittedMove[], conflicts: Set<ItemId>) {
     this.grid = grid;
     this.moves = moves;
     this.conflicts = conflicts;
@@ -118,6 +119,22 @@ export class LayoutEngineStep {
     if (needAnotherRefloat) {
       this.refloatGrid(activeId);
     }
+  }
+
+  private get userMove() {
+    const userMove = this.moves.find(isUserMove);
+    if (!userMove) {
+      throw new Error("Invariant violation: no user move present to resolve.");
+    }
+    return userMove;
+  }
+
+  private get activeId() {
+    return this.userMove.itemId;
+  }
+
+  private get isResize() {
+    return this.userMove.type === "RESIZE";
   }
 
   private getItemPriority(itemId: ItemId) {
