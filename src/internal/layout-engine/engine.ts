@@ -145,13 +145,6 @@ export class LayoutEngine {
     const priorityOverlaps = new StackSet<ItemId>();
 
     const tryVacantMoves = () => {
-      // Copy priority overlaps back to main stack.
-      let priorityOverlap = priorityOverlaps.pop();
-      while (priorityOverlap) {
-        this.overlaps.push(priorityOverlap);
-        priorityOverlap = priorityOverlaps.pop();
-      }
-
       // Try vacant moves on all overlaps.
       let overlap = this.overlaps.pop();
       while (overlap) {
@@ -164,12 +157,15 @@ export class LayoutEngine {
         overlap = this.overlaps.pop();
       }
 
+      this.overlaps = new StackSet(priorityOverlaps);
+      priorityOverlaps.clear();
+
       tryPriorityMoves();
     };
 
     const tryPriorityMoves = () => {
       // Try priority moves until first success and delegate back to vacant moves check.
-      const overlap = priorityOverlaps.pop();
+      const overlap = this.overlaps.pop();
       if (overlap) {
         const nextMove = this.findPriorityMove(overlap, activeId, priority, resize);
         this.makeMove(nextMove, priority);

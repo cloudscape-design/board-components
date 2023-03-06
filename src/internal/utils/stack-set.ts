@@ -5,9 +5,14 @@ export class StackSet<T> {
   private list: T[];
   private set: Set<T>;
 
-  constructor(list: T[] = []) {
-    this.list = list;
-    this.set = new Set(list);
+  constructor(input: StackSet<T> | T[] | void) {
+    if (input instanceof StackSet) {
+      this.list = [...input.list];
+      this.set = new Set(this.list);
+    } else {
+      this.list = input ?? [];
+      this.set = new Set(this.list);
+    }
   }
 
   push(value: T): void {
@@ -21,5 +26,10 @@ export class StackSet<T> {
     const value = this.list.pop() ?? null;
     value && this.set.delete(value);
     return value;
+  }
+
+  clear(): void {
+    this.list = [];
+    this.set = new Set();
   }
 }
