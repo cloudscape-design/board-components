@@ -14,7 +14,6 @@ export class LayoutEngineStep {
 
   // Engine step state.
   private priority = new Map<ItemId, number>();
-  private overlaps = new StackSet<ItemId>();
 
   constructor(grid: LayoutEngineGrid, moves: CommittedMove[], conflicts: Set<ItemId>) {
     this.grid = grid;
@@ -25,29 +24,34 @@ export class LayoutEngineStep {
   // Issue moves on overlapping items trying to resolve all of them.
   public resolveOverlaps(userMove: CommittedMove): void {
     this.priority = new Map();
-    this.overlaps = new StackSet();
-
     const activeId = userMove.itemId;
     const resize = userMove.type === "RESIZE";
 
-    this.makeMove(userMove);
-
+    let overlaps = new StackSet<ItemId>();
     let priorityOverlaps = new StackSet<ItemId>();
+
+    const addOverlap = (itemId: ItemId) => {
+      if (!this.conflicts.has(itemId)) {
+        overlaps.push(itemId);
+      }
+    };
+
+    this.makeMove(userMove, addOverlap);
 
     const tryVacantMoves = () => {
       // Try vacant moves on all overlaps.
-      let overlap = this.overlaps.pop();
+      let overlap = overlaps.pop();
       while (overlap) {
         const nextMove = this.tryFindVacantMove(overlap, activeId, resize);
         if (nextMove) {
-          this.makeMove(nextMove);
+          this.makeMove(nextMove, addOverlap);
         } else {
           priorityOverlaps.push(overlap);
         }
-        overlap = this.overlaps.pop();
+        overlap = overlaps.pop();
       }
 
-      this.overlaps = priorityOverlaps;
+      overlaps = priorityOverlaps;
       priorityOverlaps = new StackSet<ItemId>();
 
       tryPriorityMoves();
@@ -55,10 +59,10 @@ export class LayoutEngineStep {
 
     const tryPriorityMoves = () => {
       // Try priority moves until first success and delegate back to vacant moves check.
-      const overlap = this.overlaps.pop();
+      const overlap = overlaps.pop();
       if (overlap) {
         const nextMove = this.findPriorityMove(overlap, activeId, resize);
-        this.makeMove(nextMove);
+        this.makeMove(nextMove, addOverlap);
         tryVacantMoves();
       }
     };
@@ -94,7 +98,7 @@ export class LayoutEngineStep {
         }
       }
       if (item.y !== move.y) {
-        this.makeMove(move);
+        this.makeMove(move, () => undefined);
         needAnotherRefloat = true;
       }
     }
@@ -104,23 +108,23 @@ export class LayoutEngineStep {
     }
   }
 
-  private makeMove(move: CommittedMove): void {
+  private makeMove(move: CommittedMove, addOverlap: (itemId: ItemId) => void): void {
     switch (move.type) {
       case "ESCAPE":
       case "FLOAT":
       case "MOVE":
       case "VACANT":
       case "PRIORITY":
-        this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
+        this.grid.move(move.itemId, move.x, move.y, addOverlap);
         break;
       case "INSERT":
-        this.grid.insert({ id: move.itemId, ...move }, this.addOverlap.bind(this));
+        this.grid.insert({ id: move.itemId, ...move }, addOverlap);
         break;
       case "REMOVE":
         this.grid.remove(move.itemId);
         break;
       case "RESIZE":
-        this.grid.resize(move.itemId, move.width, move.height, this.addOverlap.bind(this));
+        this.grid.resize(move.itemId, move.width, move.height, addOverlap);
         break;
     }
     this.moves.push(move);
@@ -142,12 +146,6 @@ export class LayoutEngineStep {
         return 5;
       default:
         return 9999;
-    }
-  }
-
-  private addOverlap(itemId: ItemId): void {
-    if (!this.conflicts.has(itemId)) {
-      this.overlaps.push(itemId);
     }
   }
 
