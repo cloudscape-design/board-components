@@ -5,7 +5,7 @@ export const BREAKPOINT_XS = 688;
 
 export const BREAKPOINT_S = 912;
 
-export const BREAKPOINT_XL = 2160;
+export const BREAKPOINT_XL = 2100;
 
 export const COLUMNS_XS = 1;
 
