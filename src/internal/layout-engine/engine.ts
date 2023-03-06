@@ -4,7 +4,7 @@
 import { GridLayout, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
 import { findConflicts } from "./engine-conflicts";
-import { LayoutEngineStep } from "./engine-step";
+import { refloatGrid, resolveOverlaps } from "./engine-step";
 import { LayoutEngineGrid } from "./grid";
 import { CommittedMove, InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
@@ -37,12 +37,10 @@ export class LayoutEngine {
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
       const step = path[stepIndex];
       const { width, height } = this.grid.getItem(itemId);
+
       const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "MOVE" };
-
       this.conflicts = findConflicts(move, this.grid);
-
-      const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-      stepResolver.resolveOverlaps(move);
+      resolveOverlaps(move, this.grid, this.moves, this.conflicts);
     }
 
     return new LayoutEngine(this);
@@ -57,10 +55,13 @@ export class LayoutEngine {
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
       const width = path[stepIndex].x - resizeTarget.x;
       const height = path[stepIndex].y - resizeTarget.y;
-      const move: CommittedMove = { itemId, x: resizeTarget.x, y: resizeTarget.y, width, height, type: "RESIZE" };
 
-      const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-      stepResolver.resolveOverlaps(move);
+      resolveOverlaps(
+        { itemId, x: resizeTarget.x, y: resizeTarget.y, width, height, type: "RESIZE" },
+        this.grid,
+        this.moves,
+        this.conflicts
+      );
     }
 
     return new LayoutEngine(this);
@@ -69,10 +70,7 @@ export class LayoutEngine {
   insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
     this.cleanup();
 
-    const move: CommittedMove = { itemId, ...position, width, height, type: "INSERT" };
-
-    const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-    stepResolver.resolveOverlaps(move);
+    resolveOverlaps({ itemId, ...position, width, height, type: "INSERT" }, this.grid, this.moves, this.conflicts);
 
     return new LayoutEngine(this).move({ itemId, path });
   }
@@ -81,19 +79,14 @@ export class LayoutEngine {
     this.cleanup();
 
     const { x, y, width, height } = this.grid.getItem(itemId);
-    const move: CommittedMove = { itemId, x, y, width, height, type: "REMOVE" };
 
-    const stepResolver = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-    stepResolver.resolveOverlaps(move);
+    resolveOverlaps({ itemId, x, y, width, height, type: "REMOVE" }, this.grid, this.moves, this.conflicts);
 
     return new LayoutEngine(this);
   }
 
   refloat(): LayoutEngine {
-    if (this.conflicts.size === 0) {
-      const step = new LayoutEngineStep(this.grid, this.moves, this.conflicts);
-      step.refloatGrid();
-    }
+    refloatGrid(this.grid, this.moves, this.conflicts);
     return new LayoutEngine(this);
   }
 
