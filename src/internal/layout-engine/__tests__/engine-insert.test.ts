@@ -48,6 +48,34 @@ describe("insert scenarios", () => {
         ["A", "A", " "],
       ],
     ],
+    [
+      "Inserting X forcing all items to move down in 2-column layout",
+      [
+        ["A", "A"],
+        ["A", "A"],
+        ["B", "B"],
+        ["B", "B"],
+        ["C", "C"],
+        ["C", "C"],
+        ["C", "C"],
+        ["C", "C"],
+      ],
+      { itemId: "X", width: 2, height: 4, path: [{ x: 0, y: 0 }] },
+      [
+        ["X", "X"],
+        ["X", "X"],
+        ["X", "X"],
+        ["X", "X"],
+        ["A", "A"],
+        ["A", "A"],
+        ["B", "B"],
+        ["B", "B"],
+        ["C", "C"],
+        ["C", "C"],
+        ["C", "C"],
+        ["C", "C"],
+      ],
+    ],
   ])("%s", (_, grid, item, expectation) => {
     const layoutShift = new LayoutEngine(fromMatrix(grid)).insert(item).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
