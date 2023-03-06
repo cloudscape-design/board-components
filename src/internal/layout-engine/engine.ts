@@ -128,7 +128,7 @@ export class LayoutEngine {
   private makeMove(move: CommittedMove): void {
     this.grid.move(move.itemId, move.x, move.y, this.addOverlap.bind(this));
     this.moves.push(move);
-    this.setMovePriority(move);
+    this.priority.set(move.itemId, this.getMovePriority(move));
   }
 
   private getItemPriority(itemId: ItemId) {
@@ -149,11 +149,6 @@ export class LayoutEngine {
     }
   }
 
-  private setMovePriority(move: CommittedMove) {
-    const priority = move.type === "ESCAPE" ? 10 : this.getMovePriority(move);
-    this.priority.set(move.itemId, priority);
-  }
-
   private addOverlap(itemId: ItemId): void {
     if (!this.conflicts.has(itemId)) {
       this.overlaps.push(itemId);
@@ -163,7 +158,7 @@ export class LayoutEngine {
   // Issue moves on overlapping items trying to resolve all of them.
   private resolveOverlaps(activeId: ItemId, resize = false): void {
     this.priority = new Map();
-    const priorityOverlaps = new StackSet<ItemId>();
+    let priorityOverlaps = new StackSet<ItemId>();
 
     const tryVacantMoves = () => {
       // Try vacant moves on all overlaps.
@@ -178,8 +173,8 @@ export class LayoutEngine {
         overlap = this.overlaps.pop();
       }
 
-      this.overlaps = new StackSet(priorityOverlaps);
-      priorityOverlaps.clear();
+      this.overlaps = priorityOverlaps;
+      priorityOverlaps = new StackSet<ItemId>();
 
       tryPriorityMoves();
     };
