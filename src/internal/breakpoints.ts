@@ -17,5 +17,5 @@ export function useContainerColumns() {
     return 6;
   }, []);
 
-  return [columns ?? 6, containerQueryRef] as const;
+  return [columns ?? 0, containerQueryRef] as const;
 }
