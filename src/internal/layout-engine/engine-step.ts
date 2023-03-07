@@ -19,15 +19,6 @@ export function refloatGrid(grid: LayoutEngineGrid, moves: CommittedMove[], conf
   new LayoutEngineStep(grid, moves, conflicts).refloatGrid();
 }
 
-export function findConflicts(
-  userMove: CommittedMove,
-  grid: LayoutEngineGrid,
-  moves: CommittedMove[],
-  conflicts: Set<ItemId>
-) {
-  return new LayoutEngineStep(grid, moves, conflicts).findConflicts(userMove);
-}
-
 class LayoutEngineStep {
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];

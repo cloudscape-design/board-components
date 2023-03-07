@@ -11,11 +11,20 @@ export interface LayoutEngineItem extends GridLayoutItem, Rect {
   originalHeight: number;
 }
 
-export class LayoutEngineGrid {
-  private _width: number;
-  private _height: number;
-  private _items = new Map<ItemId, LayoutEngineItem>();
-  private layout: Set<ItemId>[][] = [];
+export class ReadonlyLayoutEngineGrid {
+  protected _width: number;
+  protected _height: number;
+  protected _items = new Map<ItemId, LayoutEngineItem>();
+  protected _layout: Set<ItemId>[][] = [];
+
+  static clone(grid: ReadonlyLayoutEngineGrid): LayoutEngineGrid {
+    const clone = new LayoutEngineGrid([], 0);
+    clone._width = grid._width;
+    clone._height = grid._height;
+    clone._items = new Map([...grid._items].map(([k, v]) => [k, { ...v }]));
+    clone._layout = grid._layout.map((row) => row.map((set) => new Set([...set])));
+    return clone;
+  }
 
   constructor(items: readonly GridLayoutItem[], columns: number) {
     this._width = columns;
@@ -39,13 +48,13 @@ export class LayoutEngineGrid {
       }
 
       for (let y = item.y; y < item.y + item.height; y++) {
-        while (this.layout.length <= y) {
+        while (this._layout.length <= y) {
           this.makeNewRow();
         }
         for (let x = item.x; x < item.x + item.width; x++) {
-          this.layout[y][x].add(item.id);
+          this._layout[y][x].add(item.id);
 
-          if (this.layout[y][x].size > 1) {
+          if (this._layout[y][x].size > 1) {
             throw new Error("Invalid grid: items overlap.");
           }
         }
@@ -74,10 +83,10 @@ export class LayoutEngineGrid {
   }
 
   getCell(x: number, y: number): LayoutEngineItem[] {
-    if (!this.layout[y] || !this.layout[y][x]) {
+    if (!this._layout[y] || !this._layout[y][x]) {
       return [];
     }
-    return [...this.layout[y][x]].map((itemId) => this.getItem(itemId));
+    return [...this._layout[y][x]].map((itemId) => this.getItem(itemId));
   }
 
   getCellOverlap(x: number, y: number, itemId: ItemId): null | LayoutEngineItem {
@@ -89,6 +98,13 @@ export class LayoutEngineGrid {
     return null;
   }
 
+  protected makeNewRow() {
+    this._layout.push([...Array(this._width)].map(() => new Set()));
+    this._height = this._layout.length;
+  }
+}
+
+export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
   move(itemId: ItemId, x: number, y: number, onOverlap?: (overlapId: ItemId) => void): void {
     const moveTarget = this.getItem(itemId);
 
@@ -131,14 +147,14 @@ export class LayoutEngineGrid {
     }
 
     for (let y = item.y; y < item.y + item.height; y++) {
-      while (this.layout.length <= y) {
+      while (this._layout.length <= y) {
         this.makeNewRow();
       }
       for (let x = item.x; x < item.x + item.width; x++) {
-        for (const overlapId of this.layout[y][x]) {
+        for (const overlapId of this._layout[y][x]) {
           onOverlap(overlapId);
         }
-        this.layout[y][x].add(item.id);
+        this._layout[y][x].add(item.id);
       }
     }
   }
@@ -152,7 +168,7 @@ export class LayoutEngineGrid {
   private removeLayoutItem(item: GridLayoutItem): void {
     for (let y = item.y; y < item.y + item.height; y++) {
       for (let x = item.x; x < item.x + item.width; x++) {
-        this.layout[y][x].delete(item.id);
+        this._layout[y][x].delete(item.id);
       }
     }
   }
@@ -160,19 +176,14 @@ export class LayoutEngineGrid {
   private insertLayoutItem(item: GridLayoutItem, onOverlap?: (overlapId: ItemId) => void): void {
     for (let y = item.y; y < item.y + item.height; y++) {
       for (let x = item.x; x < item.x + item.width; x++) {
-        while (!this.layout[y]) {
+        while (!this._layout[y]) {
           this.makeNewRow();
         }
-        for (const overlapId of this.layout[y][x]) {
+        for (const overlapId of this._layout[y][x]) {
           onOverlap?.(overlapId);
         }
-        this.layout[y][x].add(item.id);
+        this._layout[y][x].add(item.id);
       }
     }
-  }
-
-  private makeNewRow() {
-    this.layout.push([...Array(this._width)].map(() => new Set()));
-    this._height = this.layout.length;
   }
 }
