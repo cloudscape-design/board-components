@@ -3,13 +3,13 @@
 
 import { Direction, ItemId } from "../interfaces";
 import { StackSet } from "../utils/stack-set";
-import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
+import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
 
 export class LayoutEngineStepState {
-  public grid: LayoutEngineGrid;
+  public grid: ReadonlyLayoutEngineGrid;
   public moves: CommittedMove[];
-  public conflicts: Set<ItemId>;
+  public conflicts: ReadonlySet<ItemId>;
 
   constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts = new Set<ItemId>()) {
     this.grid = grid;
@@ -32,9 +32,9 @@ class LayoutEngineStep {
   private conflicts = new Set<ItemId>();
 
   constructor(state: LayoutEngineStepState) {
-    this.grid = state.grid;
-    this.moves = state.moves;
-    this.conflicts = state.conflicts;
+    this.grid = LayoutEngineGrid.clone(state.grid);
+    this.moves = [...state.moves];
+    this.conflicts = new Set([...state.conflicts]);
   }
 
   getState(): LayoutEngineStepState {
@@ -56,11 +56,7 @@ class LayoutEngineStep {
       }
     };
 
-    this.conflicts.clear();
-    if (userMove.type === "MOVE") {
-      this.findConflicts(userMove);
-    }
-
+    this.conflicts = this.findConflicts(userMove);
     this.makeMove(userMove, addOverlap, priorities);
 
     const tryVacantMoves = () => {
@@ -408,7 +404,12 @@ class LayoutEngineStep {
   }
 
   // Find items that the active item cannot be moved over with the current move.
-  public findConflicts(move: CommittedMove) {
+  public findConflicts(move: CommittedMove): Set<ItemId> {
+    if (move.type !== "MOVE") {
+      return new Set();
+    }
+
+    const conflicts = new Set<ItemId>();
     const moveTarget = this.grid.getItem(move.itemId);
     const direction = `${move.x - moveTarget.x}:${move.y - moveTarget.y}`;
 
@@ -418,7 +419,7 @@ class LayoutEngineStep {
         for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
           const block = this.grid.getCellOverlap(left, y, moveTarget.id);
           if (block && block.x < left) {
-            this.conflicts.add(block.id);
+            conflicts.add(block.id);
           }
         }
         break;
@@ -428,7 +429,7 @@ class LayoutEngineStep {
         for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
           const block = this.grid.getCellOverlap(right, y, moveTarget.id);
           if (block && block.x + block.width - 1 > right) {
-            this.conflicts.add(block.id);
+            conflicts.add(block.id);
           }
         }
         break;
@@ -438,7 +439,7 @@ class LayoutEngineStep {
         for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
           const block = this.grid.getCellOverlap(x, top, moveTarget.id);
           if (block && block.y < top) {
-            this.conflicts.add(block.id);
+            conflicts.add(block.id);
           }
         }
         break;
@@ -448,7 +449,7 @@ class LayoutEngineStep {
         for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
           const block = this.grid.getCellOverlap(x, bottom, moveTarget.id);
           if (block && block.y + block.height - 1 > bottom) {
-            this.conflicts.add(block.id);
+            conflicts.add(block.id);
           }
         }
         break;
@@ -456,5 +457,7 @@ class LayoutEngineStep {
       default:
         throw new Error(`Invariant violation: unexpected direction ${direction}.`);
     }
+
+    return conflicts;
   }
 }
