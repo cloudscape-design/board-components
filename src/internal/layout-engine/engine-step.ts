@@ -6,17 +6,24 @@ import { StackSet } from "../utils/stack-set";
 import { LayoutEngineGrid, LayoutEngineItem } from "./grid";
 import { CommittedMove } from "./interfaces";
 
-export function resolveOverlaps(
-  userMove: CommittedMove,
-  grid: LayoutEngineGrid,
-  moves: CommittedMove[],
-  conflicts: Set<ItemId>
-) {
-  new LayoutEngineStep(grid, moves, conflicts).resolveOverlaps(userMove);
+export class LayoutEngineStepState {
+  public grid: LayoutEngineGrid;
+  public moves: CommittedMove[];
+  public conflicts: Set<ItemId>;
+
+  constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts = new Set<ItemId>()) {
+    this.grid = grid;
+    this.moves = moves;
+    this.conflicts = conflicts;
+  }
 }
 
-export function refloatGrid(grid: LayoutEngineGrid, moves: CommittedMove[], conflicts: Set<ItemId>) {
-  new LayoutEngineStep(grid, moves, conflicts).refloatGrid();
+export function resolveOverlaps(userMove: CommittedMove, state: LayoutEngineStepState): LayoutEngineStepState {
+  return new LayoutEngineStep(state).resolveOverlaps(userMove).getState();
+}
+
+export function refloatGrid(state: LayoutEngineStepState): LayoutEngineStepState {
+  return new LayoutEngineStep(state).refloatGrid().getState();
 }
 
 class LayoutEngineStep {
@@ -24,14 +31,18 @@ class LayoutEngineStep {
   private moves: CommittedMove[] = [];
   private conflicts = new Set<ItemId>();
 
-  constructor(grid: LayoutEngineGrid, moves: CommittedMove[], conflicts: Set<ItemId>) {
-    this.grid = grid;
-    this.moves = moves;
-    this.conflicts = conflicts;
+  constructor(state: LayoutEngineStepState) {
+    this.grid = state.grid;
+    this.moves = state.moves;
+    this.conflicts = state.conflicts;
+  }
+
+  getState(): LayoutEngineStepState {
+    return { grid: this.grid, moves: this.moves, conflicts: this.conflicts };
   }
 
   // Issue moves on overlapping items trying to resolve all of them.
-  public resolveOverlaps(userMove: CommittedMove): void {
+  public resolveOverlaps(userMove: CommittedMove): LayoutEngineStep {
     const priorities = new Map<ItemId, number>();
     const activeId = userMove.itemId;
     const isResize = userMove.type === "RESIZE";
@@ -84,12 +95,14 @@ class LayoutEngineStep {
     tryVacantMoves();
 
     this.refloatGrid(activeId);
+
+    return this;
   }
 
   // Find items that can "float" to the top and apply the necessary moves.
-  public refloatGrid(activeId?: ItemId): void {
+  public refloatGrid(activeId?: ItemId): LayoutEngineStep {
     if (this.conflicts.size > 0) {
-      return;
+      return this;
     }
 
     let needAnotherRefloat = false;
@@ -123,6 +136,8 @@ class LayoutEngineStep {
     if (needAnotherRefloat) {
       this.refloatGrid(activeId);
     }
+
+    return this;
   }
 
   private makeMove(move: CommittedMove, addOverlap: (itemId: ItemId) => void, priorities: Map<ItemId, number>): void {
