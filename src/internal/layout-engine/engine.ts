@@ -3,7 +3,6 @@
 
 import { GridLayout, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
-import { findConflicts } from "./engine-conflicts";
 import { refloatGrid, resolveOverlaps } from "./engine-step";
 import { LayoutEngineGrid } from "./grid";
 import { CommittedMove, InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
@@ -39,7 +38,6 @@ export class LayoutEngine {
       const { width, height } = this.grid.getItem(itemId);
 
       const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "MOVE" };
-      this.conflicts = findConflicts(move, this.grid);
       resolveOverlaps(move, this.grid, this.moves, this.conflicts);
     }
 

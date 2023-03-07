@@ -19,6 +19,15 @@ export function refloatGrid(grid: LayoutEngineGrid, moves: CommittedMove[], conf
   new LayoutEngineStep(grid, moves, conflicts).refloatGrid();
 }
 
+export function findConflicts(
+  userMove: CommittedMove,
+  grid: LayoutEngineGrid,
+  moves: CommittedMove[],
+  conflicts: Set<ItemId>
+) {
+  return new LayoutEngineStep(grid, moves, conflicts).findConflicts(userMove);
+}
+
 class LayoutEngineStep {
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
@@ -44,6 +53,11 @@ class LayoutEngineStep {
         overlaps.push(itemId);
       }
     };
+
+    this.conflicts.clear();
+    if (userMove.type === "MOVE") {
+      this.findConflicts(userMove);
+    }
 
     this.makeMove(userMove, addOverlap, priorities);
 
@@ -384,6 +398,57 @@ class LayoutEngineStep {
       case "right": {
         return { ...common, y: moveTarget.y, x: overlap.right + 1 };
       }
+    }
+  }
+
+  // Find items that the active item cannot be moved over with the current move.
+  public findConflicts(move: CommittedMove) {
+    const moveTarget = this.grid.getItem(move.itemId);
+    const direction = `${move.x - moveTarget.x}:${move.y - moveTarget.y}`;
+
+    switch (direction) {
+      case "-1:0": {
+        const left = Math.max(0, moveTarget.left - 1);
+        for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
+          const block = this.grid.getCellOverlap(left, y, moveTarget.id);
+          if (block && block.x < left) {
+            this.conflicts.add(block.id);
+          }
+        }
+        break;
+      }
+      case "1:0": {
+        const right = Math.min(this.grid.width - 1, moveTarget.right + 1);
+        for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
+          const block = this.grid.getCellOverlap(right, y, moveTarget.id);
+          if (block && block.x + block.width - 1 > right) {
+            this.conflicts.add(block.id);
+          }
+        }
+        break;
+      }
+      case "0:-1": {
+        const top = Math.max(0, moveTarget.top - 1);
+        for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
+          const block = this.grid.getCellOverlap(x, top, moveTarget.id);
+          if (block && block.y < top) {
+            this.conflicts.add(block.id);
+          }
+        }
+        break;
+      }
+      case "0:1": {
+        const bottom = moveTarget.bottom + 1;
+        for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
+          const block = this.grid.getCellOverlap(x, bottom, moveTarget.id);
+          if (block && block.y + block.height - 1 > bottom) {
+            this.conflicts.add(block.id);
+          }
+        }
+        break;
+      }
+      default:
+        throw new Error(`Invariant violation: unexpected direction ${direction}.`);
     }
   }
 }
