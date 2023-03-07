@@ -291,7 +291,9 @@ class LayoutEngineStep {
       height: overlapItem.height,
       type: "ESCAPE",
     };
-    for (move.y; move.y < 100; move.y++) {
+
+    // If can't find the escape move after 999 steps down it is likely a bug in the validation.
+    for (move.y; move.y < 999; move.y++) {
       if (this.validatePriorityMove(move, priorities, activeId, false)) {
         return move;
       }
