@@ -8,7 +8,7 @@ import { CommittedMove } from "./interfaces";
 
 export class LayoutEngineStepState {
   public grid: ReadonlyLayoutEngineGrid;
-  public moves: CommittedMove[];
+  public moves: readonly CommittedMove[];
   public conflicts: ReadonlySet<ItemId>;
 
   constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts = new Set<ItemId>()) {
