@@ -39,6 +39,8 @@
     "./board": "./board/index.js",
     "./board-item": "./board-item/index.js",
     "./items-palette": "./items-palette/index.js",
+    "./test-utils/dom": "./test-utils/dom/index.js",
+    "./test-utils/selectors": "./test-utils/selectors/index.js",
     "./internal/api-docs/*.js": "./internal/api-docs/*.js"
   },
   "dependencies": {
