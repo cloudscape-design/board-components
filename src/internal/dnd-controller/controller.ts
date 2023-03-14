@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getCollisionRect, getHoveredDroppables } from "./collision";
 import { EventEmitter } from "./event-emitter";
+import { getHoveredDroppables } from "./get-hovered-droppables";
 
 type Item = BoardItemDefinitionBase<unknown>;
 
@@ -26,10 +26,9 @@ export interface DragAndDropData {
   operation: Operation;
   interactionType: InteractionType;
   draggableItem: Item;
-  draggableElement: HTMLElement;
+  collisionRect: Rect;
   positionOffset: Coordinates;
   coordinates: Coordinates;
-  collisionRect: Rect;
   collisionIds: ItemId[];
   dropTarget: null | DropTargetContext;
 }
@@ -37,13 +36,6 @@ export interface DragAndDropData {
 export interface Droppable {
   element: HTMLElement;
   context: DropTargetContext;
-}
-
-interface DragDetail {
-  operation: Operation;
-  interactionType: InteractionType;
-  draggableItem: Item;
-  draggableElement: HTMLElement;
 }
 
 interface AcquireData {
@@ -59,7 +51,11 @@ export interface DragAndDropEvents {
   acquire: (data: AcquireData) => void;
 }
 
-interface Transition extends DragDetail {
+interface Transition {
+  operation: Operation;
+  interactionType: InteractionType;
+  draggableItem: Item;
+  getCollisionRect: (operation: Operation, coordinates: Coordinates, dropTarget: null | DropTargetContext) => Rect;
   startCoordinates: Coordinates;
 }
 
@@ -72,21 +68,9 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
    *
    * The method overrides the previous transition if exists (w/o a cancellation event)!
    */
-  public start(
-    operation: Operation,
-    interactionType: InteractionType,
-    draggableItem: Item,
-    draggableElement: HTMLElement,
-    startCoordinates: Coordinates
-  ) {
-    this.transition = {
-      operation,
-      interactionType,
-      draggableItem,
-      draggableElement,
-      startCoordinates,
-    };
-    this.emit("start", this.getDragAndDropData(startCoordinates));
+  public start(transition: Transition) {
+    this.transition = { ...transition };
+    this.emit("start", this.getDragAndDropData(transition.startCoordinates));
   }
 
   /**
@@ -147,11 +131,16 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for interaction.");
     }
-    const { operation, draggableElement, startCoordinates } = this.transition;
-    const positionOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
-    const collisionRect = getCollisionRect(operation, draggableElement, coordinates);
+    const positionOffset = Coordinates.cursorOffset(coordinates, this.transition.startCoordinates);
+    const collisionRect = this.getCollisionRect(this.transition, coordinates);
     const { collisionIds, dropTarget } = this.getCollisions(collisionRect);
     return { ...this.transition, positionOffset, coordinates, collisionRect, collisionIds, dropTarget };
+  }
+
+  private getCollisionRect(transition: Transition, coordinates: Coordinates) {
+    const originalCollisionRect = transition.getCollisionRect(transition.operation, coordinates, null);
+    const { dropTarget } = this.getCollisions(originalCollisionRect);
+    return transition.getCollisionRect(transition.operation, coordinates, dropTarget);
   }
 
   private getCollisions(collisionRect: Rect) {
@@ -177,10 +166,16 @@ export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K,
   useEffect(() => controller.on(event, handler), [event, handler]);
 }
 
-export function useDraggable({ item, getElement }: { item: Item; getElement: () => HTMLElement }) {
+export function useDraggable({
+  draggableItem,
+  getCollisionRect,
+}: {
+  draggableItem: Item;
+  getCollisionRect: (operation: Operation, coordinates: Coordinates, dropTarget: null | DropTargetContext) => Rect;
+}) {
   return {
     start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates) {
-      controller.start(operation, interactionType, item, getElement(), startCoordinates);
+      controller.start({ operation, interactionType, draggableItem, getCollisionRect, startCoordinates });
     },
     updateTransition(coordinates: Coordinates) {
       controller.update(coordinates);

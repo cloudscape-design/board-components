@@ -10,6 +10,7 @@ import {
   GridLayout,
   GridLayoutItem,
   ItemId,
+  Rect,
 } from "../internal/interfaces";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { NonCancelableEventHandler } from "../internal/utils/events";
@@ -157,7 +158,7 @@ export interface Transition<D> {
   itemsLayout: GridLayout;
   insertionDirection: null | Direction;
   draggableItem: BoardItemDefinitionBase<D>;
-  draggableElement: HTMLElement;
+  draggableRect: Rect;
   acquiredItem: null | BoardItemDefinitionBase<D>;
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;

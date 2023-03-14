@@ -7,7 +7,7 @@ import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
-import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId } from "../internal/interfaces";
+import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
@@ -99,11 +99,9 @@ export function InternalBoard<D>({
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, columns);
 
-  function isElementOverBoard(draggableElement: HTMLElement) {
+  function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
     const boardContains = (target: null | Element) => board === target || board.contains(target);
-
-    const rect = draggableElement.getBoundingClientRect();
     return (
       boardContains(document.elementFromPoint(rect.left, rect.top)) ||
       boardContains(document.elementFromPoint(rect.right, rect.top)) ||
@@ -112,7 +110,7 @@ export function InternalBoard<D>({
     );
   }
 
-  useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableElement, collisionIds }) => {
+  useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
     dispatch({
       type: "init",
       operation,
@@ -122,18 +120,19 @@ export function InternalBoard<D>({
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
       draggableItem: draggableItem as BoardItemDefinitionBase<any>,
-      draggableElement,
-      collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
+      draggableRect: collisionRect,
+      collisionIds: interactionType === "keyboard" || isElementOverBoard(collisionRect) ? collisionIds : [],
     });
 
     autoScrollHandlers.addPointerEventHandlers();
   });
 
-  useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, draggableElement }) => {
+  useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableElement) ? collisionIds : [],
+      collisionIds: interactionType === "keyboard" || isElementOverBoard(collisionRect) ? collisionIds : [],
       positionOffset,
+      draggableRect: collisionRect,
     });
   });
 

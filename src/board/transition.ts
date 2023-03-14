@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
-import { BoardItemDefinitionBase, Direction, GridLayout, ItemId } from "../internal/interfaces";
+import { BoardItemDefinitionBase, Direction, GridLayout, ItemId, Rect } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getDefaultColumnSpan, getDefaultRowSpan, getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
@@ -34,7 +34,7 @@ interface InitAction<D> {
   interactionType: InteractionType;
   itemsLayout: GridLayout;
   draggableItem: BoardItemDefinitionBase<D>;
-  draggableElement: HTMLElement;
+  draggableRect: Rect;
   collisionIds: readonly ItemId[];
 }
 interface InitRemoveAction<D> {
@@ -53,6 +53,7 @@ interface UpdateWithPointerAction {
   type: "update-with-pointer";
   collisionIds: readonly ItemId[];
   positionOffset: Coordinates;
+  draggableRect: Rect;
 }
 interface UpdateWithKeyboardAction {
   type: "update-with-keyboard";
@@ -96,7 +97,7 @@ function initTransition<D>({
   interactionType,
   itemsLayout,
   draggableItem,
-  draggableElement,
+  draggableRect,
   collisionIds,
 }: InitAction<D>): TransitionState<D> {
   const transition: Transition<D> = {
@@ -105,7 +106,7 @@ function initTransition<D>({
     itemsLayout,
     insertionDirection: null,
     draggableItem,
-    draggableElement,
+    draggableRect,
     acquiredItem: null,
     collisionIds: new Set(),
     layoutShift: null,
@@ -188,7 +189,7 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
 
 function updateTransitionWithPointerEvent<D>(
   state: TransitionState<D>,
-  { collisionIds, positionOffset }: UpdateWithPointerAction
+  { collisionIds, positionOffset, draggableRect }: UpdateWithPointerAction
 ): TransitionState<D> {
   const { transition } = state;
 
@@ -207,7 +208,13 @@ function updateTransitionWithPointerEvent<D>(
 
   if (isOutOfBoundaries) {
     return {
-      transition: { ...transition, collisionIds: new Set(), layoutShift: null, insertionDirection: null },
+      transition: {
+        ...transition,
+        draggableRect,
+        collisionIds: new Set(),
+        layoutShift: null,
+        insertionDirection: null,
+      },
       removeTransition: null,
       announcement: null,
     };
@@ -222,7 +229,14 @@ function updateTransitionWithPointerEvent<D>(
   const layoutShift = getLayoutShift(transition, path, insertionDirection);
 
   return {
-    transition: { ...transition, collisionIds: new Set(collisionIds), layoutShift, path, insertionDirection },
+    transition: {
+      ...transition,
+      draggableRect,
+      collisionIds: new Set(collisionIds),
+      layoutShift,
+      path,
+      insertionDirection,
+    },
     removeTransition: null,
     announcement: null,
   };
@@ -297,8 +311,8 @@ function acquireTransitionItem<D>(
   const { columns } = transition.itemsLayout;
 
   const layoutRect = layoutElement.getBoundingClientRect();
-  const itemRect = transition.draggableElement.getBoundingClientRect();
-  const offset = new Coordinates({ x: itemRect.x - layoutRect.x, y: itemRect.y - layoutRect.y });
+  const itemRect = transition.draggableRect;
+  const offset = new Coordinates({ x: itemRect.left - layoutRect.x, y: itemRect.top - layoutRect.y });
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.
