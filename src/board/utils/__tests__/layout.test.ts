@@ -19,7 +19,7 @@ function createMockTransition(
     itemsLayout,
     insertionDirection: null,
     draggableItem: { id: "X", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: null },
-    draggableElement: null as unknown as HTMLElement,
+    draggableRect: { left: 0, right: 0, top: 0, bottom: 0 },
     collisionIds: new Set(),
     layoutShift,
     path: [],

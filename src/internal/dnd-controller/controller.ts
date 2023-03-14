@@ -26,7 +26,7 @@ export interface DragAndDropData {
   operation: Operation;
   interactionType: InteractionType;
   draggableItem: Item;
-  draggableElement: HTMLElement;
+  draggableRect: Rect;
   positionOffset: Coordinates;
   coordinates: Coordinates;
   collisionRect: Rect;
@@ -37,13 +37,6 @@ export interface DragAndDropData {
 export interface Droppable {
   element: HTMLElement;
   context: DropTargetContext;
-}
-
-interface DragDetail {
-  operation: Operation;
-  interactionType: InteractionType;
-  draggableItem: Item;
-  draggableElement: HTMLElement;
 }
 
 interface AcquireData {
@@ -59,7 +52,11 @@ export interface DragAndDropEvents {
   acquire: (data: AcquireData) => void;
 }
 
-interface Transition extends DragDetail {
+interface Transition {
+  operation: Operation;
+  interactionType: InteractionType;
+  draggableItem: Item;
+  draggableElement: HTMLElement;
   startCoordinates: Coordinates;
 }
 
@@ -151,7 +148,8 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     const positionOffset = Coordinates.cursorOffset(coordinates, startCoordinates);
     const collisionRect = getCollisionRect(operation, draggableElement, coordinates);
     const { collisionIds, dropTarget } = this.getCollisions(collisionRect);
-    return { ...this.transition, positionOffset, coordinates, collisionRect, collisionIds, dropTarget };
+    const draggableRect = this.transition.draggableElement.getBoundingClientRect();
+    return { ...this.transition, draggableRect, positionOffset, coordinates, collisionRect, collisionIds, dropTarget };
   }
 
   private getCollisions(collisionRect: Rect) {
