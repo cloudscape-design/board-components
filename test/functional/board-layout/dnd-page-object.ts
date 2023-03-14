@@ -131,11 +131,7 @@ export class DndPageObject extends BasePageObject {
         parameters: { pointerType: "mouse" },
         actions: [
           { type: "pointerMove", duration: 100, origin: "pointer", x: xOffset, y: yOffset },
-          { type: "pause", duration: 10 },
-          { type: "pointerMove", duration: 10, origin: "pointer", x: 1, y: 1 },
-          { type: "pause", duration: 10 },
-          { type: "pointerMove", duration: 10, origin: "pointer", x: -1, y: -1 },
-          { type: "pause", duration: 100 },
+          { type: "pause", duration: 150 },
         ],
       },
     ]);

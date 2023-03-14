@@ -30,6 +30,7 @@ import { Coordinates } from "../utils/coordinates";
 import { getNormalizedElementRect } from "../utils/screen";
 import { useStableEventHandler } from "../utils/use-stable-event-handler";
 import { useThrottledEventHandler } from "../utils/use-throttled-event-handler";
+import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
 
@@ -109,7 +110,13 @@ function ItemContainerComponent(
   const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
   const itemRef = useRef<HTMLDivElement>(null);
-  const draggableApi = useDraggable({ item, getElement: () => itemRef.current! });
+  const draggableApi = useDraggable({
+    draggableItem: item,
+    getCollisionRect: (operation, coordinates, dropTarget) => {
+      const sizeOverride = operation === "insert" && dropTarget ? getItemSize(dropTarget) : null;
+      return getCollisionRect(operation, itemRef.current!, coordinates, sizeOverride);
+    },
+  });
 
   const onPointerMove = useThrottledEventHandler((event: PointerEvent) => {
     const coordinates = Coordinates.fromEvent(event);

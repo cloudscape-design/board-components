@@ -110,7 +110,7 @@ export function InternalBoard<D>({
     );
   }
 
-  useDragSubscription("start", ({ operation, interactionType, draggableItem, draggableRect, collisionIds }) => {
+  useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
     dispatch({
       type: "init",
       operation,
@@ -120,19 +120,19 @@ export function InternalBoard<D>({
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
       draggableItem: draggableItem as BoardItemDefinitionBase<any>,
-      draggableRect,
-      collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableRect) ? collisionIds : [],
+      draggableRect: collisionRect,
+      collisionIds: interactionType === "keyboard" || isElementOverBoard(collisionRect) ? collisionIds : [],
     });
 
     autoScrollHandlers.addPointerEventHandlers();
   });
 
-  useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, draggableRect }) => {
+  useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: interactionType === "keyboard" || isElementOverBoard(draggableRect) ? collisionIds : [],
+      collisionIds: interactionType === "keyboard" || isElementOverBoard(collisionRect) ? collisionIds : [],
       positionOffset,
-      draggableRect,
+      draggableRect: collisionRect,
     });
   });
 
