@@ -20,7 +20,7 @@
 }
 
 .handle {
-  margin-top: cs.$space-scaled-xxs;
+  margin-top: calc(cs.$space-scaled-xxs + 1px);
 }
 
 .header-content {
@@ -28,7 +28,7 @@
 }
 
 .settings {
-  margin-top: cs.$space-scaled-xxxs;
+  margin-top: calc(cs.$space-scaled-xxxs + 1px);
   margin-left: cs.$space-static-xs;
 }
 
