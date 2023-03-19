@@ -9,10 +9,9 @@ export function ResizeHandleIcon() {
 
 function SVG() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-      <line x1="9.94" y1="14.95" x2="14.98" y2="9.57" />
-      <line x1="5.75" y1="14.95" x2="14.98" y2="5.35" />
-      <line x1="0.98" y1="14.95" x2="14.98" y2="0.95" />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.5 14.5L14.5 9.5" strokeWidth="2" />
+      <path d="M4 14.5L14.5 4" strokeWidth="2" />
     </svg>
   );
 }
