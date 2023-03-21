@@ -19,8 +19,6 @@ jobs:
   build:
     uses: cloudscape-design/.github/.github/workflows/build-lint-test.yml@main
     with:
-      skip-codeql: true
-      skip-codecov: true
       artifact-path: dist
       artifact-name: dev-pages
   deploy:
