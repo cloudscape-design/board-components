@@ -5,7 +5,7 @@
     "target": "ES2019",
     "jsx": "react-jsx",
     "types": [],
-    "lib": ["es2019", "dom"],
+    "lib": ["es2019", "dom", "dom.iterable"],
     "module": "ESNext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,

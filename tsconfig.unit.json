@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "tsBuildInfoFile": "./.cache/tests.tsbuildinfo"
+    "tsBuildInfoFile": "./.cache/unit-tests.tsbuildinfo"
   },
-  "include": ["types", "**/*.test.tsx"],
+  "include": ["types", "**/__tests__"],
   "exclude": []
 }
