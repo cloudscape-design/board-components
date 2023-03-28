@@ -15,6 +15,7 @@ function createMockTransition(
 ): Transition<null> {
   return {
     operation,
+    acquiredItem: null,
     interactionType: "keyboard",
     itemsLayout,
     insertionDirection: null,

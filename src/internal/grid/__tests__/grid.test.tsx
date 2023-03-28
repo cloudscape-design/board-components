@@ -47,10 +47,18 @@ test("annotates data attributes on individual elements", () => {
     columnOffset: "1",
     rowOffset: "1",
   });
+  expect(items[0]).toHaveStyle({
+    "grid-row-start": "1",
+    "grid-row-end": "span 1",
+  });
   expect(items[1].dataset).toMatchObject({
     rowSpan: "1",
     columnSpan: "2",
     columnOffset: "3",
     rowOffset: "1",
+  });
+  expect(items[0]).toHaveStyle({
+    "grid-row-start": "1",
+    "grid-row-end": "span 1",
   });
 });

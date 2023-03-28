@@ -3,6 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { fromMatrix, generateGrid, generateRandomPath, generateResize, toString } from "../../debug-tools";
+import { Position } from "../../utils/position";
 import { LayoutEngine } from "../engine";
 import { forEachTimes } from "./helpers";
 
@@ -31,10 +32,10 @@ test("commits no changes if resize path returns to original or smaller", () => {
     if (resize.path.length > 0) {
       const lastPathItem = resize.path[resize.path.length - 1];
       const resizeTarget = grid.items.find((it) => it.id === resize.itemId)!;
-      const originalSizePath = {
+      const originalSizePath = new Position({
         x: randomPathValue(resizeTarget.x + resizeTarget.width),
         y: randomPathValue(resizeTarget.y + resizeTarget.height),
-      };
+      });
       resize.path = [...resize.path, ...generateRandomPath(lastPathItem, originalSizePath)];
       const moves = new LayoutEngine(grid).resize(resize).getLayoutShift().moves;
       expect(moves.filter((move) => move.type !== "RESIZE" && move.type !== "FLOAT")).toHaveLength(0);
@@ -57,10 +58,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "A",
-        path: [
-          { x: 2, y: 1 },
-          { x: 2, y: 2 },
-        ],
+        path: [new Position({ x: 2, y: 1 }), new Position({ x: 2, y: 2 })],
       },
       [
         ["A", "A", "B"],
@@ -77,10 +75,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "A",
-        path: [
-          { x: 1, y: 2 },
-          { x: 2, y: 2 },
-        ],
+        path: [new Position({ x: 1, y: 2 }), new Position({ x: 2, y: 2 })],
       },
       [
         ["A", "A", "B"],
@@ -97,10 +92,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "A",
-        path: [
-          { x: 3, y: 2 },
-          { x: 3, y: 1 },
-        ],
+        path: [new Position({ x: 3, y: 2 }), new Position({ x: 3, y: 1 })],
       },
       [
         ["A", "A", "A"],
@@ -118,10 +110,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "A",
-        path: [
-          { x: 3, y: 2 },
-          { x: 3, y: 3 },
-        ],
+        path: [new Position({ x: 3, y: 2 }), new Position({ x: 3, y: 3 })],
       },
       [
         ["A", "A", "A"],
@@ -140,7 +129,7 @@ describe("resize scenarios", () => {
         ["C", "D", "D", "E"],
         ["C", "F", "F", "F"],
       ],
-      { itemId: "B", path: [{ x: 4, y: 3 }] },
+      { itemId: "B", path: [new Position({ x: 4, y: 3 })] },
       [
         ["A", "A", "A", " "],
         ["B", "B", "B", "B"],
@@ -159,10 +148,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "B",
-        path: [
-          { x: 4, y: 3 },
-          { x: 4, y: 4 },
-        ],
+        path: [new Position({ x: 4, y: 3 }), new Position({ x: 4, y: 4 })],
       },
       [
         ["A", "A", "A", " "],
@@ -183,10 +169,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "A",
-        path: [
-          { x: 3, y: 2 },
-          { x: 3, y: 3 },
-        ],
+        path: [new Position({ x: 3, y: 2 }), new Position({ x: 3, y: 3 })],
       },
       [
         ["A", "A", "A", " "],
@@ -207,7 +190,7 @@ describe("resize scenarios", () => {
       ],
       {
         itemId: "B",
-        path: [{ x: 2, y: 2 }],
+        path: [new Position({ x: 2, y: 2 })],
       },
       [
         ["A", "B", "C", "D"],

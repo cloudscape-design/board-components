@@ -11,5 +11,5 @@
     "experimentalDecorators": true,
     "tsBuildInfoFile": "../../.cache/test-utils.tsbuildinfo"
   },
-  "include": ["./", "../../types"]
+  "include": ["./", "./types"]
 }

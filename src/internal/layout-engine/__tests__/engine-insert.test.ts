@@ -3,6 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { fromMatrix, generateGrid, generateInsert, toString } from "../../debug-tools";
+import { Position } from "../../utils/position";
 import { LayoutEngine } from "../engine";
 import { forEachTimes } from "./helpers";
 
@@ -24,7 +25,7 @@ describe("insert scenarios", () => {
         ["A", "A", "D"],
         ["E", "E", "D"],
       ],
-      { itemId: "X", width: 1, height: 1, path: [{ x: 0, y: 0 }] },
+      { itemId: "X", width: 1, height: 1, path: [new Position({ x: 0, y: 0 })] },
       [
         ["X", "B", "C"],
         ["A", "A", "D"],
@@ -38,7 +39,7 @@ describe("insert scenarios", () => {
         ["A", "A", "D"],
         ["E", "E", "D"],
       ],
-      { itemId: "X", width: 2, height: 2, path: [{ x: 1, y: 1 }] },
+      { itemId: "X", width: 2, height: 2, path: [new Position({ x: 1, y: 1 })] },
       [
         [" ", " ", "B"],
         [" ", "X", "X"],
@@ -60,7 +61,7 @@ describe("insert scenarios", () => {
         ["C", "C"],
         ["C", "C"],
       ],
-      { itemId: "X", width: 2, height: 4, path: [{ x: 0, y: 0 }] },
+      { itemId: "X", width: 2, height: 4, path: [new Position({ x: 0, y: 0 })] },
       [
         ["X", "X"],
         ["X", "X"],

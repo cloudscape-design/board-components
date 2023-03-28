@@ -8,8 +8,7 @@ import { appendMovePath, appendResizePath, normalizeInsertionPath } from "../pat
 
 describe("normalizeInsertionPath", () => {
   test("keeps path unchanged if empty", () => {
-    const path = [];
-    expect(normalizeInsertionPath(path, "right", 4, 1)).toEqual(path);
+    expect(normalizeInsertionPath([], "right", 4, 1)).toEqual([]);
   });
 
   test("keeps path unchanged if it has a single step", () => {
@@ -68,9 +67,8 @@ describe("normalizeInsertionPath", () => {
 
 describe("appendMovePath", () => {
   test("appends new position as first if the path is empty", () => {
-    const path = [];
     const rect = { left: 1, right: 2, top: 3, bottom: 4 };
-    expect(appendMovePath(path, rect)).toEqual([new Position({ x: 1, y: 3 })]);
+    expect(appendMovePath([], rect)).toEqual([new Position({ x: 1, y: 3 })]);
   });
 
   test("does not append new position if it is the same as previous", () => {
@@ -100,9 +98,8 @@ describe("appendMovePath", () => {
 
 describe("appendResizePath", () => {
   test("appends new position as first if the path is empty", () => {
-    const path = [];
     const rect = { left: 1, right: 2, top: 3, bottom: 4 };
-    expect(appendResizePath(path, rect)).toEqual([new Position({ x: 2, y: 4 })]);
+    expect(appendResizePath([], rect)).toEqual([new Position({ x: 2, y: 4 })]);
   });
 
   test("does not append new position if it is the same as previous", () => {

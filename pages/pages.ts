@@ -5,10 +5,8 @@ import { lazy } from "react";
 const pagesRaw = import.meta.glob("./**/*.page.tsx");
 const pageIdRegex = /([\w-/]+)\.page\.tsx/;
 const getPage = (path: string) => path.match(pageIdRegex)![1];
-const getRoute = (page: string) => `/#${page}`;
 
 export const pages = Object.keys(pagesRaw).map(getPage);
-export const routes = pages.map(getRoute);
 
 type ComponentFactory = Parameters<typeof lazy>[0];
 
