@@ -8,7 +8,7 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "prebuild": "rm -rf lib dist .cache",
-    "build": "npm-run-all build:pkg --parallel build:src:* --parallel build:pages:*",
+    "build": "npm-run-all build:pkg --parallel build:src:* --parallel build:pages:* build:themeable",
     "lint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "prepare": "husky install",
     "test:unit": "vitest run --config vite.unit.config.js",
@@ -31,6 +31,7 @@
     "build:src:copy": "cp README.md lib/components/",
     "build:src:docs": "node scripts/docs.js",
     "build:src:environment": "node scripts/environment",
+    "build:themeable": "node scripts/themeable-source",
     "build:pages:vite": "vite build",
     "build:pages:tsc": "tsc -p pages/tsconfig.json"
   },
