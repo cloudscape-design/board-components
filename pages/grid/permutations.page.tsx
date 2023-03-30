@@ -17,22 +17,22 @@ export default function GridPage() {
       <main>
         <section>
           <TestBed>
-            <Grid layout={chess} columns={4} rows={4}>
+            <Grid layout={chess} columns={4}>
               {() => chess.map((stone) => <Stone key={stone.id} index={chess.indexOf(stone)} />)}
             </Grid>
           </TestBed>
           <TestBed>
-            <Grid layout={jenga} columns={4} rows={5}>
+            <Grid layout={jenga} columns={4}>
               {() => jenga.map((block) => <Block key={block.id} />)}
             </Grid>
           </TestBed>
           <TestBed>
-            <Grid layout={cross} columns={4} rows={4}>
+            <Grid layout={cross} columns={4}>
               {() => cross.map((pixel) => <Pixel key={pixel.id} />)}
             </Grid>
           </TestBed>
           <TestBed>
-            <Grid layout={board} columns={4} rows={16}>
+            <Grid layout={board} columns={4}>
               {() => board.map((dummy) => <Dummy key={dummy.id} />)}
             </Grid>
           </TestBed>

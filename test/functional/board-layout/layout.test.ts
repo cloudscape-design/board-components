@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test } from "vitest";
-import gridStyles from "../../../lib/components/internal/grid/styles.selectors.js";
+import boardStyles from "../../../lib/components/board/styles.selectors.js";
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { makeQueryUrl, setupTest } from "../../utils";
 import { DndPageObject } from "./dnd-page-object";
@@ -155,7 +155,7 @@ test(
     ),
     DndPageObject,
     async (page) => {
-      const placeholderSelector = `.${gridStyles.default.grid__item}[data-row-span="1"]`;
+      const placeholderSelector = `.${boardStyles.default.placeholder}`;
 
       await page.setWindowSize({ width: 1600, height: 1800 });
       await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(10 * 4);

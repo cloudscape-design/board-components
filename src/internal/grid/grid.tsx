@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import clsx from "clsx";
 import { Children } from "react";
 import { zipTwoArrays } from "../utils/zip-arrays";
 
@@ -14,7 +15,7 @@ const GRID_GAP = 16;
 /* Matches grid-auto-rows in CSS. */
 const ROWSPAN_HEIGHT = 100;
 
-export default function Grid({ layout, children: render, columns, rows }: GridProps) {
+export default function Grid({ layout, children: render, columns }: GridProps) {
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
 
   // The below getters translate relative grid units into size/offset values in pixels.
@@ -33,7 +34,7 @@ export default function Grid({ layout, children: render, columns, rows }: GridPr
   const zipped = zipTwoArrays(layout, Children.toArray(children));
 
   return (
-    <div ref={containerQueryRef} data-columns={columns} data-rows={rows} className={styles.grid}>
+    <div ref={containerQueryRef} className={clsx(styles.grid, styles[`columns-${columns}`])}>
       {zipped.map(([item, children]) => (
         <GridItem key={item.id} item={item}>
           {children}

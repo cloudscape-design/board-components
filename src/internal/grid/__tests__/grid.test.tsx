@@ -6,7 +6,6 @@ import Grid, { GridProps } from "../../../../lib/components/internal/grid";
 import gridStyles from "../../../../lib/components/internal/grid/styles.css.js";
 
 const defaultProps: GridProps = {
-  rows: 1,
   columns: 4,
   layout: [
     { id: "one", x: 0, width: 2, y: 0, height: 1 },
@@ -27,38 +26,27 @@ test("renders children content", async () => {
   expect(children.length).toBe(2);
 });
 
-test("annotates data attributes on root element", () => {
+test("assigns styles on root element", () => {
   const { container } = render(<Grid {...defaultProps} />);
 
   const root = container.querySelector(`.${gridStyles.grid}`);
-  expect((root as HTMLDivElement).dataset).toMatchObject({
-    rows: "1",
-    columns: "4",
-  });
+  expect(root).toHaveClass(gridStyles["columns-4"]);
 });
 
-test("annotates data attributes on individual elements", () => {
+test("assigns styles on individual elements", () => {
   const { container } = render(<Grid {...defaultProps} />);
   const items = container.querySelectorAll<HTMLDivElement>(`.${gridStyles.grid__item}`);
 
-  expect(items[0].dataset).toMatchObject({
-    rowSpan: "1",
-    columnSpan: "2",
-    columnOffset: "1",
-    rowOffset: "1",
-  });
   expect(items[0]).toHaveStyle({
     "grid-row-start": "1",
     "grid-row-end": "span 1",
+    "grid-column-start": "1",
+    "grid-column-end": "span 2",
   });
-  expect(items[1].dataset).toMatchObject({
-    rowSpan: "1",
-    columnSpan: "2",
-    columnOffset: "3",
-    rowOffset: "1",
-  });
-  expect(items[0]).toHaveStyle({
+  expect(items[1]).toHaveStyle({
     "grid-row-start": "1",
     "grid-row-end": "span 1",
+    "grid-column-start": "3",
+    "grid-column-end": "span 2",
   });
 });

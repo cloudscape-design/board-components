@@ -7,7 +7,6 @@ import { GridLayoutItem } from "../interfaces";
 export interface GridProps {
   layout: GridLayoutItem[];
   columns: number;
-  rows: number;
   children?: (context: GridContext) => ReactNode;
 }
 
