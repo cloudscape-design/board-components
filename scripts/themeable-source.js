@@ -3,32 +3,30 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { execaSync } from "execa";
+import { globbySync } from "globby";
 const cwd = process.cwd();
 
-const targetDir = path.join(cwd, "./lib/components-themeable");
-const internalDir = path.join(targetDir, "internal");
+const targetDir = path.join(cwd, "./lib/components-themeable/internal");
 
 const stylesSourceDir = path.join(cwd, "./src/");
-const stylesTargetDir = path.join(internalDir, "/scss");
+const stylesTargetDir = path.join(targetDir, "/scss");
 
 const componentsSourceDir = path.join(cwd, "./lib/components");
-const componentsTargetDir = path.join(internalDir, "/template");
+const componentsTargetDir = path.join(targetDir, "/template");
 
 function copyStyles() {
-  fs.mkdirSync(stylesTargetDir, { recursive: true });
-  execaSync("rsync", [
-    "--prune-empty-dirs",
-    "-a",
-    "--include",
-    "*/",
-    "--include",
-    "*.scss",
-    "--exclude",
-    "*",
-    stylesSourceDir,
-    stylesTargetDir,
-  ]);
+  for (const file of globbySync("**/*.scss", { cwd: stylesSourceDir })) {
+    const content = fs.readFileSync(path.join(stylesSourceDir, file), "utf-8");
+    fs.mkdirSync(path.join(stylesTargetDir, path.dirname(file)), { recursive: true });
+    fs.writeFileSync(
+      path.join(stylesTargetDir, file),
+      content.replace(
+        /@use "(\.\.\/)+node_modules\/@cloudscape-design\/design-tokens\/index.scss"/,
+        '@use "awsui:tokens"'
+      ),
+      "utf-8"
+    );
+  }
 }
 
 function copyTemplate() {
