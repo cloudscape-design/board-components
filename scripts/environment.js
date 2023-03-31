@@ -13,8 +13,8 @@ const basePath = "lib/components/internal/environment";
 const values = {
   PACKAGE_SOURCE: "board-components",
   PACKAGE_VERSION: packageVersion,
-  THEME: "default",
-  ALWAYS_VISUAL_REFRESH: false,
+  THEME: "open-source-visual-refresh",
+  ALWAYS_VISUAL_REFRESH: true,
 };
 writeFile(
   `${basePath}.js`,
