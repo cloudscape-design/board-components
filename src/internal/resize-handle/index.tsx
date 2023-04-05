@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Icon } from "@cloudscape-design/components";
 import { KeyboardEvent, PointerEvent } from "react";
 import Handle from "../handle";
-import { ResizeHandleIcon } from "./icon";
 import styles from "./styles.css.js";
 
 export interface ResizeHandleProps {
@@ -21,7 +21,7 @@ export default function ResizeHandle({ ariaLabelledBy, ariaDescribedBy, onPointe
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
     >
-      <ResizeHandleIcon />
+      <Icon name="resize-area" />
     </Handle>
   );
 }

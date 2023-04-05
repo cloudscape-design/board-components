@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Icon } from "@cloudscape-design/components";
 import { ForwardedRef, KeyboardEvent, PointerEvent, forwardRef } from "react";
 
 import Handle from "../handle";
-import DragHandleIcon from "./icon";
 import styles from "./styles.css.js";
 
 export interface DragHandleProps {
@@ -26,7 +26,7 @@ function DragHandle(
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
     >
-      <DragHandleIcon />
+      <Icon name="drag-indicator" />
     </Handle>
   );
 }
