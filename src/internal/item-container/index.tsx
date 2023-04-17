@@ -188,6 +188,7 @@ function ItemContainerComponent(
       window.addEventListener("pointerup", onPointerUp);
     }
     return () => {
+      onPointerMove.cancel();
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
