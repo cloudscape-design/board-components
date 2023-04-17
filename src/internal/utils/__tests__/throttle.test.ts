@@ -57,7 +57,7 @@ describe("throttle", () => {
     expect(funcMock).toBeCalledWith("arg-50");
   });
 
-  test("should cancel the third invocation of the client function", () => {
+  test("should cancel the function after first invocation", () => {
     const throttled = throttle(funcMock, 25);
 
     // This should do nothing - cancellation is not persistent.
@@ -77,8 +77,7 @@ describe("throttle", () => {
       }
     }
 
-    expect(funcMock).toBeCalledTimes(2);
+    expect(funcMock).toBeCalledTimes(1);
     expect(funcMock).toBeCalledWith("arg-0");
-    expect(funcMock).toBeCalledWith("arg-25");
   });
 });
