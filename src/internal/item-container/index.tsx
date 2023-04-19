@@ -28,8 +28,7 @@ import {
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { getNormalizedElementRect } from "../utils/screen";
-import { useStableEventHandler } from "../utils/use-stable-event-handler";
-import { useThrottledEventHandler } from "../utils/use-throttled-event-handler";
+import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
 import styles from "./styles.css.js";
@@ -118,20 +117,6 @@ function ItemContainerComponent(
     },
   });
 
-  const onPointerMove = useThrottledEventHandler((event: PointerEvent) => {
-    const coordinates = Coordinates.fromEvent(event);
-    draggableApi.updateTransition(
-      new Coordinates({
-        x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
-        y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
-      })
-    );
-  }, 10);
-  const onPointerUp = useStableEventHandler(() => {
-    onPointerMove.cancel();
-    draggableApi.submitTransition();
-  });
-
   function updateTransition({
     operation,
     interactionType,
@@ -183,6 +168,20 @@ function ItemContainerComponent(
   const transitionInteractionType = transition?.interactionType ?? null;
   const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
+    const onPointerMove = throttle((event: PointerEvent) => {
+      const coordinates = Coordinates.fromEvent(event);
+      draggableApi.updateTransition(
+        new Coordinates({
+          x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
+          y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
+        })
+      );
+    }, 10);
+    const onPointerUp = () => {
+      onPointerMove.cancel();
+      draggableApi.submitTransition();
+    };
+
     if (transitionInteractionType === "pointer" && transitionItemId === item.id) {
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
@@ -191,7 +190,9 @@ function ItemContainerComponent(
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [item.id, transitionInteractionType, transitionItemId, onPointerMove, onPointerUp]);
+    // draggableApi is not expected to change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id, transitionInteractionType, transitionItemId]);
 
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     // The acquired item is a copy and does not have the transition state.

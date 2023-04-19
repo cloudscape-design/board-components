@@ -9,13 +9,14 @@ export interface ThrottledFunction<F extends (...args: any) => any> {
 }
 
 export function throttle<F extends (...args: any) => any>(func: F, delay: number): ThrottledFunction<F> {
+  let cancelled = false;
   let pending: null | { this: any; args: any } = null;
   let lastInvokeTime: null | number = null;
   let timerId: null | number = null;
 
   // Runs on every animation frame until timer stopped.
   function pendingFunc() {
-    if (pending === null || lastInvokeTime === null) {
+    if (cancelled === true || pending === null || lastInvokeTime === null) {
       return;
     }
 
@@ -58,6 +59,7 @@ export function throttle<F extends (...args: any) => any>(func: F, delay: number
     pending = null;
     lastInvokeTime = null;
     timerId = null;
+    cancelled = true;
   };
 
   return throttled;
