@@ -17,7 +17,7 @@ export default defineConfig({
       enabled: process.env.CI === "true",
       provider: "istanbul",
       include: ["src/**"],
-      exclude: ["**/debug-tools/**"],
+      exclude: ["**/debug-tools/**", "**/__tests__/**"],
     },
   },
 });

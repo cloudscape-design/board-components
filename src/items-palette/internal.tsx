@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useRef, useState } from "react";
+import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { ItemId } from "../internal/interfaces";
@@ -16,6 +17,7 @@ export function InternalItemsPalette<D>({
   renderItem,
   i18nStrings,
   __internalRootRef,
+  ...rest
 }: ItemsPaletteProps<D> & InternalBaseComponentProps) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
@@ -73,7 +75,7 @@ export function InternalItemsPalette<D>({
   };
 
   return (
-    <div ref={__internalRootRef}>
+    <div ref={__internalRootRef} {...getDataAttributes(rest)}>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}

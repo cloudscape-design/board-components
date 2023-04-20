@@ -37,7 +37,7 @@ export interface ItemContainerRef {
   focusDragHandle(): void;
 }
 
-export interface ItemContext {
+interface ItemContextType {
   isActive: boolean;
   dragHandle: {
     ref: RefObject<HTMLButtonElement>;
@@ -50,10 +50,10 @@ export interface ItemContext {
   };
 }
 
-const Context = createContext<ItemContext | null>(null);
+export const ItemContext = createContext<ItemContextType | null>(null);
 
 export function useItemContext() {
-  const ctx = useContext(Context);
+  const ctx = useContext(ItemContext);
   if (!ctx) {
     throw new Error("Unable to find BoardItem context.");
   }
@@ -376,7 +376,7 @@ function ItemContainerComponent(
       data-item-id={item.id}
       onBlur={onBlur}
     >
-      <Context.Provider
+      <ItemContext.Provider
         value={{
           isActive: (!!transition && !transition.isBorrowed) || !!acquired,
           dragHandle: {
@@ -393,7 +393,7 @@ function ItemContainerComponent(
         }}
       >
         {children}
-      </Context.Provider>
+      </ItemContext.Provider>
     </div>
   );
 }
