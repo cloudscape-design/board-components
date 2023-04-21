@@ -111,6 +111,7 @@ export function transformItems<D>(
     const { id, x, width, height } = sortedLayout[index];
 
     const item = { ...getItem(id) };
+    item.columnOffset = { ...item.columnOffset };
 
     if (index >= changeFromIndex) {
       item.columnOffset = undefined;
