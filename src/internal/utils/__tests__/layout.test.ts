@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import deepFreeze from "deep-freeze-es6";
 import { describe, expect, test } from "vitest";
 import { fromMatrix, toString } from "../../debug-tools";
 import { BoardItemColumnOffset, BoardItemDefinition, BoardItemDefinitionBase } from "../../interfaces";
@@ -23,7 +24,7 @@ interface Placement {
 }
 
 function makeItem(id: string, definition: Definition = {}, placement: Placement = {}): BoardItemDefinition<unknown> {
-  return { id, definition, ...placement, data: null };
+  return deepFreeze({ id, definition, ...placement, data: null });
 }
 
 describe("interpretItems", () => {

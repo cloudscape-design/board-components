@@ -100,23 +100,15 @@ export function transformItems<D>(
   let changeFromIndex = sortedLayout.findIndex(({ id }, index) => id !== sourceItems[index].id || id === resizeTarget);
   changeFromIndex = changeFromIndex !== -1 ? changeFromIndex : sortedLayout.length;
 
-  function setColumnOffset(item: Item, layout: number, value: number) {
-    if (!item.columnOffset) {
-      item.columnOffset = {};
-    }
-    item.columnOffset![layout] = value;
-  }
-
   for (let index = 0; index < sortedLayout.length; index++) {
     const { id, x, width, height } = sortedLayout[index];
 
     const item = { ...getItem(id) };
-    item.columnOffset = { ...item.columnOffset };
 
     if (index >= changeFromIndex) {
       item.columnOffset = undefined;
     }
-    setColumnOffset(item, gridLayout.columns, x);
+    item.columnOffset = { ...item.columnOffset, [gridLayout.columns]: x };
 
     if (item.id === resizeTarget) {
       item.columnSpan = width;
