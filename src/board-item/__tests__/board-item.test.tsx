@@ -5,8 +5,8 @@ import { cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement } from "react";
 import { afterEach, describe, expect, test } from "vitest";
 import BoardItem from "../../../lib/components/board-item";
-import { ItemContainer } from "../../../lib/components/internal/item-container";
 import createWrapper from "../../../lib/components/test-utils/dom";
+import { ItemContextWrapper } from "./board-item-wrapper";
 
 const i18nStrings = {
   dragHandleAriaLabel: "Drag handle",
@@ -15,20 +15,7 @@ const i18nStrings = {
 
 function render(jsx: ReactElement) {
   return libRender(jsx, {
-    wrapper: function ItemContextWrapper({ children }) {
-      return (
-        <ItemContainer
-          placed={true}
-          acquired={false}
-          transform={undefined}
-          inTransition={false}
-          item={{ id: "1", data: null }}
-          getItemSize={() => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 })}
-        >
-          {children}
-        </ItemContainer>
-      );
-    },
+    wrapper: ItemContextWrapper,
   });
 }
 

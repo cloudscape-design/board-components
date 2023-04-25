@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
 import { ReactNode, useEffect, useRef } from "react";
+import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
@@ -39,6 +40,7 @@ export function InternalBoard<D>({
   empty,
   i18nStrings,
   __internalRootRef,
+  ...rest
 }: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
   const [columns, containerQueryRef] = useContainerColumns();
@@ -209,7 +211,7 @@ export function InternalBoard<D>({
     : "";
 
   return (
-    <div ref={__internalRootRef}>
+    <div ref={__internalRootRef} {...getDataAttributes(rest)}>
       <ScreenReaderGridNavigation
         items={items}
         itemsLayout={itemsLayout}
