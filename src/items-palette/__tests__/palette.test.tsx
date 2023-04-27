@@ -14,8 +14,8 @@ afterEach(cleanup);
 vi.mock("../../../lib/components/internal/dnd-controller/controller");
 vi.mock("../../../lib/components/internal/item-container", () => ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ItemContainer: forwardRef(({ children }: { children: ReactNode }, ref: Ref<ItemContainerRef>) => (
-    <div>{children}</div>
+  ItemContainer: forwardRef(({ children }: { children: () => ReactNode }, ref: Ref<ItemContainerRef>) => (
+    <div>{children()}</div>
   )),
 }));
 

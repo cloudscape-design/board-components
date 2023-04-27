@@ -110,9 +110,11 @@ export function InternalItemsPalette<D>({
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
               }}
             >
-              {renderItem(item, {
-                showPreview: dropState?.id === item.id && dropState.isExpanded,
-              })}
+              {() =>
+                renderItem(item, {
+                  showPreview: dropState?.id === item.id && dropState.isExpanded,
+                })
+              }
             </ItemContainer>
           ))}
         </SpaceBetween>
