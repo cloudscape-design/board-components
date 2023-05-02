@@ -370,7 +370,7 @@ function ItemContainerComponent(
 
   const isActive = (!!transition && !transition.isBorrowed) || !!acquired;
   const childrenRef = useRef<ReactNode>(null);
-  if (!inTransition) {
+  if (!inTransition || isActive) {
     childrenRef.current = children();
   }
 
@@ -398,7 +398,7 @@ function ItemContainerComponent(
             : null,
         }}
       >
-        {inTransition && !isActive ? childrenRef.current : children()}
+        {childrenRef.current}
       </ItemContext.Provider>
     </div>
   );
