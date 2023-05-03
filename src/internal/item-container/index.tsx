@@ -95,7 +95,7 @@ export interface ItemContainerProps {
     maxHeight: number;
   };
   onKeyMove?(direction: Direction): void;
-  children: ReactNode;
+  children: () => ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
@@ -368,6 +368,12 @@ function ItemContainerComponent(
     focusDragHandle: () => dragHandleRef.current?.focus(),
   }));
 
+  const isActive = (!!transition && !transition.isBorrowed) || !!acquired;
+  const childrenRef = useRef<ReactNode>(null);
+  if (!inTransition || isActive) {
+    childrenRef.current = children();
+  }
+
   return (
     <div
       ref={itemRef}
@@ -378,7 +384,7 @@ function ItemContainerComponent(
     >
       <ItemContext.Provider
         value={{
-          isActive: (!!transition && !transition.isBorrowed) || !!acquired,
+          isActive,
           dragHandle: {
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
@@ -392,7 +398,7 @@ function ItemContainerComponent(
             : null,
         }}
       >
-        {children}
+        {childrenRef.current}
       </ItemContext.Provider>
     </div>
   );

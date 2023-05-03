@@ -272,7 +272,7 @@ export function InternalBoard<D>({
                     }}
                     item={item}
                     transform={transforms[item.id]}
-                    inTransition={!!layoutShift}
+                    inTransition={!!transition || !!removeTransition}
                     placed={true}
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
@@ -285,7 +285,7 @@ export function InternalBoard<D>({
                     })}
                     onKeyMove={onItemMove}
                   >
-                    {renderItem(item, { removeItem: () => removeItemAction(item) })}
+                    {() => renderItem(item, { removeItem: () => removeItemAction(item) })}
                   </ItemContainer>
                 );
               });
