@@ -113,6 +113,8 @@ export function InternalBoard<D>({
   }
 
   useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
+    document.body.setAttribute("data-awsui-hide-sticky-scrollbar", "true");
+
     dispatch({
       type: "init",
       operation,
@@ -139,6 +141,8 @@ export function InternalBoard<D>({
   });
 
   useDragSubscription("submit", () => {
+    document.body.removeAttribute("data-awsui-hide-sticky-scrollbar");
+
     dispatch({ type: "submit" });
 
     autoScrollHandlers.removePointerEventHandlers();
@@ -165,6 +169,8 @@ export function InternalBoard<D>({
   });
 
   useDragSubscription("discard", () => {
+    document.body.removeAttribute("data-awsui-hide-sticky-scrollbar");
+
     dispatch({ type: "discard" });
 
     autoScrollHandlers.removePointerEventHandlers();
