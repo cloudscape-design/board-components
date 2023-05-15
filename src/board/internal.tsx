@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller/controller";
+import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
@@ -54,6 +54,8 @@ export function InternalBoard<D>({
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
+
+  const [currentOperation, setCurrentOperation] = useState<Operation | null>(null);
 
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
@@ -127,6 +129,8 @@ export function InternalBoard<D>({
     });
 
     autoScrollHandlers.addPointerEventHandlers();
+
+    setCurrentOperation(operation);
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
@@ -142,6 +146,8 @@ export function InternalBoard<D>({
     dispatch({ type: "submit" });
 
     autoScrollHandlers.removePointerEventHandlers();
+
+    setCurrentOperation(null);
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -166,6 +172,8 @@ export function InternalBoard<D>({
 
   useDragSubscription("discard", () => {
     dispatch({ type: "discard" });
+
+    setCurrentOperation(null);
 
     autoScrollHandlers.removePointerEventHandlers();
   });
@@ -221,7 +229,12 @@ export function InternalBoard<D>({
         onActivateItem={focusItem}
       />
 
-      <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
+      <div
+        ref={containerRef}
+        className={clsx(styles.root, currentOperation && styles[`current-operation-${currentOperation}`], {
+          [styles.empty]: rows === 0,
+        })}
+      >
         {rows > 0 ? (
           <Grid columns={columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
             {(gridContext) => {
