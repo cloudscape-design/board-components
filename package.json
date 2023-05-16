@@ -67,7 +67,6 @@
     "@juggle/resize-observer": "^3.4.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^14.4.3",
     "@types/jest-image-snapshot": "^6.1.0",
     "@types/lodash": "^4.14.191",
     "@types/node": "^16.0.0",

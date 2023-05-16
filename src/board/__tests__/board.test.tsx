@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
-import { cleanup, render } from "@testing-library/react";
-import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
 import boardStyles from "../../../lib/components/board/styles.css.js";
@@ -107,7 +106,7 @@ describe("Board", () => {
     itemDragHandle.keydown(KeyCode.escape);
   });
 
-  test("applies reorder operation classname", async () => {
+  test("applies reorder operation classname", () => {
     const { container } = render(
       <Board
         items={[
@@ -125,18 +124,17 @@ describe("Board", () => {
     expect(container.ownerDocument.body).not.toHaveClass(reorderClass);
 
     const handle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
-    const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
     // Start a reorder operation and check that the class is set
-    await user.pointer({ keys: "[MouseLeft>]", target: handle });
+    fireEvent(handle, new MouseEvent("pointerdown", { bubbles: true }));
     expect(container.ownerDocument.body).toHaveClass(reorderClass);
 
     // Release pointer and check that the class is not set
-    await user.pointer({ keys: "[/MouseLeft]" });
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
     expect(container.ownerDocument.body).not.toHaveClass(reorderClass);
   });
 
-  test("applies resize operation classname", async () => {
+  test("applies resize operation classname", () => {
     const { container } = render(
       <Board
         items={[
@@ -154,14 +152,13 @@ describe("Board", () => {
     expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
 
     const handle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
-    const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
     // Start a resize operation and check that the class is set
-    await user.pointer({ keys: "[MouseLeft>]", target: handle });
+    fireEvent(handle, new MouseEvent("pointerdown", { bubbles: true }));
     expect(container.ownerDocument.body).toHaveClass(resizeClass);
 
     // Release pointer and check that the class is not set
-    await user.pointer({ keys: "[/MouseLeft]" });
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
     expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
   });
 });
