@@ -1,30 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
-import { act, cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { cleanup, render } from "@testing-library/react";
+import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
 import boardStyles from "../../../lib/components/board/styles.css.js";
 import BoardItem from "../../../lib/components/board-item";
-import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
-import { DragAndDropData } from "../../../lib/components/internal/dnd-controller/controller";
-import { Coordinates } from "../../../lib/components/internal/utils/coordinates";
 import createWrapper from "../../../lib/components/test-utils/dom";
-
-afterEach(cleanup);
-
-vi.mock("../../../lib/components/internal/dnd-controller/controller");
-
-const operationData: DragAndDropData = {
-  draggableItem: { id: "2", data: {} },
-  dropTarget: { scale: vi.fn() },
-  operation: "reorder",
-  interactionType: "keyboard",
-  collisionRect: { top: 0, left: 0, right: 0, bottom: 0 },
-  positionOffset: new Coordinates({ x: 0, y: 0 }),
-  coordinates: new Coordinates({ x: 0, y: 0 }),
-  collisionIds: [],
-};
 
 interface ItemData {
   title: string;
@@ -63,6 +46,11 @@ const itemI18nStrings = {
 };
 
 describe("Board", () => {
+  beforeAll(() => {
+    // jsdom does not support this function
+    document.elementFromPoint = () => null;
+  });
+
   afterEach(() => {
     cleanup();
   });
@@ -119,8 +107,8 @@ describe("Board", () => {
     itemDragHandle.keydown(KeyCode.escape);
   });
 
-  test("applies reorder operation classname", () => {
-    render(
+  test("applies reorder operation classname", async () => {
+    const { container } = render(
       <Board
         items={[
           { id: "1", data: { title: "Item 1" } },
@@ -134,20 +122,22 @@ describe("Board", () => {
     );
 
     const reorderClass = boardStyles["current-operation-reorder"];
+    expect(container.ownerDocument.body).not.toHaveClass(reorderClass);
 
-    expect(createWrapper().findByClassName(reorderClass)).toBeNull();
+    const handle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
+    const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
     // Start a reorder operation and check that the class is set
-    act(() => mockController.start(operationData));
-    expect(createWrapper().findByClassName(reorderClass)?.getElement()).toBeInTheDocument();
+    await user.pointer({ keys: "[MouseLeft>]", target: handle });
+    expect(container.ownerDocument.body).toHaveClass(reorderClass);
 
-    // Discard operation and check that the class is not set
-    act(() => mockController.discard());
-    expect(createWrapper().findByClassName(reorderClass)).toBeNull();
+    // Release pointer and check that the class is not set
+    await user.pointer({ keys: "[/MouseLeft]" });
+    expect(container.ownerDocument.body).not.toHaveClass(reorderClass);
   });
 
-  test("applies resize operation classname", () => {
-    render(
+  test("applies resize operation classname", async () => {
+    const { container } = render(
       <Board
         items={[
           { id: "1", data: { title: "Item 1" } },
@@ -161,15 +151,17 @@ describe("Board", () => {
     );
 
     const resizeClass = boardStyles["current-operation-resize"];
+    expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
 
-    expect(createWrapper().findByClassName(resizeClass)).toBeNull();
+    const handle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+    const user = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
     // Start a resize operation and check that the class is set
-    act(() => mockController.start({ ...operationData, operation: "resize" }));
-    expect(createWrapper().findByClassName(resizeClass)?.getElement()).toBeInTheDocument();
+    await user.pointer({ keys: "[MouseLeft>]", target: handle });
+    expect(container.ownerDocument.body).toHaveClass(resizeClass);
 
-    // Discard operation and check that the class is not set
-    act(() => mockController.discard());
-    expect(createWrapper().findByClassName(resizeClass)).toBeNull();
+    // Release pointer and check that the class is not set
+    await user.pointer({ keys: "[/MouseLeft]" });
+    expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
   });
 });

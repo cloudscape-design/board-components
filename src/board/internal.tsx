@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
-import { Operation, useDragSubscription } from "../internal/dnd-controller/controller";
+import { useDragSubscription } from "../internal/dnd-controller/controller";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
@@ -54,8 +54,6 @@ export function InternalBoard<D>({
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
-
-  const [currentOperation, setCurrentOperation] = useState<Operation | null>(null);
 
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
@@ -130,7 +128,7 @@ export function InternalBoard<D>({
 
     autoScrollHandlers.addPointerEventHandlers();
 
-    setCurrentOperation(operation);
+    document?.body?.classList.add(styles[`current-operation-${operation}`]);
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
@@ -147,7 +145,7 @@ export function InternalBoard<D>({
 
     autoScrollHandlers.removePointerEventHandlers();
 
-    setCurrentOperation(null);
+    document?.body?.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -173,7 +171,7 @@ export function InternalBoard<D>({
   useDragSubscription("discard", () => {
     dispatch({ type: "discard" });
 
-    setCurrentOperation(null);
+    document?.body?.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     autoScrollHandlers.removePointerEventHandlers();
   });
@@ -231,7 +229,7 @@ export function InternalBoard<D>({
 
       <div
         ref={containerRef}
-        className={clsx(styles.root, currentOperation && styles[`current-operation-${currentOperation}`], {
+        className={clsx(styles.root, {
           [styles.empty]: rows === 0,
         })}
       >
