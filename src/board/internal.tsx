@@ -128,7 +128,7 @@ export function InternalBoard<D>({
 
     autoScrollHandlers.addPointerEventHandlers();
 
-    document?.body?.classList.add(styles[`current-operation-${operation}`]);
+    document.body.classList.add(styles[`current-operation-${operation}`]);
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
@@ -145,7 +145,7 @@ export function InternalBoard<D>({
 
     autoScrollHandlers.removePointerEventHandlers();
 
-    document?.body?.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
+    document.body.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -171,7 +171,7 @@ export function InternalBoard<D>({
   useDragSubscription("discard", () => {
     dispatch({ type: "discard" });
 
-    document?.body?.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
+    document.body.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     autoScrollHandlers.removePointerEventHandlers();
   });
@@ -227,12 +227,7 @@ export function InternalBoard<D>({
         onActivateItem={focusItem}
       />
 
-      <div
-        ref={containerRef}
-        className={clsx(styles.root, {
-          [styles.empty]: rows === 0,
-        })}
-      >
+      <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
           <Grid columns={columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
             {(gridContext) => {

@@ -41,5 +41,3 @@ export const mockDraggable = {
 export function useDraggable() {
   return mockDraggable;
 }
-
-export const useDroppable = vi.fn() as any;
