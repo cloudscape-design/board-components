@@ -127,6 +127,8 @@ export function InternalBoard<D>({
     });
 
     autoScrollHandlers.addPointerEventHandlers();
+
+    document.body.classList.add(styles[`current-operation-${operation}`]);
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
@@ -142,6 +144,8 @@ export function InternalBoard<D>({
     dispatch({ type: "submit" });
 
     autoScrollHandlers.removePointerEventHandlers();
+
+    document.body.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -166,6 +170,8 @@ export function InternalBoard<D>({
 
   useDragSubscription("discard", () => {
     dispatch({ type: "discard" });
+
+    document.body.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     autoScrollHandlers.removePointerEventHandlers();
   });

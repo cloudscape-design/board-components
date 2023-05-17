@@ -23,3 +23,11 @@
   display: flex;
   justify-content: center;
 }
+
+.current-operation-reorder {
+  cursor: grabbing;
+}
+
+.current-operation-resize {
+  cursor: nwse-resize;
+}
