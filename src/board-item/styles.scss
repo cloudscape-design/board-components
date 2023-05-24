@@ -1,5 +1,26 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
-@use "../internal/handle/styles.scss" as handle;
+
+@mixin focus-highlight($gutter: 4px, $border-radius: cs.$border-radius-control-default-focus-ring) {
+  position: relative;
+  box-sizing: border-box;
+  outline: none;
+  & {
+    outline: 2px dotted transparent;
+    outline-offset: calc($gutter - 1px);
+  }
+  &::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    box-sizing: border-box;
+    left: calc(-1 * #{$gutter});
+    top: calc(-1 * #{$gutter});
+    width: calc(100% + 2 * #{$gutter});
+    height: calc(100% + 2 * #{$gutter});
+    border-radius: $border-radius;
+    border: 2px solid cs.$color-border-item-focused;
+  }
+}
 
 .root {
   display: contents;
@@ -10,7 +31,7 @@
   box-shadow: cs.$shadow-container-active;
 
   :global([data-awsui-focus-visible]) & {
-    @include handle.focus-highlight(0px, cs.$border-radius-container);
+    @include focus-highlight(0px, cs.$border-radius-container);
   }
 }
 
