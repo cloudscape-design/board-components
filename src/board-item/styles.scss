@@ -1,4 +1,5 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "../internal/handle/styles.scss" as handle;
 
 .root {
   display: contents;
@@ -7,6 +8,10 @@
 /* TODO: use container API instead of styles override */
 .container-override.active {
   box-shadow: cs.$shadow-container-active;
+
+  :global([data-awsui-focus-visible]) & {
+    @include handle.focus-highlight(0px, cs.$border-radius-container);
+  }
 }
 
 .header {

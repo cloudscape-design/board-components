@@ -6,6 +6,8 @@ import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
 import boardStyles from "../../../lib/components/board/styles.css.js";
 import BoardItem from "../../../lib/components/board-item";
+import dragHandleStyles from "../../../lib/components/internal/drag-handle/styles.css.js";
+import resizeHandleStyles from "../../../lib/components/internal/resize-handle/styles.css.js";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
 interface ItemData {
@@ -160,5 +162,63 @@ describe("Board", () => {
     // Release pointer and check that the class is not set
     fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
     expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
+  });
+
+  test("sets active state for drag handle", () => {
+    render(
+      <Board
+        items={[
+          { id: "1", data: { title: "Item 1" } },
+          { id: "2", data: { title: "Item 2" } },
+        ]}
+        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
+        onItemsChange={() => undefined}
+        i18nStrings={i18nStrings}
+        empty="No items"
+      />
+    );
+
+    const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
+    const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+
+    expect(dragHandle).not.toHaveClass(dragHandleStyles.active);
+
+    // Start operation
+    fireEvent(dragHandle, new MouseEvent("pointerdown", { bubbles: true }));
+    expect(dragHandle).toHaveClass(dragHandleStyles.active);
+    expect(resizeHandle).not.toHaveClass(dragHandleStyles.active);
+
+    // End operation
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
+    expect(dragHandle).not.toHaveClass(dragHandleStyles.active);
+  });
+
+  test("sets active state for resize handle", () => {
+    render(
+      <Board
+        items={[
+          { id: "1", data: { title: "Item 1" } },
+          { id: "2", data: { title: "Item 2" } },
+        ]}
+        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
+        onItemsChange={() => undefined}
+        i18nStrings={i18nStrings}
+        empty="No items"
+      />
+    );
+
+    const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
+    const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+
+    expect(resizeHandle).not.toHaveClass(resizeHandleStyles.active);
+
+    // Start operation
+    fireEvent(resizeHandle, new MouseEvent("pointerdown", { bubbles: true }));
+    expect(resizeHandle).toHaveClass(resizeHandleStyles.active);
+    expect(dragHandle).not.toHaveClass(resizeHandleStyles.active);
+
+    // End operation
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
+    expect(resizeHandle).not.toHaveClass(resizeHandleStyles.active);
   });
 });

@@ -45,6 +45,7 @@ export function InternalBoardItem({
                 ariaDescribedBy={dragHandleAriaDescribedBy}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
+                isActive={dragHandle.isActive}
               />
             }
             settings={settings}
@@ -65,6 +66,7 @@ export function InternalBoardItem({
             ariaDescribedBy={resizeHandleAriaDescribedBy}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
+            isActive={resizeHandle.isActive}
           />
         </div>
       )}

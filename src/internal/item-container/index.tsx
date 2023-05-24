@@ -43,10 +43,12 @@ interface ItemContextType {
     ref: RefObject<HTMLButtonElement>;
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    isActive: boolean;
   };
   resizeHandle: null | {
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    isActive: boolean;
   };
 }
 
@@ -389,11 +391,13 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: onDragHandlePointerDown,
             onKeyDown: onDragHandleKeyDown,
+            isActive: isActive && transition?.operation === "reorder",
           },
           resizeHandle: placed
             ? {
                 onPointerDown: onResizeHandlePointerDown,
                 onKeyDown: onResizeHandleKeyDown,
+                isActive: isActive && transition?.operation === "resize",
               }
             : null,
         }}

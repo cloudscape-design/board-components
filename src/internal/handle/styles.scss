@@ -17,7 +17,7 @@
     top: calc(-1 * #{$gutter});
     width: calc(100% + 2 * #{$gutter});
     height: calc(100% + 2 * #{$gutter});
-    border-radius: cs.$border-radius-control-default-focus-ring;
+    border-radius: $border-radius;
     border: 2px solid cs.$color-border-item-focused;
   }
 }
@@ -32,9 +32,5 @@
 
   &:hover {
     color: cs.$color-text-interactive-hover;
-  }
-
-  &:focus-visible {
-    @include focus-highlight();
   }
 }
