@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Icon } from "@cloudscape-design/components";
+import clsx from "clsx";
 import { ForwardedRef, KeyboardEvent, PointerEvent, forwardRef } from "react";
 
 import Handle from "../handle";
@@ -11,16 +12,17 @@ export interface DragHandleProps {
   ariaDescribedBy: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
+  isActive: boolean;
 }
 
 function DragHandle(
-  { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown }: DragHandleProps,
+  { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown, isActive }: DragHandleProps,
   ref: ForwardedRef<HTMLButtonElement>
 ) {
   return (
     <Handle
       ref={ref}
-      className={styles.handle}
+      className={clsx(styles.handle, isActive && styles.active)}
       aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
       onPointerDown={onPointerDown}
