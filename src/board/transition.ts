@@ -115,15 +115,24 @@ function initTransition<D>({
 
   const placeholdersLayout = getLayoutPlaceholders(transition);
 
-  const itemBelongsToBoard = itemsLayout.items.find((it) => it.id === draggableItem.id);
-  const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
-  const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-  const path = itemBelongsToBoard ? appendPath([], collisionRect) : [];
+  const layoutItem = itemsLayout.items.find((it) => it.id === draggableItem.id);
+
+  let path: Position[] = [];
+  if (interactionType === "pointer" || operation === "insert") {
+    const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+    const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
+    path = layoutItem ? appendPath([], collisionRect) : [];
+  } else if (layoutItem) {
+    path =
+      operation === "resize"
+        ? [new Position({ x: layoutItem.x + layoutItem.width, y: layoutItem.y + layoutItem.height })]
+        : [new Position({ x: layoutItem.x, y: layoutItem.y })];
+  }
 
   return {
     transition: { ...transition, path },
     removeTransition: null,
-    announcement: itemBelongsToBoard ? { type: "dnd-started", item: draggableItem, operation } : null,
+    announcement: layoutItem ? { type: "dnd-started", item: draggableItem, operation } : null,
   };
 }
 

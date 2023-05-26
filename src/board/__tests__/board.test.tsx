@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 import { cleanup, fireEvent, render } from "@testing-library/react";
+import { vi } from "vitest";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
 import boardStyles from "../../../lib/components/board/styles.css.js";
@@ -220,5 +221,73 @@ describe("Board", () => {
     // End operation
     fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
     expect(resizeHandle).not.toHaveClass(resizeHandleStyles.active);
+  });
+
+  test("triggers onItemsChange on drag", () => {
+    const onItemsChange = vi.fn();
+    render(
+      <Board
+        items={[
+          { id: "1", data: { title: "Item 1" } },
+          { id: "2", data: { title: "Item 2" } },
+        ]}
+        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
+        onItemsChange={onItemsChange}
+        i18nStrings={i18nStrings}
+        empty="No items"
+      />
+    );
+
+    const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!;
+
+    dragHandle.keydown(KeyCode.enter);
+    dragHandle.keydown(KeyCode.down);
+    dragHandle.keydown(KeyCode.down);
+    dragHandle.keydown(KeyCode.enter);
+
+    expect(onItemsChange).toBeCalledWith(
+      expect.objectContaining({
+        detail: {
+          items: [
+            { id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } },
+            { id: "1", data: { title: "Item 1" }, columnOffset: { 1: 0 } },
+          ],
+        },
+      })
+    );
+  });
+
+  test("triggers onItemsChange on resize", () => {
+    const onItemsChange = vi.fn();
+    render(
+      <Board
+        items={[
+          { id: "1", data: { title: "Item 1" } },
+          { id: "2", data: { title: "Item 2" } },
+        ]}
+        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
+        onItemsChange={onItemsChange}
+        i18nStrings={i18nStrings}
+        empty="No items"
+      />
+    );
+
+    const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!;
+
+    resizeHandle.keydown(KeyCode.enter);
+    resizeHandle.keydown(KeyCode.down);
+    resizeHandle.keydown(KeyCode.down);
+    resizeHandle.keydown(KeyCode.enter);
+
+    expect(onItemsChange).toBeCalledWith(
+      expect.objectContaining({
+        detail: {
+          items: [
+            { id: "1", data: { title: "Item 1" }, columnOffset: { 1: 0 }, columnSpan: 1, rowSpan: 4 },
+            { id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } },
+          ],
+        },
+      })
+    );
   });
 });
