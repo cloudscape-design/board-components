@@ -1,9 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { isDevelopment, warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import { ALWAYS_VISUAL_REFRESH } from "../environment";
-import { IS_DEV } from "../is-development";
-import { warnOnce } from "../logging";
 
 export const useVisualRefresh = ALWAYS_VISUAL_REFRESH ? () => true : useVisualRefreshDynamic;
 
@@ -18,7 +17,7 @@ function useVisualRefreshDynamic() {
   if (visualRefreshState === undefined) {
     visualRefreshState = detectVisualRefresh();
   }
-  if (IS_DEV) {
+  if (isDevelopment) {
     const newVisualRefreshState = detectVisualRefresh();
     if (newVisualRefreshState !== visualRefreshState) {
       warnOnce(
