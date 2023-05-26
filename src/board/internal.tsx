@@ -123,7 +123,7 @@ export function InternalBoard<D>({
       // If draggables can be of different types a check of some sort is required here.
       draggableItem: draggableItem as BoardItemDefinitionBase<any>,
       draggableRect: collisionRect,
-      collisionIds: interactionType === "keyboard" || isElementOverBoard(collisionRect) ? collisionIds : [],
+      collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
     });
 
     autoScrollHandlers.addPointerEventHandlers();
@@ -134,7 +134,7 @@ export function InternalBoard<D>({
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: interactionType === "keyboard" || isElementOverBoard(collisionRect) ? collisionIds : [],
+      collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
       positionOffset,
       draggableRect: collisionRect,
     });
