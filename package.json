@@ -101,7 +101,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.6.1",
     "typescript": "^4.9.4",
-    "vite": "^4.0.4",
+    "vite": "^4.0.5",
     "vitest": "^0.25.8"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
