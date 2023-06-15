@@ -112,6 +112,15 @@ export function InternalBoard<D>({
     );
   }
 
+  const itemsLayoutRef = useRef(itemsLayout);
+  itemsLayoutRef.current = itemsLayout;
+
+  // Updating layout if it changes during an active transition which can happen e.g. due to
+  // the appearing scrollbar when the transition starts.
+  useEffect(() => {
+    dispatch({ type: "update-layout", itemsLayout: itemsLayoutRef.current });
+  }, [columns]);
+
   useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
     dispatch({
       type: "init",
