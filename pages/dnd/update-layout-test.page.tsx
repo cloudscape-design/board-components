@@ -21,7 +21,7 @@ export default function () {
   ]);
 
   const [boardWidth, setBoardWidth] = useState(800);
-  let timeoutId: any = null;
+  let timeoutId: null | number = null;
 
   return (
     <ScreenshotArea>
