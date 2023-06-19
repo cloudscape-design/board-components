@@ -55,17 +55,16 @@ export function InternalBoard<D>({
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
 
+  // Using cached columns from transition to ensure no unexpected changes in the process.
+  const columns = transition ? transition.itemsLayout.columns : currentColumns;
+
   // Use previous items while remove transition is in progress.
   items = removeTransition?.items ?? items;
 
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const currentItemsLayout = interpretItems(items, currentColumns);
-
-  // Use current layout if no active transition. Otherwise - use cached layout from transition
-  // to ensure no unexpected changes in the process.
-  const itemsLayout = transition ? transition.itemsLayout : currentItemsLayout;
+  const itemsLayout = interpretItems(items, columns);
 
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
@@ -122,7 +121,7 @@ export function InternalBoard<D>({
       type: "init",
       operation,
       interactionType,
-      itemsLayout: currentItemsLayout,
+      itemsLayout,
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
