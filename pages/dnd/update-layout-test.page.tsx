@@ -21,12 +21,16 @@ export default function () {
   ]);
 
   const [boardWidth, setBoardWidth] = useState(800);
-  let timeoutId: null | number = null;
 
   return (
     <ScreenshotArea>
       <PageLayout header={<Header variant="h1">In-transition layout update test page</Header>}>
-        <div className={classnames[`layout-grid`]}>
+        <div
+          className={classnames[`layout-grid`]}
+          onMouseDown={() => {
+            setBoardWidth(1000);
+          }}
+        >
           <div style={{ width: boardWidth }}>
             <Board
               i18nStrings={boardI18nStrings}
@@ -50,19 +54,11 @@ export default function () {
             <Header>Add widgets</Header>
             <ItemsPalette
               items={paletteItems}
-              renderItem={(item, context) => {
-                if (context.showPreview === true && !timeoutId) {
-                  timeoutId = setTimeout(() => {
-                    setBoardWidth(1000);
-                  }, 0);
-                }
-
-                return (
-                  <BoardItem header={<Header>Item</Header>} i18nStrings={boardItemI18nStrings}>
-                    {context.showPreview ? "Preview" : "Description"}
-                  </BoardItem>
-                );
-              }}
+              renderItem={(item, context) => (
+                <BoardItem header={<Header>Item</Header>} i18nStrings={boardItemI18nStrings}>
+                  {context.showPreview ? "Preview" : "Description"}
+                </BoardItem>
+              )}
               i18nStrings={itemsPaletteI18nStrings}
             />
           </div>
