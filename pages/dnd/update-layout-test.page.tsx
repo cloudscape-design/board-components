@@ -14,7 +14,7 @@ export default function () {
   const [boardItems, setBoardItems] = useState<readonly BoardProps.Item<ItemData>[]>([]);
   const [paletteItems, setPaletteItems] = useState<readonly ItemsPaletteProps.Item<ItemData>[]>([
     {
-      id: "demo",
+      id: "D",
       definition: { defaultColumnSpan: 4, minRowSpan: 8 },
       data: { title: "", description: "", content: "" },
     },

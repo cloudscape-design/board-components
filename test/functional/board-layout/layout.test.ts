@@ -459,3 +459,32 @@ test(
     ]);
   })
 );
+
+test(
+  "items layout is updated if columns change while active transition",
+  setupTest("/index.html#/dnd/update-layout-test", DndPageObject, async (page) => {
+    await page.setWindowSize({ width: 1200, height: 1000 });
+
+    await page.mouseDown(itemsPaletteWrapper.findItemById("D").findDragHandle().toSelector());
+
+    // Trigger layout update.
+    await page.mouseMove(-200, 0);
+
+    // Move item further to ensure no error.
+    await page.mouseMove(-700, -50);
+
+    // Releasing the item should insert it to the 2-column layout (cached before the update).
+    await page.mouseUp();
+
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+    ]);
+  })
+);
