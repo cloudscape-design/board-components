@@ -22,7 +22,6 @@ export interface TransitionState<D> {
 export type Action<D> =
   | InitAction<D>
   | InitRemoveAction<D>
-  | UpdateLayoutAction
   | SubmitAction
   | DiscardAction
   | UpdateWithPointerAction
@@ -42,10 +41,6 @@ interface InitRemoveAction<D> {
   type: "init-remove";
   items: readonly BoardProps.Item<D>[];
   removedItem: BoardItemDefinitionBase<D>;
-  itemsLayout: GridLayout;
-}
-interface UpdateLayoutAction {
-  type: "update-layout";
   itemsLayout: GridLayout;
 }
 interface SubmitAction {
@@ -84,8 +79,6 @@ function transitionReducer<D>(state: TransitionState<D>, action: Action<D>): Tra
       return initTransition(action);
     case "init-remove":
       return initRemoveTransition(action);
-    case "update-layout":
-      return updateLayout(state, action);
     case "submit":
       return submitTransition(state);
     case "discard":
@@ -147,13 +140,6 @@ function initRemoveTransition<D>({ items, removedItem, itemsLayout }: InitRemove
   const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
   const removeTransition: RemoveTransition<D> = { items, removedItem, layoutShift };
   return { transition: null, removeTransition, announcement: null };
-}
-
-function updateLayout<D>(state: TransitionState<D>, { itemsLayout }: UpdateLayoutAction): TransitionState<D> {
-  if (!state.transition) {
-    return state;
-  }
-  return { ...state, transition: { ...state.transition, itemsLayout } };
 }
 
 function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {

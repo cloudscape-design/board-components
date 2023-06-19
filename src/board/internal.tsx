@@ -43,7 +43,7 @@ export function InternalBoard<D>({
   ...rest
 }: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
-  const [columns, containerQueryRef] = useContainerColumns();
+  const [currentColumns, containerQueryRef] = useContainerColumns();
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
@@ -61,7 +61,12 @@ export function InternalBoard<D>({
   // The acquired item is the one being inserting at the moment but not submitted yet.
   // It needs to be included to the layout to be a part of layout shifts and rendering.
   items = acquiredItem ? [...items, acquiredItem] : items;
-  const itemsLayout = interpretItems(items, columns);
+  const currentItemsLayout = interpretItems(items, currentColumns);
+
+  // Use current layout if no active transition. Otherwise - use cached layout from transition
+  // to ensure no unexpected changes in the process.
+  const itemsLayout = transition ? transition.itemsLayout : currentItemsLayout;
+
   const layoutItemById = new Map(itemsLayout.items.map((item) => [item.id, item]));
   const layoutItemIndexById = new Map(itemsLayout.items.map((item, index) => [item.id, index]));
 
@@ -99,7 +104,7 @@ export function InternalBoard<D>({
   }, [removeTransition, items]);
 
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
-  const placeholdersLayout = createPlaceholdersLayout(rows, columns);
+  const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
 
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
@@ -112,21 +117,12 @@ export function InternalBoard<D>({
     );
   }
 
-  const itemsLayoutRef = useRef(itemsLayout);
-  itemsLayoutRef.current = itemsLayout;
-
-  // Updating layout if it changes during an active transition which can happen e.g. due to
-  // the appearing scrollbar when the transition starts.
-  useEffect(() => {
-    dispatch({ type: "update-layout", itemsLayout: itemsLayoutRef.current });
-  }, [columns]);
-
   useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
     dispatch({
       type: "init",
       operation,
       interactionType,
-      itemsLayout,
+      itemsLayout: currentItemsLayout,
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
@@ -222,7 +218,7 @@ export function InternalBoard<D>({
   }
 
   const announcement = transitionAnnouncement
-    ? announcementToString(transitionAnnouncement, items, i18nStrings, columns)
+    ? announcementToString(transitionAnnouncement, items, i18nStrings, itemsLayout.columns)
     : "";
 
   return (
@@ -238,7 +234,7 @@ export function InternalBoard<D>({
 
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
-          <Grid columns={columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+          <Grid columns={itemsLayout.columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
             {(gridContext) => {
               const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
               const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves, gridContext) : {};
@@ -258,7 +254,7 @@ export function InternalBoard<D>({
                     id={placeholder.id}
                     state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
                     gridContext={gridContext}
-                    columns={columns}
+                    columns={itemsLayout.columns}
                   />
                 )
               );
@@ -268,12 +264,12 @@ export function InternalBoard<D>({
                 const isResizing = transition?.operation === "resize" && transition?.draggableItem.id === item.id;
 
                 const itemSize = layoutItem ?? {
-                  width: getDefaultColumnSpan(item, columns),
+                  width: getDefaultColumnSpan(item, itemsLayout.columns),
                   height: getDefaultRowSpan(item),
                 };
 
                 const itemMaxSize =
-                  isResizing && layoutItem ? { width: columns - layoutItem.x, height: 999 } : itemSize;
+                  isResizing && layoutItem ? { width: itemsLayout.columns - layoutItem.x, height: 999 } : itemSize;
 
                 children.push(
                   <ItemContainer
@@ -292,7 +288,7 @@ export function InternalBoard<D>({
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
                       width: gridContext.getWidth(itemSize.width),
-                      minWidth: gridContext.getWidth(getMinColumnSpan(item, columns)),
+                      minWidth: gridContext.getWidth(getMinColumnSpan(item, itemsLayout.columns)),
                       maxWidth: gridContext.getWidth(itemMaxSize.width),
                       height: gridContext.getHeight(itemSize.height),
                       minHeight: gridContext.getHeight(getMinRowSpan(item)),
