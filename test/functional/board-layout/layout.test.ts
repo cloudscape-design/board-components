@@ -459,3 +459,26 @@ test(
     ]);
   })
 );
+
+test(
+  "layout transition is completed even when the layout changes after it starts",
+  setupTest("/index.html#/dnd/update-layout-test", DndPageObject, async (page) => {
+    await page.setWindowSize({ width: 1200, height: 1000 });
+
+    // The item should be inserted into 2-column layout (cached before the update).
+    await page.mouseDown(itemsPaletteWrapper.findItemById("D").findDragHandle().toSelector());
+    await page.mouseMove(-800, -50);
+    await page.mouseUp();
+
+    await expect(page.getGrid(4)).resolves.toEqual([
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+      ["D", "D", " ", " "],
+    ]);
+  })
+);
