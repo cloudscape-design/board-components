@@ -11,12 +11,17 @@ export function createItemsChangeEvent<D>(
   layoutShift: LayoutShift
 ): CustomEvent<BoardProps.ItemsChangeDetail<D>> {
   const insertTarget = layoutShift.moves.find((move) => move.type === "INSERT")?.itemId ?? null;
+  const moveTarget = layoutShift.moves.find((move) => move.type === "MOVE")?.itemId ?? null;
   const removeTarget = layoutShift.moves.find((move) => move.type === "REMOVE")?.itemId ?? null;
   const resizeTarget = layoutShift.moves.find((move) => move.type === "RESIZE")?.itemId ?? null;
 
   const newItems = transformItems(items, layoutShift.next, resizeTarget ?? insertTarget);
-  const addedItem = newItems.find((it) => it.id === insertTarget);
-  const removedItem = newItems.find((it) => it.id === removeTarget);
 
-  return createCustomEvent({ items: newItems, addedItem, removedItem });
+  return createCustomEvent({
+    items: newItems,
+    addedItem: newItems.find((it) => it.id === insertTarget),
+    removedItem: newItems.find((it) => it.id === removeTarget),
+    resizedItem: newItems.find((it) => it.id === resizeTarget),
+    movedItem: !insertTarget ? newItems.find((it) => it.id === moveTarget) : undefined,
+  });
 }

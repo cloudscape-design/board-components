@@ -248,6 +248,7 @@ describe("Board", () => {
     expect(onItemsChange).toBeCalledWith(
       expect.objectContaining({
         detail: {
+          movedItem: expect.objectContaining({ id: "1" }),
           items: [
             { id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } },
             { id: "1", data: { title: "Item 1" }, columnOffset: { 1: 0 } },
@@ -282,6 +283,7 @@ describe("Board", () => {
     expect(onItemsChange).toBeCalledWith(
       expect.objectContaining({
         detail: {
+          resizedItem: expect.objectContaining({ id: "1" }),
           items: [
             { id: "1", data: { title: "Item 1" }, columnOffset: { 1: 0 }, columnSpan: 1, rowSpan: 4 },
             { id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } },
