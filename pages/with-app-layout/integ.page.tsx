@@ -43,7 +43,19 @@ export default function Page() {
     }
   }, [paletteWidgetsLoading]);
 
-  const onChange = ({ items, addedItem, removedItem }: BoardProps.ItemsChangeDetail<ItemData>) => {
+  const onChange = ({
+    items,
+    addedItem,
+    removedItem,
+    movedItem,
+    resizedItem,
+  }: BoardProps.ItemsChangeDetail<ItemData>) => {
+    console.log({
+      addedItem: addedItem?.id,
+      removedItem: removedItem?.id,
+      movedItem: movedItem?.id,
+      resizedItem: resizedItem?.id,
+    });
     setBoardWidgets(items);
     if (addedItem) {
       setPaletteWidgets((paletteWidgets) => paletteWidgets.filter((item) => item.id !== addedItem.id));

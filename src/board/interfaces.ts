@@ -69,12 +69,15 @@ export interface BoardProps<D = DataFallbackType> {
   i18nStrings: BoardProps.I18nStrings<D>;
 
   /**
-   * Fired when a user interaction changes size or position of board items.
+   * Called when a user modifies the size or position of board items.
    *
    * The change detail has the following properties:
+   *
    * * `items`: (readonly Item<D>[]) - the updated items array.
-   * * `addedItem`: (Item<D>, optional) - the item that was added as part of the update, if available.
-   * * `removedItem`: (Item<D>, optional) - the item that was removed as part of the update, if available.
+   * * `addedItem`: (Item<D>, optional) - the item that was added as part of the update, if applicable.
+   * * `removedItem`: (Item<D>, optional) - the item that was removed as part of the update, if applicable.
+   * * `resizedItem`: (Item<D>, optional) - the item that was resized as part of the update, if applicable.
+   * * `movedItem`: (Item<D>, optional) - the item that was moved as part of the update, if applicable.
    */
   onItemsChange: NonCancelableEventHandler<BoardProps.ItemsChangeDetail<D>>;
 
@@ -95,6 +98,8 @@ export namespace BoardProps {
 
   export interface ItemsChangeDetail<D = DataFallbackType> {
     items: ReadonlyArray<Item<D>>;
+    movedItem?: Item<D>;
+    resizedItem?: Item<D>;
     addedItem?: Item<D>;
     removedItem?: Item<D>;
   }
