@@ -48,7 +48,7 @@ export default function Grid({ layout, children: render, columns }: GridProps) {
 
   const ref = useMergeRefs(gridRef, containerQueryRef);
   return (
-    <div ref={ref} className={clsx(styles.grid, styles[`columns-${columns}`])}>
+    <div ref={ref} className={clsx(styles.grid, styles[`grid-${densityMode}`], styles[`columns-${columns}`])}>
       {zipped.map(([item, children]) => (
         <GridItem key={item.id} item={item}>
           {children}
