@@ -168,6 +168,7 @@ export interface Transition<D> {
   collisionIds: Set<ItemId>;
   layoutShift: null | LayoutShift;
   path: readonly Position[];
+  acquiredItemElement?: ReactNode;
 }
 
 export interface RemoveTransition<D> {

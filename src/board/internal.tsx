@@ -54,6 +54,7 @@ export function InternalBoard<D>({
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
   const acquiredItem = transition?.acquiredItem ?? null;
+  const acquiredItemElement = transition?.acquiredItemElement;
 
   // Using cached columns from transition to ensure no unexpected changes in the process.
   const columns = transition ? transition.itemsLayout.columns : currentColumns;
@@ -180,7 +181,7 @@ export function InternalBoard<D>({
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  useDragSubscription("acquire", ({ droppableId, draggableItem }) => {
+  useDragSubscription("acquire", ({ droppableId, draggableItem, acquiredItemElement }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
 
     // If missing then it does not belong to this board.
@@ -192,6 +193,7 @@ export function InternalBoard<D>({
       type: "acquire-item",
       position: new Position({ x: placeholder.x, y: placeholder.y }),
       layoutElement: containerAccessRef.current!,
+      acquiredItemElement: acquiredItemElement,
     });
 
     focusNextRenderIdRef.current = draggableItem.id;
@@ -295,7 +297,9 @@ export function InternalBoard<D>({
                     })}
                     onKeyMove={onItemMove}
                   >
-                    {() => renderItem(item, { removeItem: () => removeItemAction(item) })}
+                    {item.id === acquiredItem?.id && acquiredItemElement
+                      ? () => acquiredItemElement
+                      : () => renderItem(item, { removeItem: () => removeItemAction(item) })}
                   </ItemContainer>
                 );
               });

@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Dispatch, useReducer } from "react";
+import { Dispatch, ReactNode, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId, Rect } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";
@@ -63,6 +63,7 @@ interface AcquireItemAction {
   type: "acquire-item";
   position: Position;
   layoutElement: HTMLElement;
+  acquiredItemElement?: ReactNode;
 }
 
 export function useTransition<D>(): [TransitionState<D>, Dispatch<Action<D>>] {
@@ -309,7 +310,7 @@ function updateTransitionWithKeyboardEvent<D>(
 
 function acquireTransitionItem<D>(
   state: TransitionState<D>,
-  { position, layoutElement }: AcquireItemAction
+  { position, layoutElement, acquiredItemElement }: AcquireItemAction
 ): TransitionState<D> {
   const { transition } = state;
 
@@ -335,7 +336,14 @@ function acquireTransitionItem<D>(
   // The columnOffset, columnSpan and rowSpan are of no use as of being overridden by the layout shift.
   const acquiredItem = { ...transition.draggableItem, columnOffset: 0, columnSpan: 1, rowSpan: 1 };
 
-  const nextTransition: Transition<D> = { ...transition, collisionIds: new Set(), layoutShift, path, acquiredItem };
+  const nextTransition: Transition<D> = {
+    ...transition,
+    collisionIds: new Set(),
+    layoutShift,
+    path,
+    acquiredItem,
+    acquiredItemElement,
+  };
   return {
     transition: nextTransition,
     removeTransition: null,
