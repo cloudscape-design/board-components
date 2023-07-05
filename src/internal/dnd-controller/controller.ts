@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { EventEmitter } from "./event-emitter";
@@ -41,6 +41,7 @@ export interface Droppable {
 interface AcquireData {
   droppableId: ItemId;
   draggableItem: Item;
+  acquiredItemElement?: ReactNode;
 }
 
 export interface DragAndDropEvents {
@@ -99,11 +100,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   /**
    * Issues an "acquire" event to notify the current transition draggable is acquired by the given droppable.
    */
-  public acquire(droppableId: ItemId) {
+  public acquire(droppableId: ItemId, acquiredItemElement?: ReactNode) {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for acquire.");
     }
-    this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem });
+    this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem, acquiredItemElement });
   }
 
   /**
@@ -186,8 +187,8 @@ export function useDraggable({
     discardTransition() {
       controller.discard();
     },
-    acquire(droppableId: ItemId) {
-      controller.acquire(droppableId);
+    acquire(droppableId: ItemId, acquiredItemElement?: ReactNode) {
+      controller.acquire(droppableId, acquiredItemElement);
     },
     getDroppables() {
       return controller.getDroppables();

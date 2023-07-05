@@ -239,7 +239,7 @@ function ItemContainerComponent(
     }
 
     // Notify the respective droppable of the intention to insert the item in it.
-    draggableApi.acquire(nextDroppable);
+    draggableApi.acquire(nextDroppable, childrenRef.current);
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
