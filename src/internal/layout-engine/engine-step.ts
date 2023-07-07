@@ -19,7 +19,18 @@ export class LayoutEngineStepState {
 }
 
 export function resolveOverlaps(userMove: CommittedMove, state: LayoutEngineStepState): LayoutEngineStepState {
-  return new LayoutEngineStep(state).resolveOverlaps(userMove).getState();
+  const resolved = new LayoutEngineStep(state).resolveOverlaps(userMove).getState();
+
+  // The "ESCAPE" move happens when the overlaps for certain items cannot be resolved.
+  // For the best UX the "ESCAPE" are suppressed by marking the escape target as a conflict.
+  const escapeMove = resolved.moves.find((move) => move.type === "ESCAPE");
+  if (userMove.type !== "RESIZE" && escapeMove) {
+    const moves = resolved.moves.filter((move) => move.type === "MOVE" || move.type === "INSERT");
+    const conflicts = new Set([...state.conflicts, escapeMove.itemId]);
+    return { ...state, moves, conflicts };
+  }
+
+  return resolved;
 }
 
 export function refloatGrid(state: LayoutEngineStepState): LayoutEngineStepState {
@@ -457,7 +468,7 @@ class LayoutEngineStep {
         break;
       }
       default:
-        throw new Error(`Invariant violation: unexpected direction ${direction}.`);
+      // Ignore
     }
 
     return conflicts;
