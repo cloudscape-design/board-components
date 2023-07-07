@@ -439,30 +439,32 @@ describe("multiple overlap resolutions", () => {
 describe("escape moves", () => {
   test.each([
     [
-      "B forces A and C to escape",
+      "X does not force A to escape, the last user move step is not applied",
       [
-        ["C", "C", "C", "B"],
-        ["C", "C", "C", "B"],
-        ["A", "A", "A", "B"],
-        ["A", "A", "A", "B"],
-        ["D", "D", "E", "E"],
-        ["D", "D", "E", "E"],
+        ["A", "A", "A", "F"],
+        ["B", "B", "X", "F"],
+        ["B", "B", "X", "F"],
+        ["C", "C", "C", "C"],
+        [" ", "E", "D", "D"],
+        [" ", "E", "D", "D"],
       ],
-      "D1 C1 C2 C3 C4 C5 D5 D4 D3",
+      "C2 C3 D3 D2",
       [
-        ["D", "D", "E", "E"],
-        ["D", "D", "E", "E"],
-        ["C", "C", "C", "B"],
-        ["C", "C", "C", "B"],
-        ["A", "A", "A", "B"],
-        ["A", "A", "A", "B"],
+        ["A", "A", "A", " "],
+        ["C", "C", "C", "C"],
+        ["B", "B", "F", "X"],
+        ["B", "B", "F", "X"],
+        [" ", "E", "F", " "],
+        [" ", "E", "D", "D"],
+        [" ", " ", "D", "D"],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBe(2);
+    expect(layoutShift.moves.filter((move) => move.type === "MOVE")).toHaveLength(2);
+    expect(layoutShift.conflicts).toEqual(["A"]);
   });
 });
 

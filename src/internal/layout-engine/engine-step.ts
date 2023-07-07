@@ -30,11 +30,13 @@ class LayoutEngineStep {
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
   private conflicts = new Set<ItemId>();
+  private state: LayoutEngineStepState;
 
   constructor(state: LayoutEngineStepState) {
     this.grid = LayoutEngineGrid.clone(state.grid);
     this.moves = [...state.moves];
     this.conflicts = new Set([...state.conflicts]);
+    this.state = state;
   }
 
   getState(): LayoutEngineStepState {
@@ -91,6 +93,15 @@ class LayoutEngineStep {
     tryVacantMoves();
 
     this.refloatGrid(activeId);
+
+    // The "ESCAPE" move happens when the overlaps for certain items cannot be resolved.
+    // For the best UX the "ESCAPE" are suppressed by marking the escape target as a conflict.
+    const escapeMove = this.moves.find((move) => move.type === "ESCAPE");
+    if (userMove.type !== "RESIZE" && userMove.type !== "INSERT" && escapeMove) {
+      this.grid = LayoutEngineGrid.clone(this.state.grid);
+      this.moves = [...this.state.moves];
+      this.conflicts = new Set([...this.state.conflicts, escapeMove.itemId]);
+    }
 
     return this;
   }
@@ -457,7 +468,7 @@ class LayoutEngineStep {
         break;
       }
       default:
-        throw new Error(`Invariant violation: unexpected direction ${direction}.`);
+      // Ignore
     }
 
     return conflicts;
