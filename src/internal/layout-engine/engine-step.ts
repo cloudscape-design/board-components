@@ -30,11 +30,17 @@ class LayoutEngineStep {
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
   private conflicts = new Set<ItemId>();
+  private yLimit = -1;
 
   constructor(state: LayoutEngineStepState) {
     this.grid = LayoutEngineGrid.clone(state.grid);
     this.moves = [...state.moves];
     this.conflicts = new Set([...state.conflicts]);
+
+    const userMoves = state.moves.filter((move) => move.type === "INSERT" || move.type === "MOVE");
+    if (userMoves.length > 0) {
+      this.yLimit = Math.min(...userMoves.map((move) => move.y - 1));
+    }
   }
 
   getState(): LayoutEngineStepState {
@@ -43,6 +49,10 @@ class LayoutEngineStep {
 
   // Issue moves on overlapping items trying to resolve all of them.
   public resolveOverlaps(userMove: CommittedMove): LayoutEngineStep {
+    if (userMove.type !== "RESIZE") {
+      this.yLimit = Math.min(this.yLimit, userMove.y - 1);
+    }
+
     const priorities = new Map<ItemId, number>();
     const activeId = userMove.itemId;
     const isResize = userMove.type === "RESIZE";
@@ -83,6 +93,11 @@ class LayoutEngineStep {
       const overlap = overlaps.pop();
       if (overlap) {
         const nextMove = this.findPriorityMove(overlap, priorities, activeId, isResize);
+        if (nextMove.y <= this.yLimit) {
+          this.conflicts.add(overlap);
+          return this;
+        }
+
         this.makeMove(nextMove, addOverlap, priorities);
         tryVacantMoves();
       }
