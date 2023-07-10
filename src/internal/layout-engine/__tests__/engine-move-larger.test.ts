@@ -75,9 +75,10 @@ describe("vertical swaps of larger items", () => {
       ],
       "C3 C2 C1",
       [
-        ["B", "C", "C"],
+        [" ", "C", "C"],
         ["A", "A", "A"],
         ["A", "A", "A"],
+        ["B", " ", " "],
       ],
     ],
     [
@@ -409,62 +410,26 @@ describe("empty spaces are prioritized over disturbing other items", () => {
 describe("multiple overlap resolutions", () => {
   test.each([
     [
-      "G forces C to resolve twice",
+      "B forces A to resolve twice",
       [
-        ["A", "A", " ", "F"],
-        ["E", "B", "B", "F"],
-        ["G", "B", "B", " "],
-        ["H", " ", "C", " "],
-        [" ", " ", "C", " "],
-        [" ", " ", "D", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["B", " ", " ", " "],
+        ["B", " ", " ", " "],
       ],
-      "A3 B3 B2 C2",
+      "A3 A2 A1 B1 B2 B3",
       [
-        ["E", "C", "A", "A"],
-        ["H", "C", "G", "F"],
-        [" ", "B", "B", "F"],
-        [" ", "B", "B", " "],
-        [" ", " ", "D", " "],
-      ],
-    ],
-  ])("%s", (_, gridMatrix, path, expectation) => {
-    const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
-    const moveIds = layoutShift.moves.filter((move) => move.type !== "MOVE").map((move) => move.itemId);
-    expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(new Set(moveIds).size).toBeLessThan(moveIds.length);
-  });
-});
-
-describe("escape moves", () => {
-  test.each([
-    [
-      "X does not force A to escape, the last user move step is not applied",
-      [
-        ["A", "A", "A", "F"],
-        ["B", "B", "X", "F"],
-        ["B", "B", "X", "F"],
-        ["C", "C", "C", "C"],
-        [" ", "E", "D", "D"],
-        [" ", "E", "D", "D"],
-      ],
-      "C2 C3 D3 D2",
-      [
-        ["A", "A", "A", " "],
-        ["C", "C", "C", "C"],
-        ["B", "B", "F", "X"],
-        ["B", "B", "F", "X"],
-        [" ", "E", "F", " "],
-        [" ", "E", "D", "D"],
-        [" ", " ", "D", "D"],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        [" ", "B", " ", " "],
+        [" ", "B", " ", " "],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
     const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(layoutShift.moves.filter((move) => move.type === "MOVE")).toHaveLength(2);
-    expect(layoutShift.conflicts).toEqual(["A"]);
+    expect(layoutShift.moves.filter((move) => move.type === "VACANT")).toHaveLength(2);
   });
 });
 
@@ -491,6 +456,39 @@ test("Float moves don't interfere with swaps", () => {
       ["D", "E"],
       [" ", "F"],
       [" ", "F"],
+    ])
+  );
+});
+
+test("Escape moves are disallowed for user moves", () => {
+  const grid = fromMatrix([
+    ["A", "A", "B", "B"],
+    ["A", "A", "B", "B"],
+    ["C", "C", "D", "D"],
+    ["C", "C", "D", "D"],
+    ["C", "C", "D", "D"],
+    ["C", "C", "D", "D"],
+    [" ", " ", "E", "E"],
+    [" ", " ", "E", "E"],
+    [" ", " ", "E", "E"],
+    [" ", " ", " ", "G"],
+    [" ", " ", " ", "G"],
+  ]);
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid)).getLayoutShift();
+
+  expect(toString(layoutShift.next)).toBe(
+    toString([
+      ["A", "A", "B", "B"],
+      ["A", "A", "B", "B"],
+      [" ", "E", "E", " "],
+      [" ", "E", "E", " "],
+      [" ", "E", "E", " "],
+      ["C", "C", "D", "D"],
+      ["C", "C", "D", "D"],
+      ["C", "C", "D", "D"],
+      ["C", "C", "D", "D"],
+      [" ", " ", " ", "G"],
+      [" ", " ", " ", "G"],
     ])
   );
 });

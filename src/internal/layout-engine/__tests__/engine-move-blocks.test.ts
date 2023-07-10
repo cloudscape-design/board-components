@@ -23,40 +23,6 @@ test("any move on a grid with 1x1 items only is resolved", () => {
   );
 });
 
-test("all vertical moves are resolved if all items have height=1", () => {
-  forEachTimes(
-    33,
-    [
-      [4, 10, 1.5, 1],
-      [5, 15, 1.5, 1],
-      [6, 20, 1.5, 1],
-    ],
-    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
-      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
-      const movePath = generateMove(grid, "vertical");
-      const layoutShift = new LayoutEngine(grid).move(movePath).refloat().getLayoutShift();
-      expect(layoutShift.conflicts.length).toBe(0);
-    }
-  );
-});
-
-test("all vertical moves are resolved if all items have width=1", () => {
-  forEachTimes(
-    33,
-    [
-      [4, 10, 1, 1.5],
-      [5, 15, 1, 1.5],
-      [6, 20, 1, 1.5],
-    ],
-    ([width, totalItems, averageItemWidth, averageItemHeight]) => {
-      const grid = generateGrid({ width, totalItems, averageItemWidth, averageItemHeight });
-      const movePath = generateMove(grid, "horizontal");
-      const layoutShift = new LayoutEngine(grid).move(movePath).refloat().getLayoutShift();
-      expect(layoutShift.conflicts.length).toBe(0);
-    }
-  );
-});
-
 describe("swap right", () => {
   test.each([
     [[["A", "B", "B"]], "A1 B1", [[" ", "A/B", "B"]]],

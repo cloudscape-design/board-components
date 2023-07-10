@@ -185,14 +185,32 @@ class LayoutEngineStep {
   }
 
   // Retrieves prioritized list of directions to look for a resolution move.
-  private getMoveDirections(issuer: LayoutEngineItem): Direction[] {
+  // When swapping with an active item the opposing directions are preferred.
+  // When swapping with non-active item the matching directions are preferred.
+  private getMoveDirections(issuer: LayoutEngineItem, activeId: ItemId): Direction[] {
     const diff = this.getLastStepDiff(issuer);
 
-    const firstVertical = diff.y > 0 ? "down" : "up";
-    const nextVertical = firstVertical === "down" ? "up" : "down";
+    function withActive(direction: Direction): Direction {
+      if (issuer.id !== activeId) {
+        return direction;
+      }
+      switch (direction) {
+        case "up":
+          return "down";
+        case "down":
+          return "up";
+        case "left":
+          return "right";
+        case "right":
+          return "left";
+      }
+    }
 
-    const firstHorizontal = diff.x > 0 ? "right" : "left";
-    const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
+    const firstVertical = withActive(diff.y > 0 ? "up" : "down");
+    const nextVertical = firstVertical === "up" ? "down" : "up";
+
+    const firstHorizontal = withActive(diff.x > 0 ? "left" : "right");
+    const nextHorizontal = firstHorizontal === "left" ? "right" : "left";
 
     return Math.abs(diff.y) > Math.abs(diff.x)
       ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
@@ -236,7 +254,7 @@ class LayoutEngineStep {
   private tryFindVacantMove(overlap: ItemId, activeId: ItemId, isResize: boolean): null | CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
-    const directions = isResize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
+    const directions = isResize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith, activeId);
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "VACANT");
@@ -284,7 +302,7 @@ class LayoutEngineStep {
   ): CommittedMove {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
-    const directions = isResize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
+    const directions = isResize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith, activeId);
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "PRIORITY");
