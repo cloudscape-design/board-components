@@ -205,8 +205,9 @@ class LayoutEngineStep {
         : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
 
     if (issuer.id !== activeId || isResize) {
+      const firstMove = directions[0];
       directions[0] = directions[3];
-      directions.splice(3, 1);
+      directions[3] = firstMove;
     }
 
     return directions;
@@ -236,6 +237,9 @@ class LayoutEngineStep {
     const overlapItem = this.grid.getItem(overlap);
     const overlapWith = this.getOverlapWith(overlapItem);
     const directions = this.getPriorityDirections(overlapWith, activeId, isResize);
+    if (overlapWith.id !== activeId || isResize) {
+      directions.splice(3, 1);
+    }
 
     for (const direction of directions) {
       const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "VACANT");
