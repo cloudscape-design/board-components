@@ -61,23 +61,28 @@ class LayoutEngineStep {
     this.conflicts = this.findConflicts(userMove);
     this.makeMove(userMove, addOverlap, priorities);
 
+    // Try vacant moves on all overlaps.
     const tryVacantMoves = () => {
-      // Try vacant moves on all overlaps.
+      let movesMade = false;
       let overlap = overlaps.pop();
       while (overlap) {
         const nextMove = this.tryFindVacantMove(overlap, activeId, isResize);
         if (nextMove) {
           this.makeMove(nextMove, addOverlap, priorities);
+          movesMade = true;
         } else {
           priorityOverlaps.push(overlap);
         }
         overlap = overlaps.pop();
       }
 
-      overlaps = priorityOverlaps;
-      priorityOverlaps = new StackSet<ItemId>();
-
-      tryPriorityMoves();
+      if (!movesMade) {
+        overlaps = priorityOverlaps;
+        priorityOverlaps = new StackSet<ItemId>();
+        tryPriorityMoves();
+      } else {
+        tryVacantMoves();
+      }
     };
 
     const tryPriorityMoves = () => {
