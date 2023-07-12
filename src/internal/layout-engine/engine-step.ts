@@ -50,7 +50,7 @@ class LayoutEngineStep {
     const isResize = userMove.type === "RESIZE";
 
     let overlaps = new StackSet<ItemId>();
-    let priorityOverlaps = new StackSet<ItemId>();
+    let nextOverlaps = new StackSet<ItemId>();
 
     const addOverlap = (itemId: ItemId) => {
       if (!this.conflicts.has(itemId)) {
@@ -71,14 +71,14 @@ class LayoutEngineStep {
           this.makeMove(nextMove, addOverlap, priorities);
           movesMade = true;
         } else {
-          priorityOverlaps.push(overlap);
+          nextOverlaps.push(overlap);
         }
         overlap = overlaps.pop();
       }
 
       if (!movesMade) {
-        overlaps = priorityOverlaps;
-        priorityOverlaps = new StackSet<ItemId>();
+        overlaps = nextOverlaps;
+        nextOverlaps = new StackSet<ItemId>();
         tryPriorityMoves();
       } else {
         tryVacantMoves();
