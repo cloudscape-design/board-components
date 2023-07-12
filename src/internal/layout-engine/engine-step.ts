@@ -212,9 +212,12 @@ class LayoutEngineStep {
     const firstHorizontal = withActive(diff.x > 0 ? "left" : "right");
     const nextHorizontal = firstHorizontal === "left" ? "right" : "left";
 
-    return Math.abs(diff.y) > Math.abs(diff.x)
-      ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
-      : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
+    const directions: Direction[] =
+      Math.abs(diff.y) > Math.abs(diff.x)
+        ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
+        : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
+
+    return issuer.id === activeId ? directions : directions.slice(0, 2);
   }
 
   private getResizeDirections(issuer: LayoutEngineItem): Direction[] {

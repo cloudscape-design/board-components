@@ -473,6 +473,8 @@ test("Escape moves are disallowed for user moves", () => {
     [" ", " ", "E", "E"],
     [" ", " ", " ", "G"],
     [" ", " ", " ", "G"],
+    [" ", " ", "F", "F"],
+    [" ", " ", "F", "F"],
   ]);
   const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid)).getLayoutShift();
 
@@ -489,6 +491,8 @@ test("Escape moves are disallowed for user moves", () => {
       ["C", "C", "D", "D"],
       [" ", " ", " ", "G"],
       [" ", " ", " ", "G"],
+      [" ", " ", "F", "F"],
+      [" ", " ", "F", "F"],
     ])
   );
 });
