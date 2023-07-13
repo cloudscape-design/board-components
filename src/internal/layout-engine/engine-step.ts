@@ -148,7 +148,7 @@ class LayoutEngineStep {
         type: "FLOAT",
       };
       for (move.y; move.y >= 0; move.y--) {
-        if (!this.validateVacantMove(this.grid, this.moves, { ...move, y: move.y - 1 }, activeId ?? "", false)) {
+        if (!this.validateVacantMove(this.grid, { ...move, y: move.y - 1 })) {
           break;
         }
       }
@@ -209,9 +209,9 @@ class LayoutEngineStep {
         const vacantMoveDirection = vacantDirections[directionIndex];
         const move = this.getMoveForDirection(overlapItem, overlapWith, moveDirection, "OVERLAP");
 
-        if (vacantMoveDirection && this.validateVacantMove(state.grid, state.moves, move, activeId, isResize)) {
+        if (vacantMoveDirection && this.validateVacantMove(state.grid, move)) {
           nextMoveVariants.push({ state: cloneMoveVariantState(state), move, moveScore: 1 });
-        } else if (this.validatePriorityMove(state.grid, state.moves, move, activeId, isResize)) {
+        } else if (this.validatePriorityMove(state.grid, move, activeId)) {
           nextMoveVariants.push({ state: cloneMoveVariantState(state), move, moveScore: 5 });
         }
       }
@@ -268,13 +268,7 @@ class LayoutEngineStep {
     return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
   }
 
-  private validateVacantMove(
-    grid: LayoutEngineGrid,
-    moves: CommittedMove[],
-    move: CommittedMove,
-    activeId: ItemId,
-    isResize: boolean
-  ): boolean {
+  private validateVacantMove(grid: LayoutEngineGrid, move: CommittedMove): boolean {
     const moveTarget = grid.getItem(move.itemId);
 
     for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -294,20 +288,10 @@ class LayoutEngineStep {
       }
     }
 
-    if (isResize && activeId && !this.validateResizeMove(grid, moves, move, activeId)) {
-      return false;
-    }
-
     return true;
   }
 
-  private validatePriorityMove(
-    grid: LayoutEngineGrid,
-    moves: CommittedMove[],
-    move: CommittedMove,
-    activeId: ItemId,
-    isResize: boolean
-  ): boolean {
+  private validatePriorityMove(grid: LayoutEngineGrid, move: CommittedMove, activeId: ItemId): boolean {
     const moveTarget = grid.getItem(move.itemId);
 
     for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -334,40 +318,7 @@ class LayoutEngineStep {
       }
     }
 
-    if (isResize && activeId && !this.validateResizeMove(grid, moves, move, activeId)) {
-      return false;
-    }
-
     return true;
-  }
-
-  private validateResizeMove(
-    grid: LayoutEngineGrid,
-    moves: CommittedMove[],
-    move: CommittedMove,
-    activeId: ItemId
-  ): boolean {
-    const resizeTarget = grid.getItem(activeId);
-    const moveTarget = grid.getItem(move.itemId);
-
-    const diff = this.getLastStepDiff(moves, resizeTarget);
-    const direction = diff.x ? "horizontal" : "vertical";
-
-    const originalPlacement = {
-      isNext: resizeTarget.x + resizeTarget.originalWidth - 1 < moveTarget.x,
-      isBelow: resizeTarget.y + resizeTarget.originalHeight - 1 < moveTarget.y,
-    };
-
-    const nextPlacement = {
-      isNext: resizeTarget.x + resizeTarget.width - 1 < move.x,
-      isBelow: resizeTarget.y + resizeTarget.height - 1 < move.y,
-    };
-
-    return (
-      (direction === "horizontal" && originalPlacement.isNext === nextPlacement.isNext) ||
-      (direction === "horizontal" && !originalPlacement.isBelow && nextPlacement.isBelow) ||
-      (direction === "vertical" && originalPlacement.isBelow === nextPlacement.isBelow)
-    );
   }
 
   private getOverlapWith(grid: LayoutEngineGrid, targetItem: LayoutEngineItem): LayoutEngineItem {
