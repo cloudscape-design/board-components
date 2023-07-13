@@ -80,7 +80,12 @@ class LayoutEngineStep {
   public resolveOverlaps(userMove: CommittedMove): LayoutEngineStep {
     this.conflicts = this.findConflicts(this.grid, userMove);
 
-    const initialState = cloneMoveVariantState({ grid: this.grid, moves: this.moves, overlaps: new Set(), score: 0 });
+    const initialState = cloneMoveVariantState({
+      grid: this.grid,
+      moves: this.moves,
+      overlaps: new Set(),
+      score: 0,
+    });
     let moveVariants: MoveVariant[] = [{ state: initialState, move: userMove, moveScore: 0 }];
 
     let bestVariant: null | MoveVariantState = null;
@@ -99,7 +104,7 @@ class LayoutEngineStep {
         if (state.overlaps.size === 0) {
           bestVariant = state;
         } else {
-          nextVariants.push(...this.findNextVariants(state, userMove));
+          nextVariants.push(...this.findNextVariants(state));
         }
       }
 
@@ -192,27 +197,18 @@ class LayoutEngineStep {
     state.score += moveScore;
   }
 
-  private findNextVariants(state: MoveVariantState, userMove: CommittedMove): MoveVariant[] {
-    const activeId = userMove.itemId;
-    const isResize = userMove.type === "RESIZE";
+  private findNextVariants(state: MoveVariantState): MoveVariant[] {
     const nextMoveVariants: MoveVariant[] = [];
 
     for (const overlap of [...state.overlaps]) {
-      const overlapItem = state.grid.getItem(overlap);
-      const overlapWith = this.getOverlapWith(state.grid, overlapItem);
-      const directions = this.getPriorityDirections(state.moves, overlapWith, activeId, isResize);
-      const vacantDirections = overlapWith.id !== activeId || isResize ? directions.slice(0, 3) : directions;
-
-      for (let directionIndex = 0; directionIndex < directions.length; directionIndex++) {
-        const moveDirection = directions[directionIndex];
-
-        const vacantMoveDirection = vacantDirections[directionIndex];
-        const move = this.getMoveForDirection(overlapItem, overlapWith, moveDirection, "OVERLAP");
-
-        if (vacantMoveDirection && this.validateVacantMove(state.grid, move)) {
-          nextMoveVariants.push({ state: cloneMoveVariantState(state), move, moveScore: 1 });
-        } else if (this.validatePriorityMove(state.grid, move, activeId)) {
-          nextMoveVariants.push({ state: cloneMoveVariantState(state), move, moveScore: 5 });
+      const directions: Direction[] = ["down", "left", "right", "up"];
+      for (const moveDirection of directions) {
+        const moveScore = this.getDirectionMoveScore(state, overlap, moveDirection);
+        if (moveScore !== null) {
+          const moveTarget = state.grid.getItem(overlap);
+          const overlapIssuer = this.getOverlapWith(state.grid, moveTarget);
+          const move = this.getMoveForDirection(moveTarget, overlapIssuer, moveDirection, "OVERLAP");
+          nextMoveVariants.push({ state: cloneMoveVariantState(state), move, moveScore });
         }
       }
     }
@@ -220,52 +216,58 @@ class LayoutEngineStep {
     return nextMoveVariants;
   }
 
-  // Retrieves prioritized list of directions to look for a resolution move.
-  private getPriorityDirections(
-    moves: CommittedMove[],
-    issuer: LayoutEngineItem,
-    activeId: ItemId,
-    isResize: boolean
-  ): Direction[] {
-    const diff = this.getLastStepDiff(moves, issuer);
+  private getDirectionMoveScore(state: MoveVariantState, overlap: ItemId, moveDirection: Direction): null | number {
+    const activeId = state.moves[0].itemId;
+    const moveTarget = state.grid.getItem(overlap);
+    const overlapIssuer = this.getOverlapWith(state.grid, moveTarget);
+    const move = this.getMoveForDirection(moveTarget, overlapIssuer, moveDirection, "OVERLAP");
 
-    const firstVertical = diff.y > 0 ? "down" : "up";
-    const nextVertical = firstVertical === "up" ? "down" : "up";
+    let isVacant = false;
 
-    const firstHorizontal = diff.x > 0 ? "right" : "left";
-    const nextHorizontal = firstHorizontal === "left" ? "right" : "left";
+    for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
+      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
+        const newY = move.y + (y - moveTarget.y);
+        const newX = move.x + (x - moveTarget.x);
 
-    const directions: Direction[] =
-      Math.abs(diff.y) > Math.abs(diff.x)
-        ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
-        : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
+        // Outside the grid.
+        if (newY < 0 || newX < 0 || newX >= state.grid.width) {
+          return null;
+        }
 
-    if (issuer.id !== activeId || isResize) {
-      const firstMove = directions[0];
-      directions[0] = directions[3];
-      directions[3] = firstMove;
+        for (const item of state.grid.getCell(newX, newY)) {
+          // Can't overlap with the active item.
+          if (item.id === activeId) {
+            return null;
+          }
+
+          // Can't overlap with the conflicted item.
+          if (this.conflicts.has(item.id)) {
+            return null;
+          }
+        }
+
+        // The probed destination is occupied.
+        if (!state.grid.getCellOverlap(newX, newY, move.itemId)) {
+          isVacant = true;
+        }
+      }
     }
 
-    return directions;
-  }
+    const isSwap = this.isSwap(state.moves, overlapIssuer, move, moveTarget);
 
-  private getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
-    const issuerMoves = moves.filter((move) => move.itemId === issuer.id);
-    const originalParams = {
-      x: issuer.originalX,
-      y: issuer.originalY,
-      width: issuer.originalWidth,
-      height: issuer.originalHeight,
-    };
-    const prevIssuerMove = issuerMoves[issuerMoves.length - 2] ?? originalParams;
-    const lastIssuerMove = issuerMoves[issuerMoves.length - 1] ?? originalParams;
-    const diff = {
-      x: prevIssuerMove.x - lastIssuerMove.x,
-      y: prevIssuerMove.y - lastIssuerMove.y,
-      width: prevIssuerMove.width - lastIssuerMove.width,
-      height: prevIssuerMove.height - lastIssuerMove.height,
-    };
-    return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
+    if (isVacant && isSwap && overlapIssuer.id === activeId) {
+      return 1;
+    }
+    if (isVacant && !isSwap) {
+      return 2;
+    }
+    if (isVacant && overlapIssuer.id !== activeId) {
+      return 2;
+    }
+    if (isVacant) {
+      return 6;
+    }
+    return 5;
   }
 
   private validateVacantMove(grid: LayoutEngineGrid, move: CommittedMove): boolean {
@@ -319,6 +321,65 @@ class LayoutEngineStep {
     }
 
     return true;
+  }
+
+  // Retrieves prioritized list of directions to look for a resolution move.
+  private getPriorityDirections(
+    moves: CommittedMove[],
+    issuer: LayoutEngineItem,
+    activeId: ItemId,
+    isResize: boolean
+  ): Direction[] {
+    const diff = this.getLastStepDiff(moves, issuer);
+
+    const firstVertical = diff.y > 0 ? "down" : "up";
+    const nextVertical = firstVertical === "up" ? "down" : "up";
+
+    const firstHorizontal = diff.x > 0 ? "right" : "left";
+    const nextHorizontal = firstHorizontal === "left" ? "right" : "left";
+
+    const directions: Direction[] =
+      Math.abs(diff.y) > Math.abs(diff.x)
+        ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
+        : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
+
+    if (issuer.id !== activeId || isResize) {
+      const firstMove = directions[0];
+      directions[0] = directions[3];
+      directions[3] = firstMove;
+    }
+
+    return directions;
+  }
+
+  private isSwap(moves: CommittedMove[], issuer: LayoutEngineItem, move: CommittedMove, moveTarget: LayoutEngineItem) {
+    const issuerDiff = this.getLastStepDiff(moves, issuer);
+    const moveDiff = this.getLastStepDiff([...moves, move], moveTarget);
+    return (
+      (issuerDiff.x < 0 && moveDiff.x > 0) ||
+      (issuerDiff.x > 0 && moveDiff.x < 0) ||
+      (issuerDiff.y < 0 && moveDiff.y > 0) ||
+      (issuerDiff.y > 0 && moveDiff.y < 0)
+    );
+  }
+
+  private getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
+    const issuerMoves = moves.filter((move) => move.itemId === issuer.id);
+    const originalParams = {
+      x: issuer.originalX,
+      y: issuer.originalY,
+      width: issuer.originalWidth,
+      height: issuer.originalHeight,
+    };
+    const prevIssuerMove = issuerMoves[issuerMoves.length - 2] ?? originalParams;
+    const lastIssuerMove = issuerMoves[issuerMoves.length - 1] ?? originalParams;
+    const diff = {
+      x: prevIssuerMove.x - lastIssuerMove.x,
+      y: prevIssuerMove.y - lastIssuerMove.y,
+      width: prevIssuerMove.width - lastIssuerMove.width,
+      height: prevIssuerMove.height - lastIssuerMove.height,
+    };
+    return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
   }
 
   private getOverlapWith(grid: LayoutEngineGrid, targetItem: LayoutEngineItem): LayoutEngineItem {
