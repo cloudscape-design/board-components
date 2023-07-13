@@ -18,16 +18,17 @@ export class LayoutEngineStepState {
 }
 
 export function resolveOverlaps(userMove: CommittedMove, state: LayoutEngineStepState): LayoutEngineStepState {
-  return new LayoutEngineStep(state).resolveOverlaps(userMove).getState();
+  return new LayoutEngineStep().resolveOverlaps(state, userMove);
 }
 
 export function refloatGrid(state: LayoutEngineStepState): LayoutEngineStepState {
-  return new LayoutEngineStep(state).refloatGrid().getState();
+  return new LayoutEngineStep().refloatGrid(state);
 }
 
 interface MoveVariantState {
   grid: LayoutEngineGrid;
   moves: CommittedMove[];
+  conflicts: Set<ItemId>;
   overlaps: Set<ItemId>;
   score: number;
 }
@@ -38,8 +39,8 @@ interface MoveVariant {
   moveScore: number;
 }
 
-function cloneMoveVariantState({ grid, moves, overlaps, score }: MoveVariantState): MoveVariantState {
-  return { grid: LayoutEngineGrid.clone(grid), moves: [...moves], overlaps: new Set([...overlaps]), score };
+function cloneMoveVariantState({ grid, moves, conflicts, overlaps, score }: MoveVariantState): MoveVariantState {
+  return { grid: LayoutEngineGrid.clone(grid), moves: [...moves], conflicts, overlaps: new Set([...overlaps]), score };
 }
 
 function checkMovesEqual(move1: CommittedMove, move2: CommittedMove): boolean {
@@ -54,37 +55,20 @@ function checkMovesEqual(move1: CommittedMove, move2: CommittedMove): boolean {
 }
 
 class LayoutEngineStep {
-  private grid: LayoutEngineGrid;
-  private moves: CommittedMove[] = [];
-  private conflicts = new Set<ItemId>();
-
-  constructor(state: LayoutEngineStepState) {
-    this.grid = LayoutEngineGrid.clone(state.grid);
-    this.moves = [...state.moves];
-    this.conflicts = new Set([...state.conflicts]);
-  }
-
-  getState(): LayoutEngineStepState {
-    return { grid: this.grid, moves: this.moves, conflicts: this.conflicts };
-  }
-
   /**
     TODO:
     - Test with extreme examples (6x20 board with many items) and ensure the algorithm never takes too long.
    */
 
   // Issue moves on overlapping items trying to resolve all of them.
-  public resolveOverlaps(userMove: CommittedMove): LayoutEngineStep {
-    this.conflicts = this.findConflicts(this.grid, userMove);
+  public resolveOverlaps(layoutState: LayoutEngineStepState, userMove: CommittedMove): LayoutEngineStepState {
+    const grid = LayoutEngineGrid.clone(layoutState.grid);
+    const moves = [...layoutState.moves];
+    const conflicts = this.findConflicts(grid, userMove);
+    const overlaps = new Set<ItemId>();
+    const initialState = cloneMoveVariantState({ grid, moves, conflicts, overlaps, score: 0 });
 
-    const initialState = cloneMoveVariantState({
-      grid: this.grid,
-      moves: this.moves,
-      overlaps: new Set(),
-      score: 0,
-    });
     let moveVariants: MoveVariant[] = [{ state: initialState, move: userMove, moveScore: 0 }];
-
     let bestVariant: null | MoveVariantState = null;
     let safetyCounter = 1000;
 
@@ -114,28 +98,27 @@ class LayoutEngineStep {
     }
 
     if (!bestVariant) {
-      return this;
+      return layoutState;
     }
 
-    this.grid = bestVariant.grid;
-    this.moves = bestVariant.moves;
-
-    this.refloatGrid(userMove.itemId);
-
-    return this;
+    return this.refloatGrid(bestVariant, userMove);
   }
 
   // Find items that can "float" to the top and apply the necessary moves.
-  public refloatGrid(activeId?: ItemId): LayoutEngineStep {
-    if (this.conflicts.size > 0) {
-      return this;
+  public refloatGrid(layoutState: LayoutEngineStepState, userMove?: CommittedMove): LayoutEngineStepState {
+    if (layoutState.conflicts.size > 0) {
+      return layoutState;
     }
+
+    const grid = LayoutEngineGrid.clone(layoutState.grid);
+    const moves = [...layoutState.moves];
+    const conflicts = new Set(...layoutState.conflicts);
 
     let needAnotherRefloat = false;
 
-    for (const item of this.grid.items) {
+    for (const item of grid.items) {
       // The active item is skipped until the operation is committed.
-      if (item.id === activeId) {
+      if (item.id === userMove?.itemId) {
         continue;
       }
 
@@ -148,26 +131,27 @@ class LayoutEngineStep {
         type: "FLOAT",
       };
       for (move.y; move.y >= 0; move.y--) {
-        if (!this.validateVacantMove(this.grid, { ...move, y: move.y - 1 })) {
+        if (!this.validateVacantMove(grid, { ...move, y: move.y - 1 })) {
           break;
         }
       }
       if (item.y !== move.y) {
-        this.makeMove({ grid: this.grid, moves: this.moves, overlaps: new Set(), score: 0 }, move, 0);
+        this.makeMove({ grid, moves, conflicts, overlaps: new Set(), score: 0 }, move, 0);
         needAnotherRefloat = true;
       }
     }
 
+    // TODO: avoid cloning for recursive refloat
     if (needAnotherRefloat) {
-      this.refloatGrid(activeId);
+      this.refloatGrid({ grid, moves, conflicts }, userMove);
     }
 
-    return this;
+    return { grid, moves, conflicts };
   }
 
   private makeMove(state: MoveVariantState, nextMove: CommittedMove, moveScore: number): void {
     const addOverlap = (itemId: ItemId) => {
-      if (!this.conflicts.has(itemId)) {
+      if (!state.conflicts.has(itemId)) {
         state.overlaps.add(itemId);
       }
     };
@@ -242,7 +226,7 @@ class LayoutEngineStep {
           }
 
           // Can't overlap with the conflicted item.
-          if (this.conflicts.has(item.id)) {
+          if (state.conflicts.has(item.id)) {
             return null;
           }
         }
