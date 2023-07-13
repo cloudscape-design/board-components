@@ -42,6 +42,17 @@ function cloneMoveVariantState({ grid, moves, overlaps, score }: MoveVariantStat
   return { grid: LayoutEngineGrid.clone(grid), moves: [...moves], overlaps: new Set([...overlaps]), score };
 }
 
+function checkMovesEqual(move1: CommittedMove, move2: CommittedMove): boolean {
+  return (
+    move1.itemId === move2.itemId &&
+    move1.type === move2.type &&
+    move1.x === move2.x &&
+    move1.y === move2.y &&
+    move1.height === move2.height &&
+    move1.width === move2.width
+  );
+}
+
 class LayoutEngineStep {
   private grid: LayoutEngineGrid;
   private moves: CommittedMove[] = [];
@@ -58,22 +69,8 @@ class LayoutEngineStep {
   }
 
   /**
-    CALCULATED MOVES: 
-
-    If no overlaps and no conflicts - refloat and exit
-    If no overlaps - exit
-    If overlaps:
-      Consider each overlap+direction (a valid move) as an opportunity
-      Calculate for each opportunity until it gets too expensive or no overlaps left
-      A cost of an opportunity is a sum of step costs
-      Vacant moves and priority moves can have different costs (easy to adjust)
-      Escape moves are no longer possible - those have infinite cost (prop testing to confirm)
-      Items are allowed to move multiple times but secondary priority moves are expensive
-      If within a single opportunity calculation any two moves are equal - exit, there is an infinite loop
-      The search algorithm is breadth-based (queue) to ensure no infinite loops
-        The algorithm can be layered (make 1st move for all opportunities, make 2nd move for all new/remaining opportunities etc.)
-      There is a safety counter for double-safety
-    Test with extreme examples (6x20 board with many items) and ensure the algorithm never takes too long.
+    TODO:
+    - Test with extreme examples (6x20 board with many items) and ensure the algorithm never takes too long.
    */
 
   // Issue moves on overlapping items trying to resolve all of them.
@@ -89,7 +86,7 @@ class LayoutEngineStep {
     let moveVariants: MoveVariant[] = [{ state: initialState, move: userMove, moveScore: 0 }];
 
     let bestVariant: null | MoveVariantState = null;
-    let safetyCounter = 10;
+    let safetyCounter = 1000;
 
     while (moveVariants.length > 0) {
       const nextVariants: MoveVariant[] = [];
@@ -109,8 +106,6 @@ class LayoutEngineStep {
       }
 
       moveVariants = nextVariants;
-
-      console.log(nextVariants);
 
       safetyCounter--;
       if (safetyCounter <= 0) {
@@ -222,6 +217,12 @@ class LayoutEngineStep {
     const overlapIssuer = this.getOverlapWith(state.grid, moveTarget);
     const move = this.getMoveForDirection(moveTarget, overlapIssuer, moveDirection, "OVERLAP");
 
+    for (const previousMove of state.moves) {
+      if (checkMovesEqual(previousMove, move)) {
+        return null;
+      }
+    }
+
     let isVacant = false;
 
     for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
@@ -291,65 +292,6 @@ class LayoutEngineStep {
     }
 
     return true;
-  }
-
-  private validatePriorityMove(grid: LayoutEngineGrid, move: CommittedMove, activeId: ItemId): boolean {
-    const moveTarget = grid.getItem(move.itemId);
-
-    for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        const newY = move.y + (y - moveTarget.y);
-        const newX = move.x + (x - moveTarget.x);
-
-        // Outside the grid.
-        if (newY < 0 || newX < 0 || newX >= grid.width) {
-          return false;
-        }
-
-        for (const item of grid.getCell(newX, newY)) {
-          // Can't overlap with the active item.
-          if (item.id === activeId) {
-            return false;
-          }
-
-          // The probed destination is currently blocked.
-          if (this.conflicts.has(item.id)) {
-            return false;
-          }
-        }
-      }
-    }
-
-    return true;
-  }
-
-  // Retrieves prioritized list of directions to look for a resolution move.
-  private getPriorityDirections(
-    moves: CommittedMove[],
-    issuer: LayoutEngineItem,
-    activeId: ItemId,
-    isResize: boolean
-  ): Direction[] {
-    const diff = this.getLastStepDiff(moves, issuer);
-
-    const firstVertical = diff.y > 0 ? "down" : "up";
-    const nextVertical = firstVertical === "up" ? "down" : "up";
-
-    const firstHorizontal = diff.x > 0 ? "right" : "left";
-    const nextHorizontal = firstHorizontal === "left" ? "right" : "left";
-
-    const directions: Direction[] =
-      Math.abs(diff.y) > Math.abs(diff.x)
-        ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
-        : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
-
-    if (issuer.id !== activeId || isResize) {
-      const firstMove = directions[0];
-      directions[0] = directions[3];
-      directions[3] = firstMove;
-    }
-
-    return directions;
   }
 
   private isSwap(moves: CommittedMove[], issuer: LayoutEngineItem, move: CommittedMove, moveTarget: LayoutEngineItem) {
