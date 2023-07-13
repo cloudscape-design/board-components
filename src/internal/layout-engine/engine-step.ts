@@ -214,6 +214,10 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
   for (const overlap of [...state.overlaps]) {
+    if (state.conflicts.has(overlap)) {
+      continue;
+    }
+
     const directions: Direction[] = ["down", "left", "right", "up"];
     for (const moveDirection of directions) {
       const moveScore = getDirectionMoveScore(state, overlap, moveDirection);

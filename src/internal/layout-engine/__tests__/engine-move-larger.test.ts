@@ -429,7 +429,7 @@ describe("multiple overlap resolutions", () => {
     const grid = fromMatrix(gridMatrix);
     const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
     expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(layoutShift.moves.filter((move) => move.type === "VACANT")).toHaveLength(2);
+    expect(layoutShift.moves.filter((move) => move.type === "OVERLAP")).toHaveLength(2);
   });
 });
 
@@ -477,6 +477,8 @@ test("Escape moves are disallowed for user moves", () => {
     [" ", " ", "F", "F"],
   ]);
   const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid)).getLayoutShift();
+
+  console.log(layoutShift.moves);
 
   expect(toString(layoutShift.next)).toBe(
     toString([
