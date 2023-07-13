@@ -34,7 +34,7 @@ export class LayoutEngine {
       const { width, height } = this.step.grid.getItem(itemId);
 
       const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "MOVE" };
-      this.step = resolveOverlaps(move, this.step);
+      this.step = resolveOverlaps(this.step, move);
     }
 
     return new LayoutEngine(this);
@@ -50,10 +50,14 @@ export class LayoutEngine {
       const width = path[stepIndex].x - resizeTarget.x;
       const height = path[stepIndex].y - resizeTarget.y;
 
-      this.step = resolveOverlaps(
-        { itemId, x: resizeTarget.x, y: resizeTarget.y, width, height, type: "RESIZE" },
-        this.step
-      );
+      this.step = resolveOverlaps(this.step, {
+        itemId,
+        x: resizeTarget.x,
+        y: resizeTarget.y,
+        width,
+        height,
+        type: "RESIZE",
+      });
     }
 
     return new LayoutEngine(this);
@@ -62,7 +66,7 @@ export class LayoutEngine {
   insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
     this.cleanup();
 
-    this.step = resolveOverlaps({ itemId, ...position, width, height, type: "INSERT" }, this.step);
+    this.step = resolveOverlaps(this.step, { itemId, ...position, width, height, type: "INSERT" });
 
     return new LayoutEngine(this).move({ itemId, path });
   }
@@ -72,7 +76,7 @@ export class LayoutEngine {
 
     const { x, y, width, height } = this.step.grid.getItem(itemId);
 
-    this.step = resolveOverlaps({ itemId, x, y, width, height, type: "REMOVE" }, this.step);
+    this.step = resolveOverlaps(this.step, { itemId, x, y, width, height, type: "REMOVE" });
 
     return new LayoutEngine(this);
   }
