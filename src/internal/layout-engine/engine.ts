@@ -95,7 +95,7 @@ export class LayoutEngine {
         rows: this.step.grid.height,
       },
       moves: [...this.step.moves],
-      conflicts: [...this.step.conflicts],
+      conflicts: this.step.conflicts ? [...this.step.conflicts.items.values()] : [],
     };
   }
 

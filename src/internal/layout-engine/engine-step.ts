@@ -20,13 +20,18 @@ import { checkMovesEqual } from "./utils";
 export class LayoutEngineStepState {
   public grid: ReadonlyLayoutEngineGrid;
   public moves: readonly CommittedMove[];
-  public conflicts: ReadonlySet<ItemId>;
+  public conflicts: null | Conflicts;
 
-  constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts = new Set<ItemId>()) {
+  constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts: null | Conflicts = null) {
     this.grid = grid;
     this.moves = moves;
     this.conflicts = conflicts;
   }
+}
+
+export interface Conflicts {
+  items: ReadonlySet<ItemId>;
+  direction: Direction;
 }
 
 /**
@@ -40,7 +45,7 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   // The swapping is only preferred for the user-controlled item and it can only happen when the item overlaps another
   // item past its midpoint. When the overlap is not enough, the underlying item is considered a conflict and it is not
   // allowed to move anywhere. The user command cannot be committed at this step.
-  const conflicts = findConflicts(layoutState.grid, userMove);
+  const conflicts = findConflicts(layoutState.grid, layoutState.conflicts, userMove);
 
   // The user moves are always applied as is. When the user-controlled item overlaps with other items and there is
   // no conflict, the type="OVERLAP" moves are performed to settle the grid so that no items overlap with one another.
@@ -100,7 +105,7 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
 
   // After each step unless there are conflicts the "refloat" is performed which is performing type="FLOAT"
   // moves on all items that can be moved to the top without overlapping with other items.
-  return bestSolution.conflicts.size > 0 ? bestSolution : refloatGrid(bestSolution, userMove);
+  return bestSolution.conflicts ? bestSolution : refloatGrid(bestSolution, userMove);
 }
 
 // Find items that can "float" to the top and apply the necessary moves.
@@ -148,14 +153,14 @@ export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: Commi
 class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
-  public conflicts: ReadonlySet<ItemId>;
+  public conflicts: null | Conflicts;
   public overlaps: Set<ItemId>;
   public score: number;
 
   constructor(
     grid: ReadonlyLayoutEngineGrid,
     moves: readonly CommittedMove[],
-    conflicts: ReadonlySet<ItemId> = new Set<ItemId>(),
+    conflicts: null | Conflicts = null,
     overlaps = new Set<ItemId>(),
     score = 0
   ) {
@@ -185,7 +190,7 @@ interface MoveSolution {
 
 function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: number): void {
   const addOverlap = (itemId: ItemId) => {
-    if (!state.conflicts.has(itemId)) {
+    if (!state.conflicts?.items.has(itemId)) {
       state.overlaps.add(itemId);
     }
   };
@@ -214,10 +219,6 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
   for (const overlap of [...state.overlaps]) {
-    if (state.conflicts.has(overlap)) {
-      continue;
-    }
-
     const directions: Direction[] = ["down", "left", "right", "up"];
     for (const moveDirection of directions) {
       const moveScore = getDirectionMoveScore(state, overlap, moveDirection);
@@ -264,7 +265,7 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
         }
 
         // Can't overlap with the conflicted item.
-        if (state.conflicts.has(item.id)) {
+        if (state.conflicts?.items.has(item.id)) {
           return null;
         }
       }
@@ -392,59 +393,78 @@ function getMoveForDirection(
 }
 
 // Finds items that cannot be resolved at the current step.
-function findConflicts(grid: ReadonlyLayoutEngineGrid, move: CommittedMove): Set<ItemId> {
+function findConflicts(
+  grid: ReadonlyLayoutEngineGrid,
+  previousConflicts: null | Conflicts,
+  move: CommittedMove
+): null | Conflicts {
   if (move.type !== "MOVE") {
-    return new Set();
+    return null;
   }
 
   const conflicts = new Set<ItemId>();
   const moveTarget = grid.getItem(move.itemId);
-  const direction = `${move.x - moveTarget.x}:${move.y - moveTarget.y}`;
+  const direction: Direction = (() => {
+    if (previousConflicts) {
+      return previousConflicts.direction;
+    }
 
-  switch (direction) {
-    case "-1:0": {
-      const left = Math.max(0, moveTarget.left - 1);
-      for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-        const block = grid.getCellOverlap(left, y, moveTarget.id);
-        if (block && block.x < left) {
-          conflicts.add(block.id);
-        }
-      }
-      break;
+    switch (`${move.x - moveTarget.x}:${move.y - moveTarget.y}`) {
+      case "-1:0":
+        return "left";
+      case "1:0":
+        return "right";
+      case "0:-1":
+        return "up";
+      case "0:1":
+        return "down";
+      default:
+        throw new Error("Invariant violation: user move is not incremental");
     }
-    case "1:0": {
-      const right = Math.min(grid.width - 1, moveTarget.right + 1);
-      for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-        const block = grid.getCellOverlap(right, y, moveTarget.id);
-        if (block && block.x + block.width - 1 > right) {
-          conflicts.add(block.id);
-        }
+  })();
+
+  const overlaps = new Set<ItemId>();
+  for (let x = move.x; x < move.x + move.width; x++) {
+    for (let y = move.y; y < move.y + move.height; y++) {
+      const overlap = grid.getCellOverlap(x, y, moveTarget.id);
+      if (overlap) {
+        overlaps.add(overlap.id);
       }
-      break;
     }
-    case "0:-1": {
-      const top = Math.max(0, moveTarget.top - 1);
-      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        const block = grid.getCellOverlap(x, top, moveTarget.id);
-        if (block && block.y < top) {
-          conflicts.add(block.id);
-        }
-      }
-      break;
-    }
-    case "0:1": {
-      const bottom = moveTarget.bottom + 1;
-      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        const block = grid.getCellOverlap(x, bottom, moveTarget.id);
-        if (block && block.y + block.height - 1 > bottom) {
-          conflicts.add(block.id);
-        }
-      }
-      break;
-    }
-    default:
-      throw new Error("Invariant violation: user move is not incremental");
   }
 
-  return conflicts;
+  for (const overlap of overlaps) {
+    switch (direction) {
+      case "left": {
+        const left = move.x;
+        if (grid.getItem(overlap).left < left) {
+          conflicts.add(overlap);
+        }
+        break;
+      }
+      case "right": {
+        const right = move.x + move.width - 1;
+        if (grid.getItem(overlap).right > right) {
+          conflicts.add(overlap);
+        }
+        break;
+      }
+      case "up": {
+        const top = move.y;
+        if (grid.getItem(overlap).top < top) {
+          conflicts.add(overlap);
+        }
+        break;
+      }
+      case "down": {
+        const bottom = move.y + move.height - 1;
+        if (grid.getItem(overlap).bottom > bottom) {
+          conflicts.add(overlap);
+        }
+        break;
+      }
+    }
+  }
+
+  return conflicts.size > 0 ? { items: conflicts, direction } : null;
 }
