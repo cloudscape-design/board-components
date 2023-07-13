@@ -17,6 +17,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   DragAndDropData,
   DropTargetContext,
@@ -383,12 +384,15 @@ function ItemContainerComponent(
   }));
 
   const isActive = (!!transition && !transition.isBorrowed) || !!acquired;
+  const shouldUsePortal =
+    (transition?.operation === "insert" || transition?.operation === "reorder") &&
+    transition?.interactionType === "pointer";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
     childrenRef.current = children();
   }
 
-  return (
+  const content = (
     <div
       ref={itemRef}
       className={clsx(styles.root, ...itemTransitionClassNames)}
@@ -418,4 +422,6 @@ function ItemContainerComponent(
       </ItemContext.Provider>
     </div>
   );
+
+  return shouldUsePortal ? <div>{createPortal(content, document.body)}</div> : content;
 }

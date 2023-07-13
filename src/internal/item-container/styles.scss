@@ -17,11 +17,11 @@
   display: none;
 }
 .dragged {
-  z-index: 5000;
+  z-index: 2000;
   position: fixed;
 }
 .resized {
-  z-index: 5000;
+  z-index: 2000;
   position: absolute;
 }
 .borrowed {

@@ -7,6 +7,7 @@ import { InternalBaseComponentProps } from "../internal/base-component/use-base-
 import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
+import { useGlobalDragStateStyles } from "../internal/global-drag-state-styles";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
@@ -46,6 +47,8 @@ export function InternalBoard<D>({
   const [currentColumns, containerQueryRef] = useContainerColumns();
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
+
+  useGlobalDragStateStyles();
 
   const autoScrollHandlers = useAutoScroll();
 
@@ -132,8 +135,6 @@ export function InternalBoard<D>({
     });
 
     autoScrollHandlers.addPointerEventHandlers();
-
-    document.body.classList.add(styles[`current-operation-${operation}`]);
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
@@ -149,8 +150,6 @@ export function InternalBoard<D>({
     dispatch({ type: "submit" });
 
     autoScrollHandlers.removePointerEventHandlers();
-
-    document.body.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -175,8 +174,6 @@ export function InternalBoard<D>({
 
   useDragSubscription("discard", () => {
     dispatch({ type: "discard" });
-
-    document.body.classList.remove(styles["current-operation-reorder"], styles["current-operation-resize"]);
 
     autoScrollHandlers.removePointerEventHandlers();
   });
