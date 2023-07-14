@@ -246,19 +246,14 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
     }
   }
 
-  let isVacant = false;
-
-  for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-    for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-      const newY = move.y + (y - moveTarget.y);
-      const newX = move.x + (x - moveTarget.x);
-
+  for (let y = move.y; y < move.y + move.height; y++) {
+    for (let x = move.x; x < move.x + move.width; x++) {
       // Outside the grid.
-      if (newY < 0 || newX < 0 || newX >= state.grid.width) {
+      if (y < 0 || x < 0 || x >= state.grid.width) {
         return null;
       }
 
-      for (const item of state.grid.getCell(newX, newY)) {
+      for (const item of state.grid.getCell(x, y)) {
         // Can't overlap with the active item.
         if (item.id === activeId) {
           return null;
@@ -269,29 +264,48 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
           return null;
         }
       }
+    }
+  }
 
-      // The probed destination is occupied.
-      if (!state.grid.getCellOverlap(newX, newY, move.itemId)) {
-        isVacant = true;
+  const pathOverlaps = new Set<ItemId>();
+
+  const startY = move.y <= moveTarget.y ? move.y : moveTarget.y + moveTarget.height;
+  const endY = move.y < moveTarget.y ? moveTarget.y - 1 : move.y + moveTarget.height - 1;
+  const startX = move.x <= moveTarget.x ? move.x : moveTarget.x + moveTarget.width;
+  const endX = move.x < moveTarget.x ? moveTarget.x - 1 : move.x + moveTarget.width - 1;
+
+  for (let y = startY; y <= endY; y++) {
+    for (let x = startX; x <= endX; x++) {
+      for (const item of state.grid.getCell(x, y)) {
+        // The probed destination is occupied.
+        pathOverlaps.add(item.id);
       }
     }
   }
 
+  const isVacant = pathOverlaps.size === 0;
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
+  const repetitiveMovePenalty = state.moves.filter((m) => m.itemId === overlap).length * (isVacant ? 0 : 25);
+  const moveDistancePenalty = Math.abs(moveTarget.x - move.x) + Math.abs(moveTarget.y - move.y);
+  const overlapsPenalty = Math.max(0, pathOverlaps.size - 1) * 50;
+  const withPenalties = (score: number) => score + repetitiveMovePenalty + moveDistancePenalty + overlapsPenalty;
 
   if (isVacant && isSwap && overlapIssuer.id === activeId) {
-    return 1;
+    return withPenalties(10);
   }
   if (isVacant && !isSwap) {
-    return 2;
+    return withPenalties(20);
   }
   if (isVacant && overlapIssuer.id !== activeId) {
-    return 2;
+    return withPenalties(20);
   }
   if (isVacant) {
-    return 6;
+    return withPenalties(60);
   }
-  return 5;
+  if (isSwap) {
+    return withPenalties(80);
+  }
+  return withPenalties(50);
 }
 
 function validateVacantMove(grid: LayoutEngineGrid, move: CommittedMove): boolean {

@@ -66,7 +66,7 @@ export class LayoutEngine {
   insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
     this.cleanup();
 
-    this.step = resolveOverlaps(this.step, { itemId, ...position, width, height, type: "INSERT" });
+    this.step = resolveOverlaps(this.step, { itemId, x: position.x, y: position.y, width, height, type: "INSERT" });
 
     return new LayoutEngine(this).move({ itemId, path });
   }

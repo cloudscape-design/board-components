@@ -477,9 +477,6 @@ test("Escape moves are disallowed for user moves", () => {
     [" ", " ", "F", "F"],
   ]);
   const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid)).getLayoutShift();
-
-  console.log(layoutShift.moves);
-
   expect(toString(layoutShift.next)).toBe(
     toString([
       ["A", "A", "B", "B"],
