@@ -21,7 +21,9 @@ export class ReadonlyLayoutEngineGrid {
     const clone = new LayoutEngineGrid([], 0);
     clone._width = grid._width;
     clone._height = grid._height;
-    clone._items = new Map([...grid._items].map(([k, v]) => [k, { ...v }]));
+    for (const [key, value] of grid._items) {
+      clone._items.set(key, { ...value });
+    }
     clone._layout = grid._layout.map((row) => row.map((set) => new Set([...set])));
     return clone;
   }

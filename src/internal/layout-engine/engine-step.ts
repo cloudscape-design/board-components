@@ -65,24 +65,14 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   while (moveSolutions.length > 0) {
     const nextSolutions: MoveSolution[] = [];
 
-    const minScore = moveSolutions.reduce(
-      (acc, s) => Math.min(acc, s.state.score + s.moveScore),
-      Number.POSITIVE_INFINITY
-    );
-
-    for (const { state, move, moveScore } of moveSolutions) {
+    for (const { state: moveState, move, moveScore } of moveSolutions) {
       // Discard the solution before performing the move if its next score is already above the best score found so far.
-      if (bestSolution && state.score + moveScore >= bestSolution.score) {
-        continue;
-      }
-      if (state.score + moveScore > minScore + 100) {
+      if (bestSolution && moveState.score + moveScore >= bestSolution.score) {
         continue;
       }
 
-      // TODO: validate
-      if (state.grid.height > layoutState.grid.height * 2) {
-        continue;
-      }
+      // TODO: clone inside makeMove?
+      const state = MoveSolutionState.clone(moveState);
 
       // Perform the move by mutating the solution's state.
       // This state is not shared and mutating it is safe. It is done to avoid unnecessary cloning.
@@ -252,7 +242,7 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
         const moveTarget = state.grid.getItem(overlap);
         const overlapIssuer = getOverlapWith(state.grid, moveTarget);
         const move = getMoveForDirection(moveTarget, overlapIssuer, moveDirection);
-        nextMoveSolutions.push({ state: MoveSolutionState.clone(state), move, moveScore });
+        nextMoveSolutions.push({ state, move, moveScore });
       }
     }
   }
@@ -452,24 +442,38 @@ function getMoveForDirection(
   overlap: LayoutEngineItem,
   direction: Direction
 ): CommittedMove {
-  const common = {
+  const move: CommittedMove = {
     itemId: moveTarget.id,
+    x: -1,
+    y: -1,
     width: moveTarget.width,
     height: moveTarget.height,
-    type: "OVERLAP" as const,
+    type: "OVERLAP",
   };
   switch (direction) {
     case "up": {
-      return { ...common, y: overlap.top - moveTarget.height, x: moveTarget.x, direction: "up" };
+      move.x = moveTarget.x;
+      move.y = overlap.top - moveTarget.height;
+      move.direction = "up";
+      return move;
     }
     case "down": {
-      return { ...common, y: overlap.bottom + 1, x: moveTarget.x, direction: "down" };
+      move.x = moveTarget.x;
+      move.y = overlap.bottom + 1;
+      move.direction = "down";
+      return move;
     }
     case "left": {
-      return { ...common, y: moveTarget.y, x: overlap.left - moveTarget.width, direction: "left" };
+      move.x = overlap.left - moveTarget.width;
+      move.y = moveTarget.y;
+      move.direction = "left";
+      return move;
     }
     case "right": {
-      return { ...common, y: moveTarget.y, x: overlap.right + 1, direction: "right" };
+      move.x = overlap.right + 1;
+      move.y = moveTarget.y;
+      move.direction = "right";
+      return move;
     }
   }
 }
