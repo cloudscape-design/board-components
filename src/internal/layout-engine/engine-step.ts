@@ -218,7 +218,12 @@ function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: 
 function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
-  for (const overlap of [...state.overlaps]) {
+  for (const overlap of state.overlaps) {
+    if (!checkOverlap(state, overlap)) {
+      state.overlaps.delete(overlap);
+      continue;
+    }
+
     const directions: Direction[] = ["down", "left", "right", "up"];
     for (const moveDirection of directions) {
       const moveScore = getDirectionMoveScore(state, overlap, moveDirection);
@@ -364,6 +369,21 @@ function getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
     height: prevIssuerMove.height - lastIssuerMove.height,
   };
   return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
+}
+
+function checkOverlap(state: MoveSolutionState, overlapId: ItemId): boolean {
+  const overlapItem = state.grid.getItem(overlapId);
+
+  for (let y = overlapItem.y; y < overlapItem.y + overlapItem.height; y++) {
+    for (let x = overlapItem.x; x < overlapItem.x + overlapItem.width; x++) {
+      const overlap = state.grid.getCellOverlap(x, y, overlapId);
+      if (overlap) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function getOverlapWith(grid: LayoutEngineGrid, targetItem: LayoutEngineItem): LayoutEngineItem {
