@@ -104,7 +104,7 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
 
     moveSolutions = nextSolutions
       .sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore))
-      .slice(0, 20);
+      .slice(0, 10);
 
     safetyCounter--;
     if (safetyCounter <= 0) {

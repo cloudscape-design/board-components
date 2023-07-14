@@ -272,7 +272,7 @@ export function generateInsert(grid: GridLayout, insertId = "X", options?: Gener
 
   const y = getRandomIndex(textGrid);
   const x = getRandomIndex(textGrid[y]);
-  const width = getRandomInt(1, maxWidth + 1 - x);
+  const width = getRandomInt(1, Math.max(1, maxWidth + 1 - x));
   const height = getRandomInt(1, maxHeight + 1);
 
   return { itemId: insertId, width, height, path: [new Position({ x, y })] };
