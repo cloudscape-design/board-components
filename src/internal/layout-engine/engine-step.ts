@@ -8,7 +8,6 @@ import { CommittedMove } from "./interfaces";
 import { createMove } from "./utils";
 
 // TODO: overlaps is a map (Overlap:Issuer)
-// TODO: prevent multi-overlaps with priority mechanism
 
 /**
  * The user commands in the layout engine are applied step by step.
@@ -263,7 +262,14 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
         return null;
       }
 
-      for (const item of state.grid.getCell(x, y)) {
+      const cell = state.grid.getCell(x, y);
+
+      // Can't overlap with cells containing unresolved overlaps.
+      if (cell.length > 1) {
+        return null;
+      }
+
+      for (const item of cell) {
         // Can't overlap with the active item.
         if (item.id === activeId) {
           return null;
