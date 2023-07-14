@@ -332,7 +332,9 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
   const repetitiveMovePenalty =
-    state.moves.filter((m) => m.itemId === overlap && m.direction !== moveDirection).length * (isVacant ? 10 : 25);
+    overlapIssuer.id === activeId && isSwap
+      ? 0
+      : state.moves.filter((m) => m.itemId === overlap && m.direction !== moveDirection).length * (isVacant ? 10 : 25);
   const moveDistancePenalty = Math.abs(moveTarget.x - move.x) + Math.abs(moveTarget.y - move.y);
   const overlapsPenalty = Math.max(0, pathOverlaps.size - 1) * 50;
   const withPenalties = (score: number) =>
@@ -341,7 +343,7 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
   if (isSwap && state.moves[0].type === "RESIZE") {
     return withPenalties(200);
   }
-  if (isVacant && isSwap && overlapIssuer.id === activeId) {
+  if (isSwap && overlapIssuer.id === activeId) {
     return withPenalties(10);
   }
   if (isVacant && !isSwap) {

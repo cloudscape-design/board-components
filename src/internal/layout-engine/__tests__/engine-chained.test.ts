@@ -15,11 +15,8 @@ test("engine operations can be chained", () => {
 
   const layoutShift = new LayoutEngine(grid)
     .insert({ itemId: "X", width: 1, height: 1, path: [new Position({ x: 1, y: 1 })] })
-    .move({
-      itemId: "X",
-      path: [new Position({ x: 1, y: 2 }), new Position({ x: 1, y: 3 })],
-    })
-    .resize({ itemId: "X", path: [new Position({ x: 3, y: 4 })] })
+    .move({ itemId: "E", path: [new Position({ x: 1, y: 1 })] })
+    .resize({ itemId: "X", path: [new Position({ x: 3, y: 3 })] })
     .remove("F")
     .refloat()
     .getLayoutShift();
