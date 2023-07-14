@@ -7,6 +7,9 @@ import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./
 import { CommittedMove } from "./interfaces";
 import { createMove } from "./utils";
 
+// TODO: overlaps is a map (Overlap:Issuer)
+// TODO: prevent multi-overlaps with priority mechanism
+
 /**
  * The user commands in the layout engine are applied step by step.
  * The class describes the layout engine state at a particular step.
