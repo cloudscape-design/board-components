@@ -65,6 +65,10 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   while (moveSolutions.length > 0) {
     const nextSolutions: MoveSolution[] = [];
 
+    if (moveSolutions.length > 1000) {
+      throw new Error("TOO MUCH!");
+    }
+
     for (const { state, move, moveScore } of moveSolutions) {
       // Discard the solution before performing the move if its next score is already above the best score found so far.
       if (bestSolution && state.score + moveScore >= bestSolution.score) {
@@ -86,6 +90,10 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
         nextSolutions.push(...findNextSolutions(state));
       }
     }
+
+    // for (const s of nextSolutions) {
+    //   console.log(`SOLUTION ${s.move.itemId} -> [${s.move.x}:${s.move.y}] (${s.state.score} + ${s.moveScore})`);
+    // }
 
     moveSolutions = nextSolutions;
 
@@ -283,7 +291,9 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
     for (let x = startX; x <= endX; x++) {
       for (const item of state.grid.getCell(x, y)) {
         // The probed destination is occupied.
-        pathOverlaps.add(item.id);
+        if (item.id !== overlapIssuer.id) {
+          pathOverlaps.add(item.id);
+        }
       }
     }
   }
