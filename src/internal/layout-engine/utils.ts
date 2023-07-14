@@ -25,17 +25,6 @@ export function getItemRect(item: GridLayoutItem): Rect {
   };
 }
 
-export function checkMovesEqual(move1: CommittedMove, move2: CommittedMove): boolean {
-  return (
-    move1.itemId === move2.itemId &&
-    move1.type === move2.type &&
-    move1.x === move2.x &&
-    move1.y === move2.y &&
-    move1.height === move2.height &&
-    move1.width === move2.width
-  );
-}
-
 export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {
   path = normalizePathOrigin(origin, path);
 

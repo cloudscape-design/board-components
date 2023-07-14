@@ -5,13 +5,7 @@ import { Direction, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
 import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { checkMovesEqual, createMove } from "./utils";
-
-/**
-  TODO:
-  - Test with extreme examples (6x20 board with many items) and ensure the algorithm never takes too long.
-  - Ensure overlaps resolution is always possible w/o escape moves as it might not be so when there are conflicts.
-  */
+import { createMove } from "./utils";
 
 /**
  * The user commands in the layout engine are applied step by step.
@@ -258,12 +252,6 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
   const moveTarget = state.grid.getItem(overlap);
   const overlapIssuer = getOverlapWith(state.grid, moveTarget);
   const move = getMoveForDirection(moveTarget, overlapIssuer, moveDirection);
-
-  for (const previousMove of state.moves) {
-    if (checkMovesEqual(previousMove, move)) {
-      return null;
-    }
-  }
 
   for (let y = move.y; y < move.y + move.height; y++) {
     for (let x = move.x; x < move.x + move.width; x++) {
