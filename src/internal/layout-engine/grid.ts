@@ -107,7 +107,7 @@ export class ReadonlyLayoutEngineGrid {
 }
 
 export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
-  move(itemId: ItemId, x: number, y: number, onOverlap: (overlapId: ItemId) => void): void {
+  move(itemId: ItemId, x: number, y: number, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     const moveTarget = this.getItem(itemId);
 
     this.removeLayoutItem(moveTarget);
@@ -119,7 +119,7 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
     this.insertLayoutItem(moveTarget, onOverlap);
   }
 
-  resize(itemId: ItemId, width: number, height: number, onOverlap: (overlapId: ItemId) => void): void {
+  resize(itemId: ItemId, width: number, height: number, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     const resizeTarget = this.getItem(itemId);
 
     this.removeLayoutItem(resizeTarget);
@@ -131,7 +131,7 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
     this.insertLayoutItem(resizeTarget, onOverlap);
   }
 
-  insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId) => void): void {
+  insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     this._items.set(item.id, {
       ...item,
       originalY: item.y,
@@ -154,7 +154,7 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
       }
       for (let x = item.x; x < item.x + item.width; x++) {
         for (const overlapId of this._layout[y][x]) {
-          onOverlap(overlapId);
+          onOverlap(overlapId, item.id);
         }
         this._layout[y][x].add(item.id);
       }
@@ -175,14 +175,14 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
     }
   }
 
-  private insertLayoutItem(item: GridLayoutItem, onOverlap: (overlapId: ItemId) => void): void {
+  private insertLayoutItem(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     for (let y = item.y; y < item.y + item.height; y++) {
       for (let x = item.x; x < item.x + item.width; x++) {
         while (!this._layout[y]) {
           this.makeNewRow();
         }
         for (const overlapId of this._layout[y][x]) {
-          onOverlap(overlapId);
+          onOverlap(overlapId, item.id);
         }
         this._layout[y][x].add(item.id);
       }

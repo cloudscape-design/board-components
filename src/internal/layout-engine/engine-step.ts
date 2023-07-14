@@ -7,8 +7,6 @@ import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./
 import { CommittedMove } from "./interfaces";
 import { createMove } from "./utils";
 
-// TODO: overlaps is a map (Overlap:Issuer)
-
 /**
  * The user commands in the layout engine are applied step by step.
  * The class describes the layout engine state at a particular step.
@@ -164,14 +162,14 @@ class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
   public conflicts: null | Conflicts;
-  public overlaps: Set<ItemId>;
+  public overlaps: Map<ItemId, ItemId>;
   public score: number;
 
   constructor(
     grid: ReadonlyLayoutEngineGrid,
     moves: readonly CommittedMove[],
     conflicts: null | Conflicts = null,
-    overlaps = new Set<ItemId>(),
+    overlaps = new Map<ItemId, ItemId>(),
     score = 0
   ) {
     this.grid = LayoutEngineGrid.clone(grid);
@@ -186,7 +184,7 @@ class MoveSolutionState {
       grid: LayoutEngineGrid.clone(grid),
       moves: [...moves],
       conflicts,
-      overlaps: new Set([...overlaps]),
+      overlaps: new Map([...overlaps]),
       score,
     };
   }
@@ -199,9 +197,9 @@ interface MoveSolution {
 }
 
 function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: number): void {
-  const addOverlap = (itemId: ItemId) => {
+  const addOverlap = (itemId: ItemId, issuerId: ItemId) => {
     if (!state.conflicts?.items.has(itemId)) {
-      state.overlaps.add(itemId);
+      state.overlaps.set(itemId, issuerId);
     }
   };
   switch (nextMove.type) {
@@ -228,7 +226,8 @@ function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: 
 function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
-  for (const overlap of state.overlaps) {
+  for (const [overlap, overlapIssuer] of state.overlaps) {
+    // TODO: optimise with rects comparison
     if (!checkOverlap(state, overlap)) {
       state.overlaps.delete(overlap);
       continue;
@@ -236,11 +235,10 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
 
     const directions: Direction[] = ["down", "left", "right", "up"];
     for (const moveDirection of directions) {
-      const moveScore = getDirectionMoveScore(state, overlap, moveDirection);
+      const moveScore = getDirectionMoveScore(state, overlap, overlapIssuer, moveDirection);
       if (moveScore !== null) {
         const moveTarget = state.grid.getItem(overlap);
-        const overlapIssuer = getOverlapWith(state.grid, moveTarget);
-        const move = getMoveForDirection(moveTarget, overlapIssuer, moveDirection);
+        const move = getMoveForDirection(moveTarget, state.grid.getItem(overlapIssuer), moveDirection);
         nextMoveSolutions.push({ state, move, moveScore });
       }
     }
@@ -249,10 +247,15 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   return nextMoveSolutions;
 }
 
-function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDirection: Direction): null | number {
+function getDirectionMoveScore(
+  state: MoveSolutionState,
+  overlap: ItemId,
+  issuer: ItemId,
+  moveDirection: Direction
+): null | number {
   const activeId = state.moves[0].itemId;
   const moveTarget = state.grid.getItem(overlap);
-  const overlapIssuer = getOverlapWith(state.grid, moveTarget);
+  const overlapIssuer = state.grid.getItem(issuer);
   const move = getMoveForDirection(moveTarget, overlapIssuer, moveDirection);
 
   for (let y = move.y; y < move.y + move.height; y++) {
@@ -414,18 +417,6 @@ function checkOverlap(state: MoveSolutionState, overlapId: ItemId): boolean {
   }
 
   return false;
-}
-
-function getOverlapWith(grid: LayoutEngineGrid, targetItem: LayoutEngineItem): LayoutEngineItem {
-  for (let y = targetItem.y; y < targetItem.y + targetItem.height; y++) {
-    for (let x = targetItem.x; x < targetItem.x + targetItem.width; x++) {
-      const overlap = grid.getCellOverlap(x, y, targetItem.id);
-      if (overlap) {
-        return overlap;
-      }
-    }
-  }
-  throw new Error("Invariant violation - no overlaps found.");
 }
 
 // Retrieve first possible move for the given direction to resolve the overlap.
