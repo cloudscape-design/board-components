@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, ItemId } from "../interfaces";
+import { Position } from "../utils/position";
 import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { checkMovesEqual } from "./utils";
+import { checkMovesEqual, createMove } from "./utils";
 
 /**
   TODO:
@@ -139,6 +140,8 @@ export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: Commi
         width: item.width,
         height: item.height,
         type: "FLOAT",
+        direction: "up",
+        distance: 0, // TODO: update or use createMove util
       };
       for (move.y; move.y >= 0; move.y--) {
         if (!validateVacantMove(state.grid, { ...move, y: move.y - 1 })) {
@@ -442,38 +445,18 @@ function getMoveForDirection(
   overlap: LayoutEngineItem,
   direction: Direction
 ): CommittedMove {
-  const move: CommittedMove = {
-    itemId: moveTarget.id,
-    x: -1,
-    y: -1,
-    width: moveTarget.width,
-    height: moveTarget.height,
-    type: "OVERLAP",
-  };
   switch (direction) {
     case "up": {
-      move.x = moveTarget.x;
-      move.y = overlap.top - moveTarget.height;
-      move.direction = "up";
-      return move;
+      return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.top - moveTarget.height }));
     }
     case "down": {
-      move.x = moveTarget.x;
-      move.y = overlap.bottom + 1;
-      move.direction = "down";
-      return move;
+      return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.bottom + 1 }));
     }
     case "left": {
-      move.x = overlap.left - moveTarget.width;
-      move.y = moveTarget.y;
-      move.direction = "left";
-      return move;
+      return createMove("OVERLAP", moveTarget, new Position({ x: overlap.left - moveTarget.width, y: moveTarget.y }));
     }
     case "right": {
-      move.x = overlap.right + 1;
-      move.y = moveTarget.y;
-      move.direction = "right";
-      return move;
+      return createMove("OVERLAP", moveTarget, new Position({ x: overlap.right + 1, y: moveTarget.y }));
     }
   }
 }

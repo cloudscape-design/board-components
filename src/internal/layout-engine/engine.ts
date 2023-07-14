@@ -5,8 +5,8 @@ import { GridLayout, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
 import { LayoutEngineStepState, refloatGrid, resolveOverlaps } from "./engine-step";
 import { LayoutEngineGrid } from "./grid";
-import { CommittedMove, InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
-import { normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
+import { InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
+import { createMove, normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
 
 export class LayoutEngine {
   private current: GridLayout;
@@ -31,9 +31,9 @@ export class LayoutEngine {
 
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
       const step = path[stepIndex];
-      const { width, height } = this.step.grid.getItem(itemId);
+      const item = this.step.grid.getItem(itemId);
 
-      const move: CommittedMove = { itemId, x: step.x, y: step.y, width, height, type: "MOVE" };
+      const move = createMove("MOVE", item, step);
       this.step = resolveOverlaps(this.step, move);
     }
 
@@ -50,14 +50,7 @@ export class LayoutEngine {
       const width = path[stepIndex].x - resizeTarget.x;
       const height = path[stepIndex].y - resizeTarget.y;
 
-      this.step = resolveOverlaps(this.step, {
-        itemId,
-        x: resizeTarget.x,
-        y: resizeTarget.y,
-        width,
-        height,
-        type: "RESIZE",
-      });
+      this.step = resolveOverlaps(this.step, createMove("RESIZE", resizeTarget, new Position({ x: width, y: height })));
     }
 
     return new LayoutEngine(this);
@@ -66,7 +59,10 @@ export class LayoutEngine {
   insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
     this.cleanup();
 
-    this.step = resolveOverlaps(this.step, { itemId, x: position.x, y: position.y, width, height, type: "INSERT" });
+    this.step = resolveOverlaps(
+      this.step,
+      createMove("INSERT", { id: itemId, x: position.x, y: position.y, width, height }, position)
+    );
 
     return new LayoutEngine(this).move({ itemId, path });
   }
@@ -76,7 +72,10 @@ export class LayoutEngine {
 
     const { x, y, width, height } = this.step.grid.getItem(itemId);
 
-    this.step = resolveOverlaps(this.step, { itemId, x, y, width, height, type: "REMOVE" });
+    this.step = resolveOverlaps(
+      this.step,
+      createMove("REMOVE", { id: itemId, x, y, width, height }, new Position({ x, y }))
+    );
 
     return new LayoutEngine(this);
   }

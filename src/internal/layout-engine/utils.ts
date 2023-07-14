@@ -77,6 +77,21 @@ export function normalizeResizePath(origin: Position, path: readonly Position[])
   return normalizePathSteps(origin, normalizedPath);
 }
 
+export function createMove(type: CommittedMove["type"], item: GridLayoutItem, next: Position): CommittedMove {
+  const distanceX = type === "RESIZE" ? next.x - item.width : next.x - item.x;
+  const distanceY = type === "RESIZE" ? next.y - item.height : next.y - item.y;
+  return {
+    type,
+    itemId: item.id,
+    x: type !== "RESIZE" ? next.x : item.x,
+    y: type !== "RESIZE" ? next.y : item.y,
+    width: type === "RESIZE" ? next.x : item.width,
+    height: type === "RESIZE" ? next.y : item.height,
+    direction: distanceX > 0 ? "right" : distanceX < 0 ? "left" : distanceY < 0 ? "up" : "down",
+    distance: distanceX || distanceY,
+  };
+}
+
 // Removes path prefixes that return to the original location.
 function normalizePathOrigin(origin: Position, path: readonly Position[]): readonly Position[] {
   let lastOriginIndex = -1;
