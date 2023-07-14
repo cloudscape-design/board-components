@@ -81,6 +81,10 @@ export function createMove(type: CommittedMove["type"], item: GridLayoutItem, ne
   };
 }
 
+export function checkRectsIntersection(r1: Rect, r2: Rect) {
+  return r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom;
+}
+
 // Removes path prefixes that return to the original location.
 function normalizePathOrigin(origin: Position, path: readonly Position[]): readonly Position[] {
   let lastOriginIndex = -1;

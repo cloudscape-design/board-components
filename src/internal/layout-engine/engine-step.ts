@@ -5,7 +5,7 @@ import { Direction, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
 import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { createMove } from "./utils";
+import { checkRectsIntersection, createMove } from "./utils";
 
 /**
  * The user commands in the layout engine are applied step by step.
@@ -227,8 +227,7 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
   for (const [overlap, overlapIssuer] of state.overlaps) {
-    // TODO: optimise with rects comparison
-    if (!checkOverlap(state, overlap)) {
+    if (!checkRectsIntersection(state.grid.getItem(overlap), state.grid.getItem(overlapIssuer))) {
       state.overlaps.delete(overlap);
       continue;
     }
@@ -402,21 +401,6 @@ function getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
     height: prevIssuerMove.height - lastIssuerMove.height,
   };
   return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
-}
-
-function checkOverlap(state: MoveSolutionState, overlapId: ItemId): boolean {
-  const overlapItem = state.grid.getItem(overlapId);
-
-  for (let y = overlapItem.y; y < overlapItem.y + overlapItem.height; y++) {
-    for (let x = overlapItem.x; x < overlapItem.x + overlapItem.width; x++) {
-      const overlap = state.grid.getCellOverlap(x, y, overlapId);
-      if (overlap) {
-        return true;
-      }
-    }
-  }
-
-  return false;
 }
 
 // Retrieve first possible move for the given direction to resolve the overlap.
