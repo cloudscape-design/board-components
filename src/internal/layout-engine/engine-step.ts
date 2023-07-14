@@ -292,22 +292,14 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
     }
   }
 
-  const issuerMoveDiff = getLastStepDiff(state.moves, overlapIssuer);
-  const issuerMoveDirection: null | Direction = (() => {
-    if (issuerMoveDiff.x < 0) {
-      return "right";
+  let lastIssuerMove: null | CommittedMove = null;
+  for (let i = state.moves.length - 1; i >= 0; i--) {
+    if (state.moves[i].itemId === overlapIssuer.id) {
+      lastIssuerMove = state.moves[i];
+      break;
     }
-    if (issuerMoveDiff.x > 0) {
-      return "left";
-    }
-    if (issuerMoveDiff.y < 0) {
-      return "down";
-    }
-    if (issuerMoveDiff.y > 0) {
-      return "up";
-    }
-    return null;
-  })();
+  }
+  const issuerMoveDirection = lastIssuerMove?.direction ?? null;
 
   const isVacant = pathOverlaps.size === 0;
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);

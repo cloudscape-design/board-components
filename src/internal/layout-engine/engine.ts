@@ -44,9 +44,9 @@ export class LayoutEngine {
     this.cleanup();
 
     const { itemId, path } = this.validateResizeCommand(resize);
-    const resizeTarget = this.step.grid.getItem(itemId);
 
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
+      const resizeTarget = this.step.grid.getItem(itemId);
       const width = path[stepIndex].x - resizeTarget.x;
       const height = path[stepIndex].y - resizeTarget.y;
 
