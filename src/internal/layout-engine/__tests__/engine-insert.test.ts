@@ -33,7 +33,7 @@ describe("insert scenarios", () => {
       ],
     ],
     [
-      "Inserting X forces a conflict",
+      "Inserting X forces many overlaps",
       [
         ["A", "A", "B"],
         ["A", "A", "D"],

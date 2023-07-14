@@ -54,8 +54,6 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   // The process stars from the initial state and the user move. The initial score and the user move score are 0.
   const initialState = new MoveSolutionState(layoutState.grid, layoutState.moves, conflicts);
 
-  // TODO: validate
-  const solutionsCache = new Set<string>();
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
   let safetyCounter = 1000;
@@ -67,14 +65,22 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   while (moveSolutions.length > 0) {
     const nextSolutions: MoveSolution[] = [];
 
-    // TODO: resolve
-    if (moveSolutions.length > 1000) {
-      throw new Error("TOO MUCH!");
-    }
+    const minScore = moveSolutions.reduce(
+      (acc, s) => Math.min(acc, s.state.score + s.moveScore),
+      Number.POSITIVE_INFINITY
+    );
 
     for (const { state, move, moveScore } of moveSolutions) {
       // Discard the solution before performing the move if its next score is already above the best score found so far.
       if (bestSolution && state.score + moveScore >= bestSolution.score) {
+        continue;
+      }
+      if (state.score + moveScore > minScore + 100) {
+        continue;
+      }
+
+      // TODO: validate
+      if (state.grid.height > layoutState.grid.height * 2) {
         continue;
       }
 
@@ -91,20 +97,14 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
       // by the number of possible directions to move.
       else {
         for (const solution of findNextSolutions(state)) {
-          const solutionHash = getSolutionHash(solution);
-          if (!solutionsCache.has(solutionHash)) {
-            nextSolutions.push(solution);
-            solutionsCache.add(solutionHash);
-          }
+          nextSolutions.push(solution);
         }
       }
     }
 
-    // for (const s of nextSolutions) {
-    //   console.log(`SOLUTION ${s.move.itemId} -> [${s.move.x}:${s.move.y}] (${s.state.score} + ${s.moveScore})`);
-    // }
-
-    moveSolutions = nextSolutions;
+    moveSolutions = nextSolutions
+      .sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore))
+      .slice(0, 20);
 
     safetyCounter--;
     if (safetyCounter <= 0) {
@@ -125,19 +125,12 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   return bestSolution.conflicts ? bestSolution : refloatGrid(bestSolution, userMove);
 }
 
-function getSolutionHash(solution: MoveSolution): string {
-  const keys: string[] = [];
-  for (const move of solution.state.moves) {
-    if (move.type === "OVERLAP") {
-      keys.push(`${move.itemId}[${move.x}:${move.y}]`);
-    }
-  }
-  keys.push(`${solution.move.itemId}[${solution.move.x}:${solution.move.y}]`);
-  return keys.join(",");
-}
-
 // Find items that can "float" to the top and apply the necessary moves.
 export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: CommittedMove): LayoutEngineStepState {
+  if (layoutState.conflicts) {
+    return layoutState;
+  }
+
   const state = new MoveSolutionState(layoutState.grid, layoutState.moves, layoutState.conflicts);
 
   function makeRefloat() {
@@ -311,20 +304,43 @@ function getDirectionMoveScore(state: MoveSolutionState, overlap: ItemId, moveDi
     for (let x = startX; x <= endX; x++) {
       for (const item of state.grid.getCell(x, y)) {
         // The probed destination is occupied.
-        if (item.id !== overlapIssuer.id) {
+        if (item.id !== overlapIssuer.id || (overlapIssuer.id === activeId && state.moves[0].type === "INSERT")) {
           pathOverlaps.add(item.id);
         }
       }
     }
   }
 
+  const issuerMoveDiff = getLastStepDiff(state.moves, overlapIssuer);
+  const issuerMoveDirection: null | Direction = (() => {
+    if (issuerMoveDiff.x < 0) {
+      return "right";
+    }
+    if (issuerMoveDiff.x > 0) {
+      return "left";
+    }
+    if (issuerMoveDiff.y < 0) {
+      return "down";
+    }
+    if (issuerMoveDiff.y > 0) {
+      return "up";
+    }
+    return null;
+  })();
+
   const isVacant = pathOverlaps.size === 0;
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
-  const repetitiveMovePenalty = state.moves.filter((m) => m.itemId === overlap).length * (isVacant ? 0 : 25);
+  const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
+  const repetitiveMovePenalty =
+    state.moves.filter((m) => m.itemId === overlap && m.direction !== moveDirection).length * (isVacant ? 10 : 25);
   const moveDistancePenalty = Math.abs(moveTarget.x - move.x) + Math.abs(moveTarget.y - move.y);
   const overlapsPenalty = Math.max(0, pathOverlaps.size - 1) * 50;
-  const withPenalties = (score: number) => score + repetitiveMovePenalty + moveDistancePenalty + overlapsPenalty;
+  const withPenalties = (score: number) =>
+    score + repetitiveMovePenalty + moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty;
 
+  if (isSwap && state.moves[0].type === "RESIZE") {
+    return withPenalties(200);
+  }
   if (isVacant && isSwap && overlapIssuer.id === activeId) {
     return withPenalties(10);
   }
@@ -442,16 +458,16 @@ function getMoveForDirection(
   };
   switch (direction) {
     case "up": {
-      return { ...common, y: overlap.top - moveTarget.height, x: moveTarget.x };
+      return { ...common, y: overlap.top - moveTarget.height, x: moveTarget.x, direction: "up" };
     }
     case "down": {
-      return { ...common, y: overlap.bottom + 1, x: moveTarget.x };
+      return { ...common, y: overlap.bottom + 1, x: moveTarget.x, direction: "down" };
     }
     case "left": {
-      return { ...common, y: moveTarget.y, x: overlap.left - moveTarget.width };
+      return { ...common, y: moveTarget.y, x: overlap.left - moveTarget.width, direction: "left" };
     }
     case "right": {
-      return { ...common, y: moveTarget.y, x: overlap.right + 1 };
+      return { ...common, y: moveTarget.y, x: overlap.right + 1, direction: "right" };
     }
   }
 }
