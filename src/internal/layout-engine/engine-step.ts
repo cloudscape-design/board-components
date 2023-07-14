@@ -7,6 +7,8 @@ import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./
 import { CommittedMove } from "./interfaces";
 import { checkRectsIntersection, createMove } from "./utils";
 
+// TODO: many more property tests
+
 /**
  * The user commands in the layout engine are applied step by step.
  * The class describes the layout engine state at a particular step.
@@ -51,6 +53,8 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
 
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
+
+  // TODO: verify that number?
   let safetyCounter = 1000;
 
   // The resolution process continues until there is at least one reasonable solution left.
