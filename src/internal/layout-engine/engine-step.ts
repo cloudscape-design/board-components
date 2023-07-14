@@ -54,6 +54,8 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   // The process stars from the initial state and the user move. The initial score and the user move score are 0.
   const initialState = new MoveSolutionState(layoutState.grid, layoutState.moves, conflicts);
 
+  // TODO: validate
+  const solutionsCache = new Set<string>();
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
   let safetyCounter = 1000;
@@ -65,6 +67,7 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   while (moveSolutions.length > 0) {
     const nextSolutions: MoveSolution[] = [];
 
+    // TODO: resolve
     if (moveSolutions.length > 1000) {
       throw new Error("TOO MUCH!");
     }
@@ -87,7 +90,13 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
       // Otherwise, the next set of solutions will be considered. There can be up to four solutions per overlap
       // by the number of possible directions to move.
       else {
-        nextSolutions.push(...findNextSolutions(state));
+        for (const solution of findNextSolutions(state)) {
+          const solutionHash = getSolutionHash(solution);
+          if (!solutionsCache.has(solutionHash)) {
+            nextSolutions.push(solution);
+            solutionsCache.add(solutionHash);
+          }
+        }
       }
     }
 
@@ -114,6 +123,17 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   // After each step unless there are conflicts the "refloat" is performed which is performing type="FLOAT"
   // moves on all items that can be moved to the top without overlapping with other items.
   return bestSolution.conflicts ? bestSolution : refloatGrid(bestSolution, userMove);
+}
+
+function getSolutionHash(solution: MoveSolution): string {
+  const keys: string[] = [];
+  for (const move of solution.state.moves) {
+    if (move.type === "OVERLAP") {
+      keys.push(`${move.itemId}[${move.x}:${move.y}]`);
+    }
+  }
+  keys.push(`${solution.move.itemId}[${solution.move.x}:${solution.move.y}]`);
+  return keys.join(",");
 }
 
 // Find items that can "float" to the top and apply the necessary moves.
