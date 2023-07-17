@@ -195,28 +195,28 @@ interface MoveSolution {
 }
 
 function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: number): void {
-  const addOverlap = (itemId: ItemId, issuerId: ItemId) => {
-    if (!state.conflicts?.items.has(itemId)) {
-      state.overlaps.set(itemId, issuerId);
-    }
-  };
   switch (nextMove.type) {
     case "MOVE":
     case "OVERLAP":
     case "FLOAT":
-      state.grid.move(nextMove.itemId, nextMove.x, nextMove.y, addOverlap);
+      state.grid.move(nextMove.itemId, nextMove.x, nextMove.y);
       break;
     case "INSERT":
-      state.grid.insert({ id: nextMove.itemId, ...nextMove }, addOverlap);
+      state.grid.insert({ id: nextMove.itemId, ...nextMove });
       break;
     case "REMOVE":
       state.grid.remove(nextMove.itemId);
       break;
     case "RESIZE":
-      state.grid.resize(nextMove.itemId, nextMove.width, nextMove.height, addOverlap);
+      state.grid.resize(nextMove.itemId, nextMove.width, nextMove.height);
       break;
   }
   state.moves.push(nextMove);
+  for (const newOverlap of state.grid.getOverlaps({ ...nextMove, id: nextMove.itemId })) {
+    if (!state.conflicts?.items.has(newOverlap.id)) {
+      state.overlaps.set(newOverlap.id, nextMove.itemId);
+    }
+  }
   state.overlaps.delete(nextMove.itemId);
   state.score += moveScore;
 }

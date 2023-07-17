@@ -7,10 +7,8 @@ import { checkItemsIntersection } from "./utils";
 export class ReadonlyLayoutEngineGrid {
   protected _width: number;
   protected _height: number;
-
-  // TODO: remove this
-  protected _itemsMap = new Map<ItemId, GridLayoutItem>();
   protected _items = new Array<GridLayoutItem>();
+  protected _itemsMap = new Map<ItemId, GridLayoutItem>();
 
   static clone(grid: ReadonlyLayoutEngineGrid): LayoutEngineGrid {
     const clone = new LayoutEngineGrid([], 0);
@@ -61,7 +59,6 @@ export class ReadonlyLayoutEngineGrid {
     return this._items;
   }
 
-  // TODO: remove
   getItem(itemId: ItemId): GridLayoutItem {
     const item = this._itemsMap.get(itemId);
     if (!item) {
@@ -73,30 +70,22 @@ export class ReadonlyLayoutEngineGrid {
   getOverlaps(item: GridLayoutItem): GridLayoutItem[] {
     return this._items.filter((gridItem) => checkItemsIntersection(gridItem, item));
   }
-
-  // TODO: remove
-  getCell(x: number, y: number): GridLayoutItem[] {
-    const cellProbe = { id: "", x, y, width: 1, height: 1 };
-    return this._items.filter((item) => checkItemsIntersection(item, cellProbe));
-  }
 }
 
 export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
-  move(itemId: ItemId, x: number, y: number, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    const moveTarget = this.getItem(itemId);
-    moveTarget.x = x;
-    moveTarget.y = y;
-    this.callOverlaps(moveTarget, onOverlap);
+  move(itemId: ItemId, x: number, y: number): void {
+    const item = this.getItem(itemId);
+    item.x = x;
+    item.y = y;
   }
 
-  resize(itemId: ItemId, width: number, height: number, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    const resizeTarget = this.getItem(itemId);
-    resizeTarget.width = width;
-    resizeTarget.height = height;
-    this.callOverlaps(resizeTarget, onOverlap);
+  resize(itemId: ItemId, width: number, height: number): void {
+    const item = this.getItem(itemId);
+    item.width = width;
+    item.height = height;
   }
 
-  insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
+  insert(item: GridLayoutItem): void {
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
       throw new Error("Inserting item is outside the boundaries.");
     }
@@ -106,25 +95,10 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
     const itemClone = { ...item };
     this._itemsMap.set(itemClone.id, itemClone);
     this._items.push(itemClone);
-    this.callOverlaps(item, onOverlap);
   }
 
   remove(itemId: ItemId): void {
     this._itemsMap.delete(itemId);
     this._items = this._items.filter((item) => item.id !== itemId);
-  }
-
-  // TODO: make public
-  private callOverlaps(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    for (let y = item.y; y < item.y + item.height; y++) {
-      for (let x = item.x; x < item.x + item.width; x++) {
-        const cellItems = this.getCell(x, y);
-        for (const overlap of cellItems) {
-          if (overlap.id !== item.id) {
-            onOverlap(overlap.id, item.id);
-          }
-        }
-      }
-    }
   }
 }
