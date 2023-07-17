@@ -105,6 +105,7 @@ function initTransition<D>({
     operation,
     interactionType,
     itemsLayout,
+    layoutEngine: new LayoutEngine(itemsLayout),
     insertionDirection: null,
     draggableItem,
     draggableRect,

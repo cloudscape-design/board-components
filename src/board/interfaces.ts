@@ -12,6 +12,7 @@ import {
   ItemId,
   Rect,
 } from "../internal/interfaces";
+import { LayoutEngine } from "../internal/layout-engine/engine";
 import { LayoutShift } from "../internal/layout-engine/interfaces";
 import { NonCancelableEventHandler } from "../internal/utils/events";
 import { Position } from "../internal/utils/position";
@@ -161,6 +162,7 @@ export interface Transition<D> {
   operation: Operation;
   interactionType: InteractionType;
   itemsLayout: GridLayout;
+  layoutEngine: LayoutEngine;
   insertionDirection: null | Direction;
   draggableItem: BoardItemDefinitionBase<D>;
   draggableRect: Rect;

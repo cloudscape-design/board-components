@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction } from "../../internal/interfaces";
-import { LayoutEngine } from "../../internal/layout-engine/engine";
 import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
 import { createPlaceholdersLayout, getDefaultColumnSpan, getDefaultRowSpan } from "../../internal/utils/layout";
@@ -70,7 +69,6 @@ export function getLayoutShift<D>(
     return null;
   }
 
-  const engine = new LayoutEngine(transition.itemsLayout);
   const width = getDefaultColumnSpan(transition.draggableItem, getLayoutColumns(transition));
   const height = getDefaultRowSpan(transition.draggableItem);
   const rows = getLayoutRows(transition);
@@ -78,11 +76,11 @@ export function getLayoutShift<D>(
 
   switch (transition.operation) {
     case "resize":
-      return engine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      return transition.layoutEngine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
     case "reorder":
-      return engine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      return transition.layoutEngine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
     case "insert":
-      return engine
+      return transition.layoutEngine
         .insert({
           itemId: transition.draggableItem.id,
           width,
