@@ -5,9 +5,8 @@ import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove, Conflicts } from "./interfaces";
 
 /**
- * The user commands in the layout engine are applied step by step.
- * The class describes the layout engine state at a particular step.
- * The state of the last performed state describes the command result.
+ * The class describes the layout engine state at a particular path step.
+ * The state of the last performed step is the command result.
  */
 export class LayoutEngineState {
   public grid: ReadonlyLayoutEngineGrid;

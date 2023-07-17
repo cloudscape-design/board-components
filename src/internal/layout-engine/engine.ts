@@ -82,20 +82,18 @@ export class LayoutEngine {
         columns: state.grid.width,
         rows: state.grid.height,
       },
-      moves: [...state.moves],
+      moves: state.moves,
       conflicts: state.conflicts ? [...state.conflicts.items.values()] : [],
     };
   }
 
   private validateMoveCommand({ itemId, path }: MoveCommand): MoveCommand {
     const moveTarget = this.cache.state.grid.getItem(itemId);
-
     for (const step of path) {
       if (step.x < 0 || step.y < 0 || step.x + moveTarget.width > this.cache.state.grid.width) {
         throw new Error("Invalid move: outside grid.");
       }
     }
-
     return { itemId, path: normalizeMovePath(new Position({ x: moveTarget.x, y: moveTarget.y }), path) };
   }
 
@@ -103,7 +101,6 @@ export class LayoutEngine {
     const resizeTarget = this.cache.state.grid.getItem(itemId);
     const x = resizeTarget.x + resizeTarget.width;
     const y = resizeTarget.y + resizeTarget.height;
-
     for (const step of path) {
       if (step.x < 1 || step.y < 1) {
         throw new Error("Invalid resize: can't resize to 0.");
@@ -112,7 +109,6 @@ export class LayoutEngine {
         throw new Error("Invalid resize: outside grid.");
       }
     }
-
     return { itemId, path: normalizeResizePath(new Position({ x, y }), path) };
   }
 }
