@@ -12,8 +12,8 @@ export interface Rect {
   bottom: number;
 }
 
-export function sortGridItems(items: readonly GridLayoutItem[]): readonly GridLayoutItem[] {
-  return [...items].sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
+export function sortGridItems(items: GridLayoutItem[]): readonly GridLayoutItem[] {
+  return items.sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 }
 
 export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {

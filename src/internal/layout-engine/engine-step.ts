@@ -10,6 +10,9 @@ import { checkItemsIntersection, createMove } from "./utils";
 
 // TODO: many more property tests
 
+const MAX_SOLUTION_DEPTH = 100;
+const NUM_BEST_SOLUTIONS = 5;
+
 /**
  * The function takes the current layout state (item placements from the previous steps and all moves done so far)
  * and a user command increment that describes an item transition by one cell in some direction.
@@ -33,16 +36,18 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
 
-  let safetyCounter = 100;
+  let convergenceCounter = MAX_SOLUTION_DEPTH;
 
   // The resolution process continues until there is at least one reasonable solution left.
   // Because it is always possible to move items down and the duplicate moves are not allowed,
   // the repetitive or expensive solutions are gradually removed.
   // The safety counter ensures the logical errors to not cause an infinite loop.
   while (moveSolutions.length > 0) {
-    const nextSolutions: MoveSolution[] = [];
+    let nextSolutions: MoveSolution[] = [];
 
-    for (const { state: moveState, move, moveScore } of moveSolutions) {
+    for (let solutionIndex = 0; solutionIndex < Math.min(NUM_BEST_SOLUTIONS, moveSolutions.length); solutionIndex++) {
+      const { state: moveState, move, moveScore } = moveSolutions[solutionIndex];
+
       // Discard the solution before performing the move if its next score is already above the best score found so far.
       if (bestSolution && moveState.score + moveScore >= bestSolution.score) {
         continue;
@@ -68,12 +73,11 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
       }
     }
 
-    moveSolutions = nextSolutions
-      .sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore))
-      .slice(0, 5);
+    moveSolutions = nextSolutions.sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore));
+    nextSolutions = [];
 
-    safetyCounter--;
-    if (safetyCounter <= 0) {
+    convergenceCounter--;
+    if (convergenceCounter <= 0) {
       // TODO: document
       break;
     }
@@ -113,7 +117,7 @@ export function refloatGrid(layoutState: LayoutEngineState, userMove?: Committed
       let move: null | CommittedMove = null;
       while (y >= 0) {
         const moveAttempt = createMove("FLOAT", item, new Position({ x: item.x, y }));
-        if (!validateFloatMove(state.grid, moveAttempt)) {
+        if (state.grid.getOverlaps({ id: item.id, ...moveAttempt }).length > 0) {
           break;
         }
         y--;
@@ -350,10 +354,6 @@ function getDirectionMoveScore(
     return withPenalties(80);
   }
   return withPenalties(50);
-}
-
-function validateFloatMove(grid: LayoutEngineGrid, move: CommittedMove): boolean {
-  return grid.getOverlaps({ id: move.itemId, ...move }).length === 0;
 }
 
 function checkItemsSwap(
