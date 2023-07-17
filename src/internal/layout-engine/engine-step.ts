@@ -275,23 +275,16 @@ function getDirectionMoveScore(
     }
   }
 
-  const pathOverlaps = new Set<ItemId>();
+  // const pathOverlaps = new Set<ItemId>();
 
   const startY = move.y <= moveTarget.y ? move.y : moveTarget.y + moveTarget.height;
   const endY = move.y < moveTarget.y ? moveTarget.y - 1 : move.y + moveTarget.height - 1;
   const startX = move.x <= moveTarget.x ? move.x : moveTarget.x + moveTarget.width;
   const endX = move.x < moveTarget.x ? moveTarget.x - 1 : move.x + moveTarget.width - 1;
-
-  for (let y = startY; y <= endY; y++) {
-    for (let x = startX; x <= endX; x++) {
-      for (const item of state.grid.getCell(x, y)) {
-        // The probed destination is occupied.
-        if (item.id !== overlapIssuer.id || (overlapIssuer.id === activeId && state.moves[0].type === "INSERT")) {
-          pathOverlaps.add(item.id);
-        }
-      }
-    }
-  }
+  const pathRect = { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
+  const pathOverlaps = state.grid
+    .getOverlaps(pathRect)
+    .filter((overlap) => (state.moves[0].type !== "INSERT" && overlap.id === activeId ? false : true));
 
   let lastIssuerMove: null | CommittedMove = null;
   for (let i = state.moves.length - 1; i >= 0; i--) {
@@ -302,7 +295,7 @@ function getDirectionMoveScore(
   }
   const issuerMoveDirection = lastIssuerMove?.direction ?? null;
 
-  const isVacant = pathOverlaps.size === 0;
+  const isVacant = pathOverlaps.length === 0;
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
   const repetitiveMovePenalty =
@@ -310,7 +303,10 @@ function getDirectionMoveScore(
       ? 0
       : state.moves.filter((m) => m.itemId === overlap && m.direction !== moveDirection).length * (isVacant ? 10 : 25);
   const moveDistancePenalty = Math.abs(moveTarget.x - move.x) + Math.abs(moveTarget.y - move.y);
-  const overlapsPenalty = Math.max(0, pathOverlaps.size - 1) * 50;
+  const overlapsPenalty =
+    pathOverlaps
+      .map((overlap) => (overlap.id === activeId && state.moves[0].type === "INSERT" ? 2 : 1))
+      .reduce((sum, x) => sum + x, 0) * 50;
   const withPenalties = (score: number) =>
     score + repetitiveMovePenalty + moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty;
 
