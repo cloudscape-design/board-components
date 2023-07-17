@@ -3,143 +3,90 @@
 
 import { GridLayout, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
-import { LayoutEngineStepState, refloatGrid, resolveOverlaps } from "./engine-step";
+import { LayoutEngineCacheNode } from "./engine-cache";
+import { LayoutEngineStepState, resolveOverlaps } from "./engine-step";
 import { LayoutEngineGrid } from "./grid";
 import { InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { createMove, normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
 
-class LayoutEngineCacheNode {
-  public position: null | Position = null;
-  public value: null | LayoutEngineStepState = null;
-  private next = new Array<LayoutEngineCacheNode>();
-
-  matches(position: Position): LayoutEngineCacheNode {
-    for (const nextNode of this.next) {
-      if (nextNode.position!.x === position.x && nextNode.position!.y === position.y) {
-        return nextNode;
-      }
-    }
-
-    const nextNode = new LayoutEngineCacheNode();
-    nextNode.position = position;
-    this.next.push(nextNode);
-
-    return nextNode;
-  }
-}
-
 export class LayoutEngine {
   private current: GridLayout;
-  private step: LayoutEngineStepState;
   private cache: LayoutEngineCacheNode;
-  private chained = false;
 
-  constructor(args: GridLayout | LayoutEngine) {
-    if (args instanceof LayoutEngine) {
-      this.current = args.current;
-      this.step = args.step;
-      this.cache = new LayoutEngineCacheNode();
-      this.chained = true;
-    } else {
-      this.current = args;
-      this.step = new LayoutEngineStepState(new LayoutEngineGrid(args.items, args.columns));
-      this.cache = new LayoutEngineCacheNode();
-    }
+  constructor(layout: GridLayout) {
+    this.current = layout;
+    this.cache = new LayoutEngineCacheNode(
+      new LayoutEngineStepState(new LayoutEngineGrid(layout.items, layout.columns))
+    );
   }
 
-  move(moveCommand: MoveCommand): LayoutEngine {
-    this.cleanup();
-
+  move(moveCommand: MoveCommand): LayoutShift {
     const { itemId, path } = this.validateMoveCommand(moveCommand);
 
     let cache = this.cache;
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
-      cache = cache.matches(path[stepIndex]);
-      const item = this.step.grid.getItem(itemId);
+      const item = cache.state.grid.getItem(itemId);
       const move = createMove("MOVE", item, path[stepIndex]);
-      cache.value = cache.value ?? resolveOverlaps(this.step, move);
-      this.step = cache.value;
+      cache = cache.matches(path[stepIndex], () => resolveOverlaps(cache.state, move));
     }
 
-    return new LayoutEngine(this);
+    return this.getLayoutShift(cache.state);
   }
 
-  resize(resize: ResizeCommand): LayoutEngine {
-    this.cleanup();
-
+  resize(resize: ResizeCommand): LayoutShift {
     const { itemId, path } = this.validateResizeCommand(resize);
 
     let cache = this.cache;
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
-      cache = cache.matches(path[stepIndex]);
-      const resizeTarget = this.step.grid.getItem(itemId);
+      const resizeTarget = cache.state.grid.getItem(itemId);
       const width = path[stepIndex].x - resizeTarget.x;
       const height = path[stepIndex].y - resizeTarget.y;
       const move = createMove("RESIZE", resizeTarget, new Position({ x: width, y: height }));
-      cache.value = cache.value ?? resolveOverlaps(this.step, move);
-      this.step = cache.value;
+      cache = cache.matches(path[stepIndex], () => resolveOverlaps(cache.state, move));
     }
 
-    return new LayoutEngine(this);
+    return this.getLayoutShift(cache.state);
   }
 
-  insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
-    this.cleanup();
+  insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutShift {
+    const insertMove = createMove("INSERT", { id: itemId, x: position.x, y: position.y, width, height }, position);
+    let cache = this.cache;
+    cache = cache.matches(position, () => resolveOverlaps(cache.state, insertMove));
 
-    const cache = this.cache.matches(position);
-    cache.value =
-      cache.value ??
-      resolveOverlaps(
-        this.step,
-        createMove("INSERT", { id: itemId, x: position.x, y: position.y, width, height }, position)
-      );
-    this.step = cache.value;
+    for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
+      const item = cache.state.grid.getItem(itemId);
+      const move = createMove("MOVE", item, path[stepIndex]);
+      cache = cache.matches(path[stepIndex], () => resolveOverlaps(cache.state, move));
+    }
 
-    return new LayoutEngine(this).move({ itemId, path });
+    return this.getLayoutShift(cache.state);
   }
 
-  remove(itemId: ItemId): LayoutEngine {
-    this.cleanup();
-
-    const { x, y, width, height } = this.step.grid.getItem(itemId);
-
-    this.step = resolveOverlaps(
-      this.step,
-      createMove("REMOVE", { id: itemId, x, y, width, height }, new Position({ x, y }))
-    );
-
-    return new LayoutEngine(this);
+  remove(itemId: ItemId): LayoutShift {
+    const { x, y, width, height } = this.cache.state.grid.getItem(itemId);
+    const move = createMove("REMOVE", { id: itemId, x, y, width, height }, new Position({ x, y }));
+    const state = resolveOverlaps(this.cache.state, move);
+    return this.getLayoutShift(state);
   }
 
-  refloat(): LayoutEngine {
-    this.step = refloatGrid(this.step);
-    return new LayoutEngine(this);
-  }
-
-  getLayoutShift(): LayoutShift {
+  private getLayoutShift(state: LayoutEngineStepState): LayoutShift {
     return {
       current: this.current,
       next: {
-        items: sortGridItems(this.step.grid.items.map((item) => ({ ...item }))),
-        columns: this.step.grid.width,
-        rows: this.step.grid.height,
+        items: sortGridItems(state.grid.items.map((item) => ({ ...item }))),
+        columns: state.grid.width,
+        rows: state.grid.height,
       },
-      moves: [...this.step.moves],
-      conflicts: this.step.conflicts ? [...this.step.conflicts.items.values()] : [],
+      moves: [...state.moves],
+      conflicts: state.conflicts ? [...state.conflicts.items.values()] : [],
     };
   }
 
-  private cleanup(): void {
-    if (!this.chained) {
-      this.step = new LayoutEngineStepState(new LayoutEngineGrid(this.current.items, this.current.columns));
-    }
-  }
-
   private validateMoveCommand({ itemId, path }: MoveCommand): MoveCommand {
-    const moveTarget = this.step.grid.getItem(itemId);
+    const moveTarget = this.cache.state.grid.getItem(itemId);
 
     for (const step of path) {
-      if (step.x < 0 || step.y < 0 || step.x + moveTarget.width > this.step.grid.width) {
+      if (step.x < 0 || step.y < 0 || step.x + moveTarget.width > this.cache.state.grid.width) {
         throw new Error("Invalid move: outside grid.");
       }
     }
@@ -148,7 +95,7 @@ export class LayoutEngine {
   }
 
   private validateResizeCommand({ itemId, path }: ResizeCommand): ResizeCommand {
-    const resizeTarget = this.step.grid.getItem(itemId);
+    const resizeTarget = this.cache.state.grid.getItem(itemId);
     const x = resizeTarget.x + resizeTarget.width;
     const y = resizeTarget.y + resizeTarget.height;
 
@@ -156,7 +103,7 @@ export class LayoutEngine {
       if (step.x < 1 || step.y < 1) {
         throw new Error("Invalid resize: can't resize to 0.");
       }
-      if (step.x > this.step.grid.width) {
+      if (step.x > this.cache.state.grid.width) {
         throw new Error("Invalid resize: outside grid.");
       }
     }

@@ -139,7 +139,7 @@ function initTransition<D>({
 }
 
 function initRemoveTransition<D>({ items, removedItem, itemsLayout }: InitRemoveAction<D>): TransitionState<D> {
-  const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).refloat().getLayoutShift();
+  const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id);
   const removeTransition: RemoveTransition<D> = { items, removedItem, layoutShift };
   return { transition: null, removeTransition, announcement: null };
 }

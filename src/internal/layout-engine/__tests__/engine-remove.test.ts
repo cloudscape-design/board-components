@@ -9,7 +9,7 @@ import { forEachTimes } from "./helpers";
 test("element removal never leaves grid with unresolved conflicts", () => {
   forEachTimes(25, [[]], (args) => {
     const grid = generateGrid(...args);
-    const layoutShift = new LayoutEngine(grid).remove("A").refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).remove("A");
     expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
@@ -30,7 +30,7 @@ describe("remove scenarios", () => {
       ],
     ],
   ])("%s", (_, gridMatrix, itemId, expectation) => {
-    const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).remove(itemId).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).remove(itemId);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

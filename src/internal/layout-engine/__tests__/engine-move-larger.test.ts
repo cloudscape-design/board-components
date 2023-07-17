@@ -97,7 +97,7 @@ describe("vertical swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -149,7 +149,7 @@ describe("horizontal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -214,7 +214,7 @@ describe("swaps with overlay", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -239,7 +239,7 @@ describe("distant swaps", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -280,7 +280,7 @@ describe("diagonal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -295,7 +295,7 @@ describe("replacement moves of larger items", () => {
         ["C", "C", "D", "D"],
         ["C", "C", "D", "D"],
       ],
-      "B2 B3 C3 D3 D4 D5",
+      "B2 B3 C3 D3 D4 D5 D4",
       [
         ["B", "B", "D", "D"],
         ["B", "B", "D", "D"],
@@ -305,7 +305,7 @@ describe("replacement moves of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -332,7 +332,7 @@ describe("long path moves", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -349,9 +349,10 @@ describe("empty spaces are prioritized over disturbing other items", () => {
       ],
       "B2 C2",
       [
-        ["A", "B", "E"],
-        ["D", "F", "C"],
+        ["A", "B", " "],
+        ["D", "F", "E"],
         [" ", "F", "C"],
+        [" ", " ", "C"],
       ],
     ],
     [
@@ -395,14 +396,15 @@ describe("empty spaces are prioritized over disturbing other items", () => {
       "C3 B3",
       [
         ["A", "B", "C"],
-        ["E", "G", "C"],
+        ["E", " ", "C"],
         ["E", "G", " "],
-        ["E", "F", "F"],
+        ["E", "G", " "],
+        [" ", "F", "F"],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -427,7 +429,7 @@ describe("multiple overlap resolutions", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
     expect(layoutShift.moves.filter((move) => move.type === "OVERLAP")).toHaveLength(2);
   });
@@ -444,7 +446,7 @@ test("Float moves don't interfere with swaps", () => {
     [" ", "F"],
     [" ", "F"],
   ]);
-  const layoutShift = new LayoutEngine(grid).move(fromTextPath("B3 B2 B1", grid)).getLayoutShift();
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("B3 B2 B1", grid));
 
   expect(toString(layoutShift.next)).toBe(
     toString([
@@ -476,7 +478,7 @@ test("Escape moves are disallowed for user moves", () => {
     [" ", " ", "F", "F"],
     [" ", " ", "F", "F"],
   ]);
-  const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid)).getLayoutShift();
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid));
   expect(toString(layoutShift.next)).toBe(
     toString([
       ["A", "A", "B", "B"],

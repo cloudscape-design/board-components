@@ -21,7 +21,7 @@ test("move resolutions take reasonable time", () => {
     forEachTimes(TOTAL_RUNS, [[6, 26]], ([width, totalItems]) => {
       const grid = generateGrid({ width, totalItems });
       const engine = new LayoutEngine(grid);
-      const executionTime = measure(() => engine.move(generateMove(engine.getLayoutShift().next, "any")));
+      const executionTime = measure(() => engine.move(generateMove(grid, "any")));
       expect(executionTime).toBeLessThan(MAX_EXECUTION_TIME_MS);
     })
   );
@@ -33,9 +33,7 @@ test("insert resolutions take reasonable time", () => {
     forEachTimes(TOTAL_RUNS, [[6, 26]], ([width, totalItems]) => {
       const grid = generateGrid({ width, totalItems });
       const engine = new LayoutEngine(grid);
-      const executionTime = measure(() =>
-        engine.insert(generateInsert(engine.getLayoutShift().next, "*", { maxWidth: 2, maxHeight: 4 }))
-      );
+      const executionTime = measure(() => engine.insert(generateInsert(grid, "*", { maxWidth: 2, maxHeight: 4 })));
       expect(executionTime).toBeLessThan(MAX_EXECUTION_TIME_MS);
     })
   );
@@ -48,7 +46,7 @@ test("resize resolutions take reasonable time", () => {
       const grid = generateGrid({ width, totalItems });
       const engine = new LayoutEngine(grid);
       const executionTime = measure(() =>
-        engine.resize(generateResize(engine.getLayoutShift().next, { maxHeightIncrement: 4, maxWidthIncrement: 2 }))
+        engine.resize(generateResize(grid, { maxHeightIncrement: 4, maxWidthIncrement: 2 }))
       );
       expect(executionTime).toBeLessThan(MAX_EXECUTION_TIME_MS);
     })

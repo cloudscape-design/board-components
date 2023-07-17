@@ -11,7 +11,7 @@ test("element insertion never leaves grid with unresolved conflicts", () => {
   forEachTimes(25, [[]], (args) => {
     const grid = generateGrid(...args);
     const insert = generateInsert(grid);
-    const layoutShift = new LayoutEngine(grid).insert(insert).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).insert(insert);
     expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
@@ -78,7 +78,7 @@ describe("insert scenarios", () => {
       ],
     ],
   ])("%s", (_, grid, item, expectation) => {
-    const layoutShift = new LayoutEngine(fromMatrix(grid)).insert(item).getLayoutShift();
+    const layoutShift = new LayoutEngine(fromMatrix(grid)).insert(item);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

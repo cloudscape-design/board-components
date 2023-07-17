@@ -76,17 +76,15 @@ export function getLayoutShift<D>(
 
   switch (transition.operation) {
     case "resize":
-      return transition.layoutEngine.resize({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      return transition.layoutEngine.resize({ itemId: transition.draggableItem.id, path });
     case "reorder":
-      return transition.layoutEngine.move({ itemId: transition.draggableItem.id, path }).getLayoutShift();
+      return transition.layoutEngine.move({ itemId: transition.draggableItem.id, path });
     case "insert":
-      return transition.layoutEngine
-        .insert({
-          itemId: transition.draggableItem.id,
-          width,
-          height,
-          path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
-        })
-        .getLayoutShift();
+      return transition.layoutEngine.insert({
+        itemId: transition.draggableItem.id,
+        width,
+        height,
+        path: normalizeInsertionPath(path, insertionDirection ?? "right", columns, rows),
+      });
   }
 }
