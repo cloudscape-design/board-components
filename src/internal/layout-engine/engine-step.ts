@@ -134,7 +134,7 @@ export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: Commi
       let move: null | CommittedMove = null;
       while (y >= 0) {
         const moveAttempt = createMove("FLOAT", item, new Position({ x: item.x, y }));
-        if (!validateVacantMove(state.grid, moveAttempt)) {
+        if (!validateFloatMove(state.grid, moveAttempt)) {
           break;
         }
         y--;
@@ -258,6 +258,7 @@ function getDirectionMoveScore(
   for (let y = move.y; y < move.y + move.height; y++) {
     for (let x = move.x; x < move.x + move.width; x++) {
       // Outside the grid.
+      // TODO: check with rects util
       if (y < 0 || x < 0 || x >= state.grid.width) {
         return null;
       }
@@ -343,27 +344,8 @@ function getDirectionMoveScore(
   return withPenalties(50);
 }
 
-function validateVacantMove(grid: LayoutEngineGrid, move: CommittedMove): boolean {
-  const moveTarget = grid.getItem(move.itemId);
-
-  for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-    for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-      const newY = move.y + (y - moveTarget.y);
-      const newX = move.x + (x - moveTarget.x);
-
-      // Outside the grid.
-      if (newY < 0 || newX < 0 || newX >= grid.width) {
-        return false;
-      }
-
-      // The probed destination is occupied.
-      if (grid.getCellOverlap(newX, newY, move.itemId)) {
-        return false;
-      }
-    }
-  }
-
-  return true;
+function validateFloatMove(grid: LayoutEngineGrid, move: CommittedMove): boolean {
+  return grid.getOverlaps({ id: move.itemId, ...move }).length === 0;
 }
 
 function checkItemsSwap(
@@ -443,44 +425,35 @@ function findConflicts(
     }
   })();
 
-  const overlaps = new Set<ItemId>();
-  for (let x = move.x; x < move.x + move.width; x++) {
-    for (let y = move.y; y < move.y + move.height; y++) {
-      const overlap = grid.getCellOverlap(x, y, moveTarget.id);
-      if (overlap) {
-        overlaps.add(overlap.id);
-      }
-    }
-  }
+  const overlaps = grid.getOverlaps({ ...move, id: move.itemId });
 
   for (const overlap of overlaps) {
-    const item = grid.getItem(overlap);
     switch (direction) {
       case "left": {
         const left = move.x;
-        if (item.x < left) {
-          conflicts.add(overlap);
+        if (overlap.x < left) {
+          conflicts.add(overlap.id);
         }
         break;
       }
       case "right": {
         const right = move.x + move.width - 1;
-        if (item.x + item.width - 1 > right) {
-          conflicts.add(overlap);
+        if (overlap.x + overlap.width - 1 > right) {
+          conflicts.add(overlap.id);
         }
         break;
       }
       case "up": {
         const top = move.y;
-        if (item.y < top) {
-          conflicts.add(overlap);
+        if (overlap.y < top) {
+          conflicts.add(overlap.id);
         }
         break;
       }
       case "down": {
         const bottom = move.y + move.height - 1;
-        if (item.y + item.height - 1 > bottom) {
-          conflicts.add(overlap);
+        if (overlap.y + overlap.height - 1 > bottom) {
+          conflicts.add(overlap.id);
         }
         break;
       }

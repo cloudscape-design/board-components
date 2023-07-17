@@ -61,6 +61,7 @@ export class ReadonlyLayoutEngineGrid {
     return this._items;
   }
 
+  // TODO: remove
   getItem(itemId: ItemId): GridLayoutItem {
     const item = this._itemsMap.get(itemId);
     if (!item) {
@@ -69,18 +70,14 @@ export class ReadonlyLayoutEngineGrid {
     return item;
   }
 
+  getOverlaps(item: GridLayoutItem): GridLayoutItem[] {
+    return this._items.filter((gridItem) => checkItemsIntersection(gridItem, item));
+  }
+
+  // TODO: remove
   getCell(x: number, y: number): GridLayoutItem[] {
     const cellProbe = { id: "", x, y, width: 1, height: 1 };
     return this._items.filter((item) => checkItemsIntersection(item, cellProbe));
-  }
-
-  getCellOverlap(x: number, y: number, itemId: ItemId): null | GridLayoutItem {
-    for (const item of this.getCell(x, y)) {
-      if (item.id !== itemId) {
-        return item;
-      }
-    }
-    return null;
   }
 }
 
