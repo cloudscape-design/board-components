@@ -8,6 +8,7 @@ import { CommittedMove } from "./interfaces";
 import { checkItemsIntersection, createMove } from "./utils";
 
 // TODO: many more property tests
+// TODO: store overlaps in grid to not re-compute unnecessarily
 
 /**
  * The user commands in the layout engine are applied step by step.

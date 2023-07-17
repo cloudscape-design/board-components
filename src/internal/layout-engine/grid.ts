@@ -2,27 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { GridLayoutItem, ItemId } from "../interfaces";
+import { checkItemsContain, checkItemsIntersection } from "./utils";
 
 export class ReadonlyLayoutEngineGrid {
   protected _width: number;
   protected _height: number;
-  protected _items = new Map<ItemId, GridLayoutItem>();
-  protected _layout: Set<ItemId>[][] = [];
+  protected _itemsMap = new Map<ItemId, GridLayoutItem>();
+  protected _items = new Array<GridLayoutItem>();
 
   static clone(grid: ReadonlyLayoutEngineGrid): LayoutEngineGrid {
     const clone = new LayoutEngineGrid([], 0);
     clone._width = grid._width;
     clone._height = grid._height;
-    for (const [key, value] of grid._items) {
-      clone._items.set(key, { ...value });
-    }
-    for (let y = 0; y < clone._height; y++) {
-      const row = new Array<Set<ItemId>>();
-      for (let x = 0; x < clone._width; x++) {
-        const cellItems = new Set(grid._layout[y][x]);
-        row.push(cellItems);
-      }
-      clone._layout.push(row);
+    for (const item of grid._items) {
+      const itemClone = { ...item };
+      clone._itemsMap.set(itemClone.id, itemClone);
+      clone._items.push(itemClone);
     }
     return clone;
   }
@@ -32,8 +27,6 @@ export class ReadonlyLayoutEngineGrid {
     this._height = 0;
 
     for (const item of items) {
-      this._items.set(item.id, { ...item });
-
       if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
         throw new Error("Invalid grid: items outside the boundaries.");
       }
@@ -41,18 +34,16 @@ export class ReadonlyLayoutEngineGrid {
         throw new Error("Invalid grid: items of invalid size.");
       }
 
-      for (let y = item.y; y < item.y + item.height; y++) {
-        while (this._layout.length <= y) {
-          this.makeNewRow();
-        }
-        for (let x = item.x; x < item.x + item.width; x++) {
-          this._layout[y][x].add(item.id);
-
-          if (this._layout[y][x].size > 1) {
-            throw new Error("Invalid grid: items overlap.");
-          }
+      for (const gridItem of this._items) {
+        if (checkItemsIntersection(gridItem, item)) {
+          throw new Error("Invalid grid: items overlap.");
         }
       }
+
+      const itemClone = { ...item };
+      this._itemsMap.set(itemClone.id, itemClone);
+      this._items.push(itemClone);
+      this._height = Math.max(this.height, itemClone.y + itemClone.height);
     }
   }
 
@@ -65,11 +56,11 @@ export class ReadonlyLayoutEngineGrid {
   }
 
   get items(): GridLayoutItem[] {
-    return [...this._items.values()];
+    return [...this._itemsMap.values()];
   }
 
   getItem(itemId: ItemId): GridLayoutItem {
-    const item = this._items.get(itemId);
+    const item = this._itemsMap.get(itemId);
     if (!item) {
       throw new Error(`Item with id "${itemId}" not found in the grid.`);
     }
@@ -77,14 +68,8 @@ export class ReadonlyLayoutEngineGrid {
   }
 
   getCell(x: number, y: number): GridLayoutItem[] {
-    if (!this._layout[y] || !this._layout[y][x]) {
-      return [];
-    }
-    const cellItems: GridLayoutItem[] = [];
-    for (const itemId of this._layout[y][x]) {
-      cellItems.push(this.getItem(itemId));
-    }
-    return cellItems;
+    const cellProbe = { x, y, width: 1, height: 1 };
+    return this._items.filter((item) => checkItemsContain(item, cellProbe));
   }
 
   getCellOverlap(x: number, y: number, itemId: ItemId): null | GridLayoutItem {
@@ -95,87 +80,51 @@ export class ReadonlyLayoutEngineGrid {
     }
     return null;
   }
-
-  protected makeNewRow() {
-    const newRow = new Array<Set<ItemId>>();
-    for (let x = 0; x < this._width; x++) {
-      newRow.push(new Set());
-    }
-    this._layout.push(newRow);
-    this._height = this._layout.length;
-  }
 }
 
 export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
   move(itemId: ItemId, x: number, y: number, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     const moveTarget = this.getItem(itemId);
-
-    this.removeLayoutItem(moveTarget);
-
     moveTarget.x = x;
     moveTarget.y = y;
-
-    this.insertLayoutItem(moveTarget, onOverlap);
+    this.callOverlaps(moveTarget, onOverlap);
   }
 
   resize(itemId: ItemId, width: number, height: number, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     const resizeTarget = this.getItem(itemId);
-
-    this.removeLayoutItem(resizeTarget);
-
     resizeTarget.width = width;
     resizeTarget.height = height;
-
-    this.insertLayoutItem(resizeTarget, onOverlap);
+    this.callOverlaps(resizeTarget, onOverlap);
   }
 
   insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    this._items.set(item.id, { ...item });
-
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
       throw new Error("Inserting item is outside the boundaries.");
     }
     if (item.width < 1 || item.height < 1) {
       throw new Error("Inserting item has invalid size.");
     }
-
-    for (let y = item.y; y < item.y + item.height; y++) {
-      while (this._layout.length <= y) {
-        this.makeNewRow();
-      }
-      for (let x = item.x; x < item.x + item.width; x++) {
-        for (const overlapId of this._layout[y][x]) {
-          onOverlap(overlapId, item.id);
-        }
-        this._layout[y][x].add(item.id);
-      }
-    }
+    const itemClone = { ...item };
+    this._itemsMap.set(itemClone.id, itemClone);
+    this._items.push(itemClone);
+    this.callOverlaps(item, onOverlap);
   }
 
   remove(itemId: ItemId): void {
-    const removeTarget = this.getItem(itemId);
-    this._items.delete(itemId);
-    this.removeLayoutItem(removeTarget);
+    this._itemsMap.delete(itemId);
+    this._items = this._items.filter((item) => item.id !== itemId);
   }
 
-  private removeLayoutItem(item: GridLayoutItem): void {
+  // TODO: make public
+  private callOverlaps(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
     for (let y = item.y; y < item.y + item.height; y++) {
       for (let x = item.x; x < item.x + item.width; x++) {
-        this._layout[y][x].delete(item.id);
-      }
-    }
-  }
-
-  private insertLayoutItem(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    for (let y = item.y; y < item.y + item.height; y++) {
-      for (let x = item.x; x < item.x + item.width; x++) {
-        while (!this._layout[y]) {
-          this.makeNewRow();
+        const cellItems = this.getCell(x, y);
+        for (const overlap of cellItems) {
+          if (overlap.id !== item.id) {
+            onOverlap(overlap.id, item.id);
+          }
         }
-        for (const overlapId of this._layout[y][x]) {
-          onOverlap(overlapId, item.id);
-        }
-        this._layout[y][x].add(item.id);
       }
     }
   }
