@@ -1,0 +1,11 @@
+.show-grab-cursor * {
+  cursor: grabbing;
+}
+
+.show-resize-cursor * {
+  cursor: nwse-resize;
+}
+
+.disable-selection * {
+  user-select: none;
+}

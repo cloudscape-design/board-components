@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { cleanup, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
-import { mockDraggable } from "../../../../lib/components/internal/dnd-controller/__mocks__/controller";
+import { mockController, mockDraggable } from "../../../../lib/components/internal/dnd-controller/__mocks__/controller";
+import { DragAndDropData } from "../../../../lib/components/internal/dnd-controller/controller";
 import { ItemContainer, ItemContainerProps, useItemContext } from "../../../../lib/components/internal/item-container";
 import { Coordinates } from "../../../../lib/components/internal/utils/coordinates";
 
@@ -59,4 +60,23 @@ test("starts resize transition when resize handle is clicked", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   getByTestId("resize-handle").click();
   expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
+});
+
+test("renders in portal when item in reorder state by a pointer", () => {
+  const { container, getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+  expect(container).toContainElement(getByTestId("drag-handle"));
+  act(() => {
+    mockController.start({
+      interactionType: "pointer",
+      operation: "reorder",
+      draggableItem: defaultProps.item,
+      collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+      coordinates: new Coordinates({ x: 0, y: 0 }),
+    } as DragAndDropData);
+  });
+  expect(container).not.toContainElement(getByTestId("drag-handle"));
+  act(() => {
+    mockController.discard();
+  });
+  expect(container).toContainElement(getByTestId("drag-handle"));
 });
