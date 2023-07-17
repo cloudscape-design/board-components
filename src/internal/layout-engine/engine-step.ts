@@ -255,6 +255,11 @@ function getDirectionMoveScore(
   const overlapIssuer = state.grid.getItem(issuer);
   const move = getMoveForDirection(moveTarget, overlapIssuer, moveDirection);
 
+  // Outside the grid.
+  if (move.x < 0 || move.y < 0 || move.x + move.width > state.grid.width) {
+    return null;
+  }
+
   for (const ov of state.grid.getOverlaps({ ...move, id: move.itemId })) {
     // Can't overlap with cells containing unresolved overlaps.
     if (state.overlaps.has(ov.id)) {
@@ -267,16 +272,6 @@ function getDirectionMoveScore(
     // Can't overlap with the conflicted item.
     if (state.conflicts?.items.has(ov.id)) {
       return null;
-    }
-  }
-
-  for (let y = move.y; y < move.y + move.height; y++) {
-    for (let x = move.x; x < move.x + move.width; x++) {
-      // Outside the grid.
-      // TODO: check with rects util
-      if (y < 0 || x < 0 || x >= state.grid.width) {
-        return null;
-      }
     }
   }
 
