@@ -3,33 +3,12 @@
 
 import { Direction, GridLayoutItem, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
+import { LayoutEngineState } from "./engine-state";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
-import { CommittedMove } from "./interfaces";
+import { CommittedMove, Conflicts } from "./interfaces";
 import { checkItemsIntersection, createMove } from "./utils";
 
 // TODO: many more property tests
-
-/**
- * The user commands in the layout engine are applied step by step.
- * The class describes the layout engine state at a particular step.
- * The state of the last performed state describes the command result.
- */
-export class LayoutEngineStepState {
-  public grid: ReadonlyLayoutEngineGrid;
-  public moves: readonly CommittedMove[];
-  public conflicts: null | Conflicts;
-
-  constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts: null | Conflicts = null) {
-    this.grid = grid;
-    this.moves = moves;
-    this.conflicts = conflicts;
-  }
-}
-
-export interface Conflicts {
-  items: ReadonlySet<ItemId>;
-  direction: Direction;
-}
 
 /**
  * The function takes the current layout state (item placements from the previous steps and all moves done so far)
@@ -37,7 +16,7 @@ export interface Conflicts {
  * The function finds overlapping elements and resolves all overlaps if possible (always possible when no conflicts).
  * The result in an updated state (new item placements, additional moves, and item conflicts if any).
  */
-export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: CommittedMove): LayoutEngineStepState {
+export function resolveOverlaps(layoutState: LayoutEngineState, userMove: CommittedMove): LayoutEngineState {
   // For better UX the layout engine is optimized for item swaps.
   // The swapping is only preferred for the user-controlled item and it can only happen when the item overlaps another
   // item past its midpoint. When the overlap is not enough, the underlying item is considered a conflict and it is not
@@ -114,7 +93,7 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
 }
 
 // Find items that can "float" to the top and apply the necessary moves.
-export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: CommittedMove): LayoutEngineStepState {
+export function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): LayoutEngineState {
   if (layoutState.conflicts) {
     return layoutState;
   }

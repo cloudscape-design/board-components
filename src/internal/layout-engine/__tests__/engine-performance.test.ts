@@ -7,7 +7,7 @@ import { LayoutEngine } from "../engine";
 import { forEachTimes } from "./helpers";
 
 const TOTAL_RUNS = 1000;
-const AVERAGE_EXECUTION_TIME_MS = 10;
+const AVERAGE_EXECUTION_TIME_MS = 5;
 const MAX_EXECUTION_TIME_MS = 100;
 
 function measure(fn: () => void) {

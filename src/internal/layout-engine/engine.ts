@@ -4,20 +4,25 @@
 import { GridLayout, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
 import { LayoutEngineCacheNode } from "./engine-cache";
-import { LayoutEngineStepState, resolveOverlaps } from "./engine-step";
+import { LayoutEngineState } from "./engine-state";
+import { resolveOverlaps } from "./engine-step";
 import { LayoutEngineGrid } from "./grid";
 import { InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { createMove, normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
 
+/**
+ * Layout engine is an abstraction to compute effects of user actions (move, resize, insert, remove).
+ * The engine is initialized with the board state and then takes a command to calculate the respective layout shift.
+ * Use a single engine instance until the user commits their move to take advantage of the internal cache.
+ * Once user move is committed the layout engine needs to be re-initialized with the updated layout state.
+ */
 export class LayoutEngine {
-  private current: GridLayout;
+  private layout: GridLayout;
   private cache: LayoutEngineCacheNode;
 
   constructor(layout: GridLayout) {
-    this.current = layout;
-    this.cache = new LayoutEngineCacheNode(
-      new LayoutEngineStepState(new LayoutEngineGrid(layout.items, layout.columns))
-    );
+    this.layout = layout;
+    this.cache = new LayoutEngineCacheNode(new LayoutEngineState(new LayoutEngineGrid(layout.items, layout.columns)));
   }
 
   move(moveCommand: MoveCommand): LayoutShift {
@@ -69,11 +74,11 @@ export class LayoutEngine {
     return this.getLayoutShift(state);
   }
 
-  private getLayoutShift(state: LayoutEngineStepState): LayoutShift {
+  private getLayoutShift(state: LayoutEngineState): LayoutShift {
     return {
-      current: this.current,
+      current: this.layout,
       next: {
-        items: sortGridItems(state.grid.items.map((item) => ({ ...item }))),
+        items: sortGridItems(state.grid.items),
         columns: state.grid.width,
         rows: state.grid.height,
       },
