@@ -54,7 +54,6 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
 
-  // TODO: verify that number?
   let safetyCounter = 1000;
 
   // The resolution process continues until there is at least one reasonable solution left.
@@ -70,7 +69,6 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
         continue;
       }
 
-      // TODO: clone inside makeMove?
       const state = MoveSolutionState.clone(moveState);
 
       // Perform the move by mutating the solution's state.
@@ -131,22 +129,17 @@ export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: Commi
         continue;
       }
 
-      const move: CommittedMove = {
-        itemId: item.id,
-        x: item.x,
-        y: item.y,
-        width: item.width,
-        height: item.height,
-        type: "FLOAT",
-        direction: "up",
-        distance: 0, // TODO: update or use createMove util
-      };
-      for (move.y; move.y >= 0; move.y--) {
-        if (!validateVacantMove(state.grid, { ...move, y: move.y - 1 })) {
+      let y = item.y - 1;
+      let move: null | CommittedMove = null;
+      while (y >= 0) {
+        const moveAttempt = createMove("FLOAT", item, new Position({ x: item.x, y }));
+        if (!validateVacantMove(state.grid, moveAttempt)) {
           break;
         }
+        y--;
+        move = moveAttempt;
       }
-      if (item.y !== move.y) {
+      if (move) {
         makeMove(state, move, 0);
         needAnotherRefloat = true;
       }
