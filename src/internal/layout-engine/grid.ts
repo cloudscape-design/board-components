@@ -24,7 +24,14 @@ export class ReadonlyLayoutEngineGrid {
     for (const [key, value] of grid._items) {
       clone._items.set(key, { ...value });
     }
-    clone._layout = grid._layout.map((row) => row.map((set) => new Set([...set])));
+    for (let y = 0; y < clone._height; y++) {
+      const row = new Array<Set<ItemId>>();
+      for (let x = 0; x < clone._width; x++) {
+        const cellItems = new Set(grid._layout[y][x]);
+        row.push(cellItems);
+      }
+      clone._layout.push(row);
+    }
     return clone;
   }
 
@@ -88,7 +95,11 @@ export class ReadonlyLayoutEngineGrid {
     if (!this._layout[y] || !this._layout[y][x]) {
       return [];
     }
-    return [...this._layout[y][x]].map((itemId) => this.getItem(itemId));
+    const cellItems: LayoutEngineItem[] = [];
+    for (const itemId of this._layout[y][x]) {
+      cellItems.push(this.getItem(itemId));
+    }
+    return cellItems;
   }
 
   getCellOverlap(x: number, y: number, itemId: ItemId): null | LayoutEngineItem {
@@ -101,7 +112,11 @@ export class ReadonlyLayoutEngineGrid {
   }
 
   protected makeNewRow() {
-    this._layout.push([...Array(this._width)].map(() => new Set()));
+    const newRow = new Array<Set<ItemId>>();
+    for (let x = 0; x < this._width; x++) {
+      newRow.push(new Set());
+    }
+    this._layout.push(newRow);
     this._height = this._layout.length;
   }
 }
