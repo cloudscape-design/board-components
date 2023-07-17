@@ -158,6 +158,8 @@ export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: Commi
 class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
+  public gradientX = 0;
+  public gradientY = 0;
   public conflicts: null | Conflicts;
   public overlaps: Map<ItemId, ItemId>;
   public score: number;
@@ -176,10 +178,12 @@ class MoveSolutionState {
     this.score = score;
   }
 
-  static clone({ grid, moves, conflicts, overlaps, score }: MoveSolutionState) {
+  static clone({ grid, moves, gradientX, gradientY, conflicts, overlaps, score }: MoveSolutionState) {
     return {
       grid: LayoutEngineGrid.clone(grid),
       moves: [...moves],
+      gradientX,
+      gradientY,
       conflicts,
       overlaps: new Map([...overlaps]),
       score,
@@ -218,6 +222,14 @@ function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: 
   }
   state.overlaps.delete(nextMove.itemId);
   state.score += moveScore;
+  state.gradientX +=
+    nextMove.type === "OVERLAP"
+      ? (nextMove.direction === "left" || nextMove.direction === "right" ? nextMove.distance : 0) * nextMove.height
+      : 0;
+  state.gradientY +=
+    nextMove.type === "OVERLAP"
+      ? (nextMove.direction === "up" || nextMove.direction === "down" ? nextMove.distance : 0) * nextMove.width
+      : 0;
 }
 
 function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
@@ -306,8 +318,22 @@ function getDirectionMoveScore(
     pathOverlaps
       .map((overlap) => (overlap.id === activeId && state.moves[0].type === "INSERT" ? 2 : 1))
       .reduce((sum, x) => sum + x, 0) * 50;
+  const gradientXPenalty =
+    (moveDirection === "left" && state.gradientX > 0) || (moveDirection === "right" && state.gradientX < 0)
+      ? state.gradientX * 2
+      : 0;
+  const gradientYPenalty =
+    (moveDirection === "up" && state.gradientY > 0) || (moveDirection === "down" && state.gradientY < 0)
+      ? state.gradientY * 2
+      : 0;
   const withPenalties = (score: number) =>
-    score + repetitiveMovePenalty + moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty;
+    score +
+    repetitiveMovePenalty +
+    moveDistancePenalty +
+    overlapsPenalty +
+    alternateDirectionPenalty +
+    gradientXPenalty +
+    gradientYPenalty;
 
   if (isSwap && state.moves[0].type === "RESIZE") {
     return withPenalties(200);
