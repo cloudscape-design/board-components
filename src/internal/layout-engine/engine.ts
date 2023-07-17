@@ -8,19 +8,42 @@ import { LayoutEngineGrid } from "./grid";
 import { InsertCommand, LayoutShift, MoveCommand, ResizeCommand } from "./interfaces";
 import { createMove, normalizeMovePath, normalizeResizePath, sortGridItems } from "./utils";
 
+class LayoutEngineCacheNode {
+  public position: null | Position = null;
+  public value: null | LayoutEngineStepState = null;
+  private next = new Array<LayoutEngineCacheNode>();
+
+  matches(position: Position): LayoutEngineCacheNode {
+    for (const nextNode of this.next) {
+      if (nextNode.position!.x === position.x && nextNode.position!.y === position.y) {
+        return nextNode;
+      }
+    }
+
+    const nextNode = new LayoutEngineCacheNode();
+    nextNode.position = position;
+    this.next.push(nextNode);
+
+    return nextNode;
+  }
+}
+
 export class LayoutEngine {
   private current: GridLayout;
   private step: LayoutEngineStepState;
+  private cache: LayoutEngineCacheNode;
   private chained = false;
 
   constructor(args: GridLayout | LayoutEngine) {
     if (args instanceof LayoutEngine) {
       this.current = args.current;
       this.step = args.step;
+      this.cache = new LayoutEngineCacheNode();
       this.chained = true;
     } else {
       this.current = args;
       this.step = new LayoutEngineStepState(new LayoutEngineGrid(args.items, args.columns));
+      this.cache = new LayoutEngineCacheNode();
     }
   }
 
@@ -29,12 +52,13 @@ export class LayoutEngine {
 
     const { itemId, path } = this.validateMoveCommand(moveCommand);
 
+    let cache = this.cache;
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
-      const step = path[stepIndex];
+      cache = cache.matches(path[stepIndex]);
       const item = this.step.grid.getItem(itemId);
-
-      const move = createMove("MOVE", item, step);
-      this.step = resolveOverlaps(this.step, move);
+      const move = createMove("MOVE", item, path[stepIndex]);
+      cache.value = cache.value ?? resolveOverlaps(this.step, move);
+      this.step = cache.value;
     }
 
     return new LayoutEngine(this);
@@ -45,12 +69,15 @@ export class LayoutEngine {
 
     const { itemId, path } = this.validateResizeCommand(resize);
 
+    let cache = this.cache;
     for (let stepIndex = 0; stepIndex < path.length; stepIndex++) {
+      cache = cache.matches(path[stepIndex]);
       const resizeTarget = this.step.grid.getItem(itemId);
       const width = path[stepIndex].x - resizeTarget.x;
       const height = path[stepIndex].y - resizeTarget.y;
-
-      this.step = resolveOverlaps(this.step, createMove("RESIZE", resizeTarget, new Position({ x: width, y: height })));
+      const move = createMove("RESIZE", resizeTarget, new Position({ x: width, y: height }));
+      cache.value = cache.value ?? resolveOverlaps(this.step, move);
+      this.step = cache.value;
     }
 
     return new LayoutEngine(this);
@@ -59,10 +86,14 @@ export class LayoutEngine {
   insert({ itemId, width, height, path: [position, ...path] }: InsertCommand): LayoutEngine {
     this.cleanup();
 
-    this.step = resolveOverlaps(
-      this.step,
-      createMove("INSERT", { id: itemId, x: position.x, y: position.y, width, height }, position)
-    );
+    const cache = this.cache.matches(position);
+    cache.value =
+      cache.value ??
+      resolveOverlaps(
+        this.step,
+        createMove("INSERT", { id: itemId, x: position.x, y: position.y, width, height }, position)
+      );
+    this.step = cache.value;
 
     return new LayoutEngine(this).move({ itemId, path });
   }
