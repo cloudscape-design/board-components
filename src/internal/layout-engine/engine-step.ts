@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction, ItemId } from "../interfaces";
+import { Direction, GridLayoutItem, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
-import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./grid";
+import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { checkRectsIntersection, createMove } from "./utils";
+import { checkItemsIntersection, createMove } from "./utils";
 
 // TODO: many more property tests
 
@@ -224,7 +224,7 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
   for (const [overlap, overlapIssuer] of state.overlaps) {
-    if (!checkRectsIntersection(state.grid.getItem(overlap), state.grid.getItem(overlapIssuer))) {
+    if (!checkItemsIntersection(state.grid.getItem(overlap), state.grid.getItem(overlapIssuer))) {
       state.overlaps.delete(overlap);
       continue;
     }
@@ -367,9 +367,9 @@ function validateVacantMove(grid: LayoutEngineGrid, move: CommittedMove): boolea
 
 function checkItemsSwap(
   moves: CommittedMove[],
-  issuer: LayoutEngineItem,
+  issuer: GridLayoutItem,
   move: CommittedMove,
-  moveTarget: LayoutEngineItem
+  moveTarget: GridLayoutItem
 ) {
   const issuerDiff = getLastStepDiff(moves, issuer);
   const moveDiff = getLastStepDiff([...moves, move], moveTarget);
@@ -381,7 +381,7 @@ function checkItemsSwap(
   );
 }
 
-function getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
+function getLastStepDiff(moves: CommittedMove[], issuer: GridLayoutItem) {
   const issuerMoves = moves.filter((move) => move.itemId === issuer.id);
   const last = issuerMoves[issuerMoves.length - 1];
   if (!last) {
@@ -394,23 +394,19 @@ function getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
 }
 
 // Retrieve first possible move for the given direction to resolve the overlap.
-function getMoveForDirection(
-  moveTarget: LayoutEngineItem,
-  overlap: LayoutEngineItem,
-  direction: Direction
-): CommittedMove {
+function getMoveForDirection(moveTarget: GridLayoutItem, overlap: GridLayoutItem, direction: Direction): CommittedMove {
   switch (direction) {
     case "up": {
-      return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.top - moveTarget.height }));
+      return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.y - moveTarget.height }));
     }
     case "down": {
-      return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.bottom + 1 }));
+      return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.y + overlap.height }));
     }
     case "left": {
-      return createMove("OVERLAP", moveTarget, new Position({ x: overlap.left - moveTarget.width, y: moveTarget.y }));
+      return createMove("OVERLAP", moveTarget, new Position({ x: overlap.x - moveTarget.width, y: moveTarget.y }));
     }
     case "right": {
-      return createMove("OVERLAP", moveTarget, new Position({ x: overlap.right + 1, y: moveTarget.y }));
+      return createMove("OVERLAP", moveTarget, new Position({ x: overlap.x + overlap.width, y: moveTarget.y }));
     }
   }
 }
@@ -457,31 +453,32 @@ function findConflicts(
   }
 
   for (const overlap of overlaps) {
+    const item = grid.getItem(overlap);
     switch (direction) {
       case "left": {
         const left = move.x;
-        if (grid.getItem(overlap).left < left) {
+        if (item.x < left) {
           conflicts.add(overlap);
         }
         break;
       }
       case "right": {
         const right = move.x + move.width - 1;
-        if (grid.getItem(overlap).right > right) {
+        if (item.x + item.width - 1 > right) {
           conflicts.add(overlap);
         }
         break;
       }
       case "up": {
         const top = move.y;
-        if (grid.getItem(overlap).top < top) {
+        if (item.y < top) {
           conflicts.add(overlap);
         }
         break;
       }
       case "down": {
         const bottom = move.y + move.height - 1;
-        if (grid.getItem(overlap).bottom > bottom) {
+        if (item.y + item.height - 1 > bottom) {
           conflicts.add(overlap);
         }
         break;

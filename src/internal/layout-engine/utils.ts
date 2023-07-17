@@ -16,15 +16,6 @@ export function sortGridItems(items: readonly GridLayoutItem[]): readonly GridLa
   return [...items].sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 }
 
-export function getItemRect(item: GridLayoutItem): Rect {
-  return {
-    left: item.x,
-    right: item.x + item.width - 1,
-    top: item.y,
-    bottom: item.y + item.height - 1,
-  };
-}
-
 export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {
   path = normalizePathOrigin(origin, path);
 
@@ -81,8 +72,16 @@ export function createMove(type: CommittedMove["type"], item: GridLayoutItem, ne
   };
 }
 
-export function checkRectsIntersection(r1: Rect, r2: Rect) {
-  return r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom;
+export function checkItemsIntersection(i1: GridLayoutItem, i2: GridLayoutItem) {
+  const left1 = i1.x;
+  const right1 = i1.x + i1.width - 1;
+  const top1 = i1.y;
+  const bottom1 = i1.y + i1.height - 1;
+  const left2 = i2.x;
+  const right2 = i2.x + i2.width - 1;
+  const top2 = i2.y;
+  const bottom2 = i2.y + i2.height - 1;
+  return left1 <= right2 && left2 <= right1 && top1 <= bottom2 && top2 <= bottom1;
 }
 
 // Removes path prefixes that return to the original location.

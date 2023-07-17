@@ -2,14 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { GridLayoutItem, ItemId } from "../interfaces";
-import { Rect, getItemRect } from "./utils";
-
-export interface LayoutEngineItem extends GridLayoutItem, Rect {}
 
 export class ReadonlyLayoutEngineGrid {
   protected _width: number;
   protected _height: number;
-  protected _items = new Map<ItemId, LayoutEngineItem>();
+  protected _items = new Map<ItemId, GridLayoutItem>();
   protected _layout: Set<ItemId>[][] = [];
 
   static clone(grid: ReadonlyLayoutEngineGrid): LayoutEngineGrid {
@@ -35,7 +32,7 @@ export class ReadonlyLayoutEngineGrid {
     this._height = 0;
 
     for (const item of items) {
-      this._items.set(item.id, { ...item, ...getItemRect(item) });
+      this._items.set(item.id, { ...item });
 
       if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
         throw new Error("Invalid grid: items outside the boundaries.");
@@ -67,11 +64,11 @@ export class ReadonlyLayoutEngineGrid {
     return this._height;
   }
 
-  get items(): LayoutEngineItem[] {
+  get items(): GridLayoutItem[] {
     return [...this._items.values()];
   }
 
-  getItem(itemId: ItemId): LayoutEngineItem {
+  getItem(itemId: ItemId): GridLayoutItem {
     const item = this._items.get(itemId);
     if (!item) {
       throw new Error(`Item with id "${itemId}" not found in the grid.`);
@@ -79,18 +76,18 @@ export class ReadonlyLayoutEngineGrid {
     return item;
   }
 
-  getCell(x: number, y: number): LayoutEngineItem[] {
+  getCell(x: number, y: number): GridLayoutItem[] {
     if (!this._layout[y] || !this._layout[y][x]) {
       return [];
     }
-    const cellItems: LayoutEngineItem[] = [];
+    const cellItems: GridLayoutItem[] = [];
     for (const itemId of this._layout[y][x]) {
       cellItems.push(this.getItem(itemId));
     }
     return cellItems;
   }
 
-  getCellOverlap(x: number, y: number, itemId: ItemId): null | LayoutEngineItem {
+  getCellOverlap(x: number, y: number, itemId: ItemId): null | GridLayoutItem {
     for (const item of this.getCell(x, y)) {
       if (item.id !== itemId) {
         return item;
@@ -117,7 +114,6 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
 
     moveTarget.x = x;
     moveTarget.y = y;
-    Object.assign(moveTarget, getItemRect(moveTarget));
 
     this.insertLayoutItem(moveTarget, onOverlap);
   }
@@ -129,13 +125,12 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
 
     resizeTarget.width = width;
     resizeTarget.height = height;
-    Object.assign(resizeTarget, getItemRect(resizeTarget));
 
     this.insertLayoutItem(resizeTarget, onOverlap);
   }
 
   insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    this._items.set(item.id, { ...item, ...getItemRect(item) });
+    this._items.set(item.id, { ...item });
 
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
       throw new Error("Inserting item is outside the boundaries.");
