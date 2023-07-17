@@ -72,35 +72,15 @@ export function createMove(type: CommittedMove["type"], item: GridLayoutItem, ne
   };
 }
 
-export function checkItemsIntersection(
-  i1: { x: number; y: number; width: number; height: number },
-  i2: { x: number; y: number; width: number; height: number }
-) {
-  const left1 = i1.x;
-  const right1 = i1.x + i1.width - 1;
-  const top1 = i1.y;
-  const bottom1 = i1.y + i1.height - 1;
-  const left2 = i2.x;
-  const right2 = i2.x + i2.width - 1;
-  const top2 = i2.y;
-  const bottom2 = i2.y + i2.height - 1;
-  return left1 <= right2 && left2 <= right1 && top1 <= bottom2 && top2 <= bottom1;
-}
-
-export function checkItemsContain(
-  source: { x: number; y: number; width: number; height: number },
-  target: { x: number; y: number; width: number; height: number }
-) {
-  const sourceLeft = source.x;
-  const sourceRight = source.x + source.width - 1;
-  const sourceTop = source.y;
-  const sourceBottom = source.y + source.height - 1;
-  const targetLeft = target.x;
-  const targetRight = target.x + target.width - 1;
-  const targetTop = target.y;
-  const targetBottom = target.y + target.height - 1;
+export function checkItemsIntersection(i1: GridLayoutItem, i2: GridLayoutItem): boolean {
+  if (i1.id === i2.id) {
+    return false;
+  }
   return (
-    sourceLeft <= targetLeft && targetRight <= sourceRight && sourceTop <= targetTop && targetBottom <= sourceBottom
+    i1.x <= i2.x + i2.width - 1 &&
+    i2.x <= i1.x + i1.width - 1 &&
+    i1.y <= i2.y + i2.height - 1 &&
+    i2.y <= i1.y + i1.height - 1
   );
 }
 

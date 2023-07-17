@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { GridLayoutItem, ItemId } from "../interfaces";
-import { checkItemsContain, checkItemsIntersection } from "./utils";
+import { checkItemsIntersection } from "./utils";
 
 export class ReadonlyLayoutEngineGrid {
   protected _width: number;
   protected _height: number;
+
+  // TODO: remove this
   protected _itemsMap = new Map<ItemId, GridLayoutItem>();
   protected _items = new Array<GridLayoutItem>();
 
@@ -56,7 +58,7 @@ export class ReadonlyLayoutEngineGrid {
   }
 
   get items(): GridLayoutItem[] {
-    return [...this._itemsMap.values()];
+    return this._items;
   }
 
   getItem(itemId: ItemId): GridLayoutItem {
@@ -68,8 +70,8 @@ export class ReadonlyLayoutEngineGrid {
   }
 
   getCell(x: number, y: number): GridLayoutItem[] {
-    const cellProbe = { x, y, width: 1, height: 1 };
-    return this._items.filter((item) => checkItemsContain(item, cellProbe));
+    const cellProbe = { id: "", x, y, width: 1, height: 1 };
+    return this._items.filter((item) => checkItemsIntersection(item, cellProbe));
   }
 
   getCellOverlap(x: number, y: number, itemId: ItemId): null | GridLayoutItem {
