@@ -383,21 +383,14 @@ function checkItemsSwap(
 
 function getLastStepDiff(moves: CommittedMove[], issuer: LayoutEngineItem) {
   const issuerMoves = moves.filter((move) => move.itemId === issuer.id);
-  const originalParams = {
-    x: issuer.originalX,
-    y: issuer.originalY,
-    width: issuer.originalWidth,
-    height: issuer.originalHeight,
+  const last = issuerMoves[issuerMoves.length - 1];
+  if (!last) {
+    return { x: 0, y: 0 };
+  }
+  return {
+    x: last.direction === "left" || last.direction === "right" ? last.distance : 0,
+    y: last.direction === "up" || last.direction === "down" ? last.distance : 0,
   };
-  const prevIssuerMove = issuerMoves[issuerMoves.length - 2] ?? originalParams;
-  const lastIssuerMove = issuerMoves[issuerMoves.length - 1] ?? originalParams;
-  const diff = {
-    x: prevIssuerMove.x - lastIssuerMove.x,
-    y: prevIssuerMove.y - lastIssuerMove.y,
-    width: prevIssuerMove.width - lastIssuerMove.width,
-    height: prevIssuerMove.height - lastIssuerMove.height,
-  };
-  return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
 }
 
 // Retrieve first possible move for the given direction to resolve the overlap.

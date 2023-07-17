@@ -4,12 +4,7 @@
 import { GridLayoutItem, ItemId } from "../interfaces";
 import { Rect, getItemRect } from "./utils";
 
-export interface LayoutEngineItem extends GridLayoutItem, Rect {
-  originalX: number;
-  originalY: number;
-  originalWidth: number;
-  originalHeight: number;
-}
+export interface LayoutEngineItem extends GridLayoutItem, Rect {}
 
 export class ReadonlyLayoutEngineGrid {
   protected _width: number;
@@ -40,14 +35,7 @@ export class ReadonlyLayoutEngineGrid {
     this._height = 0;
 
     for (const item of items) {
-      this._items.set(item.id, {
-        ...item,
-        originalY: item.y,
-        originalX: item.x,
-        originalWidth: item.width,
-        originalHeight: item.height,
-        ...getItemRect(item),
-      });
+      this._items.set(item.id, { ...item, ...getItemRect(item) });
 
       if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
         throw new Error("Invalid grid: items outside the boundaries.");
@@ -147,14 +135,7 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
   }
 
   insert(item: GridLayoutItem, onOverlap: (overlapId: ItemId, issuer: ItemId) => void): void {
-    this._items.set(item.id, {
-      ...item,
-      originalY: item.y,
-      originalX: item.x,
-      originalWidth: item.width,
-      originalHeight: item.height,
-      ...getItemRect(item),
-    });
+    this._items.set(item.id, { ...item, ...getItemRect(item) });
 
     if (item.x < 0 || item.y < 0 || item.x + item.width > this._width) {
       throw new Error("Inserting item is outside the boundaries.");
