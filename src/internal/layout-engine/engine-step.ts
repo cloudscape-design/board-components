@@ -286,8 +286,6 @@ function getDirectionMoveScore(
     }
   }
 
-  // const pathOverlaps = new Set<ItemId>();
-
   const startY = move.y <= moveTarget.y ? move.y : moveTarget.y + moveTarget.height;
   const endY = move.y < moveTarget.y ? moveTarget.y - 1 : move.y + moveTarget.height - 1;
   const startX = move.x <= moveTarget.x ? move.x : moveTarget.x + moveTarget.width;
@@ -309,10 +307,6 @@ function getDirectionMoveScore(
   const isVacant = pathOverlaps.length === 0;
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
-  const repetitiveMovePenalty =
-    overlapIssuer.id === activeId && isSwap
-      ? 0
-      : state.moves.filter((m) => m.itemId === overlap && m.direction !== moveDirection).length * (isVacant ? 10 : 25);
   const moveDistancePenalty = Math.abs(moveTarget.x - move.x) + Math.abs(moveTarget.y - move.y);
   const overlapsPenalty =
     pathOverlaps
@@ -327,13 +321,7 @@ function getDirectionMoveScore(
       ? state.gradientY * 2
       : 0;
   const withPenalties = (score: number) =>
-    score +
-    repetitiveMovePenalty +
-    moveDistancePenalty +
-    overlapsPenalty +
-    alternateDirectionPenalty +
-    gradientXPenalty +
-    gradientYPenalty;
+    score + moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty + gradientXPenalty + gradientYPenalty;
 
   if (isSwap && state.moves[0].type === "RESIZE") {
     return withPenalties(200);
