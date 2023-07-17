@@ -54,7 +54,7 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
 
-  let safetyCounter = 1000;
+  let safetyCounter = 100;
 
   // The resolution process continues until there is at least one reasonable solution left.
   // Because it is always possible to move items down and the duplicate moves are not allowed,
@@ -91,11 +91,12 @@ export function resolveOverlaps(layoutState: LayoutEngineStepState, userMove: Co
 
     moveSolutions = nextSolutions
       .sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore))
-      .slice(0, 10);
+      .slice(0, 5);
 
     safetyCounter--;
     if (safetyCounter <= 0) {
-      throw new Error("Invariant violation: reached safety counter when resolving overlaps.");
+      // TODO: document
+      break;
     }
   }
 
@@ -158,6 +159,7 @@ export function refloatGrid(layoutState: LayoutEngineStepState, userMove?: Commi
 class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
+  public moveIndex = 0;
   public gradientX = 0;
   public gradientY = 0;
   public conflicts: null | Conflicts;
@@ -173,15 +175,17 @@ class MoveSolutionState {
   ) {
     this.grid = LayoutEngineGrid.clone(grid);
     this.moves = [...moves];
+    this.moveIndex = moves.length;
     this.conflicts = conflicts;
     this.overlaps = overlaps;
     this.score = score;
   }
 
-  static clone({ grid, moves, gradientX, gradientY, conflicts, overlaps, score }: MoveSolutionState) {
+  static clone({ grid, moves, moveIndex, gradientX, gradientY, conflicts, overlaps, score }: MoveSolutionState) {
     return {
       grid: LayoutEngineGrid.clone(grid),
       moves: [...moves],
+      moveIndex,
       gradientX,
       gradientY,
       conflicts,
@@ -286,6 +290,22 @@ function getDirectionMoveScore(
     }
   }
 
+  let prevOverlapMove: null | CommittedMove = null;
+  for (let i = state.moves.length - 1; i >= state.moveIndex; i--) {
+    if (state.moves[i].itemId === overlap) {
+      prevOverlapMove = state.moves[i];
+    }
+  }
+  if (
+    prevOverlapMove &&
+    ((prevOverlapMove.direction === "down" && moveDirection === "up") ||
+      (prevOverlapMove.direction === "up" && moveDirection === "down") ||
+      (prevOverlapMove.direction === "left" && moveDirection === "right") ||
+      (prevOverlapMove.direction === "right" && moveDirection === "left"))
+  ) {
+    return null;
+  }
+
   const startY = move.y <= moveTarget.y ? move.y : moveTarget.y + moveTarget.height;
   const endY = move.y < moveTarget.y ? moveTarget.y - 1 : move.y + moveTarget.height - 1;
   const startX = move.x <= moveTarget.x ? move.x : moveTarget.x + moveTarget.width;
@@ -320,8 +340,17 @@ function getDirectionMoveScore(
     (moveDirection === "up" && state.gradientY > 0) || (moveDirection === "down" && state.gradientY < 0)
       ? state.gradientY * 2
       : 0;
+  const resizeUpPenalty = state.moves[0].type === "RESIZE" && moveDirection === "up" ? 1000 : 0;
+  const resizeLeftPenalty = state.moves[0].type === "RESIZE" && moveDirection === "left" ? 50 : 0;
   const withPenalties = (score: number) =>
-    score + moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty + gradientXPenalty + gradientYPenalty;
+    score +
+    moveDistancePenalty +
+    overlapsPenalty +
+    alternateDirectionPenalty +
+    gradientXPenalty +
+    gradientYPenalty +
+    resizeUpPenalty +
+    resizeLeftPenalty;
 
   if (isSwap && state.moves[0].type === "RESIZE") {
     return withPenalties(200);
