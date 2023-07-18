@@ -295,6 +295,12 @@ function getDirectionMoveScore(
     return null;
   }
 
+  const activeItemOriginalY =
+    state.moves[0].direction === "down" ? state.moves[0].y - state.moves[0].distance : state.moves[0].y;
+  const activeItemMoves = state.moves.filter((move) => move.itemId === activeId);
+  const activeItemLastY = activeItemMoves[activeItemMoves.length - 1].y;
+  const activeItemMinY = Math.min(activeItemOriginalY, activeItemLastY);
+
   const startY = move.y <= moveTarget.y ? move.y : moveTarget.y + moveTarget.height;
   const endY = move.y < moveTarget.y ? moveTarget.y - 1 : move.y + moveTarget.height - 1;
   const startX = move.x <= moveTarget.x ? move.x : moveTarget.x + moveTarget.width;
@@ -331,6 +337,7 @@ function getDirectionMoveScore(
       : 0;
   const resizeUpPenalty = state.moves[0].type === "RESIZE" && moveDirection === "up" ? 1000 : 0;
   const resizeLeftPenalty = state.moves[0].type === "RESIZE" && moveDirection === "left" ? 50 : 0;
+  const moveAboveActivePenalty = move.y + move.height - 1 < activeItemMinY ? 100 : 0;
   const withPenalties = (score: number) =>
     score +
     moveDistancePenalty +
@@ -339,7 +346,8 @@ function getDirectionMoveScore(
     gradientXPenalty +
     gradientYPenalty +
     resizeUpPenalty +
-    resizeLeftPenalty;
+    resizeLeftPenalty +
+    moveAboveActivePenalty;
 
   if (isSwap && state.moves[0].type === "RESIZE") {
     return withPenalties(200);
