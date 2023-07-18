@@ -98,8 +98,7 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
 
     // Reaching the convergence counter might indicate an issue with the algorithm as ideally it should converge faster.
     // However, that does not necessarily mean the logical problem and no exception should be thrown.
-    // Instead, the current best solution if available applies. If no solution was found then the move
-    // cannot be committed at the current step which is also fine.
+    // Instead, the current best solution if available applies or a simple solution is offered instead.
     convergenceCounter--;
     if (convergenceCounter <= 0) {
       break;
@@ -125,6 +124,8 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
 function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
   state = MoveSolutionState.clone(state);
 
+  // Move overlapping items to the bottom until resolved. Repeat until no overlaps left.
+  // This solution always converges because there is always free space at the bottom by design.
   while (state.overlaps.size > 0) {
     const overlaps = sortGridItems([...state.overlaps].map(([overlapId]) => state.grid.getItem(overlapId)));
     for (const overlap of overlaps) {
