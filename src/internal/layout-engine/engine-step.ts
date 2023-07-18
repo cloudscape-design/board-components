@@ -178,13 +178,10 @@ function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): 
   return state;
 }
 
-// TODO: compute gradientX, gradientY, and score in the getDirectionMoveScore
 class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
   public moveIndex = 0;
-  public gradientX = 0;
-  public gradientY = 0;
   public conflicts: null | Conflicts;
   public overlaps: Map<ItemId, ItemId>;
   public score: number;
@@ -204,13 +201,11 @@ class MoveSolutionState {
     this.score = score;
   }
 
-  static clone({ grid, moves, moveIndex, gradientX, gradientY, conflicts, overlaps, score }: MoveSolutionState) {
+  static clone({ grid, moves, moveIndex, conflicts, overlaps, score }: MoveSolutionState) {
     return {
       grid: LayoutEngineGrid.clone(grid),
       moves: [...moves],
       moveIndex,
-      gradientX,
-      gradientY,
       conflicts,
       overlaps: new Map([...overlaps]),
       score,
@@ -249,14 +244,6 @@ function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: 
   }
   state.overlaps.delete(nextMove.itemId);
   state.score += moveScore;
-  state.gradientX +=
-    nextMove.type === "OVERLAP"
-      ? (nextMove.direction === "left" || nextMove.direction === "right" ? nextMove.distance : 0) * nextMove.height
-      : 0;
-  state.gradientY +=
-    nextMove.type === "OVERLAP"
-      ? (nextMove.direction === "up" || nextMove.direction === "down" ? nextMove.distance : 0) * nextMove.width
-      : 0;
 }
 
 function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
@@ -353,6 +340,16 @@ function getDirectionMoveScore(
   }
   const issuerMoveDirection = lastIssuerMove?.direction ?? null;
 
+  let gradientX = 0;
+  let gradientY = 0;
+  for (let i = state.moveIndex; i < state.moves.length; i++) {
+    const move = state.moves[i];
+    if (move.type === "OVERLAP") {
+      gradientX += (move.direction === "left" || move.direction === "right" ? move.distance : 0) * move.height;
+      gradientY += (move.direction === "up" || move.direction === "down" ? move.distance : 0) * move.width;
+    }
+  }
+
   const isVacant = pathOverlaps.length === 0;
   const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
@@ -362,13 +359,9 @@ function getDirectionMoveScore(
       .map((overlap) => (overlap.id === activeId && state.moves[0].type === "INSERT" ? 2 : 1))
       .reduce((sum, x) => sum + x, 0) * 50;
   const gradientXPenalty =
-    (moveDirection === "left" && state.gradientX > 0) || (moveDirection === "right" && state.gradientX < 0)
-      ? state.gradientX * 2
-      : 0;
+    (moveDirection === "left" && gradientX > 0) || (moveDirection === "right" && gradientX < 0) ? gradientX * 2 : 0;
   const gradientYPenalty =
-    (moveDirection === "up" && state.gradientY > 0) || (moveDirection === "down" && state.gradientY < 0)
-      ? state.gradientY * 2
-      : 0;
+    (moveDirection === "up" && gradientY > 0) || (moveDirection === "down" && gradientY < 0) ? gradientY * 2 : 0;
   const resizeUpPenalty = state.moves[0].type === "RESIZE" && moveDirection === "up" ? 1000 : 0;
   const resizeLeftPenalty = state.moves[0].type === "RESIZE" && moveDirection === "left" ? 50 : 0;
   const moveAboveActivePenalty = move.y + move.height - 1 < activeItemMinY ? 100 : 0;
