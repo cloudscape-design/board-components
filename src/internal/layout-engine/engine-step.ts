@@ -40,15 +40,15 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
   // and a score is given to each. The solution with the minimal score wins.
   // The process stars from the initial state and the user move. The initial score and the user move score are 0.
   const initialState = new MoveSolutionState(layoutState.grid, layoutState.moves, conflicts);
-  const initialSolution: MoveSolution = { state: initialState, move: userMove, moveScore: 0 };
+  const initialSolution: MoveSolution = [initialState, userMove];
 
   // All solutions are guaranteed to have unique move sequences but different move sequences can produce the same result.
   // As it is never expected for one item to be moved over to the same location twice the combination of the item ID,
   // item position, and solution score can uniquely represent the solution.
   // For earlier moves taking a solution from the cache can prevent hundreds of subsequent computations.
   const solutionsCache = new Map<string, MoveSolution>();
-  const createCacheKey = ({ state, move, moveScore }: MoveSolution) =>
-    `${move.itemId} ${move.x}:${move.y}:${state.score + moveScore}`;
+  const createCacheKey = ([state, move]: MoveSolution) =>
+    `${move.itemId} ${move.x}:${move.y}:${state.score + move.score}`;
 
   let moveSolutions: MoveSolution[] = [initialSolution];
   let bestSolution: null | MoveSolutionState = null;
@@ -62,25 +62,25 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
     let nextSolutions: MoveSolution[] = [];
 
     for (let solutionIndex = 0; solutionIndex < Math.min(NUM_BEST_SOLUTIONS, moveSolutions.length); solutionIndex++) {
-      const solution = moveSolutions[solutionIndex];
+      const [solutionState, solutionMove] = moveSolutions[solutionIndex];
 
       // Discard the solution before performing the move if its next score is already above the best score found so far.
-      if (bestSolution && solution.state.score + solution.moveScore >= bestSolution.score) {
+      if (bestSolution && solutionState.score + solutionMove.score >= bestSolution.score) {
         continue;
       }
 
       // Perform the move by mutating the solution's state: grid, moves, score, etc.
-      makeMove(solution.state, solution.move, solution.moveScore);
+      makeMove(solutionState, solutionMove);
 
       // If no overlaps are left the solution is considered valid and the best so far.
       // The next solutions having the same or higher score will be discarded.
-      if (solution.state.overlaps.size === 0) {
-        bestSolution = solution.state;
+      if (solutionState.overlaps.size === 0) {
+        bestSolution = solutionState;
       }
       // Otherwise, the next set of solutions will be considered. There can be up to four solutions per overlap
       // (by the number of possible directions to move).
       else {
-        const nextState = MoveSolutionState.clone(solution.state);
+        const nextState = MoveSolutionState.clone(solutionState);
         for (const nextSolution of findNextSolutions(nextState)) {
           const solutionKey = createCacheKey(nextSolution);
           const cachedSolution = solutionsCache.get(solutionKey);
@@ -93,7 +93,7 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
     }
 
     // The solutions are ordered by the total score so that the best (so far) solutions are considered first.
-    moveSolutions = nextSolutions.sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore));
+    moveSolutions = nextSolutions.sort((s1, s2) => s1[0].score + s1[1].score - (s2[0].score + s2[1].score));
     nextSolutions = [];
 
     // Reaching the convergence counter might indicate an issue with the algorithm as ideally it should converge faster.
@@ -132,7 +132,7 @@ function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
       while (state.grid.getOverlaps({ ...overlap, y }).length > 0) {
         y++;
       }
-      makeMove(state, createMove("OVERLAP", overlap, new Position({ x: overlap.x, y })), 0);
+      makeMove(state, createMove("OVERLAP", overlap, new Position({ x: overlap.x, y })));
     }
   }
 
@@ -163,7 +163,7 @@ function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): 
         move = moveAttempt;
       }
       if (move) {
-        makeMove(state, move, 0);
+        makeMove(state, move);
         needAnotherRefloat = true;
       }
     }
@@ -213,13 +213,9 @@ class MoveSolutionState {
   }
 }
 
-interface MoveSolution {
-  state: MoveSolutionState;
-  move: CommittedMove;
-  moveScore: number;
-}
+type MoveSolution = [MoveSolutionState, CommittedMove];
 
-function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: number): void {
+function makeMove(state: MoveSolutionState, nextMove: CommittedMove): void {
   switch (nextMove.type) {
     case "MOVE":
     case "OVERLAP":
@@ -243,7 +239,7 @@ function makeMove(state: MoveSolutionState, nextMove: CommittedMove, moveScore: 
     }
   }
   state.overlaps.delete(nextMove.itemId);
-  state.score += moveScore;
+  state.score += nextMove.score;
 }
 
 function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
@@ -257,11 +253,9 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
 
     const directions: Direction[] = ["down", "left", "right", "up"];
     for (const moveDirection of directions) {
-      const moveScore = getDirectionMoveScore(state, overlap, overlapIssuer, moveDirection);
-      if (moveScore !== null) {
-        const moveTarget = state.grid.getItem(overlap);
-        const move = getMoveForDirection(moveTarget, state.grid.getItem(overlapIssuer), moveDirection);
-        nextMoveSolutions.push({ state, move, moveScore });
+      const move = getDirectionMove(state, overlap, overlapIssuer, moveDirection);
+      if (move !== null) {
+        nextMoveSolutions.push([state, move]);
       }
     }
   }
@@ -269,12 +263,12 @@ function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   return nextMoveSolutions;
 }
 
-function getDirectionMoveScore(
+function getDirectionMove(
   state: MoveSolutionState,
   overlap: ItemId,
   issuer: ItemId,
   moveDirection: Direction
-): null | number {
+): null | CommittedMove {
   const activeId = state.moves[0].itemId;
   const moveTarget = state.grid.getItem(overlap);
   const overlapIssuer = state.grid.getItem(issuer);
@@ -376,25 +370,23 @@ function getDirectionMoveScore(
     resizeLeftPenalty +
     moveAboveActivePenalty;
 
+  let score = 0;
   if (isSwap && state.moves[0].type === "RESIZE") {
-    return withPenalties(200);
+    score += withPenalties(200);
+  } else if (isSwap && overlapIssuer.id === activeId) {
+    score += withPenalties(10);
+  } else if (isVacant && !isSwap) {
+    score += withPenalties(20);
+  } else if (isVacant && overlapIssuer.id !== activeId) {
+    score += withPenalties(20);
+  } else if (isVacant) {
+    score += withPenalties(60);
+  } else if (isSwap) {
+    score += withPenalties(80);
+  } else {
+    score += withPenalties(50);
   }
-  if (isSwap && overlapIssuer.id === activeId) {
-    return withPenalties(10);
-  }
-  if (isVacant && !isSwap) {
-    return withPenalties(20);
-  }
-  if (isVacant && overlapIssuer.id !== activeId) {
-    return withPenalties(20);
-  }
-  if (isVacant) {
-    return withPenalties(60);
-  }
-  if (isSwap) {
-    return withPenalties(80);
-  }
-  return withPenalties(50);
+  return { ...move, score };
 }
 
 function checkItemsSwap(

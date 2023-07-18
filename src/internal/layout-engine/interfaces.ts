@@ -30,6 +30,7 @@ export interface CommittedMove {
   type: "MOVE" | "RESIZE" | "INSERT" | "REMOVE" | "OVERLAP" | "FLOAT";
   direction: Direction;
   distance: number;
+  score: number;
 }
 
 export interface LayoutShift {

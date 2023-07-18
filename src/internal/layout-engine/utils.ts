@@ -50,7 +50,12 @@ export function normalizeResizePath(origin: Position, path: readonly Position[])
   return normalizePathSteps(origin, normalizedPath);
 }
 
-export function createMove(type: CommittedMove["type"], item: GridLayoutItem, next: Position): CommittedMove {
+export function createMove(
+  type: CommittedMove["type"],
+  item: GridLayoutItem,
+  next: Position,
+  score = 0
+): CommittedMove {
   const distanceX = type === "RESIZE" ? next.x - item.width : next.x - item.x;
   const distanceY = type === "RESIZE" ? next.y - item.height : next.y - item.y;
   return {
@@ -62,6 +67,7 @@ export function createMove(type: CommittedMove["type"], item: GridLayoutItem, ne
     height: type === "RESIZE" ? next.y : item.height,
     direction: distanceX > 0 ? "right" : distanceX < 0 ? "left" : distanceY < 0 ? "up" : "down",
     distance: distanceX || distanceY,
+    score,
   };
 }
 
