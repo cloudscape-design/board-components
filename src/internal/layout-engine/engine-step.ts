@@ -178,6 +178,7 @@ function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): 
   return state;
 }
 
+// TODO: compute gradientX, gradientY, and score in the getDirectionMoveScore
 class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
@@ -431,7 +432,7 @@ function getLastStepDiff(moves: CommittedMove[], issuer: GridLayoutItem) {
   };
 }
 
-// Retrieve first possible move for the given direction to resolve the overlap.
+// Retrieve the first possible move for the given direction to resolve the overlap.
 function getMoveForDirection(moveTarget: GridLayoutItem, overlap: GridLayoutItem, direction: Direction): CommittedMove {
   switch (direction) {
     case "up": {
@@ -449,71 +450,36 @@ function getMoveForDirection(moveTarget: GridLayoutItem, overlap: GridLayoutItem
   }
 }
 
-// Finds items that cannot be resolved at the current step.
+// Finds items that cannot be resolved at the current step as of being partially overlapped by the user-move item.
 function findConflicts(
   grid: ReadonlyLayoutEngineGrid,
   previousConflicts: null | Conflicts,
-  move: CommittedMove
+  userMove: CommittedMove
 ): null | Conflicts {
-  if (move.type !== "MOVE") {
+  // The conflicts are only defined for MOVE command type to make swaps possible.
+  if (userMove.type !== "MOVE") {
     return null;
   }
-
-  const conflicts = new Set<ItemId>();
-  const moveTarget = grid.getItem(move.itemId);
-  const direction: Direction = (() => {
-    if (previousConflicts) {
-      return previousConflicts.direction;
-    }
-
-    switch (`${move.x - moveTarget.x}:${move.y - moveTarget.y}`) {
-      case "-1:0":
-        return "left";
-      case "1:0":
-        return "right";
-      case "0:-1":
-        return "up";
-      case "0:1":
-        return "down";
-      default:
-        throw new Error("Invariant violation: user move is not incremental");
-    }
-  })();
-
-  const overlaps = grid.getOverlaps({ ...move, id: move.itemId });
-
-  for (const overlap of overlaps) {
+  // Using existing conflict direction if available so that conflicting items would swap consistently.
+  // If only the current direction is considered the multi-item conflicts become difficult to comprehend.
+  const direction = previousConflicts?.direction ?? userMove.direction;
+  // Conflicts are partial overlaps. When the item is overlapped fully (considering the direction) it is
+  // no longer treated as conflict.
+  const overlaps = grid.getOverlaps({ ...userMove, id: userMove.itemId });
+  const conflicts = overlaps.filter((overlap) => {
     switch (direction) {
-      case "left": {
-        const left = move.x;
-        if (overlap.x < left) {
-          conflicts.add(overlap.id);
-        }
-        break;
-      }
-      case "right": {
-        const right = move.x + move.width - 1;
-        if (overlap.x + overlap.width - 1 > right) {
-          conflicts.add(overlap.id);
-        }
-        break;
-      }
-      case "up": {
-        const top = move.y;
-        if (overlap.y < top) {
-          conflicts.add(overlap.id);
-        }
-        break;
-      }
-      case "down": {
-        const bottom = move.y + move.height - 1;
-        if (overlap.y + overlap.height - 1 > bottom) {
-          conflicts.add(overlap.id);
-        }
-        break;
-      }
+      case "left":
+        return overlap.x < userMove.x;
+      case "right":
+        return overlap.x + overlap.width - 1 > userMove.x + userMove.width - 1;
+      case "up":
+        return overlap.y < userMove.y;
+      case "down":
+        return overlap.y + overlap.height - 1 > userMove.y + userMove.height - 1;
     }
+  });
+  if (conflicts.length > 0) {
+    return { direction, items: new Set(conflicts.map((item) => item.id)) };
   }
-
-  return conflicts.size > 0 ? { items: conflicts, direction } : null;
+  return null;
 }
