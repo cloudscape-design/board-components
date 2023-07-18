@@ -35,21 +35,28 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
 
   // The user moves are always applied as is. When the user-controlled item overlaps with other items and there is
   // no conflict, the type="OVERLAP" moves are performed to settle the grid so that no items overlap with one another.
-  // For this type of move multiple solutions are often available. To ensure the best resolution all solutions are tried
-  // and a score is given to each. Those resolution with the minimal score wins.
+  // For this type of move multiple solutions are often available. To ensure the best result all solutions are tried
+  // and a score is given to each. The solution with the minimal score wins.
   // The process stars from the initial state and the user move. The initial score and the user move score are 0.
   const initialState = new MoveSolutionState(layoutState.grid, layoutState.moves, conflicts);
+  const initialSolution: MoveSolution = { state: initialState, move: userMove, moveScore: 0 };
 
+  // All solutions are guaranteed to have unique move sequences but different move sequences can produce the same result.
+  // As it is never expected for one item to be moved over to the same location twice the combination of the item ID,
+  // item position, and solution score can uniquely represent the solution.
+  // For earlier moves taking a solution from the cache can prevent hundreds of subsequent computations.
   const solutionsCache = new Map<string, MoveSolution>();
-  let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
-  let bestSolution: null | MoveSolutionState = null;
+  const createCacheKey = ({ state, move, moveScore }: MoveSolution) =>
+    `${move.itemId} ${move.x}:${move.y}:${state.score + moveScore}`;
 
+  let moveSolutions: MoveSolution[] = [initialSolution];
+  let bestSolution: null | MoveSolutionState = null;
   let convergenceCounter = MAX_SOLUTION_DEPTH;
 
   // The resolution process continues until there is at least one reasonable solution left.
-  // Because it is always possible to move items down and the duplicate moves are not allowed,
-  // the repetitive or expensive solutions are gradually removed.
-  // The safety counter ensures the logical errors to not cause an infinite loop.
+  // The repetitive, dead-end, and expensive (compared to the best so far) solutions are excluded
+  // so that eventually no more variants to try remain.
+  // The convergence safety counter ensures the logical errors to not cause an infinite loop.
   while (moveSolutions.length > 0) {
     let nextSolutions: MoveSolution[] = [];
 
@@ -75,8 +82,7 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
       else {
         for (const nextSolution of findNextSolutions(MoveSolutionState.clone(solution.state))) {
           // TODO: document
-          const solutionScore = nextSolution.state.score + nextSolution.moveScore;
-          const solutionKey = `${nextSolution.move.itemId} ${nextSolution.move.x}:${nextSolution.move.y}:${solutionScore}`;
+          const solutionKey = createCacheKey(nextSolution);
           const cachedSolution = solutionsCache.get(solutionKey);
           if (!cachedSolution) {
             nextSolutions.push(nextSolution);
