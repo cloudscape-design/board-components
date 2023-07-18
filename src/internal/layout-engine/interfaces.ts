@@ -38,8 +38,3 @@ export interface LayoutShift {
   moves: readonly CommittedMove[];
   conflicts: readonly ItemId[];
 }
-
-export interface Conflicts {
-  items: ReadonlySet<ItemId>;
-  direction: Direction;
-}

@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { Direction, ItemId } from "../interfaces";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
-import { CommittedMove, Conflicts } from "./interfaces";
+import { CommittedMove } from "./interfaces";
 
 /**
  * The class describes the layout engine state at a particular path step.
@@ -18,4 +19,9 @@ export class LayoutEngineState {
     this.moves = moves;
     this.conflicts = conflicts;
   }
+}
+
+export interface Conflicts {
+  items: ReadonlySet<ItemId>;
+  direction: Direction;
 }

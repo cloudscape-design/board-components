@@ -3,9 +3,9 @@
 
 import { Direction, GridLayoutItem, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
-import { LayoutEngineState } from "./engine-state";
+import { Conflicts, LayoutEngineState } from "./engine-state";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
-import { CommittedMove, Conflicts } from "./interfaces";
+import { CommittedMove } from "./interfaces";
 import { checkItemsIntersection, createMove } from "./utils";
 
 // TODO: many more property tests
