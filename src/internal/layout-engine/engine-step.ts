@@ -6,6 +6,7 @@ import { Position } from "../utils/position";
 import { Conflicts, LayoutEngineState } from "./engine-state";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
+import { sortGridItems } from "./utils";
 import { checkItemsIntersection, createMove } from "./utils";
 
 // TODO: property tests for convergence.
@@ -105,18 +106,14 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
     }
   }
 
-  // When no solution is found e.g. when the overlaps are blocked by the conflicting items - the current
-  // state (with the user move performed) is returned. In that case the unresolved overlaps are considered
-  // as conflicts.
+  // If there are conflicts it might not be possible to find a solution as the items are not allowed to
+  // overlap with the conflicts. In that case the initial state (with the user move applied) is returned.
+  // The user can move the item further to resolve the conflicts which will also unblock the overlaps resolution.
+  // Also, the solution might not be found due to the engine constraints. For example, the convergence number might
+  // be reached before any solution is found or the number of best solutions constraint can filter the only possible
+  // solutions away. In that case the simple solution is returned with all overlapping items pushed to the bottom.
   if (!bestSolution) {
-    return {
-      grid: initialState.grid,
-      moves: initialState.moves,
-      conflicts: {
-        direction: initialState.conflicts?.direction ?? userMove.direction,
-        items: new Set(...(initialState.conflicts?.items ?? []), ...initialState.overlaps.keys()),
-      },
-    };
+    bestSolution = initialState.conflicts ? initialState : resolveOverlapsDown(initialState);
   }
 
   // After each step unless there are conflicts the type="FLOAT" moves are performed on all items
@@ -124,8 +121,26 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
   return bestSolution.conflicts ? bestSolution : refloatGrid(bestSolution, userMove);
 }
 
+// Resolves overlaps the simple way by pushing all overlapping items to the bottom until none is left.
+function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
+  state = MoveSolutionState.clone(state);
+
+  while (state.overlaps.size > 0) {
+    const overlaps = sortGridItems([...state.overlaps].map(([overlapId]) => state.grid.getItem(overlapId)));
+    for (const overlap of overlaps) {
+      let y = overlap.y + 1;
+      while (state.grid.getOverlaps({ ...overlap, y }).length > 0) {
+        y++;
+      }
+      makeMove(state, createMove("OVERLAP", overlap, new Position({ x: overlap.x, y })), 0);
+    }
+  }
+
+  return state;
+}
+
 // Find items that can "float" to the top and apply the necessary moves.
-export function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): LayoutEngineState {
+function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): LayoutEngineState {
   if (layoutState.conflicts) {
     return layoutState;
   }

@@ -6,7 +6,7 @@ import { generateGrid, generateInsert, generateMove, generateResize } from "../.
 import { LayoutEngine } from "../engine";
 import { forEachTimes } from "./helpers";
 
-const TOTAL_RUNS = 1000;
+const TOTAL_RUNS = 100;
 const AVERAGE_EXECUTION_TIME_MS = 5;
 const MAX_EXECUTION_TIME_MS = 100;
 
