@@ -68,20 +68,19 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
         continue;
       }
 
-      // Perform the move by mutating the solution's state.
-      // This state is not shared and mutating it is safe. It is done to avoid unnecessary cloning.
+      // Perform the move by mutating the solution's state: grid, moves, score, etc.
       makeMove(solution.state, solution.move, solution.moveScore);
 
       // If no overlaps are left the solution is considered valid and the best so far.
-      // The next solution having the same or higher score will be discarded.
+      // The next solutions having the same or higher score will be discarded.
       if (solution.state.overlaps.size === 0) {
         bestSolution = solution.state;
       }
       // Otherwise, the next set of solutions will be considered. There can be up to four solutions per overlap
-      // by the number of possible directions to move.
+      // (by the number of possible directions to move).
       else {
-        for (const nextSolution of findNextSolutions(MoveSolutionState.clone(solution.state))) {
-          // TODO: document
+        const nextState = MoveSolutionState.clone(solution.state);
+        for (const nextSolution of findNextSolutions(nextState)) {
           const solutionKey = createCacheKey(nextSolution);
           const cachedSolution = solutionsCache.get(solutionKey);
           if (!cachedSolution) {
@@ -92,26 +91,36 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
       }
     }
 
+    // The solutions are ordered by the total score so that the best (so far) solutions are considered first.
     moveSolutions = nextSolutions.sort((s1, s2) => s1.state.score + s1.moveScore - (s2.state.score + s2.moveScore));
     nextSolutions = [];
 
+    // Reaching the convergence counter might indicate an issue with the algorithm as ideally it should converge faster.
+    // However, that does not necessarily mean the logical problem and no exception should be thrown.
+    // Instead, the current best solution if available applies. If no solution was found then the move
+    // cannot be committed at the current step which is also fine.
     convergenceCounter--;
     if (convergenceCounter <= 0) {
-      // TODO: document
       break;
     }
   }
 
-  // When there are conflicts it is possible that there is not a single solution that can resolve all overlaps.
-  // In that case the initial state is returned (with the user move performed).
-  // This is totally expected and the next user move increment will likely resolve the conflicts and unblock
-  // the overlaps resolution.
+  // When no solution is found e.g. when the overlaps are blocked by the conflicting items - the current
+  // state (with the user move performed) is returned. In that case the unresolved overlaps are considered
+  // as conflicts.
   if (!bestSolution) {
-    return { grid: initialState.grid, moves: initialState.moves, conflicts: initialState.conflicts };
+    return {
+      grid: initialState.grid,
+      moves: initialState.moves,
+      conflicts: {
+        direction: initialState.conflicts?.direction ?? userMove.direction,
+        items: new Set(...(initialState.conflicts?.items ?? []), ...initialState.overlaps.keys()),
+      },
+    };
   }
 
-  // After each step unless there are conflicts the "refloat" is performed which is performing type="FLOAT"
-  // moves on all items that can be moved to the top without overlapping with other items.
+  // After each step unless there are conflicts the type="FLOAT" moves are performed on all items
+  // but the user controlled one that can be moved to the top without overlapping with other items.
   return bestSolution.conflicts ? bestSolution : refloatGrid(bestSolution, userMove);
 }
 
