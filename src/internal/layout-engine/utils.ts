@@ -5,13 +5,6 @@ import { GridLayoutItem } from "../interfaces";
 import { Position } from "../utils/position";
 import { CommittedMove } from "./interfaces";
 
-export interface Rect {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
-
 export function sortGridItems(items: GridLayoutItem[]): readonly GridLayoutItem[] {
   return items.sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 }

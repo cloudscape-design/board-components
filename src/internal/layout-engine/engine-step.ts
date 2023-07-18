@@ -8,9 +8,16 @@ import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
 import { checkItemsIntersection, createMove } from "./utils";
 
-// TODO: many more property tests
+// TODO: property tests for convergence.
+// TODO: validate existing property tests with 100_000 runs.
 
+// The solutions can't be searched for infinitely in case the algorithm can't converge.
+// The safety counter ensures there is going to be user feedback within reasonable time.
 const MAX_SOLUTION_DEPTH = 100;
+
+// At any given step only a few best solutions are taken to ensure faster convergence.
+// The larger the number the better chance the most optimal solution is found for the given priorities
+// at a cost of more computations made.
 const NUM_BEST_SOLUTIONS = 5;
 
 /**
