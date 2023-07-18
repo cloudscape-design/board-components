@@ -141,10 +141,6 @@ function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
 
 // Find items that can "float" to the top and apply the necessary moves.
 function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): LayoutEngineState {
-  if (layoutState.conflicts) {
-    return layoutState;
-  }
-
   const state = new MoveSolutionState(layoutState.grid, layoutState.moves, layoutState.conflicts);
 
   function makeRefloat() {
@@ -179,7 +175,7 @@ function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): 
 
   makeRefloat();
 
-  return { grid: state.grid, moves: state.moves, conflicts: state.conflicts };
+  return state;
 }
 
 class MoveSolutionState {
