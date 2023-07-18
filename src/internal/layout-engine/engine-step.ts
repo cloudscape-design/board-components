@@ -33,6 +33,7 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
   // The process stars from the initial state and the user move. The initial score and the user move score are 0.
   const initialState = new MoveSolutionState(layoutState.grid, layoutState.moves, conflicts);
 
+  const solutionsCache = new Map<string, MoveSolution>();
   let moveSolutions: MoveSolution[] = [{ state: initialState, move: userMove, moveScore: 0 }];
   let bestSolution: null | MoveSolutionState = null;
 
@@ -46,18 +47,18 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
     let nextSolutions: MoveSolution[] = [];
 
     for (let solutionIndex = 0; solutionIndex < Math.min(NUM_BEST_SOLUTIONS, moveSolutions.length); solutionIndex++) {
-      const { state: moveState, move, moveScore } = moveSolutions[solutionIndex];
+      const solution = moveSolutions[solutionIndex];
 
       // Discard the solution before performing the move if its next score is already above the best score found so far.
-      if (bestSolution && moveState.score + moveScore >= bestSolution.score) {
+      if (bestSolution && solution.state.score + solution.moveScore >= bestSolution.score) {
         continue;
       }
 
-      const state = MoveSolutionState.clone(moveState);
+      const state = MoveSolutionState.clone(solution.state);
 
       // Perform the move by mutating the solution's state.
       // This state is not shared and mutating it is safe. It is done to avoid unnecessary cloning.
-      makeMove(state, move, moveScore);
+      makeMove(state, solution.move, solution.moveScore);
 
       // If no overlaps are left the solution is considered valid and the best so far.
       // The next solution having the same or higher score will be discarded.
@@ -68,7 +69,14 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
       // by the number of possible directions to move.
       else {
         for (const solution of findNextSolutions(state)) {
-          nextSolutions.push(solution);
+          // TODO: document
+          const solutionScore = solution.state.score + solution.moveScore;
+          const solutionKey = `${solution.move.itemId} ${solution.move.x}:${solution.move.y}:${solutionScore}`;
+          const cachedSolution = solutionsCache.get(solutionKey);
+          if (!cachedSolution) {
+            nextSolutions.push(solution);
+            solutionsCache.set(solutionKey, solution);
+          }
         }
       }
     }
