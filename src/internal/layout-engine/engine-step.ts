@@ -54,28 +54,26 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
         continue;
       }
 
-      const state = MoveSolutionState.clone(solution.state);
-
       // Perform the move by mutating the solution's state.
       // This state is not shared and mutating it is safe. It is done to avoid unnecessary cloning.
-      makeMove(state, solution.move, solution.moveScore);
+      makeMove(solution.state, solution.move, solution.moveScore);
 
       // If no overlaps are left the solution is considered valid and the best so far.
       // The next solution having the same or higher score will be discarded.
-      if (state.overlaps.size === 0) {
-        bestSolution = state;
+      if (solution.state.overlaps.size === 0) {
+        bestSolution = solution.state;
       }
       // Otherwise, the next set of solutions will be considered. There can be up to four solutions per overlap
       // by the number of possible directions to move.
       else {
-        for (const solution of findNextSolutions(state)) {
+        for (const nextSolution of findNextSolutions(MoveSolutionState.clone(solution.state))) {
           // TODO: document
-          const solutionScore = solution.state.score + solution.moveScore;
-          const solutionKey = `${solution.move.itemId} ${solution.move.x}:${solution.move.y}:${solutionScore}`;
+          const solutionScore = nextSolution.state.score + nextSolution.moveScore;
+          const solutionKey = `${nextSolution.move.itemId} ${nextSolution.move.x}:${nextSolution.move.y}:${solutionScore}`;
           const cachedSolution = solutionsCache.get(solutionKey);
           if (!cachedSolution) {
-            nextSolutions.push(solution);
-            solutionsCache.set(solutionKey, solution);
+            nextSolutions.push(nextSolution);
+            solutionsCache.set(solutionKey, nextSolution);
           }
         }
       }
