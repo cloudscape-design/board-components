@@ -79,18 +79,33 @@ function getOverlapMove(
   const userItem = state.grid.getItem(state.moves[0].itemId);
   const overlapItem = state.grid.getItem(overlapId);
   const overlapIssuerItem = state.grid.getItem(overlapIssuerId);
-
-  // Non-evaluated move that resolves the overlap if valid.
-  const move = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
+  const overlapMove = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
 
   // The move position is outside the grid boundaries.
-  if (move.x < 0 || move.y < 0 || move.x + move.width > state.grid.width) {
+  if (overlapMove.x < 0 || overlapMove.y < 0 || overlapMove.x + overlapMove.width > state.grid.width) {
     return null;
   }
 
+  // Subsequent item overlap moves in the opposite directions do not contribute to solution.
   const prevOverlapMove = getLastSolutionMove(state, overlapItem.id);
   if (prevOverlapMove && checkOppositeDirections(prevOverlapMove.direction, moveDirection)) {
     return null;
+  }
+
+  const pathOverlaps = getPathOverlaps(state, overlapMove, overlapIssuerItem);
+  for (const overlap of pathOverlaps) {
+    // Not allowed to intersect with the user-controlled item.
+    if (overlap.id === userItem.id) {
+      return null;
+    }
+    // Not allowed to intersect with conflicting items.
+    if (state.conflicts?.items.has(overlap.id)) {
+      return null;
+    }
+    // Intersecting with items having unresolved overlaps does not contribute to solution.
+    if (state.overlaps.has(overlap.id)) {
+      return null;
+    }
   }
 
   const lastIssuerMove = getLastSolutionMove(state, overlapIssuerItem.id);
@@ -100,29 +115,12 @@ function getOverlapMove(
 
   const activeItemMinY = getUserMinY(state);
 
-  const pathOverlaps = getPathOverlaps(state, move, overlapIssuerItem);
-
-  for (const overlap of pathOverlaps) {
-    // Can't overlap with the active item.
-    if (overlap.id === userItem.id) {
-      return null;
-    }
-    // Can't overlap with the conflicted item.
-    if (state.conflicts?.items.has(overlap.id)) {
-      return null;
-    }
-    // Can't overlap with cells containing unresolved overlaps.
-    if (state.overlaps.has(overlap.id)) {
-      return null;
-    }
-  }
-
   const { gradientX, gradientY } = getSolutionMovesGradient(state);
 
   const isVacant = pathOverlaps.size === 0;
-  const isSwap = checkOppositeDirections(move.direction, lastIssuerMove.direction);
+  const isSwap = checkOppositeDirections(overlapMove.direction, lastIssuerMove.direction);
   const alternateDirectionPenalty = moveDirection !== lastIssuerMove.direction && !isSwap ? 10 : 0;
-  const moveDistancePenalty = Math.abs(overlapItem.x - move.x) + Math.abs(overlapItem.y - move.y);
+  const moveDistancePenalty = Math.abs(overlapItem.x - overlapMove.x) + Math.abs(overlapItem.y - overlapMove.y);
   const overlapsPenalty = pathOverlaps.size * 50;
   const gradientXPenalty =
     (moveDirection === "left" && gradientX > 0) || (moveDirection === "right" && gradientX < 0) ? gradientX * 2 : 0;
@@ -130,9 +128,8 @@ function getOverlapMove(
     (moveDirection === "up" && gradientY > 0) || (moveDirection === "down" && gradientY < 0) ? gradientY * 2 : 0;
   const resizeUpPenalty = state.moves[0].type === "RESIZE" && moveDirection === "up" ? 1000 : 0;
   const resizeLeftPenalty = state.moves[0].type === "RESIZE" && moveDirection === "left" ? 50 : 0;
-  const moveAboveActivePenalty = move.y + move.height - 1 < activeItemMinY ? 100 : 0;
-  const withPenalties = (score: number) =>
-    score +
+  const moveAboveActivePenalty = overlapMove.y + overlapMove.height - 1 < activeItemMinY ? 100 : 0;
+  const penalties =
     moveDistancePenalty +
     overlapsPenalty +
     alternateDirectionPenalty +
@@ -145,21 +142,21 @@ function getOverlapMove(
   // TODO: use single formula
   let score = 0;
   if (isSwap && state.moves[0].type === "RESIZE") {
-    score += withPenalties(200);
+    score += 200 + penalties;
   } else if (isSwap && overlapIssuerItem.id === userItem.id) {
-    score += withPenalties(10);
+    score += 10 + penalties;
   } else if (isVacant && !isSwap) {
-    score += withPenalties(20);
+    score += 20 + penalties;
   } else if (isVacant && overlapIssuerItem.id !== userItem.id) {
-    score += withPenalties(20);
+    score += 20 + penalties;
   } else if (isVacant) {
-    score += withPenalties(60);
+    score += 60 + penalties;
   } else if (isSwap) {
-    score += withPenalties(80);
+    score += 80 + penalties;
   } else {
-    score += withPenalties(50);
+    score += 50 + penalties;
   }
-  return { ...move, score };
+  return { ...overlapMove, score };
 }
 
 // Retrieves the first possible move for the given direction to resolve the overlap.
