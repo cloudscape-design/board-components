@@ -112,6 +112,13 @@ function getOverlapMove(
   if (!lastIssuerMove) {
     throw new Error("Invariant violation: overlap issuer has no associated moves.");
   }
+  const issuerDirection = lastIssuerMove.direction;
+
+  // Swap score penalizes non-swap overlap resolutions in case the direction does not match those of the issuer.
+  const isSwap = checkIfSwap(overlapMove, lastIssuerMove);
+  const differentDirectionPenalty = !isSwap && moveDirection !== issuerDirection ? 10 : 0;
+  const oppositeDirectionPenalty = !isSwap && checkOppositeDirections(moveDirection, issuerDirection) ? 500 : 0;
+  const swapScore = differentDirectionPenalty + oppositeDirectionPenalty;
 
   // Boundaries score penalize movements of items that are outside the area covered by the user move.
   const userMoveBoundaries = getUserMoveBoundaries(state);
@@ -129,24 +136,17 @@ function getOverlapMove(
   const gradientScore = gradientXPenalty + gradientYPenalty;
 
   const isVacant = pathOverlaps.size === 0;
-  const isSwap = checkIfSwap(overlapMove, lastIssuerMove);
 
-  const alternateDirectionPenalty = !isSwap && moveDirection !== lastIssuerMove.direction ? 10 : 0;
-  const moveDistancePenalty = Math.abs(overlapItem.x - overlapMove.x) + Math.abs(overlapItem.y - overlapMove.y);
   const overlapsPenalty = pathOverlaps.size * 50;
 
-  const penalties = moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty + gradientScore + boundariesScore;
+  const penalties = overlapsPenalty + swapScore + gradientScore + boundariesScore;
 
   // TODO: use single formula
   let score = 0;
-  if (isSwap && overlapIssuerItem.id === userItem.id) {
+  if (isSwap) {
     score += 10 + penalties;
-  } else if (isVacant && !isSwap) {
-    score += 20 + penalties;
-  } else if (isVacant && overlapIssuerItem.id !== userItem.id) {
-    score += 20 + penalties;
   } else if (isVacant) {
-    score += 60 + penalties;
+    score += 20 + penalties;
   } else {
     score += penalties;
   }
