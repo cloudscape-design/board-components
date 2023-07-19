@@ -5,6 +5,13 @@ import { Direction, GridLayoutItem } from "../interfaces";
 import { Position } from "../utils/position";
 import { CommittedMove } from "./interfaces";
 
+export interface Rect {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 export function sortGridItems(items: GridLayoutItem[]): readonly GridLayoutItem[] {
   return items.sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 }
@@ -69,6 +76,24 @@ export function createMove(
     distanceX,
     distanceY,
     score,
+  };
+}
+
+export function getMoveOriginalRect(move: CommittedMove): Rect {
+  return {
+    left: move.x - move.distanceX,
+    right: move.x - move.distanceX + move.width - 1,
+    top: move.y - move.distanceY,
+    bottom: move.y - move.distanceY + move.height - 1,
+  };
+}
+
+export function getMoveRect(move: CommittedMove): Rect {
+  return {
+    left: move.x,
+    right: move.x + move.width - 1,
+    top: move.y,
+    bottom: move.y + move.height - 1,
   };
 }
 

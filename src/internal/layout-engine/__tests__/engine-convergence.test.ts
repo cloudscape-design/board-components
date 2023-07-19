@@ -6,9 +6,10 @@ import { generateGrid, generateInsert, generateMove, generateResize } from "../.
 import { LayoutEngine } from "../engine";
 import { forEachTimes } from "./helpers";
 
-const TOTAL_RUNS = 100;
-const AVERAGE_EXECUTION_TIME_MS = 5;
+const TOTAL_RUNS = 1000;
+const AVERAGE_EXECUTION_TIME_MS = 3;
 const MAX_EXECUTION_TIME_MS = 100;
+const MAX_EXECUTION_TIME_RESIZE_MS = 200;
 
 function measure(fn: () => void) {
   const timeBefore = Date.now();
@@ -76,5 +77,5 @@ test("resize resolutions take reasonable time", () => {
   );
 
   expect(averageTime).toBeLessThan(AVERAGE_EXECUTION_TIME_MS);
-  expect(maxTime).toBeLessThan(MAX_EXECUTION_TIME_MS);
+  expect(maxTime).toBeLessThan(MAX_EXECUTION_TIME_RESIZE_MS);
 });

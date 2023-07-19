@@ -6,7 +6,7 @@ import { Position } from "../utils/position";
 import { Conflicts } from "./engine-state";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { checkOppositeDirections, createMove } from "./utils";
+import { checkOppositeDirections, createMove, getMoveOriginalRect, getMoveRect } from "./utils";
 
 // TODO: property tests for convergence.
 // TODO: validate existing property tests with 100_000 runs.
@@ -113,7 +113,7 @@ function getOverlapMove(
     throw new Error("Invariant violation: overlap issuer has no associated moves.");
   }
 
-  const activeItemMinY = getUserMinY(state);
+  const userMoveBoundaries = getUserMoveBoundaries(state);
 
   const { gradientX, gradientY } = getSolutionMovesGradient(state);
 
@@ -126,18 +126,20 @@ function getOverlapMove(
     (moveDirection === "left" && gradientX > 0) || (moveDirection === "right" && gradientX < 0) ? gradientX * 2 : 0;
   const gradientYPenalty =
     (moveDirection === "up" && gradientY > 0) || (moveDirection === "down" && gradientY < 0) ? gradientY * 2 : 0;
-  const resizeUpPenalty = state.moves[0].type === "RESIZE" && moveDirection === "up" ? 1000 : 0;
-  const resizeLeftPenalty = state.moves[0].type === "RESIZE" && moveDirection === "left" ? 50 : 0;
-  const moveAboveActivePenalty = overlapMove.y + overlapMove.height - 1 < activeItemMinY ? 100 : 0;
+  const resizeLeftPenalty = 0;
+  const moveOutsideUserTopPenalty = overlapItem.y + overlapItem.height - 1 < userMoveBoundaries.top ? 500 : 0;
+  const moveOutsideUserLeftPenalty = overlapItem.x + overlapItem.width - 1 < userMoveBoundaries.left ? 50 : 0;
+  const moveOutsideUserRightPenalty = overlapItem.x > userMoveBoundaries.right ? 50 : 0;
   const penalties =
     moveDistancePenalty +
     overlapsPenalty +
     alternateDirectionPenalty +
     gradientXPenalty +
     gradientYPenalty +
-    resizeUpPenalty +
     resizeLeftPenalty +
-    moveAboveActivePenalty;
+    moveOutsideUserTopPenalty +
+    moveOutsideUserLeftPenalty +
+    moveOutsideUserRightPenalty;
 
   // TODO: use single formula
   let score = 0;
@@ -201,15 +203,24 @@ function getSolutionMovesGradient(state: MoveSolutionState): { gradientX: number
   return { gradientX, gradientY };
 }
 
-// Calculates the minimal Y the user-controlled item crossed considering the original location and two previous moves.
-// The board items above that boundary are not expected to be disturbed.
-function getUserMinY(state: MoveSolutionState): number {
+// Finds a rectangle within which the user-controlled item was moved.
+// The rectangle only considers the original item location and the last two moves performed.
+// The layout items outside the boundaries are not expected to be disturbed.
+function getUserMoveBoundaries(state: MoveSolutionState): { top: number; right: number; bottom: number; left: number } {
   const firstUserMove = state.moves[0];
   const lastUserMove = state.moves[state.moveIndex];
   if (!firstUserMove || !lastUserMove || firstUserMove.itemId !== lastUserMove.itemId) {
     throw new Error("Invariant violation: unexpected user move.");
   }
-  return Math.min(firstUserMove.y - firstUserMove.distanceY, lastUserMove.y - lastUserMove.distanceY, lastUserMove.y);
+  const r1 = getMoveOriginalRect(firstUserMove);
+  const r2 = getMoveOriginalRect(lastUserMove);
+  const r3 = getMoveRect(lastUserMove);
+  return {
+    top: Math.min(r1.top, r2.top, r3.top),
+    right: Math.max(r1.right, r2.right, r3.right),
+    bottom: Math.max(r1.bottom, r2.bottom, r3.bottom),
+    left: Math.min(r1.left, r2.left, r3.left),
+  };
 }
 
 // Finds all overlaps that the move will cause along its path not considering the original location and original overlap.
@@ -218,15 +229,11 @@ function getPathOverlaps(
   move: CommittedMove,
   overlapIssuerItem: GridLayoutItem
 ): Set<GridLayoutItem> {
-  const itemLeft = move.x - move.distanceX;
-  const itemRight = move.x - move.distanceX + move.width - 1;
-  const itemTop = move.y - move.distanceY;
-  const itemBottom = move.y - move.distanceY + move.height - 1;
-
-  const startX = move.distanceX <= 0 ? move.x : itemRight + 1;
-  const endX = move.distanceX < 0 ? itemLeft - 1 : itemRight + move.distanceX;
-  const startY = move.distanceY <= 0 ? move.y : itemBottom + 1;
-  const endY = move.distanceY < 0 ? itemTop - 1 : itemBottom + move.distanceY;
+  const { left, right, top, bottom } = getMoveOriginalRect(move);
+  const startX = move.distanceX <= 0 ? move.x : right + 1;
+  const endX = move.distanceX < 0 ? left - 1 : right + move.distanceX;
+  const startY = move.distanceY <= 0 ? move.y : bottom + 1;
+  const endY = move.distanceY < 0 ? top - 1 : bottom + move.distanceY;
 
   const pathOverlaps = new Set(
     state.grid.getOverlaps({
