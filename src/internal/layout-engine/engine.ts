@@ -77,8 +77,7 @@ export class LayoutEngine {
   }
 
   remove(itemId: ItemId): LayoutShift {
-    // The remove command does not define the move path and is not cached.
-    // It is expected to be performed only once.
+    // The remove command does not define the move path and is not cached. It is expected to be performed only once.
     const { x, y, width, height } = this.cache.state.grid.getItem(itemId);
     const move = createMove("REMOVE", { id: itemId, x, y, width, height }, new Position({ x, y }));
     const state = resolveOverlaps(this.cache.state, move);
