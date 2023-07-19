@@ -104,17 +104,14 @@ function getDirectionMove(
     throw new Error("Invariant violation: overlap issuer has no associated moves.");
   }
 
-  const activeItemOriginalY =
-    state.moves[0].direction === "down" ? state.moves[0].y - state.moves[0].distanceY : state.moves[0].y;
-  const activeItemMoves = state.moves.filter((move) => move.itemId === activeId);
-  const activeItemLastY = activeItemMoves[activeItemMoves.length - 1].y;
-  const activeItemMinY = Math.min(activeItemOriginalY, activeItemLastY);
+  const activeItemMinY = getUserMinY(state);
 
   const startY = move.y <= overlapItem.y ? move.y : overlapItem.y + overlapItem.height;
   const endY = move.y < overlapItem.y ? overlapItem.y - 1 : move.y + overlapItem.height - 1;
   const startX = move.x <= overlapItem.x ? move.x : overlapItem.x + overlapItem.width;
   const endX = move.x < overlapItem.x ? overlapItem.x - 1 : move.x + overlapItem.width - 1;
   const pathRect = { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
+  // TODO: performance
   const pathOverlaps = state.grid
     .getOverlaps(pathRect)
     .filter((overlap) => (state.moves[0].type !== "INSERT" && overlap.id === activeId ? false : true));
@@ -125,6 +122,7 @@ function getDirectionMove(
   const isSwap = checkOppositeDirections(move.direction, lastIssuerMove.direction);
   const alternateDirectionPenalty = moveDirection !== lastIssuerMove.direction && !isSwap ? 10 : 0;
   const moveDistancePenalty = Math.abs(overlapItem.x - move.x) + Math.abs(overlapItem.y - move.y);
+  // TODO: performance
   const overlapsPenalty =
     pathOverlaps
       .map((overlap) => (overlap.id === activeId && state.moves[0].type === "INSERT" ? 2 : 1))
@@ -147,6 +145,7 @@ function getDirectionMove(
     resizeLeftPenalty +
     moveAboveActivePenalty;
 
+  // TODO: use single formula
   let score = 0;
   if (isSwap && state.moves[0].type === "RESIZE") {
     score += withPenalties(200);
@@ -186,6 +185,7 @@ function getLastSolutionMove(state: MoveSolutionState, itemId: ItemId): null | C
   for (let i = state.moves.length - 1; i >= state.moveIndex; i--) {
     if (state.moves[i].itemId === itemId) {
       lastMove = state.moves[i];
+      break;
     }
   }
   return lastMove;
@@ -202,4 +202,13 @@ function getSolutionMovesGradient(state: MoveSolutionState): { gradientX: number
     }
   }
   return { gradientX, gradientY };
+}
+
+function getUserMinY(state: MoveSolutionState): number {
+  const firstUserMove = state.moves[0];
+  const lastUserMove = state.moves[state.moveIndex];
+  if (!firstUserMove || !lastUserMove || firstUserMove.itemId !== lastUserMove.itemId) {
+    throw new Error("Invariant violation: unexpected user move.");
+  }
+  return Math.min(firstUserMove.y - firstUserMove.distanceY, lastUserMove.y - lastUserMove.distanceY, lastUserMove.y);
 }
