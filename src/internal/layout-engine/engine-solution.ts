@@ -8,9 +8,6 @@ import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
 import { checkOppositeDirections, createMove, getMoveOriginalRect, getMoveRect } from "./utils";
 
-// TODO: property tests for convergence.
-// TODO: validate existing property tests with 100_000 runs.
-
 // All directions in which overlaps can be incrementally resolved.
 const PRIORITY_DIRECTIONS: readonly Direction[] = ["down", "right", "left", "up"];
 
@@ -116,9 +113,13 @@ function getOverlapMove(
 
   // Swap score penalizes non-swap overlap resolutions in case the direction does not match that of the issuer.
   const isSwap = checkIfSwap(overlapMove, lastIssuerMove);
+  const swapPenalty = isSwap ? 0 : 20;
   const differentDirectionPenalty = !isSwap && moveDirection !== issuerDirection ? 10 : 0;
   const oppositeDirectionPenalty = !isSwap && checkOppositeDirections(moveDirection, issuerDirection) ? 500 : 0;
-  const swapScore = differentDirectionPenalty + oppositeDirectionPenalty;
+  const swapScore = swapPenalty + differentDirectionPenalty + oppositeDirectionPenalty;
+
+  // Overlaps score penalizes moves that cause additional overlaps.
+  const overlapsScore = pathOverlaps.size * 50;
 
   // Boundaries score penalize movements of items that are outside the area covered by the user move.
   const userMoveBoundaries = getUserMoveBoundaries(state);
@@ -135,21 +136,8 @@ function getOverlapMove(
     (moveDirection === "up" && gradientY > 0) || (moveDirection === "down" && gradientY < 0) ? gradientY * 2 : 0;
   const gradientScore = gradientXPenalty + gradientYPenalty;
 
-  const isVacant = pathOverlaps.size === 0;
-
-  const overlapsPenalty = pathOverlaps.size * 50;
-
-  const penalties = overlapsPenalty + swapScore + gradientScore + boundariesScore;
-
-  // TODO: use single formula
-  let score = 1;
-  if (isSwap) {
-    score += penalties;
-  } else if (isVacant) {
-    score += 20 + penalties;
-  } else {
-    score += penalties;
-  }
+  // Score starts from 1 to avoid overlap moves having 0 score which breaks the solutions cache.
+  const score = 1 + swapScore + overlapsScore + gradientScore + boundariesScore;
 
   return { ...overlapMove, score };
 }

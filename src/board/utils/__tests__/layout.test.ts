@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 import { fromMatrix } from "../../../internal/debug-tools";
 import { Operation } from "../../../internal/dnd-controller/controller";
 import { GridLayout } from "../../../internal/interfaces";
+import { LayoutEngine } from "../../../internal/layout-engine/engine";
 import { LayoutShift } from "../../../internal/layout-engine/interfaces";
 import { Transition } from "../../interfaces";
 import { getLayoutRows } from "../layout";
@@ -18,6 +19,7 @@ function createMockTransition(
     acquiredItem: null,
     interactionType: "keyboard",
     itemsLayout,
+    layoutEngine: new LayoutEngine(itemsLayout),
     insertionDirection: null,
     draggableItem: { id: "X", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: null },
     draggableRect: { left: 0, right: 0, top: 0, bottom: 0 },
