@@ -175,12 +175,12 @@ describe("items inserted with keyboard", () => {
       await page.click(boardItemResizeHandle("A"));
 
       await expect(page.getGrid()).resolves.toEqual([
-        ["A", "B", "D", "I"],
-        ["A", "B", "D", "I"],
-        ["E", "F", "C", "H"],
-        ["E", "F", "C", "H"],
-        [" ", " ", "G", " "],
-        [" ", " ", "G", " "],
+        ["A", "B", "C", "I"],
+        ["A", "B", "C", "I"],
+        ["E", "F", "G", "D"],
+        ["E", "F", "G", "D"],
+        [" ", " ", " ", "H"],
+        [" ", " ", " ", "H"],
       ]);
     })
   );
