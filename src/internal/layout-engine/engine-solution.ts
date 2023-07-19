@@ -100,9 +100,7 @@ function getOverlapMove(
 
   const activeItemMinY = getUserMinY(state);
 
-  const pathRect = getMovePathItem(move);
-  const pathOverlaps = new Set(state.grid.getOverlaps(pathRect));
-  pathOverlaps.delete(overlapIssuerItem);
+  const pathOverlaps = getPathOverlaps(state, move, overlapIssuerItem);
 
   for (const overlap of pathOverlaps) {
     // Can't overlap with the active item.
@@ -217,8 +215,12 @@ function getUserMinY(state: MoveSolutionState): number {
   return Math.min(firstUserMove.y - firstUserMove.distanceY, lastUserMove.y - lastUserMove.distanceY, lastUserMove.y);
 }
 
-// For the given move creates a pseudo-item with dimensions corresponding the item's move path excluding its original location.
-function getMovePathItem(move: CommittedMove): GridLayoutItem {
+// Finds all overlaps that the move will cause along its path not considering the original location and original overlap.
+function getPathOverlaps(
+  state: MoveSolutionState,
+  move: CommittedMove,
+  overlapIssuerItem: GridLayoutItem
+): Set<GridLayoutItem> {
   const itemLeft = move.x - move.distanceX;
   const itemRight = move.x - move.distanceX + move.width - 1;
   const itemTop = move.y - move.distanceY;
@@ -229,5 +231,16 @@ function getMovePathItem(move: CommittedMove): GridLayoutItem {
   const startY = move.distanceY <= 0 ? move.y : itemBottom + 1;
   const endY = move.distanceY < 0 ? itemTop - 1 : itemBottom + move.distanceY;
 
-  return { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
+  const pathOverlaps = new Set(
+    state.grid.getOverlaps({
+      id: move.itemId,
+      x: startX,
+      width: 1 + endX - startX,
+      y: startY,
+      height: 1 + endY - startY,
+    })
+  );
+  pathOverlaps.delete(overlapIssuerItem);
+
+  return pathOverlaps;
 }
