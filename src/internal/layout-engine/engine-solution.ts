@@ -11,6 +11,8 @@ import { checkItemsIntersection, createMove } from "./utils";
 // TODO: property tests for convergence.
 // TODO: validate existing property tests with 100_000 runs.
 
+const PRIORITY_DIRECTIONS: readonly Direction[] = ["down", "left", "right", "up"];
+
 export type MoveSolution = [MoveSolutionState, CommittedMove];
 
 export class MoveSolutionState {
@@ -43,15 +45,17 @@ export class MoveSolutionState {
 export function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
 
-  for (const [overlap, overlapIssuer] of state.overlaps) {
-    if (!checkItemsIntersection(state.grid.getItem(overlap), state.grid.getItem(overlapIssuer))) {
-      state.overlaps.delete(overlap);
+  for (const [overlapId, overlapIssuerId] of state.overlaps) {
+    const overlapItem = state.grid.getItem(overlapId);
+    const overlapIssuerItem = state.grid.getItem(overlapIssuerId);
+
+    if (!checkItemsIntersection(overlapItem, overlapIssuerItem)) {
+      state.overlaps.delete(overlapId);
       continue;
     }
 
-    const directions: Direction[] = ["down", "left", "right", "up"];
-    for (const moveDirection of directions) {
-      const move = getDirectionMove(state, overlap, overlapIssuer, moveDirection);
+    for (const moveDirection of PRIORITY_DIRECTIONS) {
+      const move = getDirectionMove(state, overlapItem, overlapIssuerItem, moveDirection);
       if (move !== null) {
         nextMoveSolutions.push([state, move]);
       }
@@ -63,14 +67,12 @@ export function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
 
 function getDirectionMove(
   state: MoveSolutionState,
-  overlap: ItemId,
-  issuer: ItemId,
+  overlapItem: GridLayoutItem,
+  overlapIssuerItem: GridLayoutItem,
   moveDirection: Direction
 ): null | CommittedMove {
   const activeId = state.moves[0].itemId;
-  const moveTarget = state.grid.getItem(overlap);
-  const overlapIssuer = state.grid.getItem(issuer);
-  const move = getMoveForDirection(moveTarget, overlapIssuer, moveDirection);
+  const move = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
 
   // Outside the grid.
   if (move.x < 0 || move.y < 0 || move.x + move.width > state.grid.width) {
@@ -94,7 +96,7 @@ function getDirectionMove(
 
   let prevOverlapMove: null | CommittedMove = null;
   for (let i = state.moves.length - 1; i >= state.moveIndex; i--) {
-    if (state.moves[i].itemId === overlap) {
+    if (state.moves[i].itemId === overlapItem.id) {
       prevOverlapMove = state.moves[i];
     }
   }
@@ -114,10 +116,10 @@ function getDirectionMove(
   const activeItemLastY = activeItemMoves[activeItemMoves.length - 1].y;
   const activeItemMinY = Math.min(activeItemOriginalY, activeItemLastY);
 
-  const startY = move.y <= moveTarget.y ? move.y : moveTarget.y + moveTarget.height;
-  const endY = move.y < moveTarget.y ? moveTarget.y - 1 : move.y + moveTarget.height - 1;
-  const startX = move.x <= moveTarget.x ? move.x : moveTarget.x + moveTarget.width;
-  const endX = move.x < moveTarget.x ? moveTarget.x - 1 : move.x + moveTarget.width - 1;
+  const startY = move.y <= overlapItem.y ? move.y : overlapItem.y + overlapItem.height;
+  const endY = move.y < overlapItem.y ? overlapItem.y - 1 : move.y + overlapItem.height - 1;
+  const startX = move.x <= overlapItem.x ? move.x : overlapItem.x + overlapItem.width;
+  const endX = move.x < overlapItem.x ? overlapItem.x - 1 : move.x + overlapItem.width - 1;
   const pathRect = { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
   const pathOverlaps = state.grid
     .getOverlaps(pathRect)
@@ -125,7 +127,7 @@ function getDirectionMove(
 
   let lastIssuerMove: null | CommittedMove = null;
   for (let i = state.moves.length - 1; i >= 0; i--) {
-    if (state.moves[i].itemId === overlapIssuer.id) {
+    if (state.moves[i].itemId === overlapIssuerItem.id) {
       lastIssuerMove = state.moves[i];
       break;
     }
@@ -143,9 +145,9 @@ function getDirectionMove(
   }
 
   const isVacant = pathOverlaps.length === 0;
-  const isSwap = checkItemsSwap(state.moves, overlapIssuer, move, moveTarget);
+  const isSwap = checkItemsSwap(state.moves, overlapIssuerItem, move, overlapItem);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
-  const moveDistancePenalty = Math.abs(moveTarget.x - move.x) + Math.abs(moveTarget.y - move.y);
+  const moveDistancePenalty = Math.abs(overlapItem.x - move.x) + Math.abs(overlapItem.y - move.y);
   const overlapsPenalty =
     pathOverlaps
       .map((overlap) => (overlap.id === activeId && state.moves[0].type === "INSERT" ? 2 : 1))
@@ -171,11 +173,11 @@ function getDirectionMove(
   let score = 0;
   if (isSwap && state.moves[0].type === "RESIZE") {
     score += withPenalties(200);
-  } else if (isSwap && overlapIssuer.id === activeId) {
+  } else if (isSwap && overlapIssuerItem.id === activeId) {
     score += withPenalties(10);
   } else if (isVacant && !isSwap) {
     score += withPenalties(20);
-  } else if (isVacant && overlapIssuer.id !== activeId) {
+  } else if (isVacant && overlapIssuerItem.id !== activeId) {
     score += withPenalties(20);
   } else if (isVacant) {
     score += withPenalties(60);
@@ -218,17 +220,13 @@ function getLastStepDiff(moves: CommittedMove[], issuer: GridLayoutItem) {
 // Retrieve the first possible move for the given direction to resolve the overlap.
 function getMoveForDirection(moveTarget: GridLayoutItem, overlap: GridLayoutItem, direction: Direction): CommittedMove {
   switch (direction) {
-    case "up": {
+    case "up":
       return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.y - moveTarget.height }));
-    }
-    case "down": {
+    case "down":
       return createMove("OVERLAP", moveTarget, new Position({ x: moveTarget.x, y: overlap.y + overlap.height }));
-    }
-    case "left": {
+    case "left":
       return createMove("OVERLAP", moveTarget, new Position({ x: overlap.x - moveTarget.width, y: moveTarget.y }));
-    }
-    case "right": {
+    case "right":
       return createMove("OVERLAP", moveTarget, new Position({ x: overlap.x + overlap.width, y: moveTarget.y }));
-    }
   }
 }
