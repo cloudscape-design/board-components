@@ -60,7 +60,7 @@ export function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   const nextMoveSolutions: MoveSolution[] = [];
   for (const [overlapId, overlapIssuerId] of state.overlaps) {
     for (const moveDirection of PRIORITY_DIRECTIONS) {
-      const move = getDirectionMove(state, overlapId, overlapIssuerId, moveDirection);
+      const move = getOverlapMove(state, overlapId, overlapIssuerId, moveDirection);
       if (move !== null) {
         nextMoveSolutions.push([MoveSolutionState.clone(state), move]);
       }
@@ -69,32 +69,37 @@ export function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
   return nextMoveSolutions;
 }
 
-function getDirectionMove(
+// Returns an evaluated move to resolve the given overlap in the given direction or null if such move is not possible.
+function getOverlapMove(
   state: MoveSolutionState,
   overlapId: ItemId,
   overlapIssuerId: ItemId,
   moveDirection: Direction
 ): null | CommittedMove {
-  const activeId = state.moves[0].itemId;
+  const userItem = state.grid.getItem(state.moves[0].itemId);
   const overlapItem = state.grid.getItem(overlapId);
   const overlapIssuerItem = state.grid.getItem(overlapIssuerId);
+
+  // Non-evaluated move that resolves the overlap if valid.
   const move = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
 
-  // Outside the grid.
+  // The move position is outside the grid boundaries.
   if (move.x < 0 || move.y < 0 || move.x + move.width > state.grid.width) {
     return null;
   }
 
-  for (const ov of state.grid.getOverlaps({ ...move, id: move.itemId })) {
+  const moveOverlaps = state.grid.getOverlaps({ ...move, id: move.itemId });
+  for (const ov of moveOverlaps) {
     // Can't overlap with cells containing unresolved overlaps.
     if (state.overlaps.has(ov.id)) {
       return null;
     }
     // Can't overlap with the active item.
-    if (ov.id === activeId) {
+    if (ov.id === userItem.id) {
       return null;
     }
     // Can't overlap with the conflicted item.
+    // TODO: consider path overlaps instead.
     if (state.conflicts?.items.has(ov.id)) {
       return null;
     }
@@ -154,11 +159,11 @@ function getDirectionMove(
   let score = 0;
   if (isSwap && state.moves[0].type === "RESIZE") {
     score += withPenalties(200);
-  } else if (isSwap && overlapIssuerItem.id === activeId) {
+  } else if (isSwap && overlapIssuerItem.id === userItem.id) {
     score += withPenalties(10);
   } else if (isVacant && !isSwap) {
     score += withPenalties(20);
-  } else if (isVacant && overlapIssuerItem.id !== activeId) {
+  } else if (isVacant && overlapIssuerItem.id !== userItem.id) {
     score += withPenalties(20);
   } else if (isVacant) {
     score += withPenalties(60);
