@@ -98,11 +98,6 @@ function getOverlapMove(
     if (ov.id === userItem.id) {
       return null;
     }
-    // Can't overlap with the conflicted item.
-    // TODO: consider path overlaps instead.
-    if (state.conflicts?.items.has(ov.id)) {
-      return null;
-    }
   }
 
   const prevOverlapMove = getLastSolutionMove(state, overlapItem.id);
@@ -125,6 +120,13 @@ function getOverlapMove(
 
   const pathOverlaps = new Set(state.grid.getOverlaps(pathRect));
   pathOverlaps.delete(overlapIssuerItem);
+
+  // Can't overlap with the conflicted item.
+  for (const overlap of pathOverlaps) {
+    if (state.conflicts?.items.has(overlap.id)) {
+      return null;
+    }
+  }
 
   const { gradientX, gradientY } = getSolutionMovesGradient(state);
 
