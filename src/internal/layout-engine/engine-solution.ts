@@ -74,17 +74,6 @@ function getDirectionMove(
   const activeId = state.moves[0].itemId;
   const move = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
 
-  let lastIssuerMove: null | CommittedMove = null;
-  for (let i = state.moves.length - 1; i >= 0; i--) {
-    if (state.moves[i].itemId === overlapIssuerItem.id) {
-      lastIssuerMove = state.moves[i];
-      break;
-    }
-  }
-  if (!lastIssuerMove) {
-    throw new Error("Invariant violation: overlap issuer has no associated moves.");
-  }
-
   // Outside the grid.
   if (move.x < 0 || move.y < 0 || move.x + move.width > state.grid.width) {
     return null;
@@ -105,14 +94,14 @@ function getDirectionMove(
     }
   }
 
-  let prevOverlapMove: null | CommittedMove = null;
-  for (let i = state.moves.length - 1; i >= state.moveIndex; i--) {
-    if (state.moves[i].itemId === overlapItem.id) {
-      prevOverlapMove = state.moves[i];
-    }
-  }
+  const prevOverlapMove = getLastSolutionMove(state, overlapItem.id);
   if (prevOverlapMove && checkOppositeDirections(prevOverlapMove.direction, moveDirection)) {
     return null;
+  }
+
+  const lastIssuerMove = getLastSolutionMove(state, overlapIssuerItem.id);
+  if (!lastIssuerMove) {
+    throw new Error("Invariant violation: overlap issuer has no associated moves.");
   }
 
   const activeItemOriginalY =
@@ -199,4 +188,15 @@ function getMoveForDirection(moveTarget: GridLayoutItem, overlap: GridLayoutItem
     case "right":
       return createMove("OVERLAP", moveTarget, new Position({ x: overlap.x + overlap.width, y: moveTarget.y }));
   }
+}
+
+// Retrieves the last move if exists within the given solution.
+function getLastSolutionMove(state: MoveSolutionState, itemId: ItemId): null | CommittedMove {
+  let lastMove: null | CommittedMove = null;
+  for (let i = state.moves.length - 1; i >= state.moveIndex; i--) {
+    if (state.moves[i].itemId === itemId) {
+      lastMove = state.moves[i];
+    }
+  }
+  return lastMove;
 }
