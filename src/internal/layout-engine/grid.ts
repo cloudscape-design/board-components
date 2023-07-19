@@ -77,12 +77,14 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
     const item = this.getItem(itemId);
     item.x = x;
     item.y = y;
+    this._height = Math.max(this.height, item.y + item.height);
   }
 
   resize(itemId: ItemId, width: number, height: number): void {
     const item = this.getItem(itemId);
     item.width = width;
     item.height = height;
+    this._height = Math.max(this.height, item.y + item.height);
   }
 
   insert(item: GridLayoutItem): void {
@@ -95,6 +97,7 @@ export class LayoutEngineGrid extends ReadonlyLayoutEngineGrid {
     const itemClone = { ...item };
     this._itemsMap.set(itemClone.id, itemClone);
     this._items.push(itemClone);
+    this._height = Math.max(this.height, item.y + item.height);
   }
 
   remove(itemId: ItemId): void {

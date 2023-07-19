@@ -50,12 +50,12 @@ test(
       boardWrapper.findItemById("B").findResizeHandle().toSelector()
     );
     await expect(page.getGrid()).resolves.toEqual([
-      ["A", "A", "B", "C"],
-      ["A", "A", "B", "C"],
-      ["E", "F", "G", "D"],
-      ["E", "F", "G", "D"],
-      [" ", " ", " ", "H"],
-      [" ", " ", " ", "H"],
+      ["A", "A", "C", "D"],
+      ["A", "A", "C", "D"],
+      ["E", "B", "G", "H"],
+      ["E", "B", "G", "H"],
+      [" ", "F", " ", " "],
+      [" ", "F", " ", " "],
     ]);
   })
 );
