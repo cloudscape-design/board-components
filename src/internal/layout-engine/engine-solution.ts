@@ -88,18 +88,6 @@ function getOverlapMove(
     return null;
   }
 
-  const moveOverlaps = state.grid.getOverlaps({ ...move, id: move.itemId });
-  for (const ov of moveOverlaps) {
-    // Can't overlap with cells containing unresolved overlaps.
-    if (state.overlaps.has(ov.id)) {
-      return null;
-    }
-    // Can't overlap with the active item.
-    if (ov.id === userItem.id) {
-      return null;
-    }
-  }
-
   const prevOverlapMove = getLastSolutionMove(state, overlapItem.id);
   if (prevOverlapMove && checkOppositeDirections(prevOverlapMove.direction, moveDirection)) {
     return null;
@@ -116,9 +104,17 @@ function getOverlapMove(
   const pathOverlaps = new Set(state.grid.getOverlaps(pathRect));
   pathOverlaps.delete(overlapIssuerItem);
 
-  // Can't overlap with the conflicted item.
   for (const overlap of pathOverlaps) {
+    // Can't overlap with the active item.
+    if (overlap.id === userItem.id) {
+      return null;
+    }
+    // Can't overlap with the conflicted item.
     if (state.conflicts?.items.has(overlap.id)) {
+      return null;
+    }
+    // Can't overlap with cells containing unresolved overlaps.
+    if (state.overlaps.has(overlap.id)) {
       return null;
     }
   }
