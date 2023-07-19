@@ -6,7 +6,7 @@ import { Position } from "../utils/position";
 import { Conflicts } from "./engine-state";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { checkItemsIntersection, createMove } from "./utils";
+import { checkItemsIntersection, checkOppositeDirections, createMove } from "./utils";
 
 // TODO: property tests for convergence.
 // TODO: validate existing property tests with 100_000 runs.
@@ -111,13 +111,7 @@ function getDirectionMove(
       prevOverlapMove = state.moves[i];
     }
   }
-  if (
-    prevOverlapMove &&
-    ((prevOverlapMove.direction === "down" && moveDirection === "up") ||
-      (prevOverlapMove.direction === "up" && moveDirection === "down") ||
-      (prevOverlapMove.direction === "left" && moveDirection === "right") ||
-      (prevOverlapMove.direction === "right" && moveDirection === "left"))
-  ) {
+  if (prevOverlapMove && checkOppositeDirections(prevOverlapMove.direction, moveDirection)) {
     return null;
   }
 
@@ -149,7 +143,7 @@ function getDirectionMove(
   }
 
   const isVacant = pathOverlaps.length === 0;
-  const isSwap = checkItemsSwap(move, lastIssuerMove);
+  const isSwap = checkOppositeDirections(move.direction, lastIssuerMove.direction);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
   const moveDistancePenalty = Math.abs(overlapItem.x - move.x) + Math.abs(overlapItem.y - move.y);
   const overlapsPenalty =
@@ -191,15 +185,6 @@ function getDirectionMove(
     score += withPenalties(50);
   }
   return { ...move, score };
-}
-
-function checkItemsSwap(overlapMove: CommittedMove, issuerMove: CommittedMove) {
-  return (
-    (issuerMove.distanceX < 0 && overlapMove.distanceX > 0) ||
-    (issuerMove.distanceX > 0 && overlapMove.distanceX < 0) ||
-    (issuerMove.distanceY < 0 && overlapMove.distanceY > 0) ||
-    (issuerMove.distanceY > 0 && overlapMove.distanceY < 0)
-  );
 }
 
 // Retrieve the first possible move for the given direction to resolve the overlap.

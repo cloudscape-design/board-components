@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem } from "../interfaces";
+import { Direction, GridLayoutItem } from "../interfaces";
 import { Position } from "../utils/position";
 import { CommittedMove } from "./interfaces";
 
@@ -81,6 +81,15 @@ export function checkItemsIntersection(i1: GridLayoutItem, i2: GridLayoutItem): 
     i2.x <= i1.x + i1.width - 1 &&
     i1.y <= i2.y + i2.height - 1 &&
     i2.y <= i1.y + i1.height - 1
+  );
+}
+
+export function checkOppositeDirections(d1: Direction, d2: Direction): boolean {
+  return (
+    (d1 === "down" && d2 === "up") ||
+    (d1 === "up" && d2 === "down") ||
+    (d1 === "left" && d2 === "right") ||
+    (d1 === "right" && d2 === "left")
   );
 }
 
