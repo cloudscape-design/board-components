@@ -77,8 +77,7 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
       // Otherwise, the next set of solutions will be considered. There can be up to four solutions per overlap
       // (by the number of possible directions to move).
       else {
-        const nextState = MoveSolutionState.clone(solutionState);
-        for (const nextSolution of findNextSolutions(nextState)) {
+        for (const nextSolution of findNextSolutions(solutionState)) {
           const solutionKey = createCacheKey(nextSolution);
           const cachedSolution = solutionsCache.get(solutionKey);
           if (!cachedSolution) {
@@ -119,8 +118,6 @@ export function resolveOverlaps(layoutState: LayoutEngineState, userMove: Commit
 
 // Resolves overlaps the simple way by pushing all overlapping items to the bottom until none is left.
 function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
-  state = MoveSolutionState.clone(state);
-
   // Move overlapping items to the bottom until resolved. Repeat until no overlaps left.
   // This solution always converges because there is always free space at the bottom by design.
   while (state.overlaps.size > 0) {
@@ -133,7 +130,6 @@ function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
       makeMove(state, createMove("OVERLAP", overlap, new Position({ x: overlap.x, y })));
     }
   }
-
   return state;
 }
 

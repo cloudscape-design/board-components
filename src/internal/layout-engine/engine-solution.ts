@@ -11,10 +11,16 @@ import { checkItemsIntersection, checkOppositeDirections, createMove } from "./u
 // TODO: property tests for convergence.
 // TODO: validate existing property tests with 100_000 runs.
 
-const PRIORITY_DIRECTIONS: readonly Direction[] = ["down", "left", "right", "up"];
+// All directions in which overlaps can be incrementally resolved.
+const PRIORITY_DIRECTIONS: readonly Direction[] = ["down", "right", "left", "up"];
 
-export type MoveSolution = [MoveSolutionState, CommittedMove];
+// A valid but not yet attempted solution is a pair of the layout state so far and the next move to attempt.
+// The minimal solution score (in case the next move will resolve all overlaps) is state.score + nextMove.score.
+export type MoveSolution = [state: MoveSolutionState, nextMove: CommittedMove];
 
+// The class represents an intermediate layout state used to find the next set of solutions for.
+// The solution is terminal when no overlaps are left and it can become the next layout state if its
+// score is smaller than that of the alternative solutions.
 export class MoveSolutionState {
   public grid: LayoutEngineGrid;
   public moves: CommittedMove[];
@@ -30,6 +36,9 @@ export class MoveSolutionState {
     this.conflicts = conflicts;
   }
 
+  // The solution state needs to be cloned after the move is performed in case there are overlaps left
+  // so that the next solutions won't have the shared state to corrupt.
+  // The conflicts never change and can be carried over w/o cloning.
   static clone({ grid, moves, moveIndex, conflicts, overlaps, score }: MoveSolutionState) {
     return {
       grid: LayoutEngineGrid.clone(grid),
@@ -43,6 +52,8 @@ export class MoveSolutionState {
 }
 
 export function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
+  state = MoveSolutionState.clone(state);
+
   const nextMoveSolutions: MoveSolution[] = [];
 
   for (const [overlapId, overlapIssuerId] of state.overlaps) {
@@ -191,6 +202,9 @@ function getLastSolutionMove(state: MoveSolutionState, itemId: ItemId): null | C
   return lastMove;
 }
 
+// Calculates X, Y gradients as the amount of cell movements to either direction.
+// All moves in one direction are summarized, the opposite moves cancel each other.
+// The gradients show in which direction (left / right, up / down) the most overlaps were resolved.
 function getSolutionMovesGradient(state: MoveSolutionState): { gradientX: number; gradientY: number } {
   let gradientX = 0;
   let gradientY = 0;
@@ -204,6 +218,8 @@ function getSolutionMovesGradient(state: MoveSolutionState): { gradientX: number
   return { gradientX, gradientY };
 }
 
+// Calculates the minimal Y the user-controlled item crossed considering the original location and two previous moves.
+// The board items above that boundary are not expected to be disturbed.
 function getUserMinY(state: MoveSolutionState): number {
   const firstUserMove = state.moves[0];
   const lastUserMove = state.moves[state.moveIndex];
