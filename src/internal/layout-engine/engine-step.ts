@@ -4,9 +4,9 @@
 import { Position } from "../utils/position";
 import { MoveSolution, MoveSolutionState, findNextSolutions } from "./engine-solution";
 import { Conflicts, LayoutEngineState } from "./engine-state";
-import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
+import { ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { sortGridItems } from "./utils";
+import { checkItemsIntersection, sortGridItems } from "./utils";
 import { createMove } from "./utils";
 
 // The solutions can't be searched for infinitely in case the algorithm can't converge.
@@ -208,21 +208,13 @@ function findConflicts(
 
 // Applies given move to the solution state by updating the grid, moves, overlaps, and score.
 function makeMove(state: MoveSolutionState, nextMove: CommittedMove): void {
-  updateGridWithMove(state.grid, nextMove);
-
+  updateGridWithMove(state, nextMove);
+  updateOverlaps(state, nextMove);
   state.moves.push(nextMove);
-
-  for (const newOverlap of state.grid.getOverlaps({ ...nextMove, id: nextMove.itemId })) {
-    if (!state.conflicts?.items.has(newOverlap.id)) {
-      state.overlaps.set(newOverlap.id, nextMove.itemId);
-    }
-  }
-  state.overlaps.delete(nextMove.itemId);
-
   state.score += nextMove.score;
 }
 
-function updateGridWithMove(grid: LayoutEngineGrid, move: CommittedMove): void {
+function updateGridWithMove({ grid }: MoveSolutionState, move: CommittedMove): void {
   switch (move.type) {
     case "MOVE":
     case "OVERLAP":
@@ -234,5 +226,21 @@ function updateGridWithMove(grid: LayoutEngineGrid, move: CommittedMove): void {
       return grid.remove(move.itemId);
     case "RESIZE":
       return grid.resize(move.itemId, move.width, move.height);
+  }
+}
+
+function updateOverlaps(state: MoveSolutionState, move: CommittedMove) {
+  // Find and assign items that will overlap with the moved item after the move is performed
+  // unless the overlapping items are considered as conflicts.
+  for (const newOverlap of state.grid.getOverlaps({ ...move, id: move.itemId })) {
+    if (!state.conflicts?.items.has(newOverlap.id)) {
+      state.overlaps.set(newOverlap.id, move.itemId);
+    }
+  }
+  // Remove no longer valid overlaps after the move is performed.
+  for (const [overlapId, overlapIssuerId] of state.overlaps) {
+    if (!checkItemsIntersection(state.grid.getItem(overlapId), state.grid.getItem(overlapIssuerId))) {
+      state.overlaps.delete(overlapId);
+    }
   }
 }

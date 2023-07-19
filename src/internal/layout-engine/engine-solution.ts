@@ -6,7 +6,7 @@ import { Position } from "../utils/position";
 import { Conflicts } from "./engine-state";
 import { LayoutEngineGrid, ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
-import { checkItemsIntersection, checkOppositeDirections, createMove } from "./utils";
+import { checkOppositeDirections, createMove } from "./utils";
 
 // TODO: property tests for convergence.
 // TODO: validate existing property tests with 100_000 runs.
@@ -51,38 +51,33 @@ export class MoveSolutionState {
   }
 }
 
+/**
+ * Given a solution state finds a set of all possible moves each resolving a particular overlap.
+ */
 export function findNextSolutions(state: MoveSolutionState): MoveSolution[] {
-  state = MoveSolutionState.clone(state);
-
+  // For every overlap and direction found a move if exists that resolves the overlap.
+  // A pair of the given state and the overlap resolution move is a new solution to try.
   const nextMoveSolutions: MoveSolution[] = [];
-
   for (const [overlapId, overlapIssuerId] of state.overlaps) {
-    const overlapItem = state.grid.getItem(overlapId);
-    const overlapIssuerItem = state.grid.getItem(overlapIssuerId);
-
-    if (!checkItemsIntersection(overlapItem, overlapIssuerItem)) {
-      state.overlaps.delete(overlapId);
-      continue;
-    }
-
     for (const moveDirection of PRIORITY_DIRECTIONS) {
-      const move = getDirectionMove(state, overlapItem, overlapIssuerItem, moveDirection);
+      const move = getDirectionMove(state, overlapId, overlapIssuerId, moveDirection);
       if (move !== null) {
-        nextMoveSolutions.push([state, move]);
+        nextMoveSolutions.push([MoveSolutionState.clone(state), move]);
       }
     }
   }
-
   return nextMoveSolutions;
 }
 
 function getDirectionMove(
   state: MoveSolutionState,
-  overlapItem: GridLayoutItem,
-  overlapIssuerItem: GridLayoutItem,
+  overlapId: ItemId,
+  overlapIssuerId: ItemId,
   moveDirection: Direction
 ): null | CommittedMove {
   const activeId = state.moves[0].itemId;
+  const overlapItem = state.grid.getItem(overlapId);
+  const overlapIssuerItem = state.grid.getItem(overlapIssuerId);
   const move = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
 
   // Outside the grid.
