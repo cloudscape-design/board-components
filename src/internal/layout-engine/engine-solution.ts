@@ -74,6 +74,17 @@ function getDirectionMove(
   const activeId = state.moves[0].itemId;
   const move = getMoveForDirection(overlapItem, overlapIssuerItem, moveDirection);
 
+  let lastIssuerMove: null | CommittedMove = null;
+  for (let i = state.moves.length - 1; i >= 0; i--) {
+    if (state.moves[i].itemId === overlapIssuerItem.id) {
+      lastIssuerMove = state.moves[i];
+      break;
+    }
+  }
+  if (!lastIssuerMove) {
+    throw new Error("Invariant violation: overlap issuer has no associated moves.");
+  }
+
   // Outside the grid.
   if (move.x < 0 || move.y < 0 || move.x + move.width > state.grid.width) {
     return null;
@@ -111,7 +122,7 @@ function getDirectionMove(
   }
 
   const activeItemOriginalY =
-    state.moves[0].direction === "down" ? state.moves[0].y - state.moves[0].distance : state.moves[0].y;
+    state.moves[0].direction === "down" ? state.moves[0].y - state.moves[0].distanceY : state.moves[0].y;
   const activeItemMoves = state.moves.filter((move) => move.itemId === activeId);
   const activeItemLastY = activeItemMoves[activeItemMoves.length - 1].y;
   const activeItemMinY = Math.min(activeItemOriginalY, activeItemLastY);
@@ -125,13 +136,6 @@ function getDirectionMove(
     .getOverlaps(pathRect)
     .filter((overlap) => (state.moves[0].type !== "INSERT" && overlap.id === activeId ? false : true));
 
-  let lastIssuerMove: null | CommittedMove = null;
-  for (let i = state.moves.length - 1; i >= 0; i--) {
-    if (state.moves[i].itemId === overlapIssuerItem.id) {
-      lastIssuerMove = state.moves[i];
-      break;
-    }
-  }
   const issuerMoveDirection = lastIssuerMove?.direction ?? null;
 
   let gradientX = 0;
@@ -139,13 +143,13 @@ function getDirectionMove(
   for (let i = state.moveIndex; i < state.moves.length; i++) {
     const move = state.moves[i];
     if (move.type === "OVERLAP") {
-      gradientX += (move.direction === "left" || move.direction === "right" ? move.distance : 0) * move.height;
-      gradientY += (move.direction === "up" || move.direction === "down" ? move.distance : 0) * move.width;
+      gradientX += move.distanceX * move.height;
+      gradientY += move.distanceY * move.width;
     }
   }
 
   const isVacant = pathOverlaps.length === 0;
-  const isSwap = checkItemsSwap(state.moves, overlapIssuerItem, move, overlapItem);
+  const isSwap = checkItemsSwap(move, lastIssuerMove);
   const alternateDirectionPenalty = issuerMoveDirection && moveDirection !== issuerMoveDirection && !isSwap ? 10 : 0;
   const moveDistancePenalty = Math.abs(overlapItem.x - move.x) + Math.abs(overlapItem.y - move.y);
   const overlapsPenalty =
@@ -189,32 +193,13 @@ function getDirectionMove(
   return { ...move, score };
 }
 
-function checkItemsSwap(
-  moves: CommittedMove[],
-  issuer: GridLayoutItem,
-  move: CommittedMove,
-  moveTarget: GridLayoutItem
-) {
-  const issuerDiff = getLastStepDiff(moves, issuer);
-  const moveDiff = getLastStepDiff([...moves, move], moveTarget);
+function checkItemsSwap(overlapMove: CommittedMove, issuerMove: CommittedMove) {
   return (
-    (issuerDiff.x < 0 && moveDiff.x > 0) ||
-    (issuerDiff.x > 0 && moveDiff.x < 0) ||
-    (issuerDiff.y < 0 && moveDiff.y > 0) ||
-    (issuerDiff.y > 0 && moveDiff.y < 0)
+    (issuerMove.distanceX < 0 && overlapMove.distanceX > 0) ||
+    (issuerMove.distanceX > 0 && overlapMove.distanceX < 0) ||
+    (issuerMove.distanceY < 0 && overlapMove.distanceY > 0) ||
+    (issuerMove.distanceY > 0 && overlapMove.distanceY < 0)
   );
-}
-
-function getLastStepDiff(moves: CommittedMove[], issuer: GridLayoutItem) {
-  const issuerMoves = moves.filter((move) => move.itemId === issuer.id);
-  const last = issuerMoves[issuerMoves.length - 1];
-  if (!last) {
-    return { x: 0, y: 0 };
-  }
-  return {
-    x: last.direction === "left" || last.direction === "right" ? last.distance : 0,
-    y: last.direction === "up" || last.direction === "down" ? last.distance : 0,
-  };
 }
 
 // Retrieve the first possible move for the given direction to resolve the overlap.

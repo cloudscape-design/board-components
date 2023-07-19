@@ -29,7 +29,8 @@ export interface CommittedMove {
   height: number;
   type: "MOVE" | "RESIZE" | "INSERT" | "REMOVE" | "OVERLAP" | "FLOAT";
   direction: Direction;
-  distance: number;
+  distanceX: number;
+  distanceY: number;
   score: number;
 }
 

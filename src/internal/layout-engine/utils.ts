@@ -66,7 +66,8 @@ export function createMove(
     width: type === "RESIZE" ? next.x : item.width,
     height: type === "RESIZE" ? next.y : item.height,
     direction: distanceX > 0 ? "right" : distanceX < 0 ? "left" : distanceY < 0 ? "up" : "down",
-    distance: distanceX || distanceY,
+    distanceX,
+    distanceY,
     score,
   };
 }
