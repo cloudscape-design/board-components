@@ -112,12 +112,7 @@ function getOverlapMove(
 
   const activeItemMinY = getUserMinY(state);
 
-  const startY = move.y <= overlapItem.y ? move.y : overlapItem.y + overlapItem.height;
-  const endY = move.y < overlapItem.y ? overlapItem.y - 1 : move.y + overlapItem.height - 1;
-  const startX = move.x <= overlapItem.x ? move.x : overlapItem.x + overlapItem.width;
-  const endX = move.x < overlapItem.x ? overlapItem.x - 1 : move.x + overlapItem.width - 1;
-  const pathRect = { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
-
+  const pathRect = getMovePathItem(move);
   const pathOverlaps = new Set(state.grid.getOverlaps(pathRect));
   pathOverlaps.delete(overlapIssuerItem);
 
@@ -224,4 +219,19 @@ function getUserMinY(state: MoveSolutionState): number {
     throw new Error("Invariant violation: unexpected user move.");
   }
   return Math.min(firstUserMove.y - firstUserMove.distanceY, lastUserMove.y - lastUserMove.distanceY, lastUserMove.y);
+}
+
+// For the given move creates a pseudo-item with dimensions corresponding the item's move path excluding its original location.
+function getMovePathItem(move: CommittedMove): GridLayoutItem {
+  const itemLeft = move.x - move.distanceX;
+  const itemRight = move.x - move.distanceX + move.width - 1;
+  const itemTop = move.y - move.distanceY;
+  const itemBottom = move.y - move.distanceY + move.height - 1;
+
+  const startX = move.distanceX <= 0 ? move.x : itemRight + 1;
+  const endX = move.distanceX < 0 ? itemLeft - 1 : itemRight + move.distanceX;
+  const startY = move.distanceY <= 0 ? move.y : itemBottom + 1;
+  const endY = move.distanceY < 0 ? itemTop - 1 : itemBottom + move.distanceY;
+
+  return { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
 }
