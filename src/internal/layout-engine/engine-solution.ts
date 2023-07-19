@@ -114,32 +114,27 @@ function getOverlapMove(
   }
 
   const userMoveBoundaries = getUserMoveBoundaries(state);
+  const moveOutsideUserTopPenalty = overlapItem.y + overlapItem.height - 1 < userMoveBoundaries.top ? 500 : 0;
+  const moveOutsideUserLeftPenalty = overlapItem.x + overlapItem.width - 1 < userMoveBoundaries.left ? 50 : 0;
+  const moveOutsideUserRightPenalty = overlapItem.x > userMoveBoundaries.right ? 50 : 0;
+  const boundariesScore = moveOutsideUserTopPenalty + moveOutsideUserLeftPenalty + moveOutsideUserRightPenalty;
 
   const { gradientX, gradientY } = getSolutionMovesGradient(state);
-
-  const isVacant = pathOverlaps.size === 0;
-  const isSwap = checkOppositeDirections(overlapMove.direction, lastIssuerMove.direction);
-  const alternateDirectionPenalty = moveDirection !== lastIssuerMove.direction && !isSwap ? 10 : 0;
-  const moveDistancePenalty = Math.abs(overlapItem.x - overlapMove.x) + Math.abs(overlapItem.y - overlapMove.y);
-  const overlapsPenalty = pathOverlaps.size * 50;
   const gradientXPenalty =
     (moveDirection === "left" && gradientX > 0) || (moveDirection === "right" && gradientX < 0) ? gradientX * 2 : 0;
   const gradientYPenalty =
     (moveDirection === "up" && gradientY > 0) || (moveDirection === "down" && gradientY < 0) ? gradientY * 2 : 0;
-  const resizeLeftPenalty = 0;
-  const moveOutsideUserTopPenalty = overlapItem.y + overlapItem.height - 1 < userMoveBoundaries.top ? 500 : 0;
-  const moveOutsideUserLeftPenalty = overlapItem.x + overlapItem.width - 1 < userMoveBoundaries.left ? 50 : 0;
-  const moveOutsideUserRightPenalty = overlapItem.x > userMoveBoundaries.right ? 50 : 0;
-  const penalties =
-    moveDistancePenalty +
-    overlapsPenalty +
-    alternateDirectionPenalty +
-    gradientXPenalty +
-    gradientYPenalty +
-    resizeLeftPenalty +
-    moveOutsideUserTopPenalty +
-    moveOutsideUserLeftPenalty +
-    moveOutsideUserRightPenalty;
+  const gradientScore = gradientXPenalty + gradientYPenalty;
+
+  const isVacant = pathOverlaps.size === 0;
+
+  // TODO: also validate the edge for swap. The overlap and issuer edges must be equal.
+  const isSwap = checkOppositeDirections(overlapMove.direction, lastIssuerMove.direction);
+  const alternateDirectionPenalty = moveDirection !== lastIssuerMove.direction && !isSwap ? 10 : 0;
+  const moveDistancePenalty = Math.abs(overlapItem.x - overlapMove.x) + Math.abs(overlapItem.y - overlapMove.y);
+  const overlapsPenalty = pathOverlaps.size * 50;
+
+  const penalties = moveDistancePenalty + overlapsPenalty + alternateDirectionPenalty + gradientScore + boundariesScore;
 
   // TODO: use single formula
   let score = 0;
