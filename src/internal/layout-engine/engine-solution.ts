@@ -117,22 +117,21 @@ function getDirectionMove(
   const startX = move.x <= overlapItem.x ? move.x : overlapItem.x + overlapItem.width;
   const endX = move.x < overlapItem.x ? overlapItem.x - 1 : move.x + overlapItem.width - 1;
   const pathRect = { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
+
   // TODO: performance
-  const pathOverlaps = state.grid
-    .getOverlaps(pathRect)
-    .filter((overlap) => (state.moves[0].type !== "INSERT" && overlap.id === activeId ? false : true));
+  const originOverlaps = state.grid.getOverlaps(overlapItem).map((it) => it.id);
+  const pathOverlaps = new Set(state.grid.getOverlaps(pathRect).map((it) => it.id));
+  for (const itemId of originOverlaps) {
+    pathOverlaps.delete(itemId);
+  }
 
   const { gradientX, gradientY } = getSolutionMovesGradient(state);
 
-  const isVacant = pathOverlaps.length === 0;
+  const isVacant = pathOverlaps.size === 0;
   const isSwap = checkOppositeDirections(move.direction, lastIssuerMove.direction);
   const alternateDirectionPenalty = moveDirection !== lastIssuerMove.direction && !isSwap ? 10 : 0;
   const moveDistancePenalty = Math.abs(overlapItem.x - move.x) + Math.abs(overlapItem.y - move.y);
-  // TODO: performance
-  const overlapsPenalty =
-    pathOverlaps
-      .map((overlap) => (overlap.id === activeId && state.moves[0].type === "INSERT" ? 2 : 1))
-      .reduce((sum, x) => sum + x, 0) * 50;
+  const overlapsPenalty = pathOverlaps.size * 50;
   const gradientXPenalty =
     (moveDirection === "left" && gradientX > 0) || (moveDirection === "right" && gradientX < 0) ? gradientX * 2 : 0;
   const gradientYPenalty =
@@ -171,7 +170,7 @@ function getDirectionMove(
   return { ...move, score };
 }
 
-// Retrieve the first possible move for the given direction to resolve the overlap.
+// Retrieves the first possible move for the given direction to resolve the overlap.
 function getMoveForDirection(moveTarget: GridLayoutItem, overlap: GridLayoutItem, direction: Direction): CommittedMove {
   switch (direction) {
     case "up":
