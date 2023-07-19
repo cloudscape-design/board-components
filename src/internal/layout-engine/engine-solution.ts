@@ -123,12 +123,8 @@ function getOverlapMove(
   const endX = move.x < overlapItem.x ? overlapItem.x - 1 : move.x + overlapItem.width - 1;
   const pathRect = { id: move.itemId, x: startX, width: 1 + endX - startX, y: startY, height: 1 + endY - startY };
 
-  // TODO: performance
-  const originOverlaps = state.grid.getOverlaps(overlapItem).map((it) => it.id);
-  const pathOverlaps = new Set(state.grid.getOverlaps(pathRect).map((it) => it.id));
-  for (const itemId of originOverlaps) {
-    pathOverlaps.delete(itemId);
-  }
+  const pathOverlaps = new Set(state.grid.getOverlaps(pathRect));
+  pathOverlaps.delete(overlapIssuerItem);
 
   const { gradientX, gradientY } = getSolutionMovesGradient(state);
 
