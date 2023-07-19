@@ -114,7 +114,7 @@ function getOverlapMove(
   }
   const issuerDirection = lastIssuerMove.direction;
 
-  // Swap score penalizes non-swap overlap resolutions in case the direction does not match those of the issuer.
+  // Swap score penalizes non-swap overlap resolutions in case the direction does not match that of the issuer.
   const isSwap = checkIfSwap(overlapMove, lastIssuerMove);
   const differentDirectionPenalty = !isSwap && moveDirection !== issuerDirection ? 10 : 0;
   const oppositeDirectionPenalty = !isSwap && checkOppositeDirections(moveDirection, issuerDirection) ? 500 : 0;
@@ -142,14 +142,15 @@ function getOverlapMove(
   const penalties = overlapsPenalty + swapScore + gradientScore + boundariesScore;
 
   // TODO: use single formula
-  let score = 0;
+  let score = 1;
   if (isSwap) {
-    score += 10 + penalties;
+    score += penalties;
   } else if (isVacant) {
     score += 20 + penalties;
   } else {
     score += penalties;
   }
+
   return { ...overlapMove, score };
 }
 
