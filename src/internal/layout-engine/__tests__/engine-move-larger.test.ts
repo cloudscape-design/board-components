@@ -295,7 +295,7 @@ describe("replacement moves of larger items", () => {
         ["C", "C", "D", "D"],
         ["C", "C", "D", "D"],
       ],
-      "B2 B3 C3 D3 D4 D5 D4",
+      "B2 B3 C3 D3 D4",
       [
         ["B", "B", "D", "D"],
         ["B", "B", "D", "D"],
@@ -462,7 +462,7 @@ test("Float moves don't interfere with swaps", () => {
   );
 });
 
-test("Escape moves are disallowed for user moves", () => {
+test("E forces conflicts on C and D simultaneously", () => {
   const grid = fromMatrix([
     ["A", "A", "B", "B"],
     ["A", "A", "B", "B"],
