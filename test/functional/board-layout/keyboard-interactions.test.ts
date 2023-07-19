@@ -49,6 +49,22 @@ describe("items reordered with keyboard", () => {
       ]);
     })
   );
+
+  test(
+    "item keyboard move automatically submits after leaving focus",
+    setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
+      await page.focus(boardItemDragHandle("A"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowRight"]);
+      await page.keys(["Tab"]);
+      await expect(page.getGrid()).resolves.toEqual([
+        ["B", "A", "C", "D"],
+        ["B", "A", "C", "D"],
+        ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+      ]);
+    })
+  );
 });
 
 describe("items resized with keyboard", () => {
@@ -144,6 +160,27 @@ describe("items inserted with keyboard", () => {
         ["E", "F", "G", "H"],
         [" ", " ", " ", "I"],
         [" ", " ", " ", "I"],
+      ]);
+    })
+  );
+
+  test(
+    "item insert with keyboard automatically submits after mouse interaction",
+    setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
+      await page.focus(paletteItemDragHandle("I"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowLeft"]);
+
+      // click anywhere on the page to submit the current transition, for example on another item handle
+      await page.click(boardItemResizeHandle("A"));
+
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "D", "I"],
+        ["A", "B", "D", "I"],
+        ["E", "F", "C", "H"],
+        ["E", "F", "C", "H"],
+        [" ", " ", "G", " "],
+        [" ", " ", "G", " "],
       ]);
     })
   );

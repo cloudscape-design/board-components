@@ -68,7 +68,7 @@ export function useAutoScroll() {
           document.activeElement === activeElementBeforeDelay &&
           getLastInteraction() === "keyboard"
         ) {
-          document.activeElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          document.activeElement.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
         }
       }, delay);
     },

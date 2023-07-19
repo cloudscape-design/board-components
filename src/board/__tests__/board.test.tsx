@@ -5,9 +5,9 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
-import boardStyles from "../../../lib/components/board/styles.css.js";
 import BoardItem from "../../../lib/components/board-item";
 import dragHandleStyles from "../../../lib/components/internal/drag-handle/styles.css.js";
+import globalStateStyles from "../../../lib/components/internal/global-drag-state-styles/styles.css.js";
 import resizeHandleStyles from "../../../lib/components/internal/resize-handle/styles.css.js";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
@@ -47,6 +47,17 @@ const itemI18nStrings = {
   resizeHandleAriaLabel: "Resize handle",
 };
 
+const defaultProps: BoardProps<{ title: string }> = {
+  items: [
+    { id: "1", data: { title: "Item 1" } },
+    { id: "2", data: { title: "Item 2" } },
+  ],
+  renderItem: (item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>,
+  onItemsChange: () => undefined,
+  i18nStrings: i18nStrings,
+  empty: "No items",
+};
+
 describe("Board", () => {
   beforeAll(() => {
     // jsdom does not support this function
@@ -58,51 +69,21 @@ describe("Board", () => {
   });
 
   test("renders empty board", () => {
-    render(
-      <Board
-        items={[]}
-        renderItem={() => <>{null}</>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} items={[]} />);
     const wrapper = createWrapper().findBoard()!;
 
     expect(wrapper.getElement().textContent).toBe("No items");
   });
 
   test("renders board with items", () => {
-    render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <div>{item.data.title}</div>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} renderItem={(item) => <div>{item.data.title}</div>} />);
     const item = createWrapper().findBoard()!.findItemById("2")!;
 
     expect(item.getElement().textContent).toBe("Item 2");
   });
 
   test("pressing 'Escape' when there is no transition does not cause errors", () => {
-    render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} />);
     const itemDragHandle = createWrapper().findBoard()!.findItemById("2")!.findDragHandle();
 
     itemDragHandle.focus();
@@ -110,20 +91,9 @@ describe("Board", () => {
   });
 
   test("applies reorder operation classname", () => {
-    const { container } = render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    const { container } = render(<Board {...defaultProps} />);
 
-    const reorderClass = boardStyles["current-operation-reorder"];
+    const reorderClass = globalStateStyles["show-grab-cursor"];
     expect(container.ownerDocument.body).not.toHaveClass(reorderClass);
 
     const handle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
@@ -138,20 +108,9 @@ describe("Board", () => {
   });
 
   test("applies resize operation classname", () => {
-    const { container } = render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    const { container } = render(<Board {...defaultProps} />);
 
-    const resizeClass = boardStyles["current-operation-resize"];
+    const resizeClass = globalStateStyles["show-resize-cursor"];
     expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
 
     const handle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
@@ -165,48 +124,57 @@ describe("Board", () => {
     expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
   });
 
+  test("applies pointer interaction class name", () => {
+    const { container } = render(<Board {...defaultProps} />);
+
+    const disableSelectionClass = globalStateStyles["disable-selection"];
+    expect(container.ownerDocument.body).not.toHaveClass(disableSelectionClass);
+
+    const handle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
+
+    fireEvent(handle, new MouseEvent("pointerdown", { bubbles: true }));
+    expect(container.ownerDocument.body).toHaveClass(disableSelectionClass);
+
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
+    expect(container.ownerDocument.body).not.toHaveClass(disableSelectionClass);
+  });
+
+  test("does not apply pointer class when keyboard is used", () => {
+    const { container } = render(<Board {...defaultProps} />);
+    const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!;
+    const disableSelectionClass = globalStateStyles["disable-selection"];
+
+    dragHandle.keydown(KeyCode.enter);
+    expect(container.ownerDocument.body).not.toHaveClass(disableSelectionClass);
+
+    dragHandle.keydown(KeyCode.down);
+    expect(container.ownerDocument.body).not.toHaveClass(disableSelectionClass);
+
+    dragHandle.keydown(KeyCode.enter);
+    expect(container.ownerDocument.body).not.toHaveClass(disableSelectionClass);
+  });
+
   test("sets active state for drag handle", () => {
-    render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} />);
 
-    const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
-    const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+    const findBoardItem = () => createWrapper().findBoard()!.findItemById("1")!;
+    const findDragHandle = () => findBoardItem().findDragHandle().getElement();
+    const findResizeHandle = () => findBoardItem().findResizeHandle().getElement();
 
-    expect(dragHandle).not.toHaveClass(dragHandleStyles.active);
+    expect(findDragHandle()).not.toHaveClass(dragHandleStyles.active);
 
     // Start operation
-    fireEvent(dragHandle, new MouseEvent("pointerdown", { bubbles: true }));
-    expect(dragHandle).toHaveClass(dragHandleStyles.active);
-    expect(resizeHandle).not.toHaveClass(dragHandleStyles.active);
+    fireEvent(findDragHandle(), new MouseEvent("pointerdown", { bubbles: true }));
+    expect(findDragHandle()).toHaveClass(dragHandleStyles.active);
+    expect(findResizeHandle()).not.toHaveClass(dragHandleStyles.active);
 
     // End operation
     fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
-    expect(dragHandle).not.toHaveClass(dragHandleStyles.active);
+    expect(findDragHandle()).not.toHaveClass(dragHandleStyles.active);
   });
 
   test("sets active state for resize handle", () => {
-    render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={() => undefined}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} />);
 
     const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
     const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
@@ -225,18 +193,7 @@ describe("Board", () => {
 
   test("triggers onItemsChange on drag", () => {
     const onItemsChange = vi.fn();
-    render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={onItemsChange}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} onItemsChange={onItemsChange} />);
 
     const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!;
 
@@ -260,18 +217,7 @@ describe("Board", () => {
 
   test("triggers onItemsChange on resize", () => {
     const onItemsChange = vi.fn();
-    render(
-      <Board
-        items={[
-          { id: "1", data: { title: "Item 1" } },
-          { id: "2", data: { title: "Item 2" } },
-        ]}
-        renderItem={(item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>}
-        onItemsChange={onItemsChange}
-        i18nStrings={i18nStrings}
-        empty="No items"
-      />
-    );
+    render(<Board {...defaultProps} onItemsChange={onItemsChange} />);
 
     const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!;
 

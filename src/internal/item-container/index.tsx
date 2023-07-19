@@ -17,6 +17,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   DragAndDropData,
   DropTargetContext,
@@ -196,6 +197,18 @@ function ItemContainerComponent(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id, transitionInteractionType, transitionItemId]);
 
+  useEffect(() => {
+    if (transitionInteractionType === "keyboard" && transitionItemId === item.id) {
+      const onPointerDown = () => draggableApi.submitTransition();
+      window.addEventListener("pointerdown", onPointerDown, true);
+      return () => {
+        window.removeEventListener("pointerdown", onPointerDown, true);
+      };
+    }
+    // draggableApi is not expected to change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id, transitionInteractionType, transitionItemId]);
+
   function onKeyboardTransitionToggle(operation: "drag" | "resize") {
     // The acquired item is a copy and does not have the transition state.
     // However, pressing "Space" or "Enter" on the acquired item must submit the active transition.
@@ -279,11 +292,11 @@ function ItemContainerComponent(
   }
 
   function onBlur() {
-    // When drag- or resize handle loses focus the transition must be discarded with two exceptions:
+    // When drag- or resize handle loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
     if (transition && transition.interactionType === "keyboard" && !transition.isBorrowed) {
-      draggableApi.discardTransition();
+      draggableApi.submitTransition();
     }
   }
 
@@ -371,12 +384,15 @@ function ItemContainerComponent(
   }));
 
   const isActive = (!!transition && !transition.isBorrowed) || !!acquired;
+  const shouldUsePortal =
+    (transition?.operation === "insert" || transition?.operation === "reorder") &&
+    transition?.interactionType === "pointer";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
     childrenRef.current = children();
   }
 
-  return (
+  const content = (
     <div
       ref={itemRef}
       className={clsx(styles.root, ...itemTransitionClassNames)}
@@ -406,4 +422,6 @@ function ItemContainerComponent(
       </ItemContext.Provider>
     </div>
   );
+
+  return shouldUsePortal ? <div>{createPortal(content, document.body)}</div> : content;
 }

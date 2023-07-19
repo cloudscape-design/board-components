@@ -51,15 +51,17 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
             {item.data.content}
           </BoardItem>
 
-          <DeleteConfirmationModal
-            title={item.data.title}
-            visible={deleteConfirmation === item.id}
-            onDismiss={() => setDeleteConfirmation(null)}
-            onConfirm={() => {
-              actions.removeItem();
-              setDeleteConfirmation(null);
-            }}
-          />
+          {deleteConfirmation === item.id && (
+            <DeleteConfirmationModal
+              title={item.data.title}
+              visible={true}
+              onDismiss={() => setDeleteConfirmation(null)}
+              onConfirm={() => {
+                actions.removeItem();
+                setDeleteConfirmation(null);
+              }}
+            />
+          )}
         </>
       )}
     />
