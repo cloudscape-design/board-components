@@ -153,10 +153,8 @@ function getOverlapMove(
     score += 20 + penalties;
   } else if (isVacant) {
     score += 60 + penalties;
-  } else if (isSwap) {
-    score += 80 + penalties;
   } else {
-    score += 50 + penalties;
+    score += penalties;
   }
   return { ...overlapMove, score };
 }
