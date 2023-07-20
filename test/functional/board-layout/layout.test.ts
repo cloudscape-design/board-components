@@ -27,8 +27,8 @@ test(
     async (page) => {
       await page.mouseDown(boardWrapper.findItemById("A").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
-        ["A", "B", "C", "D"],
-        ["A", "B", "C", "D"],
+        [" ", "B", "C", "D"],
+        [" ", "B", "C", "D"],
         ["E", "B", "G", "H"],
         ["E", "B", "G", "H"],
         [" ", " ", " ", " "],
@@ -38,10 +38,10 @@ test(
 
       await page.mouseDown(boardWrapper.findItemById("B").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
-        ["A", "B", "C", "D"],
-        ["A", "B", "C", "D"],
-        ["E", "B", "G", "H"],
-        ["E", "B", "G", "H"],
+        ["A", " ", "C", "D"],
+        ["A", " ", "C", "D"],
+        ["E", " ", "G", "H"],
+        ["E", " ", "G", "H"],
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],

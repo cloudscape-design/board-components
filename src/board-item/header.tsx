@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
 import { ReactNode } from "react";
+import { useVisualRefresh } from "../internal/base-component/use-visual-refresh.js";
 import styles from "./styles.css.js";
 
 export interface WidgetContainerHeaderProps {
@@ -11,8 +12,9 @@ export interface WidgetContainerHeaderProps {
 }
 
 export default function WidgetContainerHeader({ handle, children, settings }: WidgetContainerHeaderProps) {
+  const isVisualRefresh = useVisualRefresh();
   return (
-    <div className={styles.header}>
+    <div className={clsx(styles.header, isVisualRefresh && styles.refresh)}>
       <div className={clsx(styles.fixed, styles.handle)}>{handle}</div>
       <div className={clsx(styles.flexible, styles["header-content"])}>{children}</div>
       {settings ? <div className={clsx(styles.fixed, styles.settings)}>{settings}</div> : null}
