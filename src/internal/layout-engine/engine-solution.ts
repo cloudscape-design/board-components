@@ -111,33 +111,34 @@ function getOverlapMove(
   }
   const issuerDirection = lastIssuerMove.direction;
 
-  // Swap score penalizes non-swap overlap resolutions in case the direction does not match that of the issuer.
   const isSwap = checkIfSwap(overlapMove, lastIssuerMove);
+  const isDifferentIssuerDirection = moveDirection !== issuerDirection;
+  const isOppositeIssuerDirection = checkOppositeDirections(moveDirection, issuerDirection);
+  const userMoveBoundaries = getUserMoveBoundaries(state);
+  const moveVector = getSolutionMovesVector(state);
+
+  // Swap score penalizes non-swap overlap resolutions in case the direction does not match that of the issuer.
   const swapPenalty = isSwap ? 0 : 20;
-  const differentDirectionPenalty = !isSwap && moveDirection !== issuerDirection ? 10 : 0;
-  const oppositeDirectionPenalty = !isSwap && checkOppositeDirections(moveDirection, issuerDirection) ? 500 : 0;
+  const differentDirectionPenalty = !isSwap && isDifferentIssuerDirection ? 10 : 0;
+  const oppositeDirectionPenalty = !isSwap && isOppositeIssuerDirection ? 500 : 0;
   const swapScore = swapPenalty + differentDirectionPenalty + oppositeDirectionPenalty;
 
   // Overlaps score penalizes moves that cause additional overlaps.
   const overlapsScore = pathOverlaps.size * 50;
 
   // Boundaries score penalize movements of items that are outside the area covered by the user move.
-  const userMoveBoundaries = getUserMoveBoundaries(state);
   const moveOutsideUserTopPenalty = overlapItem.y + overlapItem.height - 1 < userMoveBoundaries.top ? 500 : 0;
   const moveOutsideUserLeftPenalty = overlapItem.x + overlapItem.width - 1 < userMoveBoundaries.left ? 50 : 0;
   const moveOutsideUserRightPenalty = overlapItem.x > userMoveBoundaries.right ? 50 : 0;
   const boundariesScore = moveOutsideUserTopPenalty + moveOutsideUserLeftPenalty + moveOutsideUserRightPenalty;
 
-  // Gradient score penalize movements that are against the common move direction of other items.
-  const { gradientX, gradientY } = getSolutionMovesGradient(state);
-  const gradientXPenalty =
-    (moveDirection === "left" && gradientX > 0) || (moveDirection === "right" && gradientX < 0) ? gradientX * 2 : 0;
-  const gradientYPenalty =
-    (moveDirection === "up" && gradientY > 0) || (moveDirection === "down" && gradientY < 0) ? gradientY * 2 : 0;
-  const gradientScore = gradientXPenalty + gradientYPenalty;
+  // Move vector score penalize movements that are against the common move direction of other items.
+  const vectorXPenalty = overlapMove.distanceX * moveVector.x < 0 ? moveVector.x * 2 : 0;
+  const vectorYPenalty = overlapMove.distanceY * moveVector.y < 0 ? moveVector.y * 2 : 0;
+  const moveVectorScore = vectorXPenalty + vectorYPenalty;
 
   // Score starts from 1 to avoid overlap moves having 0 score which breaks the solutions cache.
-  const score = 1 + swapScore + overlapsScore + gradientScore + boundariesScore;
+  const score = 1 + swapScore + overlapsScore + moveVectorScore + boundariesScore;
 
   return { ...overlapMove, score };
 }
@@ -168,24 +169,22 @@ function getLastSolutionMove(state: MoveSolutionState, itemId: ItemId): null | C
   return lastMove;
 }
 
-// Calculates X, Y gradients as the amount of cell movements to either direction.
+// Calculates vector as the amount of cell movements to either direction.
 // All moves in one direction are summarized, the opposite moves cancel each other.
-// The gradients show in which direction (left / right, up / down) the most overlaps were resolved.
-function getSolutionMovesGradient(state: MoveSolutionState): { gradientX: number; gradientY: number } {
-  let gradientX = 0;
-  let gradientY = 0;
+// The vector show in which direction (left / right, up / down) the most overlaps were resolved.
+function getSolutionMovesVector(state: MoveSolutionState): { x: number; y: number } {
+  const vector = { x: 0, y: 0 };
   for (let i = state.moveIndex; i < state.moves.length; i++) {
     const move = state.moves[i];
     if (move.type === "OVERLAP") {
-      gradientX += move.distanceX * move.height;
-      gradientY += move.distanceY * move.width;
+      vector.x += move.distanceX * move.height;
+      vector.y += move.distanceY * move.width;
     }
   }
-  return { gradientX, gradientY };
+  return vector;
 }
 
-// Finds a rectangle within which the user-controlled item was moved.
-// The rectangle only considers the original item location and the last two moves performed.
+// Finds a rectangle within which the user-controlled item was moved (previous and current positions only).
 // The layout items outside the boundaries are not expected to be disturbed.
 function getUserMoveBoundaries(state: MoveSolutionState): { top: number; right: number; bottom: number; left: number } {
   const firstUserMove = state.moves[0];
@@ -193,14 +192,13 @@ function getUserMoveBoundaries(state: MoveSolutionState): { top: number; right: 
   if (!firstUserMove || !lastUserMove || firstUserMove.itemId !== lastUserMove.itemId) {
     throw new Error("Invariant violation: unexpected user move.");
   }
-  const r1 = getMoveOriginalRect(firstUserMove);
-  const r2 = getMoveOriginalRect(lastUserMove);
-  const r3 = getMoveRect(lastUserMove);
+  const original = getMoveOriginalRect(lastUserMove);
+  const current = getMoveRect(lastUserMove);
   return {
-    top: Math.min(r1.top, r2.top, r3.top),
-    right: Math.max(r1.right, r2.right, r3.right),
-    bottom: Math.max(r1.bottom, r2.bottom, r3.bottom),
-    left: Math.min(r1.left, r2.left, r3.left),
+    top: Math.min(original.top, current.top),
+    right: Math.max(original.right, current.right),
+    bottom: Math.max(original.bottom, current.bottom),
+    left: Math.min(original.left, current.left),
   };
 }
 
