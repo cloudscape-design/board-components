@@ -16,6 +16,7 @@ const values = {
   THEME: "open-source-visual-refresh",
   ALWAYS_VISUAL_REFRESH: true,
 };
+writeFile(`${basePath}.json`, JSON.stringify(values, null, 2));
 writeFile(
   `${basePath}.js`,
   Object.entries(values)
