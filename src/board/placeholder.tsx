@@ -31,7 +31,7 @@ export default function Placeholder({ id, state, gridContext, columns }: Placeho
     },
   };
 
-  useDroppable({ itemId: id, context: dropTargetContext, getElement: () => ref.current! });
+  useDroppable({ itemId: id, context: dropTargetContext, getElement: () => ref.current!, sourceId: "board" });
 
   return <div ref={ref} className={clsx(styles.placeholder, styles[`placeholder--${state}`])} />;
 }

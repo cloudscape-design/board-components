@@ -109,6 +109,7 @@ export function InternalItemsPalette<D>({
                 const { width, height } = dropContext.scale(item);
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
               }}
+              sourceId={"palette"}
             >
               {() =>
                 renderItem(item, {

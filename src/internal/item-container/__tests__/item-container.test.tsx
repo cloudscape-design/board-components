@@ -22,6 +22,7 @@ const defaultProps: ItemContainerProps = {
   inTransition: false,
   getItemSize: () => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 }),
   children: () => <Item />,
+  sourceId: "board",
 };
 
 function Item() {
@@ -47,19 +48,19 @@ test("renders item container", () => {
 test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   getByTestId("drag-handle").click();
-  expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
+  expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates), "board");
 });
 
 test("starts insert transition when drag handle is clicked and item does not belong to grid", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} />);
   getByTestId("drag-handle").click();
-  expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates));
+  expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates), "board");
 });
 
 test("starts resize transition when resize handle is clicked", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   getByTestId("resize-handle").click();
-  expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
+  expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates), "board");
 });
 
 test("renders in portal when item in reorder state by a pointer", () => {

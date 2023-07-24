@@ -293,6 +293,7 @@ export function InternalBoard<D>({
                       maxHeight: gridContext.getHeight(itemMaxSize.height),
                     })}
                     onKeyMove={onItemMove}
+                    sourceId={"board"}
                   >
                     {item.id === acquiredItem?.id && acquiredItemElement
                       ? () => acquiredItemElement

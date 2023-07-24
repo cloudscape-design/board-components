@@ -36,6 +36,7 @@ export interface DragAndDropData {
 export interface Droppable {
   element: HTMLElement;
   context: DropTargetContext;
+  sourceId: string;
 }
 
 interface AcquireData {
@@ -63,28 +64,36 @@ interface Transition {
 class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
   private transition: null | Transition = null;
+  private sourceId = "";
 
   /**
    * Inits a drag transition and issues a "start" event.
    *
    * The method overrides the previous transition if exists (w/o a cancellation event)!
    */
-  public start(transition: Transition) {
+  public start(transition: Transition, sourceId: string) {
     this.transition = { ...transition };
+    this.sourceId = sourceId;
     this.emit("start", this.getDragAndDropData(transition.startCoordinates));
   }
 
   /**
    * Updates current transition with given coordinates and issues an "update" event.
    */
-  public update(coordinates: Coordinates) {
+  public update(coordinates: Coordinates, sourceId: string) {
+    if (sourceId !== this.sourceId) {
+      return;
+    }
     this.emit("update", this.getDragAndDropData(coordinates));
   }
 
   /**
    * Removes transition and issues a "submit" event.
    */
-  public submit() {
+  public submit(sourceId: string) {
+    if (sourceId !== this.sourceId) {
+      return;
+    }
     this.emit("submit");
     this.transition = null;
   }
@@ -92,7 +101,10 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   /**
    * Removes transition and issues a "discard" event.
    */
-  public discard() {
+  public discard(sourceId: string) {
+    if (sourceId !== this.sourceId) {
+      return;
+    }
     this.emit("discard");
     this.transition = null;
   }
@@ -104,14 +116,18 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for acquire.");
     }
+    const newSourceId = this.droppables.get(droppableId)?.sourceId;
+    if (newSourceId) {
+      this.sourceId = newSourceId;
+    }
     this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem, acquiredItemElement });
   }
 
   /**
    * Registers a droppable used for collisions check, acquire, and dropTarget provision.
    */
-  public addDroppable(id: ItemId, context: DropTargetContext, element: HTMLElement) {
-    this.droppables.set(id, { element, context });
+  public addDroppable(id: ItemId, context: DropTargetContext, element: HTMLElement, sourceId: string) {
+    this.droppables.set(id, { element, context, sourceId });
   }
 
   /**
@@ -175,17 +191,17 @@ export function useDraggable({
   getCollisionRect: (operation: Operation, coordinates: Coordinates, dropTarget: null | DropTargetContext) => Rect;
 }) {
   return {
-    start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates) {
-      controller.start({ operation, interactionType, draggableItem, getCollisionRect, startCoordinates });
+    start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates, sourceId: string) {
+      controller.start({ operation, interactionType, draggableItem, getCollisionRect, startCoordinates }, sourceId);
     },
-    updateTransition(coordinates: Coordinates) {
-      controller.update(coordinates);
+    updateTransition(coordinates: Coordinates, sourceId: string) {
+      controller.update(coordinates, sourceId);
     },
-    submitTransition() {
-      controller.submit();
+    submitTransition(sourceId: string) {
+      controller.submit(sourceId);
     },
-    discardTransition() {
-      controller.discard();
+    discardTransition(sourceId: string) {
+      controller.discard(sourceId);
     },
     acquire(droppableId: ItemId, acquiredItemElement?: ReactNode) {
       controller.acquire(droppableId, acquiredItemElement);
@@ -200,13 +216,15 @@ export function useDroppable({
   itemId,
   context,
   getElement,
+  sourceId,
 }: {
   itemId: ItemId;
   context: DropTargetContext;
   getElement: () => HTMLElement;
+  sourceId: string;
 }) {
   useEffect(() => {
-    controller.addDroppable(itemId, context, getElement());
+    controller.addDroppable(itemId, context, getElement(), sourceId);
     return () => controller.removeDroppable(itemId);
-  }, [itemId, context, getElement]);
+  }, [itemId, context, getElement, sourceId]);
 }

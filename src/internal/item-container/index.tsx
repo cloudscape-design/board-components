@@ -99,12 +99,13 @@ export interface ItemContainerProps {
   };
   onKeyMove?(direction: Direction): void;
   children: () => ReactNode;
+  sourceId: string;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children }: ItemContainerProps,
+  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children, sourceId }: ItemContainerProps,
   ref: Ref<ItemContainerRef>
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
@@ -177,12 +178,13 @@ function ItemContainerComponent(
         new Coordinates({
           x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
           y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
-        })
+        }),
+        sourceId
       );
     }, 10);
     const onPointerUp = () => {
       onPointerMove.cancel();
-      draggableApi.submitTransition();
+      draggableApi.submitTransition(sourceId);
     };
 
     if (transitionInteractionType === "pointer" && transitionItemId === item.id) {
@@ -199,7 +201,7 @@ function ItemContainerComponent(
 
   useEffect(() => {
     if (transitionInteractionType === "keyboard" && transitionItemId === item.id) {
-      const onPointerDown = () => draggableApi.submitTransition();
+      const onPointerDown = () => draggableApi.submitTransition(sourceId);
       window.addEventListener("pointerdown", onPointerDown, true);
       return () => {
         window.removeEventListener("pointerdown", onPointerDown, true);
@@ -213,7 +215,7 @@ function ItemContainerComponent(
     // The acquired item is a copy and does not have the transition state.
     // However, pressing "Space" or "Enter" on the acquired item must submit the active transition.
     if (acquired) {
-      return draggableApi.submitTransition();
+      return draggableApi.submitTransition(sourceId);
     }
 
     // Create new transition if missing.
@@ -225,16 +227,16 @@ function ItemContainerComponent(
       });
 
       if (operation === "drag" && !placed) {
-        draggableApi.start("insert", "keyboard", coordinates);
+        draggableApi.start("insert", "keyboard", coordinates, sourceId);
       } else if (operation === "drag") {
-        draggableApi.start("reorder", "keyboard", coordinates);
+        draggableApi.start("reorder", "keyboard", coordinates, sourceId);
       } else {
-        draggableApi.start("resize", "keyboard", coordinates);
+        draggableApi.start("resize", "keyboard", coordinates, sourceId);
       }
     }
     // Submit a transition if existing.
     else {
-      draggableApi.submitTransition();
+      draggableApi.submitTransition(sourceId);
     }
   }
 
@@ -270,7 +272,7 @@ function ItemContainerComponent(
 
     const discard = () => {
       if (transition || acquired) {
-        draggableApi.discardTransition();
+        draggableApi.discardTransition(sourceId);
       }
     };
 
@@ -296,7 +298,7 @@ function ItemContainerComponent(
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
     if (transition && transition.interactionType === "keyboard" && !transition.isBorrowed) {
-      draggableApi.submitTransition();
+      draggableApi.submitTransition(sourceId);
     }
   }
 
@@ -307,7 +309,7 @@ function ItemContainerComponent(
     originalSizeRef.current = { width: rect.width, height: rect.height };
     pointerBoundariesRef.current = null;
 
-    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event), sourceId);
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -328,7 +330,7 @@ function ItemContainerComponent(
       y: event.clientY - rect.height + minHeight,
     });
 
-    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event), sourceId);
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {
