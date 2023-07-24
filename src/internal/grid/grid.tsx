@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import { useDensityMode } from "@cloudscape-design/component-toolkit/internal";
 import clsx from "clsx";
 import { Children, useRef } from "react";
 import { useMergeRefs } from "../utils/use-merge-refs";
@@ -10,7 +11,6 @@ import { zipTwoArrays } from "../utils/zip-arrays";
 import { GridProps } from "./interfaces";
 import GridItem from "./item";
 import styles from "./styles.css.js";
-import { useDensityMode } from "./use-density-mode";
 
 /* Matches grid gap in CSS. */
 const GRID_GAP = {
