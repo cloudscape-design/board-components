@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Button, Form, Modal, SpaceBetween } from "@cloudscape-design/components";
-import { clientI18nStrings } from "./i18n";
+import { clientI18nStrings } from "../shared/i18n";
 
 export function DeleteConfirmationModal({
   title,
