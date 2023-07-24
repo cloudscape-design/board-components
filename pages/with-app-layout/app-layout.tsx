@@ -3,7 +3,7 @@
 
 import { AppLayout, Box, Button, ContentLayout, Header, SpaceBetween, SplitPanel } from "@cloudscape-design/components";
 import { ReactNode, useState } from "react";
-import { appLayoutI18nStrings, clientI18nStrings, splitPanelI18nStrings } from "./i18n";
+import { appLayoutI18nStrings, clientI18nStrings, splitPanelI18nStrings } from "../shared/i18n";
 
 interface ClientAppLayoutProps {
   content: ReactNode;
