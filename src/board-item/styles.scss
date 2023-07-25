@@ -38,7 +38,9 @@
 .header {
   display: flex;
   justify-items: center;
-  padding: cs.$space-scaled-s calc(#{cs.$space-container-horizontal} - #{cs.$space-scaled-xs});
+  margin-left: calc(-1 * #{cs.$space-scaled-xs});
+  margin-right: calc(-1 * #{cs.$space-scaled-xs});
+  align-items: center;
 }
 
 .flexible {
@@ -46,9 +48,9 @@
 }
 
 .handle {
-  margin-top: calc(cs.$space-scaled-xxs + 1px);
+  margin-top: calc(cs.$space-scaled-xxxs + 1px);
   .refresh > & {
-    margin-top: calc(cs.$space-static-xxxs + 1px);
+    margin-top: 0px;
   }
 }
 

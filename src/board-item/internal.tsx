@@ -35,7 +35,6 @@ export function InternalBoardItem({
     <div ref={__internalRootRef} className={styles.root} {...getDataAttributes(rest)}>
       <Container
         fitHeight={true}
-        disableHeaderPaddings={true}
         header={
           <WidgetContainerHeader
             handle={

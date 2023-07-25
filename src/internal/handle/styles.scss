@@ -3,8 +3,8 @@
 .handle {
   appearance: none;
   background: transparent;
-  border: none;
-  padding: cs.$space-scaled-xxs;
+  border: 2px solid transparent;
+  padding: cs.$space-scaled-xxs cs.$space-static-xxs;
 
   color: cs.$color-text-interactive-default;
 
