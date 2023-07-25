@@ -195,14 +195,16 @@ export function InternalBoard<D>({
       return;
     }
 
-    dispatch({
-      type: "acquire-item",
-      position: new Position({ x: placeholder.x, y: placeholder.y }),
-      layoutElement: containerAccessRef.current!,
-      acquiredItemElement: acquiredItemElement,
+    // delayed to ensure that all other states have been updated
+    setTimeout(() => {
+      focusNextRenderIdRef.current = draggableItem.id;
+      dispatch({
+        type: "acquire-item",
+        position: new Position({ x: placeholder.x, y: placeholder.y }),
+        layoutElement: containerAccessRef.current!,
+        acquiredItemElement: acquiredItemElement,
+      });
     });
-
-    focusNextRenderIdRef.current = draggableItem.id;
   });
 
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
