@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useId, useRef } from "react";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
@@ -88,6 +88,15 @@ export function InternalBoard<D>({
     focusNextRenderIndexRef.current = null;
     focusNextRenderIdRef.current = null;
   });
+
+  const boardId = useId();
+
+  useEffect(() => {
+    console.log("mounted board id ", boardId);
+    return () => {
+      console.log("unmount board id ", boardId);
+    };
+  }, [boardId]);
 
   // Submit scheduled removal after a delay to let animations play.
   useEffect(() => {

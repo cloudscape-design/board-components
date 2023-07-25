@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@cloudscape-design/components";
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { demoBoardItems, demoPaletteItems } from "../dnd/items";
@@ -16,14 +16,19 @@ import {
 } from "../shared/i18n";
 
 interface MicroFrontendWrapperProps {
-  renderContent: (container: HTMLElement) => void;
+  content: ReactNode;
 }
 
-function MicroFrontendWrapper({ renderContent }: MicroFrontendWrapperProps) {
+function MicroFrontendWrapper({ content }: MicroFrontendWrapperProps) {
   const ref = useRef(null);
+  const mountedRef = useRef(false);
 
-  useEffect(() => {
-    renderContent(ref.current!);
+  useLayoutEffect(() => {
+    if (mountedRef.current) {
+      return;
+    }
+    mountedRef.current = true;
+    createRoot(ref.current!).render(content);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <div ref={ref} />;
@@ -53,24 +58,22 @@ export default function () {
           }
         >
           <MicroFrontendWrapper
-            renderContent={(container) =>
-              createRoot(container).render(
-                <Board
-                  items={demoBoardItems}
-                  empty={clientI18nStrings.widgetsBoard.widgetsEmpty}
-                  i18nStrings={boardI18nStrings}
-                  onItemsChange={() => {}}
-                  renderItem={(item) => (
-                    <BoardItem
-                      header={<Header>{item.data.title}</Header>}
-                      footer={item.data.footer}
-                      i18nStrings={boardItemI18nStrings}
-                    >
-                      {item.data.content}
-                    </BoardItem>
-                  )}
-                />
-              )
+            content={
+              <Board
+                items={demoBoardItems}
+                empty={clientI18nStrings.widgetsBoard.widgetsEmpty}
+                i18nStrings={boardI18nStrings}
+                onItemsChange={() => {}}
+                renderItem={(item) => (
+                  <BoardItem
+                    header={<Header>{item.data.title}</Header>}
+                    footer={item.data.footer}
+                    i18nStrings={boardItemI18nStrings}
+                  >
+                    {item.data.content}
+                  </BoardItem>
+                )}
+              />
             }
           />
         </ContentLayout>
@@ -83,18 +86,16 @@ export default function () {
             hidePreferencesButton={true}
           >
             <MicroFrontendWrapper
-              renderContent={(container) =>
-                createRoot(container).render(
-                  <ItemsPalette
-                    items={demoPaletteItems}
-                    renderItem={(item) => (
-                      <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={boardItemI18nStrings}>
-                        {item.data.description}
-                      </BoardItem>
-                    )}
-                    i18nStrings={itemsPaletteI18nStrings}
-                  />
-                )
+              content={
+                <ItemsPalette
+                  items={demoPaletteItems}
+                  renderItem={(item) => (
+                    <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={boardItemI18nStrings}>
+                      {item.data.description}
+                    </BoardItem>
+                  )}
+                  i18nStrings={itemsPaletteI18nStrings}
+                />
               }
             />
           </SplitPanel>
