@@ -69,7 +69,6 @@ interface Transition {
   interactionType: InteractionType;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
-  isBorrowed: boolean;
 }
 
 /**
@@ -111,6 +110,7 @@ function ItemContainerComponent(
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
   const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
+  const [isBorrowed, setIsBorrowed] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({
     draggableItem: item,
@@ -133,7 +133,7 @@ function ItemContainerComponent(
       const pointerOffset = pointerOffsetRef.current;
 
       if (operation === "resize") {
-        setTransition((transition) => ({
+        setTransition({
           operation,
           interactionType,
           itemId: draggableItem.id,
@@ -142,29 +142,28 @@ function ItemContainerComponent(
             height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
           },
           positionTransform: null,
-          isBorrowed: !!transition?.isBorrowed,
-        }));
+        });
       } else if (operation === "insert" || operation === "reorder") {
-        setTransition((transition) => ({
+        setTransition({
           operation,
           interactionType,
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
-          isBorrowed: !!transition?.isBorrowed,
-        }));
+        });
       }
     }
   }
 
   useDragSubscription("start", (detail) => updateTransition(detail));
   useDragSubscription("update", (detail) => updateTransition(detail));
-  useDragSubscription("submit", () => setTransition(null));
-  useDragSubscription("discard", () => setTransition(null));
-  useDragSubscription("acquire", (detail) => {
-    if (detail.draggableItem.id === item.id) {
-      setTransition((transition) => transition && { ...transition, isBorrowed: true });
-    }
+  useDragSubscription("submit", () => {
+    setTransition(null);
+    setIsBorrowed(false);
+  });
+  useDragSubscription("discard", () => {
+    setTransition(null);
+    setIsBorrowed(false);
   });
 
   // During the transition listen to pointer move and pointer up events to update/submit transition.
@@ -253,6 +252,8 @@ function ItemContainerComponent(
 
     // Notify the respective droppable of the intention to insert the item in it.
     draggableApi.acquire(nextDroppable, childrenRef.current);
+    setTransition(null);
+    setIsBorrowed(true);
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -295,7 +296,7 @@ function ItemContainerComponent(
     // When drag- or resize handle loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && transition.interactionType === "keyboard" && !transition.isBorrowed) {
+    if (transition && transition.interactionType === "keyboard") {
       draggableApi.submitTransition();
     }
   }
@@ -352,10 +353,10 @@ function ItemContainerComponent(
       itemTransitionStyle.height = transition.sizeTransform?.height;
       itemTransitionStyle.pointerEvents = "none";
     }
-    // Make the borrowed item dimmed.
-    else if (transition.isBorrowed) {
-      itemTransitionClassNames.push(styles.borrowed);
-    }
+  }
+  // Make the borrowed item dimmed.
+  else if (isBorrowed) {
+    itemTransitionClassNames.push(styles.borrowed);
   }
 
   if (placed && transform) {
@@ -383,7 +384,7 @@ function ItemContainerComponent(
     focusDragHandle: () => dragHandleRef.current?.focus(),
   }));
 
-  const isActive = (!!transition && !transition.isBorrowed) || !!acquired;
+  const isActive = (!!transition && !isBorrowed) || !!acquired;
   const shouldUsePortal =
     (transition?.operation === "insert" || transition?.operation === "reorder") &&
     transition?.interactionType === "pointer";
