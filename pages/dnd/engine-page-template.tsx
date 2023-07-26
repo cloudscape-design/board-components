@@ -65,11 +65,11 @@ export function EnginePageTemplate({
           <Header>Add widgets</Header>
           <ItemsPalette
             items={paletteItems}
-            renderItem={(item) => {
+            renderItem={(item, context) => {
               const widgetConfig = widgets[item.id]!.data;
               return (
                 <BoardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={boardItemI18nStrings}>
-                  {widgetConfig.description}
+                  {context.showPreview ? `(preview) ${widgetConfig.description}` : widgetConfig.description}
                 </BoardItem>
               );
             }}

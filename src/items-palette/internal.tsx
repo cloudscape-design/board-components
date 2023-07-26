@@ -21,7 +21,7 @@ export function InternalItemsPalette<D>({
 }: ItemsPaletteProps<D> & InternalBaseComponentProps) {
   const paletteRef = useRef<HTMLDivElement>(null);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
-  const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
+  const [dropState, setDropState] = useState<{ id: string }>();
   const [announcement, setAnnouncement] = useState("");
 
   function focusItem(itemId: ItemId) {
@@ -29,7 +29,7 @@ export function InternalItemsPalette<D>({
   }
 
   useDragSubscription("start", ({ draggableItem: { id } }) => {
-    setDropState({ id, isExpanded: false });
+    setDropState({ id });
 
     // Announce only if the target item belongs to the palette.
     if (items.some((it) => it.id === id)) {
@@ -39,8 +39,8 @@ export function InternalItemsPalette<D>({
     }
   });
 
-  useDragSubscription("update", ({ draggableItem: { id }, dropTarget }) => {
-    setDropState({ id, isExpanded: !!dropTarget });
+  useDragSubscription("update", ({ draggableItem: { id } }) => {
+    setDropState({ id });
   });
 
   useDragSubscription("submit", () => {
@@ -110,11 +110,7 @@ export function InternalItemsPalette<D>({
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
               }}
             >
-              {() =>
-                renderItem(item, {
-                  showPreview: dropState?.id === item.id && dropState.isExpanded,
-                })
-              }
+              {(showPreview = false) => renderItem(item, { showPreview })}
             </ItemContainer>
           ))}
         </SpaceBetween>

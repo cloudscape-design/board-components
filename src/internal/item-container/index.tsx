@@ -70,6 +70,7 @@ interface Transition {
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
   isBorrowed: boolean;
+  showPreview?: boolean;
 }
 
 /**
@@ -98,7 +99,7 @@ export interface ItemContainerProps {
     maxHeight: number;
   };
   onKeyMove?(direction: Direction): void;
-  children: () => ReactNode;
+  children: (showPreview?: boolean) => ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
@@ -152,6 +153,7 @@ function ItemContainerComponent(
           sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
           isBorrowed: !!transition?.isBorrowed,
+          showPreview: operation === "insert" && !!dropTarget,
         }));
       }
     }
@@ -252,7 +254,7 @@ function ItemContainerComponent(
     }
 
     // Notify the respective droppable of the intention to insert the item in it.
-    draggableApi.acquire(nextDroppable, childrenRef.current);
+    draggableApi.acquire(nextDroppable, () => children(true));
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -389,7 +391,7 @@ function ItemContainerComponent(
     transition?.interactionType === "pointer";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
-    childrenRef.current = children();
+    childrenRef.current = children(transition?.showPreview);
   }
 
   const content = (

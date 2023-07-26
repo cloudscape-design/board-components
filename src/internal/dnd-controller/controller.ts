@@ -41,7 +41,7 @@ export interface Droppable {
 interface AcquireData {
   droppableId: ItemId;
   draggableItem: Item;
-  acquiredItemElement?: ReactNode;
+  renderAcquiredItem: () => ReactNode;
 }
 
 export interface DragAndDropEvents {
@@ -100,11 +100,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   /**
    * Issues an "acquire" event to notify the current transition draggable is acquired by the given droppable.
    */
-  public acquire(droppableId: ItemId, acquiredItemElement?: ReactNode) {
+  public acquire(droppableId: ItemId, renderAcquiredItem: () => ReactNode) {
     if (!this.transition) {
       throw new Error("Invariant violation: no transition present for acquire.");
     }
-    this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem, acquiredItemElement });
+    this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem, renderAcquiredItem });
   }
 
   /**
@@ -187,8 +187,8 @@ export function useDraggable({
     discardTransition() {
       controller.discard();
     },
-    acquire(droppableId: ItemId, acquiredItemElement?: ReactNode) {
-      controller.acquire(droppableId, acquiredItemElement);
+    acquire(droppableId: ItemId, renderAcquiredItem: () => ReactNode) {
+      controller.acquire(droppableId, renderAcquiredItem);
     },
     getDroppables() {
       return controller.getDroppables();
