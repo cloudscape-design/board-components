@@ -110,8 +110,8 @@ function ItemContainerComponent(
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
   const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
-  const [isBorrowed, setIsBorrowed] = useState(false);
-  const isBorrowedRef = useRef(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({
     draggableItem: item,
@@ -160,13 +160,13 @@ function ItemContainerComponent(
   useDragSubscription("update", (detail) => updateTransition(detail));
   useDragSubscription("submit", () => {
     setTransition(null);
-    setIsBorrowed(false);
-    isBorrowedRef.current = false;
+    setIsHidden(false);
+    muteEventsRef.current = false;
   });
   useDragSubscription("discard", () => {
     setTransition(null);
-    setIsBorrowed(false);
-    isBorrowedRef.current = false;
+    setIsHidden(false);
+    muteEventsRef.current = false;
   });
 
   // During the transition listen to pointer move and pointer up events to update/submit transition.
@@ -256,8 +256,8 @@ function ItemContainerComponent(
     // Notify the respective droppable of the intention to insert the item in it.
     draggableApi.acquire(nextDroppable, childrenRef.current);
     setTransition(null);
-    setIsBorrowed(true);
-    isBorrowedRef.current = true;
+    setIsHidden(true);
+    muteEventsRef.current = true;
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -297,10 +297,10 @@ function ItemContainerComponent(
   }
 
   function onBlur() {
-    // When drag- or resize handle loses focus the transition must be submitted with two exceptions:
+    // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
-    // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && transition.interactionType === "keyboard" && !isBorrowedRef.current) {
+    // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected, borrowed item is hidden and all events on it should be muted).
+    if (transition && transition.interactionType === "keyboard" && !muteEventsRef.current) {
       draggableApi.submitTransition();
     }
   }
@@ -357,9 +357,7 @@ function ItemContainerComponent(
       itemTransitionStyle.height = transition.sizeTransform?.height;
       itemTransitionStyle.pointerEvents = "none";
     }
-  }
-  // Make the borrowed item dimmed.
-  else if (isBorrowed) {
+  } else if (isHidden) {
     itemTransitionClassNames.push(styles.borrowed);
   }
 
@@ -388,7 +386,7 @@ function ItemContainerComponent(
     focusDragHandle: () => dragHandleRef.current?.focus(),
   }));
 
-  const isActive = (!!transition && !isBorrowed) || !!acquired;
+  const isActive = (!!transition && !isHidden) || !!acquired;
   const shouldUsePortal =
     (transition?.operation === "insert" || transition?.operation === "reorder") &&
     transition?.interactionType === "pointer";

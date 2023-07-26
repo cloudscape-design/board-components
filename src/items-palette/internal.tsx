@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import { useEffect, useId, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
@@ -23,15 +23,6 @@ export function InternalItemsPalette<D>({
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string; isExpanded: boolean }>();
   const [announcement, setAnnouncement] = useState("");
-
-  const paletteId = useId();
-
-  useEffect(() => {
-    console.log("mounted palette id ", paletteId);
-    return () => {
-      console.log("unmount palette id ", paletteId);
-    };
-  }, [paletteId]);
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();

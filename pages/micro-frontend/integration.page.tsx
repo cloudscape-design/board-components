@@ -5,7 +5,7 @@ import { AppLayout, Box, Button, ContentLayout, Header, SplitPanel } from "@clou
 import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
-import { demoBoardItems, demoPaletteItems } from "../dnd/items";
+import { createLetterItems } from "../dnd/items";
 import {
   appLayoutI18nStrings,
   boardI18nStrings,
@@ -34,8 +34,14 @@ function MicroFrontendWrapper({ content }: MicroFrontendWrapperProps) {
   return <div ref={ref} />;
 }
 
+const letterItems = createLetterItems([
+  ["A", "B", "C", "D"],
+  ["E", "F", "G", "H"],
+  ["I", "J", "K", "L"],
+])!;
+
 export default function () {
-  const [splitPanelOpen, setSplitPanelOpen] = useState(false);
+  const [splitPanelOpen, setSplitPanelOpen] = useState(true);
 
   return (
     <AppLayout
@@ -60,7 +66,7 @@ export default function () {
           <MicroFrontendWrapper
             content={
               <Board
-                items={demoBoardItems}
+                items={letterItems.boardItems}
                 empty={clientI18nStrings.widgetsBoard.widgetsEmpty}
                 i18nStrings={boardI18nStrings}
                 onItemsChange={() => {}}
@@ -88,7 +94,7 @@ export default function () {
             <MicroFrontendWrapper
               content={
                 <ItemsPalette
-                  items={demoPaletteItems}
+                  items={letterItems.paletteItems}
                   renderItem={(item) => (
                     <BoardItem header={<Header>{item.data.title}</Header>} i18nStrings={boardItemI18nStrings}>
                       {item.data.description}
