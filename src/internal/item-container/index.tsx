@@ -111,6 +111,7 @@ function ItemContainerComponent(
   const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
   const [isBorrowed, setIsBorrowed] = useState(false);
+  const isBorrowedRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({
     draggableItem: item,
@@ -160,10 +161,12 @@ function ItemContainerComponent(
   useDragSubscription("submit", () => {
     setTransition(null);
     setIsBorrowed(false);
+    isBorrowedRef.current = false;
   });
   useDragSubscription("discard", () => {
     setTransition(null);
     setIsBorrowed(false);
+    isBorrowedRef.current = false;
   });
 
   // During the transition listen to pointer move and pointer up events to update/submit transition.
@@ -254,6 +257,7 @@ function ItemContainerComponent(
     draggableApi.acquire(nextDroppable, childrenRef.current);
     setTransition(null);
     setIsBorrowed(true);
+    isBorrowedRef.current = true;
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -296,7 +300,7 @@ function ItemContainerComponent(
     // When drag- or resize handle loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && transition.interactionType === "keyboard") {
+    if (transition && transition.interactionType === "keyboard" && !isBorrowedRef.current) {
       draggableApi.submitTransition();
     }
   }
