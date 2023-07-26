@@ -255,7 +255,7 @@ function ItemContainerComponent(
 
     // Notify the respective droppable of the intention to insert the item in it.
     draggableApi.acquire(nextDroppable, childrenRef.current);
-    setTransition(null);
+    // setTransition(null);
     setIsHidden(true);
     muteEventsRef.current = true;
   }
@@ -347,17 +347,17 @@ function ItemContainerComponent(
     itemTransitionClassNames.push(styles.inTransition);
   }
 
-  if (transition) {
+  if (transition && transition.interactionType === "pointer") {
     // Adjust the dragged/resized item to the pointer's location.
-    if (transition.interactionType === "pointer") {
-      itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
-      itemTransitionStyle.left = transition.positionTransform?.x;
-      itemTransitionStyle.top = transition.positionTransform?.y;
-      itemTransitionStyle.width = transition.sizeTransform?.width;
-      itemTransitionStyle.height = transition.sizeTransform?.height;
-      itemTransitionStyle.pointerEvents = "none";
-    }
-  } else if (isHidden) {
+    itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
+    itemTransitionStyle.left = transition.positionTransform?.x;
+    itemTransitionStyle.top = transition.positionTransform?.y;
+    itemTransitionStyle.width = transition.sizeTransform?.width;
+    itemTransitionStyle.height = transition.sizeTransform?.height;
+    itemTransitionStyle.pointerEvents = "none";
+  }
+
+  if (isHidden) {
     itemTransitionClassNames.push(styles.borrowed);
   }
 
