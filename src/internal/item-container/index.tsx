@@ -295,7 +295,7 @@ function ItemContainerComponent(
     // When drag- or resize handle loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && transition.interactionType === "keyboard" && !transition.isBorrowed) {
+    if (transition && transition.interactionType === "keyboard" && placed) {
       draggableApi.submitTransition();
     }
   }

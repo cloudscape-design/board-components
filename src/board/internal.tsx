@@ -195,15 +195,12 @@ export function InternalBoard<D>({
       return;
     }
 
-    // delayed to ensure that all other states have been updated
-    setTimeout(() => {
-      focusNextRenderIdRef.current = draggableItem.id;
-      dispatch({
-        type: "acquire-item",
-        position: new Position({ x: placeholder.x, y: placeholder.y }),
-        layoutElement: containerAccessRef.current!,
-        acquiredItemElement: acquiredItemElement,
-      });
+    focusNextRenderIdRef.current = draggableItem.id;
+    dispatch({
+      type: "acquire-item",
+      position: new Position({ x: placeholder.x, y: placeholder.y }),
+      layoutElement: containerAccessRef.current!,
+      acquiredItemElement: acquiredItemElement,
     });
   });
 
