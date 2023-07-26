@@ -282,7 +282,7 @@ export function InternalBoard<D>({
                     item={item}
                     transform={transforms[item.id]}
                     inTransition={!!transition || !!removeTransition}
-                    placed={true}
+                    placed={item.id !== acquiredItem?.id}
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
                       width: gridContext.getWidth(itemSize.width),

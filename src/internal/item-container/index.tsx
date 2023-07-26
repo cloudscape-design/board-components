@@ -360,7 +360,7 @@ function ItemContainerComponent(
     }
   }
 
-  if (placed && transform) {
+  if (transform) {
     // The moved items positions are altered with CSS transform.
     if (transform.type === "move") {
       itemTransitionClassNames.push(styles.transformed);
