@@ -69,7 +69,6 @@ interface Transition {
   interactionType: InteractionType;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
-  isBorrowed: boolean;
 }
 
 /**
@@ -111,6 +110,8 @@ function ItemContainerComponent(
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
   const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
+  const [isHidden, setIsHidden] = useState(false);
+  const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const draggableApi = useDraggable({
     draggableItem: item,
@@ -133,7 +134,7 @@ function ItemContainerComponent(
       const pointerOffset = pointerOffsetRef.current;
 
       if (operation === "resize") {
-        setTransition((transition) => ({
+        setTransition({
           operation,
           interactionType,
           itemId: draggableItem.id,
@@ -142,29 +143,30 @@ function ItemContainerComponent(
             height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
           },
           positionTransform: null,
-          isBorrowed: !!transition?.isBorrowed,
-        }));
+        });
       } else if (operation === "insert" || operation === "reorder") {
-        setTransition((transition) => ({
+        setTransition({
           operation,
           interactionType,
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
-          isBorrowed: !!transition?.isBorrowed,
-        }));
+        });
       }
     }
   }
 
   useDragSubscription("start", (detail) => updateTransition(detail));
   useDragSubscription("update", (detail) => updateTransition(detail));
-  useDragSubscription("submit", () => setTransition(null));
-  useDragSubscription("discard", () => setTransition(null));
-  useDragSubscription("acquire", (detail) => {
-    if (detail.draggableItem.id === item.id) {
-      setTransition((transition) => transition && { ...transition, isBorrowed: true });
-    }
+  useDragSubscription("submit", () => {
+    setTransition(null);
+    setIsHidden(false);
+    muteEventsRef.current = false;
+  });
+  useDragSubscription("discard", () => {
+    setTransition(null);
+    setIsHidden(false);
+    muteEventsRef.current = false;
   });
 
   // During the transition listen to pointer move and pointer up events to update/submit transition.
@@ -253,6 +255,8 @@ function ItemContainerComponent(
 
     // Notify the respective droppable of the intention to insert the item in it.
     draggableApi.acquire(nextDroppable, childrenRef.current);
+    setIsHidden(true);
+    muteEventsRef.current = true;
   }
 
   function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
@@ -292,10 +296,10 @@ function ItemContainerComponent(
   }
 
   function onBlur() {
-    // When drag- or resize handle loses focus the transition must be submitted with two exceptions:
+    // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
-    // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected).
-    if (transition && transition.interactionType === "keyboard" && !transition.isBorrowed) {
+    // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
+    if (transition && transition.interactionType === "keyboard" && !muteEventsRef.current) {
       draggableApi.submitTransition();
     }
   }
@@ -342,20 +346,18 @@ function ItemContainerComponent(
     itemTransitionClassNames.push(styles.inTransition);
   }
 
-  if (transition) {
+  if (transition && transition.interactionType === "pointer") {
     // Adjust the dragged/resized item to the pointer's location.
-    if (transition.interactionType === "pointer") {
-      itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
-      itemTransitionStyle.left = transition.positionTransform?.x;
-      itemTransitionStyle.top = transition.positionTransform?.y;
-      itemTransitionStyle.width = transition.sizeTransform?.width;
-      itemTransitionStyle.height = transition.sizeTransform?.height;
-      itemTransitionStyle.pointerEvents = "none";
-    }
-    // Make the borrowed item dimmed.
-    else if (transition.isBorrowed) {
-      itemTransitionClassNames.push(styles.borrowed);
-    }
+    itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
+    itemTransitionStyle.left = transition.positionTransform?.x;
+    itemTransitionStyle.top = transition.positionTransform?.y;
+    itemTransitionStyle.width = transition.sizeTransform?.width;
+    itemTransitionStyle.height = transition.sizeTransform?.height;
+    itemTransitionStyle.pointerEvents = "none";
+  }
+
+  if (isHidden) {
+    itemTransitionClassNames.push(styles.hidden);
   }
 
   if (placed && transform) {
@@ -383,7 +385,7 @@ function ItemContainerComponent(
     focusDragHandle: () => dragHandleRef.current?.focus(),
   }));
 
-  const isActive = (!!transition && !transition.isBorrowed) || !!acquired;
+  const isActive = (!!transition && !isHidden) || !!acquired;
   const shouldUsePortal =
     (transition?.operation === "insert" || transition?.operation === "reorder") &&
     transition?.interactionType === "pointer";

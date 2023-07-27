@@ -4,9 +4,8 @@
 import { Header } from "@cloudscape-design/components";
 import { BoardItem, ItemsPalette, ItemsPaletteProps } from "../../lib/components";
 import LiveRegion from "../../lib/components/internal/live-region";
-import { boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
+import { boardItemI18nStrings, clientI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
-import { clientI18nStrings } from "./i18n";
 
 interface WidgetsPaletteProps {
   loading: boolean;
