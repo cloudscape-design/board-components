@@ -255,7 +255,6 @@ function ItemContainerComponent(
 
     // Notify the respective droppable of the intention to insert the item in it.
     draggableApi.acquire(nextDroppable, childrenRef.current);
-    // setTransition(null);
     setIsHidden(true);
     muteEventsRef.current = true;
   }
@@ -299,7 +298,7 @@ function ItemContainerComponent(
   function onBlur() {
     // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
-    // 2. If the item is borrowed (in that case the focus moves to the acquired item which is expected, borrowed item is hidden and all events on it should be muted).
+    // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
     if (transition && transition.interactionType === "keyboard" && !muteEventsRef.current) {
       draggableApi.submitTransition();
     }
@@ -358,7 +357,7 @@ function ItemContainerComponent(
   }
 
   if (isHidden) {
-    itemTransitionClassNames.push(styles.borrowed);
+    itemTransitionClassNames.push(styles.hidden);
   }
 
   if (placed && transform) {

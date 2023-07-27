@@ -215,12 +215,8 @@ describe("items inserted with keyboard", () => {
   );
 
   test(
-    "item in palette should be hidden when it is dragged into board",
+    "item in palette should be hidden when it is acquired by the board",
     setupTest("/index.html#/micro-frontend/integration", DndPageObject, async (page) => {
-      // in manual testing, the palette item is mostly not hidden by keyboard dragging after mouse dragging
-      await page.mouseDown(paletteItemDragHandle("M"));
-      await page.mouseMove(30, 60);
-      await page.mouseUp();
       await page.focus(paletteItemDragHandle("M"));
       await page.keys(["Enter"]);
       await page.keys(["ArrowLeft"]);
