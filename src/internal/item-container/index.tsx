@@ -70,7 +70,7 @@ interface Transition {
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
   isBorrowed: boolean;
-  showPreview?: boolean;
+  hasDropTarget?: boolean;
 }
 
 /**
@@ -99,7 +99,7 @@ export interface ItemContainerProps {
     maxHeight: number;
   };
   onKeyMove?(direction: Direction): void;
-  children: (showPreview?: boolean) => ReactNode;
+  children: (hasDropTarget: boolean) => ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
@@ -153,7 +153,7 @@ function ItemContainerComponent(
           sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
           isBorrowed: !!transition?.isBorrowed,
-          showPreview: operation === "insert" && !!dropTarget,
+          hasDropTarget: !!dropTarget,
         }));
       }
     }
@@ -391,7 +391,7 @@ function ItemContainerComponent(
     transition?.interactionType === "pointer";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
-    childrenRef.current = children(transition?.showPreview);
+    childrenRef.current = children(!!transition?.hasDropTarget);
   }
 
   const content = (

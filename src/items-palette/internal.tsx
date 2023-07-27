@@ -110,7 +110,7 @@ export function InternalItemsPalette<D>({
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
               }}
             >
-              {(showPreview = false) => renderItem(item, { showPreview })}
+              {(hasDropTarget) => renderItem(item, { showPreview: hasDropTarget })}
             </ItemContainer>
           ))}
         </SpaceBetween>
