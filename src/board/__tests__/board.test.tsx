@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { Button } from "@cloudscape-design/components";
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
@@ -52,7 +53,18 @@ const defaultProps: BoardProps<{ title: string }> = {
     { id: "1", data: { title: "Item 1" } },
     { id: "2", data: { title: "Item 2" } },
   ],
-  renderItem: (item) => <BoardItem i18nStrings={itemI18nStrings}>{item.data.title}</BoardItem>,
+  renderItem: (item, actions) => (
+    <BoardItem
+      i18nStrings={itemI18nStrings}
+      settings={
+        <Button data-testid="remove-button" onClick={() => actions.removeItem()}>
+          Remove
+        </Button>
+      }
+    >
+      {item.data.title}
+    </BoardItem>
+  ),
   onItemsChange: () => undefined,
   i18nStrings: i18nStrings,
   empty: "No items",
@@ -234,6 +246,24 @@ describe("Board", () => {
             { id: "1", data: { title: "Item 1" }, columnOffset: { 1: 0 }, columnSpan: 1, rowSpan: 4 },
             { id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } },
           ],
+        },
+      })
+    );
+  });
+
+  test("triggers onItemsChange on remove", () => {
+    const onItemsChange = vi.fn();
+    render(<Board {...defaultProps} onItemsChange={onItemsChange} />);
+
+    const removeButton = createWrapper().findBoardItem()!.findSettings()!.find('[data-testid="remove-button"]')!;
+
+    removeButton.click();
+
+    expect(onItemsChange).toBeCalledWith(
+      expect.objectContaining({
+        detail: {
+          removedItem: expect.objectContaining({ id: "1" }),
+          items: [{ id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } }],
         },
       })
     );

@@ -214,4 +214,14 @@ describe("items inserted with keyboard", () => {
       await expect(page.isDisplayed(boardItemResizeHandle("I"))).resolves.toBe(false);
     })
   );
+
+  test(
+    "item in palette should be hidden when it is acquired by the board",
+    setupTest("/index.html#/micro-frontend/integration", DndPageObject, async (page) => {
+      await page.focus(paletteItemDragHandle("M"));
+      await page.keys(["Enter"]);
+      await page.keys(["ArrowLeft"]);
+      await expect(page.isDisplayed(paletteItemDragHandle("M"))).resolves.toBe(false);
+    })
+  );
 });

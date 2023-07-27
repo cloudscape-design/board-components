@@ -6,10 +6,9 @@ import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import { useState } from "react";
 import { Board, BoardItem, BoardProps } from "../../lib/components";
 import LiveRegion from "../../lib/components/internal/live-region";
-import { boardI18nStrings, boardItemI18nStrings } from "../shared/i18n";
+import { boardI18nStrings, boardItemI18nStrings, clientI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
 import { DeleteConfirmationModal } from "./delete-confirmation-modal";
-import { clientI18nStrings } from "./i18n";
 
 interface WidgetsBoardProps {
   loading: boolean;

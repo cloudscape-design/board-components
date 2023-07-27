@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
+import { useStableEventHandler } from "../utils/use-stable-event-handler";
 import { EventEmitter } from "./event-emitter";
 import { getHoveredDroppables } from "./get-hovered-droppables";
 
@@ -164,7 +165,8 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 const controller = new DragAndDropController();
 
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
-  useEffect(() => controller.on(event, handler), [event, handler]);
+  const stableHandler = useStableEventHandler(handler);
+  useEffect(() => controller.on(event, stableHandler), [event, stableHandler]);
 }
 
 export function useDraggable({
