@@ -20,7 +20,7 @@ export function createItemsChangeEvent<D>(
   return createCustomEvent({
     items: newItems,
     addedItem: newItems.find((it) => it.id === insertTarget),
-    removedItem: newItems.find((it) => it.id === removeTarget),
+    removedItem: items.find((it) => it.id === removeTarget),
     resizedItem: newItems.find((it) => it.id === resizeTarget),
     movedItem: !insertTarget ? newItems.find((it) => it.id === moveTarget) : undefined,
   });
