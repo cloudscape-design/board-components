@@ -209,8 +209,9 @@ describe("items inserted with keyboard", () => {
       await page.keys(["Enter"]);
       await page.keys(["ArrowLeft"]);
       await expect(page.getText(boardWrapper.find(`[data-item-id="I"]`).toSelector())).resolves.toBe(
-        "Widget I\nEmpty widget"
+        "Widget I\n(preview) Empty widget"
       );
+      await expect(page.isDisplayed(boardItemResizeHandle("I"))).resolves.toBe(false);
     })
   );
 

@@ -69,6 +69,7 @@ interface Transition {
   interactionType: InteractionType;
   sizeTransform: null | { width: number; height: number };
   positionTransform: null | { x: number; y: number };
+  hasDropTarget?: boolean;
 }
 
 /**
@@ -97,7 +98,7 @@ export interface ItemContainerProps {
     maxHeight: number;
   };
   onKeyMove?(direction: Direction): void;
-  children: () => ReactNode;
+  children: (hasDropTarget: boolean) => ReactNode;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
@@ -151,6 +152,7 @@ function ItemContainerComponent(
           itemId: draggableItem.id,
           sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
           positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
+          hasDropTarget: !!dropTarget,
         });
       }
     }
@@ -254,7 +256,7 @@ function ItemContainerComponent(
     }
 
     // Notify the respective droppable of the intention to insert the item in it.
-    draggableApi.acquire(nextDroppable, childrenRef.current);
+    draggableApi.acquire(nextDroppable, () => children(true));
     setIsHidden(true);
     muteEventsRef.current = true;
   }
@@ -360,7 +362,7 @@ function ItemContainerComponent(
     itemTransitionClassNames.push(styles.hidden);
   }
 
-  if (placed && transform) {
+  if (transform) {
     // The moved items positions are altered with CSS transform.
     if (transform.type === "move") {
       itemTransitionClassNames.push(styles.transformed);
@@ -391,7 +393,7 @@ function ItemContainerComponent(
     transition?.interactionType === "pointer";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
-    childrenRef.current = children();
+    childrenRef.current = children(!!transition?.hasDropTarget);
   }
 
   const content = (

@@ -178,7 +178,7 @@ export function InternalBoard<D>({
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  useDragSubscription("acquire", ({ droppableId, draggableItem, acquiredItemElement }) => {
+  useDragSubscription("acquire", ({ droppableId, draggableItem, renderAcquiredItem }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
 
     // If missing then it does not belong to this board.
@@ -190,7 +190,7 @@ export function InternalBoard<D>({
       type: "acquire-item",
       position: new Position({ x: placeholder.x, y: placeholder.y }),
       layoutElement: containerAccessRef.current!,
-      acquiredItemElement: acquiredItemElement,
+      acquiredItemElement: renderAcquiredItem(),
     });
 
     focusNextRenderIdRef.current = draggableItem.id;
@@ -282,7 +282,7 @@ export function InternalBoard<D>({
                     item={item}
                     transform={transforms[item.id]}
                     inTransition={!!transition || !!removeTransition}
-                    placed={true}
+                    placed={item.id !== acquiredItem?.id}
                     acquired={item.id === acquiredItem?.id}
                     getItemSize={() => ({
                       width: gridContext.getWidth(itemSize.width),

@@ -1,23 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { act, cleanup, render as libRender } from "@testing-library/react";
-import { ReactElement, ReactNode, Ref, forwardRef } from "react";
+import { ReactElement } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import itemStyles from "../../../lib/components/board-item/styles.css.js";
 import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
-import { ItemContainerRef } from "../../../lib/components/internal/item-container";
 import ItemsPalette, { ItemsPaletteProps } from "../../../lib/components/items-palette";
 import createWrapper, { ItemsPaletteWrapper } from "../../../lib/components/test-utils/dom";
 
 afterEach(cleanup);
 
 vi.mock("../../../lib/components/internal/dnd-controller/controller");
-vi.mock("../../../lib/components/internal/item-container", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ItemContainer: forwardRef(({ children }: { children: () => ReactNode }, ref: Ref<ItemContainerRef>) => (
-    <div>{children()}</div>
-  )),
-}));
 
 function render(jsx: ReactElement) {
   libRender(jsx);
@@ -52,18 +45,26 @@ test("renders palette and items", () => {
   expect(wrapper.findItems()).toHaveLength(2);
 });
 
+const mockUpdate = {
+  operation: "insert",
+  draggableItem: { id: "second" },
+  collisionRect: { left: 0, right: 0, top: 0, bottom: 0 },
+  coordinates: { x: 0, y: 0 },
+  dropTarget: { scale: () => ({ width: 1, height: 1 }) },
+} as any;
+
 test("updates preview state when drop target changes", () => {
   const wrapper = render(<ItemsPalette {...defaultProps} />);
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
-  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: {} } as any));
+  act(() => mockController.update(mockUpdate));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
-  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: null } as any));
+  act(() => mockController.update({ ...mockUpdate, dropTarget: null }));
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
 });
 
 test("updates preview state when operation submits", () => {
   const wrapper = render(<ItemsPalette {...defaultProps} />);
-  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: {} } as any));
+  act(() => mockController.update(mockUpdate));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
   act(() => mockController.submit());
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
@@ -71,7 +72,7 @@ test("updates preview state when operation submits", () => {
 
 test("updates preview state when operation discards", () => {
   const wrapper = render(<ItemsPalette {...defaultProps} />);
-  act(() => mockController.update({ draggableItem: { id: "second" }, dropTarget: {} } as any));
+  act(() => mockController.update(mockUpdate));
   expect(getPreviewState(wrapper)).toEqual(["false", "true"]);
   act(() => mockController.discard());
   expect(getPreviewState(wrapper)).toEqual(["false", "false"]);
