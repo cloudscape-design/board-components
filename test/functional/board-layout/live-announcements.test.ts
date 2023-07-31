@@ -80,7 +80,7 @@ test(
 
     await expect(page.getLiveAnnouncements()).resolves.toEqual([
       "Resizing",
-      "Item resized to columns 2. Disturbed 4 items.",
+      "Item resized to columns 2. Disturbed 2 items.",
       "Item resized to columns 1 (minimal).",
       "resize discarded",
     ]);
@@ -99,8 +99,8 @@ test(
 
     await expect(page.getLiveAnnouncements()).resolves.toEqual([
       "Dragging",
-      "Item inserted to column 4, row 1. Disturbed 3 items.",
-      "Item inserted to column 4, row 2. Disturbed 4 items.",
+      "Item inserted to column 4, row 1. Disturbed 2 items.",
+      "Item inserted to column 4, row 2. Disturbed 2 items.",
       "Item inserted to column 4, row 3. Disturbed 1 items.",
       "insert committed",
     ]);
@@ -118,7 +118,7 @@ test(
 
     await expect(page.getLiveAnnouncements()).resolves.toEqual([
       "Dragging",
-      "Item inserted to column 4, row 1. Disturbed 3 items.",
+      "Item inserted to column 4, row 1. Disturbed 2 items.",
       "Item inserted to column 3, row 1. Disturbed 3 items.",
       "insert discarded",
     ]);

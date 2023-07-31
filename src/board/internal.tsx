@@ -199,7 +199,7 @@ export function InternalBoard<D>({
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
 
-    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id).getLayoutShift();
+    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id);
 
     onItemsChange(createItemsChangeEvent(items, layoutShift));
   };

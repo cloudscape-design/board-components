@@ -78,12 +78,13 @@ describe("items resized with keyboard", () => {
       await page.keys(["Enter"]);
 
       await expect(page.getGrid()).resolves.toEqual([
-        ["A", "A", "B", "C"],
-        ["A", "A", "B", "C"],
-        ["A", "A", "G", "D"],
-        ["E", "F", "G", "D"],
-        ["E", "F", " ", "H"],
-        [" ", " ", " ", "H"],
+        ["A", "A", "C", "D"],
+        ["A", "A", "C", "D"],
+        ["A", "A", "G", "H"],
+        ["E", "B", "G", "H"],
+        ["E", "B", " ", " "],
+        [" ", "F", " ", " "],
+        [" ", "F", " ", " "],
       ]);
     })
   );
@@ -174,12 +175,12 @@ describe("items inserted with keyboard", () => {
       await page.click(boardItemResizeHandle("A"));
 
       await expect(page.getGrid()).resolves.toEqual([
-        ["A", "B", "D", "I"],
-        ["A", "B", "D", "I"],
-        ["E", "F", "C", "H"],
-        ["E", "F", "C", "H"],
-        [" ", " ", "G", " "],
-        [" ", " ", "G", " "],
+        ["A", "B", "C", "I"],
+        ["A", "B", "C", "I"],
+        ["E", "F", "G", "D"],
+        ["E", "F", "G", "D"],
+        [" ", " ", " ", "H"],
+        [" ", " ", " ", "H"],
       ]);
     })
   );

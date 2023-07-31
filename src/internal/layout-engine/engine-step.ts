@@ -1,465 +1,246 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Direction, ItemId } from "../interfaces";
-import { StackSet } from "../utils/stack-set";
-import { LayoutEngineGrid, LayoutEngineItem, ReadonlyLayoutEngineGrid } from "./grid";
+import { Position } from "../utils/position";
+import { MoveSolution, MoveSolutionState, findNextSolutions } from "./engine-solution";
+import { Conflicts, LayoutEngineState } from "./engine-state";
+import { ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";
+import { checkItemsIntersection, sortGridItems } from "./utils";
+import { createMove } from "./utils";
 
-export class LayoutEngineStepState {
-  public grid: ReadonlyLayoutEngineGrid;
-  public moves: readonly CommittedMove[];
-  public conflicts: ReadonlySet<ItemId>;
+// The solutions can't be searched for infinitely in case the algorithm can't converge.
+// The safety counter ensures there is going to be user feedback within reasonable time.
+const MAX_SOLUTION_DEPTH = 100;
 
-  constructor(grid: LayoutEngineGrid, moves = new Array<CommittedMove>(), conflicts = new Set<ItemId>()) {
-    this.grid = grid;
-    this.moves = moves;
-    this.conflicts = conflicts;
-  }
-}
+// At any given step only a few best solutions are taken to ensure faster convergence.
+// The larger the number the better chance the most optimal solution is found for the given priorities
+// at a cost of more computations made.
+const NUM_BEST_SOLUTIONS = 5;
 
-export function resolveOverlaps(userMove: CommittedMove, state: LayoutEngineStepState): LayoutEngineStepState {
-  return new LayoutEngineStep(state).resolveOverlaps(userMove).getState();
-}
+/**
+ * The function takes the current layout state (item placements from the previous steps and all moves done so far)
+ * and a user command increment that describes an item transition by one cell in some direction.
+ * The function finds overlapping elements and resolves all overlaps if possible (always possible when no conflicts).
+ * The result in an updated state (new item placements, additional moves, and item conflicts if any).
+ */
+export function resolveOverlaps(layoutState: LayoutEngineState, userMove: CommittedMove): LayoutEngineState {
+  // For better UX the layout engine is optimized for item swaps.
+  // The swapping is only preferred for the user-controlled item and it can only happen when the item overlaps another
+  // item past its midpoint. When the overlap is not enough, the underlying item is considered a conflict and it is not
+  // allowed to move anywhere. The user command cannot be committed at this step.
+  const conflicts = findConflicts(layoutState.grid, layoutState.conflicts, userMove);
 
-export function refloatGrid(state: LayoutEngineStepState): LayoutEngineStepState {
-  return new LayoutEngineStep(state).refloatGrid().getState();
-}
+  // The user moves are always applied as is. When the user-controlled item overlaps with other items and there is
+  // no conflict, the type="OVERLAP" moves are performed to settle the grid so that no items overlap with one another.
+  // For this type of move multiple solutions are often available. To ensure the best result all solutions are tried
+  // and a score is given to each. The solution with the minimal score wins.
+  // The process stars from the initial state and the user move. The initial score and the user move score are 0.
+  const initialState = new MoveSolutionState(layoutState.grid, layoutState.moves, conflicts);
+  const initialSolution: MoveSolution = [initialState, userMove];
 
-class LayoutEngineStep {
-  private grid: LayoutEngineGrid;
-  private moves: CommittedMove[] = [];
-  private conflicts = new Set<ItemId>();
+  // All solutions are guaranteed to have unique move sequences but different move sequences can produce the same result.
+  // As it is never expected for one item to be moved over to the same location twice the combination of the item ID,
+  // item position, and solution score can uniquely represent the solution.
+  // For earlier moves taking a solution from the cache can prevent hundreds of subsequent computations.
+  const solutionsCache = new Map<string, MoveSolution>();
+  const createCacheKey = ([state, move]: MoveSolution) =>
+    `${move.itemId} ${move.x}:${move.y}:${state.score + move.score}`;
 
-  constructor(state: LayoutEngineStepState) {
-    this.grid = LayoutEngineGrid.clone(state.grid);
-    this.moves = [...state.moves];
-    this.conflicts = new Set([...state.conflicts]);
-  }
+  let moveSolutions: MoveSolution[] = [initialSolution];
+  let bestSolution: null | MoveSolutionState = null;
+  let convergenceCounter = MAX_SOLUTION_DEPTH;
 
-  getState(): LayoutEngineStepState {
-    return { grid: this.grid, moves: this.moves, conflicts: this.conflicts };
-  }
+  // The resolution process continues until there is at least one reasonable solution left.
+  // The repetitive, dead-end, and expensive (compared to the best so far) solutions are excluded
+  // so that eventually no more variants to try remain.
+  // The convergence safety counter ensures the logical errors to not cause an infinite loop.
+  while (moveSolutions.length > 0) {
+    let nextSolutions: MoveSolution[] = [];
 
-  // Issue moves on overlapping items trying to resolve all of them.
-  public resolveOverlaps(userMove: CommittedMove): LayoutEngineStep {
-    const priorities = new Map<ItemId, number>();
-    const activeId = userMove.itemId;
-    const isResize = userMove.type === "RESIZE";
+    for (let solutionIndex = 0; solutionIndex < Math.min(NUM_BEST_SOLUTIONS, moveSolutions.length); solutionIndex++) {
+      const [solutionState, solutionMove] = moveSolutions[solutionIndex];
 
-    let overlaps = new StackSet<ItemId>();
-    let priorityOverlaps = new StackSet<ItemId>();
-
-    const addOverlap = (itemId: ItemId) => {
-      if (!this.conflicts.has(itemId)) {
-        overlaps.push(itemId);
-      }
-    };
-
-    this.conflicts = this.findConflicts(userMove);
-    this.makeMove(userMove, addOverlap, priorities);
-
-    const tryVacantMoves = () => {
-      // Try vacant moves on all overlaps.
-      let overlap = overlaps.pop();
-      while (overlap) {
-        const nextMove = this.tryFindVacantMove(overlap, activeId, isResize);
-        if (nextMove) {
-          this.makeMove(nextMove, addOverlap, priorities);
-        } else {
-          priorityOverlaps.push(overlap);
-        }
-        overlap = overlaps.pop();
-      }
-
-      overlaps = priorityOverlaps;
-      priorityOverlaps = new StackSet<ItemId>();
-
-      tryPriorityMoves();
-    };
-
-    const tryPriorityMoves = () => {
-      // Try priority moves until first success and delegate back to vacant moves check.
-      const overlap = overlaps.pop();
-      if (overlap) {
-        const nextMove = this.findPriorityMove(overlap, priorities, activeId, isResize);
-        this.makeMove(nextMove, addOverlap, priorities);
-        tryVacantMoves();
-      }
-    };
-
-    tryVacantMoves();
-
-    this.refloatGrid(activeId);
-
-    return this;
-  }
-
-  // Find items that can "float" to the top and apply the necessary moves.
-  public refloatGrid(activeId?: ItemId): LayoutEngineStep {
-    if (this.conflicts.size > 0) {
-      return this;
-    }
-
-    let needAnotherRefloat = false;
-
-    for (const item of this.grid.items) {
-      // The active item is skipped until the operation is committed.
-      if (item.id === activeId) {
+      // Discard the solution before performing the move if its next score is already above the best score found so far.
+      if (bestSolution && solutionState.score + solutionMove.score >= bestSolution.score) {
         continue;
       }
 
-      const move: CommittedMove = {
-        itemId: item.id,
-        x: item.x,
-        y: item.y,
-        width: item.width,
-        height: item.height,
-        type: "FLOAT",
-      };
-      for (move.y; move.y >= 0; move.y--) {
-        if (!this.validateVacantMove({ ...move, y: move.y - 1 }, activeId ?? "", false)) {
-          break;
+      // Perform the move by mutating the solution's state: grid, moves, score, etc.
+      makeMove(solutionState, solutionMove);
+
+      // If no overlaps are left the solution is considered valid and the best so far.
+      // The next solutions having the same or higher score will be discarded.
+      if (solutionState.overlaps.size === 0) {
+        bestSolution = solutionState;
+      }
+      // Otherwise, the next set of solutions will be considered. There can be up to four solutions per overlap
+      // (by the number of possible directions to move).
+      else {
+        for (const nextSolution of findNextSolutions(solutionState)) {
+          const solutionKey = createCacheKey(nextSolution);
+          const cachedSolution = solutionsCache.get(solutionKey);
+          if (!cachedSolution) {
+            nextSolutions.push(nextSolution);
+            solutionsCache.set(solutionKey, nextSolution);
+          }
         }
       }
-      if (item.y !== move.y) {
-        this.grid.move(move.itemId, move.x, move.y);
-        this.moves.push(move);
+    }
+
+    // The solutions are ordered by the total score so that the best (so far) solutions are considered first.
+    moveSolutions = nextSolutions.sort((s1, s2) => s1[0].score + s1[1].score - (s2[0].score + s2[1].score));
+    nextSolutions = [];
+
+    // Reaching the convergence counter might indicate an issue with the algorithm as ideally it should converge faster.
+    // However, that does not necessarily mean the logical problem and no exception should be thrown.
+    // Instead, the current best solution if available applies or a simple solution is offered instead.
+    convergenceCounter--;
+    if (convergenceCounter <= 0) {
+      break;
+    }
+  }
+
+  // If there are conflicts it might not be possible to find a solution as the items are not allowed to
+  // overlap with the conflicts. In that case the initial state (with the user move applied) is returned.
+  // The user can move the item further to resolve the conflicts which will also unblock the overlaps resolution.
+  // Also, the solution might not be found due to the engine constraints. For example, the convergence number might
+  // be reached before any solution is found or the number of best solutions constraint can filter the only possible
+  // solutions away. In that case the simple solution is returned with all overlapping items pushed to the bottom.
+  if (!bestSolution) {
+    bestSolution = initialState.conflicts ? initialState : resolveOverlapsDown(initialState);
+  }
+
+  // After each step unless there are conflicts the type="FLOAT" moves are performed on all items
+  // but the user controlled one that can be moved to the top without overlapping with other items.
+  return bestSolution.conflicts ? bestSolution : refloatGrid(bestSolution, userMove);
+}
+
+// Resolves overlaps the simple way by pushing all overlapping items to the bottom until none is left.
+function resolveOverlapsDown(state: MoveSolutionState): MoveSolutionState {
+  // Move overlapping items to the bottom until resolved. Repeat until no overlaps left.
+  // This solution always converges because there is always free space at the bottom by design.
+  while (state.overlaps.size > 0) {
+    const overlaps = sortGridItems([...state.overlaps].map(([overlapId]) => state.grid.getItem(overlapId)));
+    for (const overlap of overlaps) {
+      let y = overlap.y + 1;
+      while (state.grid.getOverlaps({ ...overlap, y }).length > 0) {
+        y++;
+      }
+      makeMove(state, createMove("OVERLAP", overlap, new Position({ x: overlap.x, y })));
+    }
+  }
+  return state;
+}
+
+// Find items that can "float" to the top and apply the necessary moves.
+function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): LayoutEngineState {
+  const state = new MoveSolutionState(layoutState.grid, layoutState.moves, layoutState.conflicts);
+
+  function makeRefloat() {
+    let needAnotherRefloat = false;
+
+    for (const item of state.grid.items) {
+      // The active item is skipped until the operation is committed.
+      if (item.id === userMove?.itemId) {
+        continue;
+      }
+
+      let y = item.y - 1;
+      let move: null | CommittedMove = null;
+      while (y >= 0) {
+        const moveAttempt = createMove("FLOAT", item, new Position({ x: item.x, y }));
+        if (state.grid.getOverlaps({ id: item.id, ...moveAttempt }).length > 0) {
+          break;
+        }
+        y--;
+        move = moveAttempt;
+      }
+      if (move) {
+        makeMove(state, move);
         needAnotherRefloat = true;
       }
     }
 
     if (needAnotherRefloat) {
-      this.refloatGrid(activeId);
-    }
-
-    return this;
-  }
-
-  private makeMove(move: CommittedMove, addOverlap: (itemId: ItemId) => void, priorities: Map<ItemId, number>): void {
-    switch (move.type) {
-      case "ESCAPE":
-      case "FLOAT":
-      case "MOVE":
-      case "VACANT":
-      case "PRIORITY":
-        this.grid.move(move.itemId, move.x, move.y, addOverlap);
-        break;
-      case "INSERT":
-        this.grid.insert({ id: move.itemId, ...move }, addOverlap);
-        break;
-      case "REMOVE":
-        this.grid.remove(move.itemId);
-        break;
-      case "RESIZE":
-        this.grid.resize(move.itemId, move.width, move.height, addOverlap);
-        break;
-    }
-    this.moves.push(move);
-    priorities.set(move.itemId, this.getMovePriority(move));
-  }
-
-  private getMovePriority(move: CommittedMove) {
-    switch (move.type) {
-      case "FLOAT":
-        return 0;
-      case "VACANT":
-        return 1;
-      case "PRIORITY":
-      case "ESCAPE":
-        return 5;
-      default:
-        return 9999;
+      makeRefloat();
     }
   }
 
-  // Retrieves prioritized list of directions to look for a resolution move.
-  private getMoveDirections(issuer: LayoutEngineItem): Direction[] {
-    const diff = this.getLastStepDiff(issuer);
+  makeRefloat();
 
-    const firstVertical = diff.y > 0 ? "down" : "up";
-    const nextVertical = firstVertical === "down" ? "up" : "down";
+  return state;
+}
 
-    const firstHorizontal = diff.x > 0 ? "right" : "left";
-    const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
-
-    return Math.abs(diff.y) > Math.abs(diff.x)
-      ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
-      : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
-  }
-
-  private getResizeDirections(issuer: LayoutEngineItem): Direction[] {
-    const diff = this.getLastStepDiff(issuer);
-
-    const firstVertical = diff.y > 0 ? "up" : "down";
-    const nextVertical = firstVertical === "down" ? "up" : "down";
-
-    const firstHorizontal = diff.x > 0 ? "left" : "right";
-    const nextHorizontal = firstHorizontal === "right" ? "left" : "right";
-
-    return Math.abs(diff.y) > Math.abs(diff.x)
-      ? [firstVertical, firstHorizontal, nextHorizontal, nextVertical]
-      : [firstHorizontal, firstVertical, nextVertical, nextHorizontal];
-  }
-
-  private getLastStepDiff(issuer: LayoutEngineItem) {
-    const issuerMoves = this.moves.filter((move) => move.itemId === issuer.id);
-    const originalParams = {
-      x: issuer.originalX,
-      y: issuer.originalY,
-      width: issuer.originalWidth,
-      height: issuer.originalHeight,
-    };
-    const prevIssuerMove = issuerMoves[issuerMoves.length - 2] ?? originalParams;
-    const lastIssuerMove = issuerMoves[issuerMoves.length - 1] ?? originalParams;
-    const diff = {
-      x: prevIssuerMove.x - lastIssuerMove.x,
-      y: prevIssuerMove.y - lastIssuerMove.y,
-      width: prevIssuerMove.width - lastIssuerMove.width,
-      height: prevIssuerMove.height - lastIssuerMove.height,
-    };
-    return diff.x || diff.y ? { x: diff.x, y: diff.y } : { x: diff.width, y: diff.height };
-  }
-
-  // Try finding a move that resolves an overlap by moving an item to a vacant space.
-  private tryFindVacantMove(overlap: ItemId, activeId: ItemId, isResize: boolean): null | CommittedMove {
-    const overlapItem = this.grid.getItem(overlap);
-    const overlapWith = this.getOverlapWith(overlapItem);
-    const directions = isResize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
-
-    for (const direction of directions) {
-      const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "VACANT");
-      if (this.validateVacantMove(move, activeId, isResize)) {
-        return move;
-      }
-    }
-
+// Finds items that cannot be resolved at the current step as of being partially overlapped by the user-move item.
+function findConflicts(
+  grid: ReadonlyLayoutEngineGrid,
+  previousConflicts: null | Conflicts,
+  userMove: CommittedMove
+): null | Conflicts {
+  // The conflicts are only defined for MOVE command type to make swaps possible.
+  if (userMove.type !== "MOVE") {
     return null;
   }
-
-  private validateVacantMove(move: CommittedMove, activeId: ItemId, isResize: boolean): boolean {
-    const moveTarget = this.grid.getItem(move.itemId);
-
-    for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        const newY = move.y + (y - moveTarget.y);
-        const newX = move.x + (x - moveTarget.x);
-
-        // Outside the grid.
-        if (newY < 0 || newX < 0 || newX >= this.grid.width) {
-          return false;
-        }
-
-        // The probed destination is occupied.
-        if (this.grid.getCellOverlap(newX, newY, move.itemId)) {
-          return false;
-        }
-      }
-    }
-
-    if (isResize && activeId && !this.validateResizeMove(move, activeId)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  // Find a move that resolves an overlap by moving an item over another item that has not been disturbed yet.
-  private findPriorityMove(
-    overlap: ItemId,
-    priorities: Map<ItemId, number>,
-    activeId: ItemId,
-    isResize: boolean
-  ): CommittedMove {
-    const overlapItem = this.grid.getItem(overlap);
-    const overlapWith = this.getOverlapWith(overlapItem);
-    const directions = isResize ? this.getResizeDirections(overlapWith) : this.getMoveDirections(overlapWith);
-
-    for (const direction of directions) {
-      const move = this.getMoveForDirection(overlapItem, overlapWith, direction, "PRIORITY");
-      if (this.validatePriorityMove(move, priorities, activeId, isResize)) {
-        return move;
-      }
-    }
-
-    // If can't find a good move - "escape" item to the bottom.
-    const move: CommittedMove = {
-      itemId: overlapItem.id,
-      y: overlapItem.y + 1,
-      x: overlapItem.x,
-      width: overlapItem.width,
-      height: overlapItem.height,
-      type: "ESCAPE",
-    };
-
-    // If can't find the escape move after 999 steps down it is likely a bug in the validation.
-    for (move.y; move.y < 999; move.y++) {
-      if (this.validatePriorityMove(move, priorities, activeId, false)) {
-        return move;
-      }
-    }
-
-    throw new Error("Invariant violation: can't find escape move.");
-  }
-
-  private validatePriorityMove(
-    move: CommittedMove,
-    priorities: Map<ItemId, number>,
-    activeId: ItemId,
-    isResize: boolean
-  ): boolean {
-    const moveTarget = this.grid.getItem(move.itemId);
-
-    for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-      for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-        const newY = move.y + (y - moveTarget.y);
-        const newX = move.x + (x - moveTarget.x);
-
-        // Outside the grid.
-        if (newY < 0 || newX < 0 || newX >= this.grid.width) {
-          return false;
-        }
-
-        for (const item of this.grid.getCell(newX, newY)) {
-          // Can't overlap with the active item.
-          if (item.id === activeId) {
-            return false;
-          }
-
-          // The overlapping item has same or bigger priority.
-          if ((priorities.get(item.id) ?? 0) >= this.getMovePriority(move)) {
-            return false;
-          }
-
-          // The probed destination is currently blocked.
-          if (this.conflicts.has(item.id)) {
-            return false;
-          }
-        }
-      }
-    }
-
-    if (isResize && activeId && !this.validateResizeMove(move, activeId)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private validateResizeMove(move: CommittedMove, activeId: ItemId): boolean {
-    const resizeTarget = this.grid.getItem(activeId);
-    const moveTarget = this.grid.getItem(move.itemId);
-
-    const diff = this.getLastStepDiff(resizeTarget);
-    const direction = diff.x ? "horizontal" : "vertical";
-
-    const originalPlacement = {
-      isNext: resizeTarget.x + resizeTarget.originalWidth - 1 < moveTarget.x,
-      isBelow: resizeTarget.y + resizeTarget.originalHeight - 1 < moveTarget.y,
-    };
-
-    const nextPlacement = {
-      isNext: resizeTarget.x + resizeTarget.width - 1 < move.x,
-      isBelow: resizeTarget.y + resizeTarget.height - 1 < move.y,
-    };
-
-    return (
-      (direction === "horizontal" && originalPlacement.isNext === nextPlacement.isNext) ||
-      (direction === "vertical" && originalPlacement.isBelow === nextPlacement.isBelow)
-    );
-  }
-
-  private getOverlapWith(targetItem: LayoutEngineItem): LayoutEngineItem {
-    for (let y = targetItem.y; y < targetItem.y + targetItem.height; y++) {
-      for (let x = targetItem.x; x < targetItem.x + targetItem.width; x++) {
-        const overlap = this.grid.getCellOverlap(x, y, targetItem.id);
-        if (overlap) {
-          return overlap;
-        }
-      }
-    }
-    throw new Error("Invariant violation - no overlaps found.");
-  }
-
-  // Retrieve first possible move for the given direction to resolve the overlap.
-  private getMoveForDirection(
-    moveTarget: LayoutEngineItem,
-    overlap: LayoutEngineItem,
-    direction: Direction,
-    moveType: CommittedMove["type"]
-  ): CommittedMove {
-    const common = { itemId: moveTarget.id, width: moveTarget.width, height: moveTarget.height, type: moveType };
+  // Using existing conflict direction if available so that conflicting items would swap consistently.
+  // If only the current direction is considered the multi-item conflicts become difficult to comprehend.
+  const direction = previousConflicts?.direction ?? userMove.direction;
+  // Conflicts are partial overlaps. When the item is overlapped fully (considering the direction) it is
+  // no longer treated as conflict.
+  const overlaps = grid.getOverlaps({ ...userMove, id: userMove.itemId });
+  const conflicts = overlaps.filter((overlap) => {
     switch (direction) {
-      case "up": {
-        return { ...common, y: overlap.top - moveTarget.height, x: moveTarget.x };
-      }
-      case "down": {
-        return { ...common, y: overlap.bottom + 1, x: moveTarget.x };
-      }
-      case "left": {
-        return { ...common, y: moveTarget.y, x: overlap.left - moveTarget.width };
-      }
-      case "right": {
-        return { ...common, y: moveTarget.y, x: overlap.right + 1 };
-      }
+      case "left":
+        return overlap.x < userMove.x;
+      case "right":
+        return overlap.x + overlap.width - 1 > userMove.x + userMove.width - 1;
+      case "up":
+        return overlap.y < userMove.y;
+      case "down":
+        return overlap.y + overlap.height - 1 > userMove.y + userMove.height - 1;
+    }
+  });
+  if (conflicts.length > 0) {
+    return { direction, items: new Set(conflicts.map((item) => item.id)) };
+  }
+  return null;
+}
+
+// Applies given move to the solution state by updating the grid, moves, overlaps, and score.
+function makeMove(state: MoveSolutionState, nextMove: CommittedMove): void {
+  updateGridWithMove(state, nextMove);
+  updateOverlaps(state, nextMove);
+  state.moves.push(nextMove);
+  state.score += nextMove.score;
+}
+
+function updateGridWithMove({ grid }: MoveSolutionState, move: CommittedMove): void {
+  switch (move.type) {
+    case "MOVE":
+    case "OVERLAP":
+    case "FLOAT":
+      return grid.move(move.itemId, move.x, move.y);
+    case "INSERT":
+      return grid.insert({ id: move.itemId, ...move });
+    case "REMOVE":
+      return grid.remove(move.itemId);
+    case "RESIZE":
+      return grid.resize(move.itemId, move.width, move.height);
+  }
+}
+
+function updateOverlaps(state: MoveSolutionState, move: CommittedMove) {
+  // Find and assign items that will overlap with the moved item after the move is performed
+  // unless the overlapping items are considered as conflicts.
+  for (const newOverlap of state.grid.getOverlaps({ ...move, id: move.itemId })) {
+    if (!state.conflicts?.items.has(newOverlap.id)) {
+      state.overlaps.set(newOverlap.id, move.itemId);
     }
   }
-
-  // Find items that the active item cannot be moved over with the current move.
-  public findConflicts(move: CommittedMove): Set<ItemId> {
-    if (move.type !== "MOVE") {
-      return new Set();
+  // Remove no longer valid overlaps after the move is performed.
+  for (const [overlapId, overlapIssuerId] of state.overlaps) {
+    if (!checkItemsIntersection(state.grid.getItem(overlapId), state.grid.getItem(overlapIssuerId))) {
+      state.overlaps.delete(overlapId);
     }
-
-    const conflicts = new Set<ItemId>();
-    const moveTarget = this.grid.getItem(move.itemId);
-    const direction = `${move.x - moveTarget.x}:${move.y - moveTarget.y}`;
-
-    switch (direction) {
-      case "-1:0": {
-        const left = Math.max(0, moveTarget.left - 1);
-        for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-          const block = this.grid.getCellOverlap(left, y, moveTarget.id);
-          if (block && block.x < left) {
-            conflicts.add(block.id);
-          }
-        }
-        break;
-      }
-      case "1:0": {
-        const right = Math.min(this.grid.width - 1, moveTarget.right + 1);
-        for (let y = moveTarget.y; y < moveTarget.y + moveTarget.height; y++) {
-          const block = this.grid.getCellOverlap(right, y, moveTarget.id);
-          if (block && block.x + block.width - 1 > right) {
-            conflicts.add(block.id);
-          }
-        }
-        break;
-      }
-      case "0:-1": {
-        const top = Math.max(0, moveTarget.top - 1);
-        for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-          const block = this.grid.getCellOverlap(x, top, moveTarget.id);
-          if (block && block.y < top) {
-            conflicts.add(block.id);
-          }
-        }
-        break;
-      }
-      case "0:1": {
-        const bottom = moveTarget.bottom + 1;
-        for (let x = moveTarget.x; x < moveTarget.x + moveTarget.width; x++) {
-          const block = this.grid.getCellOverlap(x, bottom, moveTarget.id);
-          if (block && block.y + block.height - 1 > bottom) {
-            conflicts.add(block.id);
-          }
-        }
-        break;
-      }
-      default:
-        throw new Error(`Invariant violation: unexpected direction ${direction}.`);
-    }
-
-    return conflicts;
   }
 }

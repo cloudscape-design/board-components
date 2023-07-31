@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayout, ItemId } from "../interfaces";
+import { Direction, GridLayout, ItemId } from "../interfaces";
 import { Position } from "../utils/position";
 
 export interface MoveCommand {
@@ -27,7 +27,11 @@ export interface CommittedMove {
   y: number;
   width: number;
   height: number;
-  type: "MOVE" | "VACANT" | "PRIORITY" | "ESCAPE" | "FLOAT" | "RESIZE" | "INSERT" | "REMOVE";
+  type: "MOVE" | "RESIZE" | "INSERT" | "REMOVE" | "OVERLAP" | "FLOAT";
+  direction: Direction;
+  distanceX: number;
+  distanceY: number;
+  score: number;
 }
 
 export interface LayoutShift {

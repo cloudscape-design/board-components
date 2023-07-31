@@ -75,9 +75,10 @@ describe("vertical swaps of larger items", () => {
       ],
       "C3 C2 C1",
       [
-        ["B", "C", "C"],
+        [" ", "C", "C"],
         ["A", "A", "A"],
         ["A", "A", "A"],
+        ["B", " ", " "],
       ],
     ],
     [
@@ -96,7 +97,7 @@ describe("vertical swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -148,7 +149,7 @@ describe("horizontal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -213,7 +214,7 @@ describe("swaps with overlay", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -238,7 +239,7 @@ describe("distant swaps", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -279,7 +280,7 @@ describe("diagonal swaps of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -294,7 +295,7 @@ describe("replacement moves of larger items", () => {
         ["C", "C", "D", "D"],
         ["C", "C", "D", "D"],
       ],
-      "B2 B3 C3 D3 D4 D5",
+      "B2 B3 C3 D3 D4",
       [
         ["B", "B", "D", "D"],
         ["B", "B", "D", "D"],
@@ -304,7 +305,7 @@ describe("replacement moves of larger items", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -331,7 +332,7 @@ describe("long path moves", () => {
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -348,9 +349,10 @@ describe("empty spaces are prioritized over disturbing other items", () => {
       ],
       "B2 C2",
       [
-        ["A", "B", "E"],
-        ["D", "F", "C"],
+        ["A", "B", " "],
+        ["D", "F", "E"],
         [" ", "F", "C"],
+        [" ", " ", "C"],
       ],
     ],
     [
@@ -394,14 +396,15 @@ describe("empty spaces are prioritized over disturbing other items", () => {
       "C3 B3",
       [
         ["A", "B", "C"],
-        ["E", "G", "C"],
+        ["E", " ", "C"],
         ["E", "G", " "],
-        ["E", "F", "F"],
+        ["E", "G", " "],
+        [" ", "F", "F"],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });
@@ -409,60 +412,26 @@ describe("empty spaces are prioritized over disturbing other items", () => {
 describe("multiple overlap resolutions", () => {
   test.each([
     [
-      "G forces C to resolve twice",
+      "B forces A to resolve twice",
       [
-        ["A", "A", " ", "F"],
-        ["E", "B", "B", "F"],
-        ["G", "B", "B", " "],
-        ["H", " ", "C", " "],
-        [" ", " ", "C", " "],
-        [" ", " ", "D", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        ["B", " ", " ", " "],
+        ["B", " ", " ", " "],
       ],
-      "A3 B3 B2 C2",
+      "A3 A2 A1 B1 B2 B3",
       [
-        ["E", "C", "A", "A"],
-        ["H", "C", "G", "F"],
-        [" ", "B", "B", "F"],
-        [" ", "B", "B", " "],
-        [" ", " ", "D", " "],
+        ["A", "A", " ", " "],
+        ["A", "A", " ", " "],
+        [" ", "B", " ", " "],
+        [" ", "B", " ", " "],
       ],
     ],
   ])("%s", (_, gridMatrix, path, expectation) => {
     const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
-    const moveIds = layoutShift.moves.filter((move) => move.type !== "MOVE").map((move) => move.itemId);
+    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid));
     expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(new Set(moveIds).size).toBeLessThan(moveIds.length);
-  });
-});
-
-describe("escape moves", () => {
-  test.each([
-    [
-      "B forces A and C to escape",
-      [
-        ["C", "C", "C", "B"],
-        ["C", "C", "C", "B"],
-        ["A", "A", "A", "B"],
-        ["A", "A", "A", "B"],
-        ["D", "D", "E", "E"],
-        ["D", "D", "E", "E"],
-      ],
-      "D1 C1 C2 C3 C4 C5 D5 D4 D3",
-      [
-        ["D", "D", "E", "E"],
-        ["D", "D", "E", "E"],
-        ["C", "C", "C", "B"],
-        ["C", "C", "C", "B"],
-        ["A", "A", "A", "B"],
-        ["A", "A", "A", "B"],
-      ],
-    ],
-  ])("%s", (_, gridMatrix, path, expectation) => {
-    const grid = fromMatrix(gridMatrix);
-    const layoutShift = new LayoutEngine(grid).move(fromTextPath(path, grid)).getLayoutShift();
-    expect(toString(layoutShift.next)).toBe(toString(expectation));
-    expect(layoutShift.moves.filter((move) => move.type === "ESCAPE").length).toBe(2);
+    expect(layoutShift.moves.filter((move) => move.type === "OVERLAP")).toHaveLength(2);
   });
 });
 
@@ -477,7 +446,7 @@ test("Float moves don't interfere with swaps", () => {
     [" ", "F"],
     [" ", "F"],
   ]);
-  const layoutShift = new LayoutEngine(grid).move(fromTextPath("B3 B2 B1", grid)).getLayoutShift();
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("B3 B2 B1", grid));
 
   expect(toString(layoutShift.next)).toBe(
     toString([
@@ -489,6 +458,42 @@ test("Float moves don't interfere with swaps", () => {
       ["D", "E"],
       [" ", "F"],
       [" ", "F"],
+    ])
+  );
+});
+
+test("E forces conflicts on C and D simultaneously", () => {
+  const grid = fromMatrix([
+    ["A", "A", "B", "B"],
+    ["A", "A", "B", "B"],
+    ["C", "C", "D", "D"],
+    ["C", "C", "D", "D"],
+    ["C", "C", "D", "D"],
+    ["C", "C", "D", "D"],
+    [" ", " ", "E", "E"],
+    [" ", " ", "E", "E"],
+    [" ", " ", "E", "E"],
+    [" ", " ", " ", "G"],
+    [" ", " ", " ", "G"],
+    [" ", " ", "F", "F"],
+    [" ", " ", "F", "F"],
+  ]);
+  const layoutShift = new LayoutEngine(grid).move(fromTextPath("C7 C6 B6 B5 B4 B3", grid));
+  expect(toString(layoutShift.next)).toBe(
+    toString([
+      ["A", "A", "B", "B"],
+      ["A", "A", "B", "B"],
+      [" ", "E", "E", " "],
+      [" ", "E", "E", " "],
+      [" ", "E", "E", " "],
+      ["C", "C", "D", "D"],
+      ["C", "C", "D", "D"],
+      ["C", "C", "D", "D"],
+      ["C", "C", "D", "D"],
+      [" ", " ", " ", "G"],
+      [" ", " ", " ", "G"],
+      [" ", " ", "F", "F"],
+      [" ", " ", "F", "F"],
     ])
   );
 });

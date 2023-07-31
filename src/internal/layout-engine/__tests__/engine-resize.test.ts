@@ -11,7 +11,7 @@ test("decrease in element size never creates conflicts", () => {
   forEachTimes(25, [[]], (args) => {
     const grid = generateGrid(...args);
     const resize = generateResize(grid, { maxWidthIncrement: 0, maxHeightIncrement: 0 });
-    const layoutShift = new LayoutEngine(grid).resize(resize).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).resize(resize);
     expect(layoutShift.moves.filter((move) => move.type !== "FLOAT" && move.type !== "RESIZE")).toHaveLength(0);
   });
 });
@@ -20,7 +20,7 @@ test("elements resize never leaves grid with unresolved conflicts", () => {
   forEachTimes(25, [[]], (args) => {
     const grid = generateGrid(...args);
     const resize = generateResize(grid, { maxWidthDecrement: 0, maxHeightDecrement: 0 });
-    const layoutShift = new LayoutEngine(grid).resize(resize).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(grid).resize(resize);
     expect(layoutShift.conflicts).toHaveLength(0);
   });
 });
@@ -37,7 +37,7 @@ test("commits no changes if resize path returns to original or smaller", () => {
         y: randomPathValue(resizeTarget.y + resizeTarget.height),
       });
       resize.path = [...resize.path, ...generateRandomPath(lastPathItem, originalSizePath)];
-      const moves = new LayoutEngine(grid).resize(resize).getLayoutShift().moves;
+      const moves = new LayoutEngine(grid).resize(resize).moves;
       expect(moves.filter((move) => move.type !== "RESIZE" && move.type !== "FLOAT")).toHaveLength(0);
     }
   });
@@ -201,7 +201,7 @@ describe("resize scenarios", () => {
       ],
     ],
   ])("%s", (_, gridMatrix, resize, expectation) => {
-    const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).resize(resize).refloat().getLayoutShift();
+    const layoutShift = new LayoutEngine(fromMatrix(gridMatrix)).resize(resize);
     expect(toString(layoutShift.next)).toBe(toString(expectation));
   });
 });

@@ -19,7 +19,6 @@ test("input arguments stay unchanged when using engine", () => {
   new LayoutEngine(grid).resize(resize);
   new LayoutEngine(grid).insert({ itemId: "X", width: 1, height: 1, path: [new Position({ x: 0, y: 0 })] });
   new LayoutEngine(grid).remove("A");
-  new LayoutEngine(grid).refloat();
 
   expect(grid).toEqual(gridClone);
   expect(movePath).toEqual(moveClone);

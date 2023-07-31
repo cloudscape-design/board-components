@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { GridLayoutItem } from "../interfaces";
+import { Direction, GridLayoutItem } from "../interfaces";
 import { Position } from "../utils/position";
+import { CommittedMove } from "./interfaces";
 
 export interface Rect {
   left: number;
@@ -11,17 +12,8 @@ export interface Rect {
   bottom: number;
 }
 
-export function sortGridItems(items: readonly GridLayoutItem[]): readonly GridLayoutItem[] {
-  return [...items].sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
-}
-
-export function getItemRect(item: GridLayoutItem): Rect {
-  return {
-    left: item.x,
-    right: item.x + item.width - 1,
-    top: item.y,
-    bottom: item.y + item.height - 1,
-  };
+export function sortGridItems(items: GridLayoutItem[]): readonly GridLayoutItem[] {
+  return items.sort((a, b) => (b.y - a.y === 0 ? b.x - a.x : b.y - a.y));
 }
 
 export function normalizeMovePath(origin: Position, path: readonly Position[]): readonly Position[] {
@@ -63,6 +55,67 @@ export function normalizeResizePath(origin: Position, path: readonly Position[])
   normalizedPath.reverse();
 
   return normalizePathSteps(origin, normalizedPath);
+}
+
+export function createMove(
+  type: CommittedMove["type"],
+  item: GridLayoutItem,
+  next: Position,
+  score = 0
+): CommittedMove {
+  const distanceX = type === "RESIZE" ? next.x - item.width : next.x - item.x;
+  const distanceY = type === "RESIZE" ? next.y - item.height : next.y - item.y;
+  return {
+    type,
+    itemId: item.id,
+    x: type !== "RESIZE" ? next.x : item.x,
+    y: type !== "RESIZE" ? next.y : item.y,
+    width: type === "RESIZE" ? next.x : item.width,
+    height: type === "RESIZE" ? next.y : item.height,
+    direction: distanceX > 0 ? "right" : distanceX < 0 ? "left" : distanceY < 0 ? "up" : "down",
+    distanceX,
+    distanceY,
+    score,
+  };
+}
+
+export function getMoveOriginalRect(move: CommittedMove): Rect {
+  return {
+    left: move.x - move.distanceX,
+    right: move.x - move.distanceX + move.width - 1,
+    top: move.y - move.distanceY,
+    bottom: move.y - move.distanceY + move.height - 1,
+  };
+}
+
+export function getMoveRect(move: CommittedMove): Rect {
+  return {
+    left: move.x,
+    right: move.x + move.width - 1,
+    top: move.y,
+    bottom: move.y + move.height - 1,
+  };
+}
+
+export function checkItemsIntersection(i1: GridLayoutItem, i2: GridLayoutItem): boolean {
+  if (i1.id === i2.id) {
+    return false;
+  }
+  return (
+    i1.x <= i2.x + i2.width - 1 &&
+    i2.x <= i1.x + i1.width - 1 &&
+    i1.y <= i2.y + i2.height - 1 &&
+    i2.y <= i1.y + i1.height - 1
+  );
+}
+
+export function checkOppositeDirections(d1: Direction, d2: Direction): boolean {
+  return (
+    (d1 === "down" && d2 === "up") ||
+    (d1 === "up" && d2 === "down") ||
+    (d1 === "left" && d2 === "right") ||
+    (d1 === "right" && d2 === "left")
+  );
 }
 
 // Removes path prefixes that return to the original location.
