@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 import { ReactNode, useEffect } from "react";
 import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { useStableEventHandler } from "../utils/use-stable-event-handler";
 import { EventEmitter } from "./event-emitter";
 import { getHoveredDroppables } from "./get-hovered-droppables";
 
@@ -165,7 +165,7 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
 const controller = new DragAndDropController();
 
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
-  const stableHandler = useStableEventHandler(handler);
+  const stableHandler = useStableCallback(handler);
   useEffect(() => controller.on(event, stableHandler), [event, stableHandler]);
 }
 
