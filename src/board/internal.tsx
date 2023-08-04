@@ -11,7 +11,6 @@ import { useGlobalDragStateStyles } from "../internal/global-drag-state-styles";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
-import { LayoutEngine } from "../internal/layout-engine/engine";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import {
@@ -101,10 +100,11 @@ export function InternalBoard<D>({
       const removedItemIndex = items.findIndex((it) => it.id === removeTransition.removedItem.id);
       const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
       focusNextRenderIndexRef.current = nextIndexToFocus;
+      onItemsChange(createItemsChangeEvent(items, removeTransition.layoutShift));
     }, TRANSITION_DURATION_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [removeTransition, items]);
+  }, [removeTransition, items, onItemsChange]);
 
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
@@ -198,10 +198,6 @@ export function InternalBoard<D>({
 
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
-
-    const layoutShift = new LayoutEngine(itemsLayout).remove(removedItem.id);
-
-    onItemsChange(createItemsChangeEvent(items, layoutShift));
   };
 
   function focusItem(itemId: ItemId) {
