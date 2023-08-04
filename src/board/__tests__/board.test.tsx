@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Button } from "@cloudscape-design/components";
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import Board, { BoardProps } from "../../../lib/components/board";
@@ -251,7 +251,7 @@ describe("Board", () => {
     );
   });
 
-  test("triggers onItemsChange on remove", () => {
+  test("triggers onItemsChange on remove", async () => {
     const onItemsChange = vi.fn();
     render(<Board {...defaultProps} onItemsChange={onItemsChange} />);
 
@@ -259,13 +259,15 @@ describe("Board", () => {
 
     removeButton.click();
 
-    expect(onItemsChange).toBeCalledWith(
-      expect.objectContaining({
-        detail: {
-          removedItem: expect.objectContaining({ id: "1" }),
-          items: [{ id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } }],
-        },
-      })
+    await waitFor(() =>
+      expect(onItemsChange).toBeCalledWith(
+        expect.objectContaining({
+          detail: {
+            removedItem: expect.objectContaining({ id: "1" }),
+            items: [{ id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } }],
+          },
+        })
+      )
     );
   });
 });
