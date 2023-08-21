@@ -30,6 +30,18 @@ const createDefaultWidget = (id: string) => ({
   content: <DefaultContainer>Dummy content</DefaultContainer>,
 });
 
+const createDefaultWidgetWithInput = (id: string) => {
+  return {
+    title: `Widget ${id}`,
+    description: "Dummy description",
+    content: (
+      <DefaultContainer>
+        <input data-testid="input-field" />
+      </DefaultContainer>
+    ),
+  };
+};
+
 export const demoWidgets: ItemWidgets = {
   D: {
     definition: { defaultColumnSpan: 2, defaultRowSpan: 4, minRowSpan: 4 },
@@ -181,7 +193,7 @@ export const demoWidgets: ItemWidgets = {
 };
 
 for (let i = 2; i <= 10; i++) {
-  demoWidgets[i] = { data: createDefaultWidget(i.toString()) };
+  demoWidgets[i] = { data: i === 5 ? createDefaultWidgetWithInput(i.toString()) : createDefaultWidget(i.toString()) };
 }
 
 export const storedPositions = [

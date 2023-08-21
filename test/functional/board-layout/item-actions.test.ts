@@ -106,3 +106,25 @@ describe("items removal", () => {
     })
   );
 });
+
+describe("items reordering", () => {
+  test(
+    "input content is preserved after reordering",
+    setupTest("/index.html#/dnd/engine", DndPageObject, async (page) => {
+      const input = await boardWrapper.findItemById("5").find("[data-testid='input-field']").getElement();
+
+      expect(await page.getValue(input)).toBe("");
+
+      await page.setValue(input, "test content");
+
+      expect(await page.getValue(input)).toBe("test content");
+
+      await page.dragAndDropTo(
+        boardWrapper.findItemById("5").findDragHandle().toSelector(),
+        boardWrapper.findItemById("6").findDragHandle().toSelector()
+      );
+
+      expect(await page.getValue(input)).toBe("test content");
+    })
+  );
+});
