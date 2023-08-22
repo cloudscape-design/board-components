@@ -388,9 +388,7 @@ function ItemContainerComponent(
   }));
 
   const isActive = (!!transition && !isHidden) || !!acquired;
-  const shouldUsePortal =
-    (transition?.operation === "insert" || transition?.operation === "reorder") &&
-    transition?.interactionType === "pointer";
+  const shouldUsePortal = transition?.operation === "insert" && transition?.interactionType === "pointer";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
     childrenRef.current = children(!!transition?.hasDropTarget);

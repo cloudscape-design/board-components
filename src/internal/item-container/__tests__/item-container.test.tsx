@@ -62,7 +62,7 @@ test("starts resize transition when resize handle is clicked", () => {
   expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
 });
 
-test("renders in portal when item in reorder state by a pointer", () => {
+test("does not renders in portal when item in reorder state by a pointer", () => {
   const { container, getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   expect(container).toContainElement(getByTestId("drag-handle"));
   act(() => {
@@ -74,7 +74,7 @@ test("renders in portal when item in reorder state by a pointer", () => {
       coordinates: new Coordinates({ x: 0, y: 0 }),
     } as DragAndDropData);
   });
-  expect(container).not.toContainElement(getByTestId("drag-handle"));
+  expect(container).toContainElement(getByTestId("drag-handle"));
   act(() => {
     mockController.discard();
   });
