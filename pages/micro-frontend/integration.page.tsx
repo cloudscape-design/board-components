@@ -21,14 +21,12 @@ interface MicroFrontendWrapperProps {
 
 function MicroFrontendWrapper({ content }: MicroFrontendWrapperProps) {
   const ref = useRef(null);
-  const mountedRef = useRef(false);
 
   useLayoutEffect(() => {
-    if (mountedRef.current) {
-      return;
-    }
-    mountedRef.current = true;
-    createRoot(ref.current!).render(content);
+    const root = createRoot(ref.current!);
+    root.render(content);
+
+    return () => root.unmount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <div ref={ref} />;
