@@ -1,9 +1,15 @@
+@use "../shared.scss" as shared;
+
 .handle {
   cursor: grab;
 }
 
 .handle:active {
   cursor: grabbing;
+}
+
+.handle:not(.active):focus-visible {
+  @include shared.focus-highlight();
 }
 
 .active {

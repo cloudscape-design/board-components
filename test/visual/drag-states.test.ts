@@ -77,6 +77,22 @@ class DndPageObject extends ScreenshotPageObject {
 }
 
 test(
+  "renders correctly styled focus ring around the drag handle",
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
+    await page.focus(boardItemHandle("A"));
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
+
+test(
+  "renders correctly styled focus ring around the resize handle",
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
+    await page.focus(boardItemResizeHandle("A"));
+    expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
+  })
+);
+
+test(
   "active item overlays other items",
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.focus(boardItemHandle("A"));

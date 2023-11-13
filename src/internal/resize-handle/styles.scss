@@ -1,5 +1,11 @@
+@use "../shared.scss" as shared;
+
 .handle {
   cursor: nwse-resize;
+}
+
+.handle:not(.active):focus-visible {
+  @include shared.focus-highlight();
 }
 
 .active {
