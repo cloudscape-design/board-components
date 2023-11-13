@@ -3,11 +3,9 @@
 @mixin focus-highlight($gutter: 4px, $border-radius: cs.$border-radius-control-default-focus-ring) {
   position: relative;
   box-sizing: border-box;
-  outline: none;
-  & {
-    outline: 2px dotted transparent;
-    outline-offset: calc($gutter - 1px);
-  }
+  outline: 2px dotted transparent;
+  outline-offset: calc($gutter - 1px);
+
   &::before {
     content: " ";
     display: block;
