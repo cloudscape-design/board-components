@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Icon } from "@cloudscape-design/components";
+import Icon from "@cloudscape-design/components/icon";
 import clsx from "clsx";
 import { ForwardedRef, KeyboardEvent, PointerEvent, forwardRef } from "react";
 

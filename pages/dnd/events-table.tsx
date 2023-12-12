@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Link, StatusIndicator, Table } from "@cloudscape-design/components";
+import Link from "@cloudscape-design/components/link";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
+import Table from "@cloudscape-design/components/table";
 
 interface EventItem {
   id: string;

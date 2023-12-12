@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Box, Header } from "@cloudscape-design/components";
+import Box from "@cloudscape-design/components/box";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
+import Header from "@cloudscape-design/components/header";
 import { useState } from "react";
 import { Board, BoardItem, BoardProps } from "../../lib/components";
 import LiveRegion from "../../lib/components/internal/live-region";

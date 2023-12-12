@@ -1,7 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Button, Form, Modal, SpaceBetween } from "@cloudscape-design/components";
+import Button from "@cloudscape-design/components/button";
+import Form from "@cloudscape-design/components/form";
+import Modal from "@cloudscape-design/components/modal";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 import { clientI18nStrings } from "../shared/i18n";
 
 export function DeleteConfirmationModal({

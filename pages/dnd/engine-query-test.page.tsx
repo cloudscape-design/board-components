@@ -1,7 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-
-import { Button, Form, FormField, Header, SpaceBetween, Textarea } from "@cloudscape-design/components";
+import Button from "@cloudscape-design/components/button";
+import Form from "@cloudscape-design/components/form";
+import FormField from "@cloudscape-design/components/form-field";
+import Header from "@cloudscape-design/components/header";
+import SpaceBetween from "@cloudscape-design/components/space-between";
+import Textarea from "@cloudscape-design/components/textarea";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageLayout from "../app/page-layout";

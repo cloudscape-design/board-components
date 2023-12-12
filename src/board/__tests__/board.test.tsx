@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Button } from "@cloudscape-design/components";
+import Button from "@cloudscape-design/components/button";
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";

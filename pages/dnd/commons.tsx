@@ -1,7 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Button, FormField, SpaceBetween } from "@cloudscape-design/components";
 import Box from "@cloudscape-design/components/box";
+import Button from "@cloudscape-design/components/button";
+import FormField from "@cloudscape-design/components/form-field";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useState } from "react";
 
 export function Counter() {
