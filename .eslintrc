@@ -58,13 +58,17 @@
       [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"]
     ],
     "no-restricted-imports": [
-      "warn",
+      "error",
       {
         "paths": [
           {
             "name": "react",
             "importNames": ["default"],
             "message": "Prefer named imports."
+          },
+          {
+            "name": "@cloudscape-design/components",
+            "message": "Prefer subpath imports."
           }
         ]
       }
