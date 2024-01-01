@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     ...functional.test,
     update: process.env.UPDATE_SCREENSHOTS,
+    reporters: ["default", "./vitest-reporter/reporter.ts"],
     include: ["./test/visual/**/*.test.ts"],
     setupFiles: [...functional.test.setupFiles, "./test/visual-test-setup.ts"],
   },

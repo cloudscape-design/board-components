@@ -2,6 +2,8 @@
 node_modules
 coverage
 lib
+allure-report
+allure-results
 /__image_snapshots__
 dist
 /src/test-utils/selectors
