@@ -3,7 +3,7 @@
 
 import process from "node:process";
 import { defineConfig } from "vite";
-import base from "./vite.config.js";
+import base from "./vite.config.mjs";
 
 // https://vitejs.dev/config/
 export default defineConfig({
