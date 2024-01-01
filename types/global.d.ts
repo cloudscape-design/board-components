@@ -5,9 +5,6 @@ declare module "*.css.js" {
   export default styles;
 }
 declare module "*.selectors.js" {
-  // this is how Node.js and Vitest receive ESM transpiled to CJS
-  const styles: {
-    default: Record<string, string>;
-  };
+  const styles: Record<string, string>;
   export default styles;
 }

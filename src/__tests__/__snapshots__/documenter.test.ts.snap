@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`definition for board matches the snapshot > board 1`] = `
 {
@@ -55,12 +55,12 @@ The change detail has the following properties:
     {
       "description": "An object containing all the necessary localized strings required by the component.
 Live announcements:
-* \`liveAnnouncementDndStarted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate start of DnD (\\"reorder\\", \\"resize\\" or \\"insert\\").
+* \`liveAnnouncementDndStarted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate start of DnD ("reorder", "resize" or "insert").
 * \`liveAnnouncementDndItemReordered(BoardProps.DndReorderState<D>): string\` - the function to create a live announcement string to indicate when DnD reorder is performed.
 * \`liveAnnouncementDndItemResized(BoardProps.DndResizeState<D>): string\` - the function to create a live announcement string to indicate when DnD resize is performed.
 * \`liveAnnouncementDndItemInserted(BoardProps.DndInsertState<D>): string\` - the function to create a live announcement string to indicate when DnD insert is performed.
-* \`liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate commit of DnD (\\"reorder\\", \\"resize\\" or \\"insert\\").
-* \`liveAnnouncementDndCommitted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate discard of DnD (\\"reorder\\", \\"resize\\" or \\"insert\\").
+* \`liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate commit of DnD ("reorder", "resize" or "insert").
+* \`liveAnnouncementDndCommitted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate discard of DnD ("reorder", "resize" or "insert").
 * \`liveAnnouncementItemRemoved(BoardProps.OperationStateRemove<D>): string\` - the function to create a live announcement string to indicate when item is removed.
 
 Navigation labels:
