@@ -155,7 +155,7 @@ test(
     ),
     DndPageObject,
     async (page) => {
-      const placeholderSelector = `.${boardStyles.default.placeholder}`;
+      const placeholderSelector = `.${boardStyles.placeholder}`;
 
       await page.setWindowSize({ width: 1600, height: 1800 });
       await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(10 * 4);
