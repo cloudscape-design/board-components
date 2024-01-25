@@ -10,7 +10,7 @@ on:
 
 jobs:
   visual-regression:
-    uses: cloudscape-design/actions/.github/workflows/visual-regression.yml@main
+    uses: cloudscape-design/actions/.github/workflows/visual-regression.yml@visual-regression
     with:
       repository: ${{ github.repository }}
     secrets: inherit
