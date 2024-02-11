@@ -5,16 +5,7 @@ import { writeJSON } from "./utils.js";
 
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
 
-mainPackage();
 themablePackage();
-
-function mainPackage() {
-  writeJSON("lib/components/package.json", {
-    ...pkg,
-    // prevent postinstall scripts we use in our build from being published
-    scripts: undefined,
-  });
-}
 
 function themablePackage() {
   writeJSON("lib/components-themeable/package.json", {
