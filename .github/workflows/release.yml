@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    uses: cloudscape-design/actions/.github/workflows/release.yml@main
+    uses: cloudscape-design/actions/.github/workflows/release.yml@auto-remove-scripts-testing
     secrets: inherit
     with:
       publish-packages: lib/components,lib/components-themeable
