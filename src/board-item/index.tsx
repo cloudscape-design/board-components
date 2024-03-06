@@ -8,7 +8,9 @@ import { InternalBoardItem } from "./internal";
 export { BoardItemProps };
 
 export default function BoardItem(props: BoardItemProps) {
-  const baseComponentProps = useBaseComponent("BoardItem");
+  const baseComponentProps = useBaseComponent("BoardItem", {
+    props: { disableContentPaddings: props.disableContentPaddings },
+  });
   return <InternalBoardItem {...props} {...baseComponentProps} />;
 }
 

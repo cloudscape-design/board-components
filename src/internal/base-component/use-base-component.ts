@@ -1,7 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { initAwsUiVersions, useComponentMetadata } from "@cloudscape-design/component-toolkit/internal";
+import {
+  ComponentConfiguration,
+  initAwsUiVersions,
+  useComponentMetadata,
+} from "@cloudscape-design/component-toolkit/internal";
 import { MutableRefObject } from "react";
 import { PACKAGE_SOURCE, PACKAGE_VERSION } from "../environment";
 import { useTelemetry } from "./use-telemetry";
@@ -17,8 +21,8 @@ export interface InternalBaseComponentProps {
  * attached to the (internal) component's root DOM node. The hook takes care of attaching the metadata to this
  * root DOM node and emits the telemetry for this component.
  */
-export default function useBaseComponent<T = any>(componentName: string) {
-  useTelemetry(componentName);
+export default function useBaseComponent<T = any>(componentName: string, config?: ComponentConfiguration) {
+  useTelemetry(componentName, config);
   const elementRef = useComponentMetadata<T>(componentName, PACKAGE_VERSION);
   return { __internalRootRef: elementRef };
 }
