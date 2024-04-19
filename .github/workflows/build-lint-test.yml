@@ -18,6 +18,7 @@ permissions:
 jobs:
   build:
     uses: cloudscape-design/actions/.github/workflows/build-lint-test.yml@main
+    secrets: inherit
     with:
       artifact-path: dist
       artifact-name: dev-pages
