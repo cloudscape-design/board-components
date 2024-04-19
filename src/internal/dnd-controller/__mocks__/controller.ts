@@ -3,7 +3,7 @@
 
 import { useEffect } from "react";
 import { vi } from "vitest";
-import { DragAndDropData, DragAndDropEvents } from "../controller";
+import { AcquireData, DragAndDropData, DragAndDropEvents } from "../controller";
 import { EventEmitter } from "../event-emitter";
 
 class MockController extends EventEmitter<DragAndDropEvents> {
@@ -21,6 +21,10 @@ class MockController extends EventEmitter<DragAndDropEvents> {
 
   public discard() {
     this.emit("discard");
+  }
+
+  public acquire(event: AcquireData) {
+    this.emit("acquire", event);
   }
 }
 
@@ -41,3 +45,5 @@ export const mockDraggable = {
 export function useDraggable() {
   return mockDraggable;
 }
+
+export function useDroppable() {}
