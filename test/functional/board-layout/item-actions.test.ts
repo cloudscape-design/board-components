@@ -39,7 +39,7 @@ describe("items removal", () => {
         ["M", " ", " ", "P"],
         ["M", " ", " ", "P"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -74,7 +74,7 @@ describe("items removal", () => {
         ["I", "J", "K", " "],
         ["I", "J", "K", " "],
       ]);
-    })
+    }),
   );
 
   test(
@@ -90,7 +90,7 @@ describe("items removal", () => {
       await page.keys(["Tab", "Tab", "Tab"]);
 
       await expect(page.isFocused(boardItemHandle("J"))).resolves.toBe(true);
-    })
+    }),
   );
 
   test(
@@ -103,7 +103,7 @@ describe("items removal", () => {
 
       await expect(page.isExisting(boardItemHandle("5"))).resolves.toBe(false);
       await expect(page.isFocused(boardItemHandle("8"))).resolves.toBe(true);
-    })
+    }),
   );
 });
 
@@ -121,10 +121,10 @@ describe("items reordering", () => {
 
       await page.dragAndDropTo(
         boardWrapper.findItemById("5").findDragHandle().toSelector(),
-        boardWrapper.findItemById("6").findDragHandle().toSelector()
+        boardWrapper.findItemById("6").findDragHandle().toSelector(),
       );
 
       expect(await page.getValue(input)).toBe("test content");
-    })
+    }),
   );
 });

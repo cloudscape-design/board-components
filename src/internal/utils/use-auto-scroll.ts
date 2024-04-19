@@ -72,7 +72,7 @@ export function useAutoScroll() {
         }
       }, delay);
     },
-    [getLastInteraction]
+    [getLastInteraction],
   );
 
   return { addPointerEventHandlers, removePointerEventHandlers, scheduleActiveElementScrollIntoView };

@@ -19,7 +19,7 @@ test("any move on a grid with 1x1 items only is resolved", () => {
       const movePath = generateMove(grid, "any");
       const layoutShift = new LayoutEngine(grid).move(movePath);
       expect(layoutShift.conflicts.length).toBe(0);
-    }
+    },
   );
 });
 
@@ -36,7 +36,7 @@ test("all vertical moves are resolved if all items have height=1", () => {
       const movePath = generateMove(grid, "vertical");
       const layoutShift = new LayoutEngine(grid).move(movePath);
       expect(layoutShift.conflicts.length).toBe(0);
-    }
+    },
   );
 });
 
@@ -53,7 +53,7 @@ test("all vertical moves are resolved if all items have width=1", () => {
       const movePath = generateMove(grid, "horizontal");
       const layoutShift = new LayoutEngine(grid).move(movePath);
       expect(layoutShift.conflicts.length).toBe(0);
-    }
+    },
   );
 });
 

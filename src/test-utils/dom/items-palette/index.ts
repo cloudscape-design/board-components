@@ -9,7 +9,7 @@ export default class ItemsPaletteWrapper extends ComponentWrapper {
 
   findItems() {
     return this.findAllByClassName(PaletteItemWrapper.rootSelector).map(
-      (wrapper) => new PaletteItemWrapper(wrapper.getElement())
+      (wrapper) => new PaletteItemWrapper(wrapper.getElement()),
     );
   }
 

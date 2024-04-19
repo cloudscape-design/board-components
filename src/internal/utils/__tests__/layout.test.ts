@@ -47,7 +47,7 @@ describe("interpretItems", () => {
         ["A", "B", "C"],
         ["D", " ", " "],
         ["D", " ", " "],
-      ])
+      ]),
     );
   });
 
@@ -59,7 +59,7 @@ describe("interpretItems", () => {
         ["A", "B", "C"],
         ["A", "D", " "],
         ["A", "D", " "],
-      ])
+      ]),
     );
   });
 
@@ -72,7 +72,7 @@ describe("interpretItems", () => {
         makeItem("D", {}, { rowSpan: 2 }),
         makeItem("E", {}, { rowSpan: 2 }),
       ],
-      3
+      3,
     );
     expect(toString(grid)).toBe(
       toString([
@@ -82,7 +82,7 @@ describe("interpretItems", () => {
         ["D", "B", "C"],
         ["E", "B", "C"],
         ["E", "B", " "],
-      ])
+      ]),
     );
   });
 });
@@ -97,7 +97,7 @@ describe("transformItems", () => {
         ["D", "A", " "],
         ["D", "A", " "],
       ]),
-      null
+      null,
     );
     expect(items.map((it) => it.id)).toEqual(["D", "B", "C", "A"]);
   });
@@ -111,7 +111,7 @@ describe("transformItems", () => {
         ["D", "A", " "],
         ["D", "A", " "],
       ]),
-      null
+      null,
     );
     expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0 } }));
     expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 1 } }));
@@ -130,7 +130,7 @@ describe("transformItems", () => {
         ["A", "C", "B"],
         ["A", "C", "B"],
       ]),
-      null
+      null,
     );
     expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0, 6: 0 }, columnSpan: 1, rowSpan: 2 }));
     expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 1 }, columnSpan: 1, rowSpan: 2 }));
@@ -149,7 +149,7 @@ describe("transformItems", () => {
         ["A", "B", "C"],
         [" ", "B", " "],
       ]),
-      "B"
+      "B",
     );
     expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0, 6: 0 }, columnSpan: 1, rowSpan: 2 }));
     expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 1 }, columnSpan: 1, rowSpan: 3 }));
@@ -170,7 +170,7 @@ describe("transformItems", () => {
         ["B", "C", "C"],
         ["B", "C", "C"],
       ]),
-      "C"
+      "C",
     );
     expect(items[0]).toEqual(expect.objectContaining({ columnOffset: { 3: 0 } }));
     expect(items[1]).toEqual(expect.objectContaining({ columnOffset: { 3: 0 }, columnSpan: 1, rowSpan: 2 }));
@@ -209,7 +209,7 @@ describe("createPlaceholdersLayout", () => {
         ["awsui-placeholder-0-0", "awsui-placeholder-0-1"],
         ["awsui-placeholder-1-0", "awsui-placeholder-1-1"],
         ["awsui-placeholder-2-0", "awsui-placeholder-2-1"],
-      ])
+      ]),
     );
   });
 });

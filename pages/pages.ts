@@ -14,5 +14,5 @@ export const pagesMap = Object.fromEntries(
   Object.entries(pagesRaw).map(([path, dynamicImport]) => {
     const match = getPage(path);
     return [match, lazy(dynamicImport as ComponentFactory)];
-  })
+  }),
 );

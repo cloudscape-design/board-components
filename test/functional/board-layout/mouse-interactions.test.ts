@@ -13,7 +13,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.dragAndDropTo(
       boardWrapper.findItemById("A").findDragHandle().toSelector(),
-      boardWrapper.findItemById("B").findDragHandle().toSelector()
+      boardWrapper.findItemById("B").findDragHandle().toSelector(),
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["B", "A", "C", "D"],
@@ -21,7 +21,7 @@ test(
       ["E", "F", "G", "H"],
       ["E", "F", "G", "H"],
     ]);
-  })
+  }),
 );
 
 test(
@@ -29,7 +29,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.dragAndDropTo(
       itemsPaletteWrapper.findItemById("K").findDragHandle().toSelector(),
-      boardWrapper.findItemById("H").findDragHandle().toSelector()
+      boardWrapper.findItemById("H").findDragHandle().toSelector(),
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "B", "C", "D"],
@@ -39,7 +39,7 @@ test(
       [" ", " ", " ", "H"],
       [" ", " ", " ", "H"],
     ]);
-  })
+  }),
 );
 
 test(
@@ -47,7 +47,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.dragAndDropTo(
       boardWrapper.findItemById("A").findResizeHandle().toSelector(),
-      boardWrapper.findItemById("B").findResizeHandle().toSelector()
+      boardWrapper.findItemById("B").findResizeHandle().toSelector(),
     );
     await expect(page.getGrid()).resolves.toEqual([
       ["A", "A", "C", "D"],
@@ -57,7 +57,7 @@ test(
       [" ", "F", " ", " "],
       [" ", "F", " ", " "],
     ]);
-  })
+  }),
 );
 
 test(
@@ -70,7 +70,7 @@ test(
         ["A", "A", " ", " "],
         ["A", "A", " ", " "],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -81,8 +81,8 @@ test(
         ["A", " ", " ", " "],
         ["A", " ", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -95,7 +95,7 @@ test(
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -108,8 +108,8 @@ test(
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -122,7 +122,7 @@ test(
         ["B", "B", " ", " "],
         ["B", "B", " ", " "],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -137,8 +137,8 @@ test(
           ["B", "B", " ", " "],
         ]
           .map((r) => r.join(" "))
-          .join("\n")
+          .join("\n"),
       );
-    }
-  )
+    },
+  ),
 );

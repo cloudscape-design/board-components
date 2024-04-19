@@ -25,7 +25,7 @@ function unlock(packages) {
       delete packages[dependencyName];
     } else if (dependency.resolved && dependency.resolved.includes("codeartifact.us-west-2.amazonaws.com")) {
       throw Error(
-        "package-lock.json file contains a reference to CodeArtifact. Use regular npm to update the packages."
+        "package-lock.json file contains a reference to CodeArtifact. Use regular npm to update the packages.",
       );
     }
   });

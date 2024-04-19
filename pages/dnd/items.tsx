@@ -228,29 +228,32 @@ export const demoPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Obj
     data: widget?.data ?? createDefaultWidget(key),
   }));
 
-export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce((acc, letter) => {
-  const definitions: { [letter: string]: BoardItemDefinitionBase["definition"] } = {
-    R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
-    U: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
-    V: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
-    W: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
-    X: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
-    Y: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
-    Z: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
-  };
-  acc[letter] = {
-    id: letter,
-    definition: definitions[letter],
-    data: {
-      title: `Widget ${letter}`,
-      description: "Empty widget",
-      content: "",
-    },
-  };
-  return acc;
-}, {} as { [id: string]: BoardItemDefinitionBase<ItemData> });
+export const letterWidgets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].reduce(
+  (acc, letter) => {
+    const definitions: { [letter: string]: BoardItemDefinitionBase["definition"] } = {
+      R: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+      S: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+      T: { defaultRowSpan: 1, defaultColumnSpan: 2, minRowSpan: 1, minColumnSpan: 2 },
+      U: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+      V: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+      W: { defaultRowSpan: 4, defaultColumnSpan: 1, minRowSpan: 4, minColumnSpan: 1 },
+      X: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+      Y: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+      Z: { defaultRowSpan: 4, defaultColumnSpan: 2, minRowSpan: 4, minColumnSpan: 2 },
+    };
+    acc[letter] = {
+      id: letter,
+      definition: definitions[letter],
+      data: {
+        title: `Widget ${letter}`,
+        description: "Empty widget",
+        content: "",
+      },
+    };
+    return acc;
+  },
+  {} as { [id: string]: BoardItemDefinitionBase<ItemData> },
+);
 
 export function createLetterItems(grid: null | string[][], palette?: string[]) {
   if (!grid) {
@@ -261,7 +264,7 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
 
   const usedLetterItems = new Set(boardItems.map((item) => item.id));
   const paletteItems = Object.values(letterWidgets).filter(
-    (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id))
+    (item) => !usedLetterItems.has(item.id) && (!palette || palette.includes(item.id)),
   );
 
   return { boardItems, paletteItems };
@@ -269,7 +272,7 @@ export function createLetterItems(grid: null | string[][], palette?: string[]) {
 
 function applyLayout<D>(
   layout: GridLayout,
-  sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[]
+  sourceItems: readonly (BoardItemDefinitionBase<D> | BoardItemDefinition<D>)[],
 ): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: string) => {

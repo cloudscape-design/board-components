@@ -164,7 +164,7 @@ describe("Board", () => {
             { id: "1", data: { title: "Item 1" }, columnOffset: { 1: 0 } },
           ],
         },
-      })
+      }),
     );
   });
 
@@ -188,7 +188,7 @@ describe("Board", () => {
             { id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } },
           ],
         },
-      })
+      }),
     );
   });
 
@@ -207,8 +207,8 @@ describe("Board", () => {
             removedItem: expect.objectContaining({ id: "1" }),
             items: [{ id: "2", data: { title: "Item 2" }, columnOffset: { 1: 0 } }],
           },
-        })
-      )
+        }),
+      ),
     );
   });
 });

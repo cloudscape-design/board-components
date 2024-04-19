@@ -17,7 +17,7 @@ export class EventEmitter<Events extends Listeners<Events>> {
     return () => {
       this.listeners.set(
         event,
-        this.listeners.get(event)!.filter((item) => item !== handler)
+        this.listeners.get(event)!.filter((item) => item !== handler),
       );
     };
   }

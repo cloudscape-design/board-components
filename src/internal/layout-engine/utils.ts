@@ -61,7 +61,7 @@ export function createMove(
   type: CommittedMove["type"],
   item: GridLayoutItem,
   next: Position,
-  score = 0
+  score = 0,
 ): CommittedMove {
   const distanceX = type === "RESIZE" ? next.x - item.width : next.x - item.x;
   const distanceY = type === "RESIZE" ? next.y - item.height : next.y - item.y;

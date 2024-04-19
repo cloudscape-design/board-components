@@ -22,7 +22,7 @@ test("renders acquired item", () => {
       draggableItem,
       collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
       coordinates: new Coordinates({ x: 0, y: 0 }),
-    } as DragAndDropData)
+    } as DragAndDropData),
   );
 
   act(() =>
@@ -30,7 +30,7 @@ test("renders acquired item", () => {
       droppableId: "awsui-placeholder-1-0",
       draggableItem,
       renderAcquiredItem: () => <div data-testid="acquired-item"></div>,
-    })
+    }),
   );
   expect(screen.queryByTestId("acquired-item")).toBeInTheDOM();
 

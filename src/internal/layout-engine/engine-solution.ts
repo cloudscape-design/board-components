@@ -71,7 +71,7 @@ function getOverlapMove(
   state: MoveSolutionState,
   overlapId: ItemId,
   overlapIssuerId: ItemId,
-  moveDirection: Direction
+  moveDirection: Direction,
 ): null | CommittedMove {
   const userItem = state.grid.getItem(state.moves[0].itemId);
   const overlapItem = state.grid.getItem(overlapId);
@@ -206,7 +206,7 @@ function getUserMoveBoundaries(state: MoveSolutionState): { top: number; right: 
 function getPathOverlaps(
   state: MoveSolutionState,
   move: CommittedMove,
-  overlapIssuerItem: GridLayoutItem
+  overlapIssuerItem: GridLayoutItem,
 ): Set<GridLayoutItem> {
   const { left, right, top, bottom } = getMoveOriginalRect(move);
   const startX = move.distanceX <= 0 ? move.x : right + 1;
@@ -221,7 +221,7 @@ function getPathOverlaps(
       width: 1 + endX - startX,
       y: startY,
       height: 1 + endY - startY,
-    })
+    }),
   );
   pathOverlaps.delete(overlapIssuerItem);
 

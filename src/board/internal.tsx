@@ -180,7 +180,6 @@ export function InternalBoard<D>({
 
   useDragSubscription("acquire", ({ droppableId, draggableItem, renderAcquiredItem }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
-    console.log(placeholdersLayout.items);
 
     // If missing then it does not belong to this board.
     if (!placeholder) {
@@ -250,8 +249,8 @@ export function InternalBoard<D>({
                     state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
                     gridContext={gridContext}
                     columns={itemsLayout.columns}
-                  />
-                )
+                  />,
+                ),
               );
 
               items.forEach((item) => {
@@ -294,7 +293,7 @@ export function InternalBoard<D>({
                     {item.id === acquiredItem?.id && acquiredItemElement
                       ? () => acquiredItemElement
                       : () => renderItem(item, { removeItem: () => removeItemAction(item) })}
-                  </ItemContainer>
+                  </ItemContainer>,
                 );
               });
 

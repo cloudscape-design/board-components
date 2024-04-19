@@ -16,7 +16,7 @@ import {
  */
 export function createOperationAnnouncement<D>(
   transition: Transition<D>,
-  direction: null | Direction
+  direction: null | Direction,
 ): null | DndActionAnnouncement {
   const { operation, layoutShift, itemsLayout } = transition;
   const targetItem = itemsLayout.items.find((it) => it.id === transition.draggableItem.id) ?? null;
@@ -63,7 +63,7 @@ export function announcementToString<D>(
   announcement: TransitionAnnouncement,
   items: readonly BoardProps.Item<D>[],
   i18nStrings: BoardProps.I18nStrings<D>,
-  columns: number
+  columns: number,
 ): string {
   if (!announcement) {
     return "";

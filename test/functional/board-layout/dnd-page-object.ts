@@ -36,20 +36,20 @@ export class DndPageObject extends BasePageObject {
     const widgets = await this.browser.execute(
       (widgetsSelector) =>
         [...document.querySelectorAll(widgetsSelector)].map(
-          (w) => [w.getAttribute("data-item-id"), w.getBoundingClientRect()] as [string, DOMRect]
+          (w) => [w.getAttribute("data-item-id"), w.getBoundingClientRect()] as [string, DOMRect],
         ),
-      `.${boardStyles.root} [data-item-id]`
+      `.${boardStyles.root} [data-item-id]`,
     );
 
     const placeholderRects = await this.browser.execute(
       (placeholderSelector) =>
         [...document.querySelectorAll(placeholderSelector)].map((p) => p.getBoundingClientRect()),
-      `.${boardStyles.placeholder}`
+      `.${boardStyles.placeholder}`,
     );
     const hoveredPlaceholderRects = await this.browser.execute(
       (placeholderSelector) =>
         [...document.querySelectorAll(placeholderSelector)].map((p) => p.getBoundingClientRect()),
-      `.${boardStyles["placeholder--hover"]}`
+      `.${boardStyles["placeholder--hover"]}`,
     );
 
     function matchWidget(placeholderIndex: number): null | string {

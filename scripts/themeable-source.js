@@ -22,9 +22,9 @@ function copyStyles() {
       path.join(stylesTargetDir, file),
       content.replace(
         /@use "(\.\.\/)+node_modules\/@cloudscape-design\/design-tokens\/index.scss"/,
-        '@use "awsui:tokens"'
+        '@use "awsui:tokens"',
       ),
-      "utf-8"
+      "utf-8",
     );
   }
 }

@@ -21,7 +21,7 @@ test(
         ["E", "B", "G", "H"],
         ["E", "B", "G", "H"],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -47,8 +47,8 @@ test(
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -61,7 +61,7 @@ test(
         ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ],
-      ["I", "X"]
+      ["I", "X"],
     ),
     DndPageObject,
     async (page) => {
@@ -87,8 +87,8 @@ test(
         [" ", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -101,7 +101,7 @@ test(
         [" ", "F", "G", "H"],
         [" ", "F", "G", "H"],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -131,8 +131,8 @@ test(
         ["A", " ", " ", " "],
         [" ", " ", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -151,7 +151,7 @@ test(
         ["D", "D", "E", "E"],
         ["D", "D", "E", "E"],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -165,8 +165,8 @@ test(
 
       await page.mouseMove(0, 900);
       await expect(page.getElementsCount(placeholderSelector)).resolves.toBe(14 * 4);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -181,7 +181,7 @@ test(
         ["X", "X", "X", " "],
         ["X", "X", "X", " "],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -203,8 +203,8 @@ test(
         ["X", "X", " ", " "],
         [" ", " ", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -219,7 +219,7 @@ test(
         ["X", "X", "X", " "],
         ["X", "X", "X", " "],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -245,8 +245,8 @@ test(
         ["X", "X", " ", " "],
         [" ", " ", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -255,7 +255,7 @@ test(
     makeQueryUrl(
       [],
       // X item has min columns = 2 and min rows = 4.
-      ["X"]
+      ["X"],
     ),
     DndPageObject,
     async (page) => {
@@ -272,8 +272,8 @@ test(
         ["X", "X", " ", " "],
         ["X", "X", " ", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -338,7 +338,7 @@ test(
       [" ", "X", "X", " ", " ", " "],
       [" ", "X", "X", " ", " ", " "],
     ]);
-  })
+  }),
 );
 
 test(
@@ -349,7 +349,7 @@ test(
         ["A", "A", "B", "C"],
         ["A", "A", "B", "C"],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -359,7 +359,7 @@ test(
       // Swap A and B.
       await page.dragAndDropTo(
         boardWrapper.findItemById("A").findDragHandle().toSelector(),
-        boardWrapper.findItemById("B").findDragHandle().toSelector()
+        boardWrapper.findItemById("B").findDragHandle().toSelector(),
       );
 
       // Remove C.
@@ -373,8 +373,8 @@ test(
         ["B", "A", "A", " "],
         ["B", "A", "A", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -385,7 +385,7 @@ test(
         ["A", "A", "B", "C"],
         ["A", "A", "B", "C"],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -403,8 +403,8 @@ test(
         [" ", " ", "B", " "],
         [" ", " ", "B", " "],
       ]);
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -427,7 +427,7 @@ test(
       ["X", "X", " ", " "],
       ["X", "X", " ", " "],
     ]);
-  })
+  }),
 );
 
 test(
@@ -457,7 +457,7 @@ test(
       [" ", " ", " ", " "],
       [" ", " ", " ", " "],
     ]);
-  })
+  }),
 );
 
 test(
@@ -480,5 +480,5 @@ test(
       ["D", "D", " ", " "],
       ["D", "D", " ", " "],
     ]);
-  })
+  }),
 );

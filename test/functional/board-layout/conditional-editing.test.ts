@@ -29,6 +29,6 @@ describe("conditional editing feature", () => {
       // board items are hidden after toggling it back
       await expect(page.getElementsCount(boardItemSelector)).resolves.toEqual(0);
       await expect(getWidgetSizes()).resolves.toEqual(sizeBefore);
-    })
+    }),
   );
 });

@@ -81,7 +81,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.focus(boardItemHandle("A"));
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );
 
 test(
@@ -89,7 +89,7 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.focus(boardItemResizeHandle("A"));
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );
 
 test(
@@ -99,7 +99,7 @@ test(
     await page.keys(["Enter"]);
     await page.keys(["ArrowDown"]);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );
 
 test(
@@ -114,7 +114,7 @@ test(
         ["F", "G", " ", " "],
         ["F", "G", " ", " "],
       ],
-      []
+      [],
     ),
     DndPageObject,
     async (page) => {
@@ -129,8 +129,8 @@ test(
 
       await page.keys(["Enter"]);
       expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-    }
-  )
+    },
+  ),
 );
 
 test(
@@ -144,7 +144,7 @@ test(
 
     await page.mouseDown(itemsPaletteWrapper.findItemById("Q").findDragHandle().toSelector());
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );
 
 test(
@@ -156,7 +156,7 @@ test(
 
     await page.mouseMove(200, 0);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );
 
 test(
@@ -172,7 +172,7 @@ test(
 
     await page.keys(["Enter"]);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );
 
 test(
@@ -187,5 +187,5 @@ test(
 
     await page.mouseMove(0, -400);
     expect(await page.fullPageScreenshot()).toMatchImageSnapshot();
-  })
+  }),
 );

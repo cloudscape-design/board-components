@@ -34,7 +34,7 @@ test("ARIA labels", () => {
       ariaDescription="Board navigation description"
       itemAriaLabel={(item) => (item ? `Item ${item.title}` : "Empty")}
       onActivateItem={() => undefined}
-    />
+    />,
   );
 
   // Navigation labels.
@@ -56,7 +56,7 @@ test("Can activate items", () => {
       ariaDescription="Board navigation description"
       itemAriaLabel={(item) => (item ? `Item ${item.title}` : "Empty")}
       onActivateItem={onFocusItemSpy}
-    />
+    />,
   );
   container.querySelector("button")?.click();
   expect(onFocusItemSpy).toBeCalledWith("1");

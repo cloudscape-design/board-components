@@ -30,7 +30,7 @@ describe("items reordered with keyboard", () => {
         ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -47,7 +47,7 @@ describe("items reordered with keyboard", () => {
         ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -63,7 +63,7 @@ describe("items reordered with keyboard", () => {
         ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
-    })
+    }),
   );
 });
 
@@ -86,7 +86,7 @@ describe("items resized with keyboard", () => {
         [" ", "F", " ", " "],
         [" ", "F", " ", " "],
       ]);
-    })
+    }),
   );
 
   test(
@@ -104,7 +104,7 @@ describe("items resized with keyboard", () => {
         ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -117,7 +117,7 @@ describe("items resized with keyboard", () => {
           ["X", "X", " ", " "],
           ["X", "X", " ", " "],
         ],
-        []
+        [],
       ),
       DndPageObject,
       async (page) => {
@@ -132,8 +132,8 @@ describe("items resized with keyboard", () => {
           ["X", "X", " ", " "],
           ["X", "X", " ", " "],
         ]);
-      }
-    )
+      },
+    ),
   );
 });
 
@@ -161,7 +161,7 @@ describe("items inserted with keyboard", () => {
         [" ", " ", " ", "I"],
         [" ", " ", " ", "I"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -182,7 +182,7 @@ describe("items inserted with keyboard", () => {
         [" ", " ", " ", "H"],
         [" ", " ", " ", "H"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -200,7 +200,7 @@ describe("items inserted with keyboard", () => {
         ["E", "F", "G", "H"],
         ["E", "F", "G", "H"],
       ]);
-    })
+    }),
   );
 
   test(
@@ -210,10 +210,10 @@ describe("items inserted with keyboard", () => {
       await page.keys(["Enter"]);
       await page.keys(["ArrowLeft"]);
       await expect(page.getText(boardWrapper.find(`[data-item-id="I"]`).toSelector())).resolves.toBe(
-        "Widget I\n(preview) Empty widget"
+        "Widget I\n(preview) Empty widget",
       );
       await expect(page.isDisplayed(boardItemResizeHandle("I"))).resolves.toBe(false);
-    })
+    }),
   );
 
   test(
@@ -223,6 +223,6 @@ describe("items inserted with keyboard", () => {
       await page.keys(["Enter"]);
       await page.keys(["ArrowLeft"]);
       await expect(page.isDisplayed(paletteItemDragHandle("M"))).resolves.toBe(false);
-    })
+    }),
   );
 });

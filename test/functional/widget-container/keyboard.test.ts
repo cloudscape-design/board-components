@@ -9,7 +9,7 @@ class PageObject extends ScreenshotPageObject {
   containsFocused(selector: string) {
     return this.browser.execute(
       (selector) => document.querySelector(selector)!.contains(document.activeElement),
-      selector
+      selector,
     );
   }
 }
@@ -38,5 +38,5 @@ test(
 
     await page.focusNextElement();
     expect(await page.isFocused(firstItem.findResizeHandle().toSelector())).toBeTruthy();
-  })
+  }),
 );
