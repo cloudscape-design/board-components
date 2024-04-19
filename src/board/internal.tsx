@@ -180,6 +180,7 @@ export function InternalBoard<D>({
 
   useDragSubscription("acquire", ({ droppableId, draggableItem, renderAcquiredItem }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
+    console.log(placeholdersLayout.items);
 
     // If missing then it does not belong to this board.
     if (!placeholder) {
