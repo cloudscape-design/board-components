@@ -39,7 +39,7 @@ export interface Droppable {
   context: DropTargetContext;
 }
 
-interface AcquireData {
+export interface AcquireData {
   droppableId: ItemId;
   draggableItem: Item;
   renderAcquiredItem: () => ReactNode;
