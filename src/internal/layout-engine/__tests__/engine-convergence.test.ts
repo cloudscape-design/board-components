@@ -14,7 +14,7 @@ const MAX_EXECUTION_TIME_RESIZE_MS = 200;
 function debug(commandName: string, averageTime: number, maxTime: number) {
   const fileName = "[engine-convergence.test.ts]";
   console.log(
-    `${fileName} ${commandName} resolutions average time: ${averageTime.toFixed(0)}ms, max time: ${maxTime}ms.`
+    `${fileName} ${commandName} resolutions average time: ${averageTime.toFixed(0)}ms, max time: ${maxTime}ms.`,
   );
 }
 

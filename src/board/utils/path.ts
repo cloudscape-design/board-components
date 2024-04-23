@@ -12,7 +12,7 @@ export function normalizeInsertionPath(
   path: readonly Position[],
   insertionDirection: Direction,
   columns: number,
-  rows: number
+  rows: number,
 ): Position[] {
   let edgeIndex = -1;
   for (let i = 0; i < path.length; i++) {

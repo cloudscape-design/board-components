@@ -82,7 +82,7 @@ export function interpretItems(items: readonly Item[], columns: number): GridLay
 export function transformItems<D>(
   sourceItems: readonly BoardItemDefinition<D>[],
   gridLayout: GridLayout,
-  resizeTarget: null | ItemId
+  resizeTarget: null | ItemId,
 ): readonly BoardItemDefinition<D>[] {
   const itemById = new Map(sourceItems.map((item) => [item.id, item]));
   const getItem = (itemId: ItemId) => {

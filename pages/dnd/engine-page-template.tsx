@@ -55,7 +55,7 @@ export function EnginePageTemplate({
             }
             if (removedItem) {
               setPaletteItems((prev) =>
-                [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title))
+                [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title)),
               );
             }
           }}

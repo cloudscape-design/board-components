@@ -75,19 +75,19 @@ export function getClosestNeighbor(target: Rect, sources: readonly Rect[], direc
   switch (direction) {
     case "left":
       return getFirst(
-        sources.filter((rect) => rect.right <= target.left).sort((r1, r2) => r2.left - r1.left || verticalDiff(r1, r2))
+        sources.filter((rect) => rect.right <= target.left).sort((r1, r2) => r2.left - r1.left || verticalDiff(r1, r2)),
       );
     case "right":
       return getFirst(
-        sources.filter((rect) => rect.left >= target.right).sort((r1, r2) => r1.left - r2.left || verticalDiff(r1, r2))
+        sources.filter((rect) => rect.left >= target.right).sort((r1, r2) => r1.left - r2.left || verticalDiff(r1, r2)),
       );
     case "up":
       return getFirst(
-        sources.filter((rect) => rect.bottom <= target.top).sort((r1, r2) => r2.top - r1.top || horizontalDiff(r1, r2))
+        sources.filter((rect) => rect.bottom <= target.top).sort((r1, r2) => r2.top - r1.top || horizontalDiff(r1, r2)),
       );
     case "down":
       return getFirst(
-        sources.filter((rect) => rect.top >= target.bottom).sort((r1, r2) => r1.top - r2.top || horizontalDiff(r1, r2))
+        sources.filter((rect) => rect.top >= target.bottom).sort((r1, r2) => r1.top - r2.top || horizontalDiff(r1, r2)),
       );
   }
 }

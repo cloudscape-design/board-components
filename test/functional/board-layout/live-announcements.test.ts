@@ -32,7 +32,7 @@ test(
       "Item moved to row 3. Disturbed 1 items.",
       "reorder committed",
     ]);
-  })
+  }),
 );
 
 test(
@@ -48,7 +48,7 @@ test(
       "Item moved to column 2. Disturbed 1 items.",
       "reorder discarded",
     ]);
-  })
+  }),
 );
 
 test(
@@ -66,7 +66,7 @@ test(
       "Item resized to rows 2 (minimal).",
       "resize committed",
     ]);
-  })
+  }),
 );
 
 test(
@@ -84,7 +84,7 @@ test(
       "Item resized to columns 1 (minimal).",
       "resize discarded",
     ]);
-  })
+  }),
 );
 
 test(
@@ -104,7 +104,7 @@ test(
       "Item inserted to column 4, row 3. Disturbed 1 items.",
       "insert committed",
     ]);
-  })
+  }),
 );
 
 test(
@@ -122,7 +122,7 @@ test(
       "Item inserted to column 3, row 1. Disturbed 3 items.",
       "insert discarded",
     ]);
-  })
+  }),
 );
 
 test(
@@ -140,7 +140,7 @@ test(
       "Dragging",
       "Insertion discarded",
     ]);
-  })
+  }),
 );
 
 test(
@@ -155,5 +155,5 @@ test(
     await page.pause(200 + 100);
 
     await expect(page.getLiveAnnouncements()).resolves.toEqual(["Removed item Widget A. Disturbed 1 items."]);
-  })
+  }),
 );

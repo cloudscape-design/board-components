@@ -17,7 +17,7 @@ export interface DragHandleProps {
 
 function DragHandle(
   { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown, isActive }: DragHandleProps,
-  ref: ForwardedRef<HTMLButtonElement>
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
     <Handle

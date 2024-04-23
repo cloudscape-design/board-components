@@ -105,7 +105,7 @@ export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
   { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children }: ItemContainerProps,
-  ref: Ref<ItemContainerRef>
+  ref: Ref<ItemContainerRef>,
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
   const pointerOffsetRef = useRef(new Coordinates({ x: 0, y: 0 }));
@@ -181,7 +181,7 @@ function ItemContainerComponent(
         new Coordinates({
           x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
           y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
-        })
+        }),
       );
     }, 10);
     const onPointerUp = () => {

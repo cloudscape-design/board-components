@@ -13,7 +13,7 @@ export function getCollisionRect(
   operation: Operation,
   draggableElement: HTMLElement,
   coordinates: Coordinates,
-  sizeOverride: null | { width: number; height: number }
+  sizeOverride: null | { width: number; height: number },
 ): Rect {
   const { left, top, width, height } = getNormalizedElementRect(draggableElement);
 

@@ -8,7 +8,7 @@ import { BoardProps } from "../interfaces";
 
 export function createItemsChangeEvent<D>(
   items: readonly BoardProps.Item<D>[],
-  layoutShift: LayoutShift
+  layoutShift: LayoutShift,
 ): CustomEvent<BoardProps.ItemsChangeDetail<D>> {
   const insertTarget = layoutShift.moves.find((move) => move.type === "INSERT")?.itemId ?? null;
   const moveTarget = layoutShift.moves.find((move) => move.type === "MOVE")?.itemId ?? null;

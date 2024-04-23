@@ -31,7 +31,7 @@ test("returns next droppable matching the direction", () => {
       ["2", { element: getMockElement({ left: 5, right: 5, top: 0, bottom: 0 }) } as Droppable],
       ["3", { element: getMockElement({ left: 10, right: 0, top: 0, bottom: 0 }) } as Droppable],
     ],
-    "right"
+    "right",
   );
   expect(next).toBe("2");
 });

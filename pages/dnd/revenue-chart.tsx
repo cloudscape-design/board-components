@@ -58,10 +58,10 @@ export function RevenueChart({ height }: { height: number }) {
           return Math.abs(value) >= 1e9
             ? (value / 1e9).toFixed(1).replace(/\.0$/, "") + "G"
             : Math.abs(value) >= 1e6
-            ? (value / 1e6).toFixed(1).replace(/\.0$/, "") + "M"
-            : Math.abs(value) >= 1e3
-            ? (value / 1e3).toFixed(1).replace(/\.0$/, "") + "K"
-            : value.toFixed(2);
+              ? (value / 1e6).toFixed(1).replace(/\.0$/, "") + "M"
+              : Math.abs(value) >= 1e3
+                ? (value / 1e3).toFixed(1).replace(/\.0$/, "") + "K"
+                : value.toFixed(2);
         },
       }}
       ariaLabel="Single data series bar chart"

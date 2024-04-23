@@ -249,8 +249,8 @@ export function InternalBoard<D>({
                     state={transition ? (transition.collisionIds?.has(placeholder.id) ? "hover" : "active") : "default"}
                     gridContext={gridContext}
                     columns={itemsLayout.columns}
-                  />
-                )
+                  />,
+                ),
               );
 
               items.forEach((item) => {
@@ -293,7 +293,7 @@ export function InternalBoard<D>({
                     {item.id === acquiredItem?.id && acquiredItemElement
                       ? () => acquiredItemElement
                       : () => renderItem(item, { removeItem: () => removeItemAction(item) })}
-                  </ItemContainer>
+                  </ItemContainer>,
                 );
               });
 

@@ -13,7 +13,7 @@ const MAX_EXECUTION_TIME_MS = 25;
 function debug(commandName: string, averageTime: number, maxTime: number) {
   const fileName = "[engine-cache.test.ts]";
   console.log(
-    `${fileName} ${commandName} second resolutions average time: ${averageTime.toFixed(0)}ms, max time: ${maxTime}ms.`
+    `${fileName} ${commandName} second resolutions average time: ${averageTime.toFixed(0)}ms, max time: ${maxTime}ms.`,
   );
 }
 

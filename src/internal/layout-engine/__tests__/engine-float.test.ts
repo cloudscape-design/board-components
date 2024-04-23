@@ -44,7 +44,7 @@ test("all items but the move target float to the top after move+commit", () => {
 
         expect(invalidItem, `Expected item "${invalidItem}" to float.`).toBe(null);
       }
-    }
+    },
   );
 });
 

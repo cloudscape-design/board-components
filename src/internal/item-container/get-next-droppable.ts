@@ -13,7 +13,7 @@ import { getNormalizedElementRect } from "../utils/screen";
 export function getNextDroppable(
   draggableElement: HTMLElement,
   droppables: readonly [ItemId, Droppable][],
-  direction: Direction
+  direction: Direction,
 ): null | ItemId {
   const draggableRect = getNormalizedElementRect(draggableElement);
   const sources = new Map(droppables.map(([id, d]) => [getNormalizedElementRect(d.element), id]));

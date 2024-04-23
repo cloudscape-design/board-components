@@ -27,7 +27,7 @@ export function listPublicDirs(baseDir) {
         elem !== "internal" &&
         elem !== "index.tsx" &&
         elem !== "index.ts" &&
-        elem !== "test-utils"
+        elem !== "test-utils",
     );
 }
 

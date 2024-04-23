@@ -12,7 +12,7 @@ import { getLayoutRows } from "../layout";
 function createMockTransition(
   operation: Operation,
   itemsLayout: GridLayout,
-  layoutShift: LayoutShift
+  layoutShift: LayoutShift,
 ): Transition<null> {
   return {
     operation,
@@ -48,7 +48,7 @@ describe("getLayoutRows", () => {
         ]),
         moves: [],
         conflicts: [],
-      }
+      },
     );
     const rows = getLayoutRows(transition);
     expect(rows).toBe(2);
@@ -72,7 +72,7 @@ describe("getLayoutRows", () => {
         ]),
         moves: [],
         conflicts: [],
-      }
+      },
     );
     const rows = getLayoutRows(transition);
     expect(rows).toBe(3);

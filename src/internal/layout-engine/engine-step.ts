@@ -176,7 +176,7 @@ function refloatGrid(layoutState: LayoutEngineState, userMove?: CommittedMove): 
 function findConflicts(
   grid: ReadonlyLayoutEngineGrid,
   previousConflicts: null | Conflicts,
-  userMove: CommittedMove
+  userMove: CommittedMove,
 ): null | Conflicts {
   // The conflicts are only defined for MOVE command type to make swaps possible.
   if (userMove.type !== "MOVE") {

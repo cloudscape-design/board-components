@@ -458,7 +458,7 @@ test("Float moves don't interfere with swaps", () => {
       ["D", "E"],
       [" ", "F"],
       [" ", "F"],
-    ])
+    ]),
   );
 });
 
@@ -494,6 +494,6 @@ test("E forces conflicts on C and D simultaneously", () => {
       [" ", " ", " ", "G"],
       [" ", " ", "F", "F"],
       [" ", " ", "F", "F"],
-    ])
+    ]),
   );
 });

@@ -64,7 +64,7 @@ export function fromTextPath(textPath: string, gridArg: GridLayout | GridMatrix)
   // Find move target.
   const grid = Array.isArray(gridArg) ? fromMatrix(gridArg) : gridArg;
   const targets = grid.items.filter(
-    (item) => item.y <= start.y && start.y < item.y + item.height && item.x <= start.x && start.x < item.x + item.width
+    (item) => item.y <= start.y && start.y < item.y + item.height && item.x <= start.x && start.x < item.x + item.width,
   );
   if (targets.length === 0) {
     throw new Error("No move target corresponding given path.");

@@ -258,7 +258,7 @@ export function generateResize(grid: GridLayout, options?: GenerateGridResizeOpt
     new Position({
       x: resizeTarget.x + resizeTarget.width + widthDelta,
       y: resizeTarget.y + resizeTarget.height + heightDelta,
-    })
+    }),
   );
 
   return { itemId: resizeTarget.id, path };

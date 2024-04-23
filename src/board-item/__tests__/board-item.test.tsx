@@ -33,7 +33,7 @@ describe("WidgetContainer", () => {
         <BoardItem header="Header" footer="Footer" settings="Settings" i18nStrings={i18nStrings}>
           Content
         </BoardItem>
-      </div>
+      </div>,
     );
     const itemWrapper = createWrapper().findBoardItem()!;
     expect(itemWrapper.findHeader()!.getElement().textContent).toBe("Header");

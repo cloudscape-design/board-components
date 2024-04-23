@@ -63,7 +63,7 @@ export function getInsertionDirection(cursorOffset: Coordinates): Direction {
 export function getLayoutShift<D>(
   transition: Transition<D>,
   path: readonly Position[],
-  insertionDirection?: Direction
+  insertionDirection?: Direction,
 ): null | LayoutShift {
   if (path.length === 0) {
     return null;

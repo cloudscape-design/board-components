@@ -200,7 +200,7 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
 
 function updateTransitionWithPointerEvent<D>(
   state: TransitionState<D>,
-  { collisionIds, positionOffset, draggableRect }: UpdateWithPointerAction
+  { collisionIds, positionOffset, draggableRect }: UpdateWithPointerAction,
 ): TransitionState<D> {
   const { transition } = state;
 
@@ -255,7 +255,7 @@ function updateTransitionWithPointerEvent<D>(
 
 function updateTransitionWithKeyboardEvent<D>(
   state: TransitionState<D>,
-  { direction }: UpdateWithKeyboardAction
+  { direction }: UpdateWithKeyboardAction,
 ): TransitionState<D> {
   const { transition } = state;
 
@@ -311,7 +311,7 @@ function updateTransitionWithKeyboardEvent<D>(
 
 function acquireTransitionItem<D>(
   state: TransitionState<D>,
-  { position, layoutElement, acquiredItemElement }: AcquireItemAction
+  { position, layoutElement, acquiredItemElement }: AcquireItemAction,
 ): TransitionState<D> {
   const { transition } = state;
 

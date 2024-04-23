@@ -39,10 +39,10 @@ test("throws if move command is not valid", () => {
   ]);
 
   expect(() => new LayoutEngine(grid).move({ itemId: "X", path: [new Position({ x: 0, y: 0 })] })).toThrowError(
-    'Item with id "X" not found in the grid.'
+    'Item with id "X" not found in the grid.',
   );
   expect(() => new LayoutEngine(grid).move({ itemId: "F", path: [new Position({ x: 3, y: 1 })] })).toThrowError(
-    "Invalid move: outside grid."
+    "Invalid move: outside grid.",
   );
 });
 
@@ -54,7 +54,7 @@ test("throws if resize command is not valid", () => {
   ]);
 
   expect(() => new LayoutEngine(grid).resize({ itemId: "X", path: [new Position({ x: 1, y: 1 })] })).toThrowError(
-    'Item with id "X" not found in the grid.'
+    'Item with id "X" not found in the grid.',
   );
 
   expect(() =>
@@ -62,11 +62,11 @@ test("throws if resize command is not valid", () => {
       fromMatrix([
         ["A", "A"],
         ["A", "A"],
-      ])
+      ]),
     ).resize({
       itemId: "A",
       path: [new Position({ x: 1, y: 2 }), new Position({ x: 0, y: 2 })],
-    })
+    }),
   ).toThrowError("Invalid resize: can't resize to 0.");
 
   expect(() =>
@@ -74,11 +74,11 @@ test("throws if resize command is not valid", () => {
       fromMatrix([
         ["A", "A"],
         ["A", "A"],
-      ])
+      ]),
     ).resize({
       itemId: "A",
       path: [new Position({ x: 2, y: 1 }), new Position({ x: 2, y: 0 })],
-    })
+    }),
   ).toThrowError("Invalid resize: can't resize to 0.");
 
   expect(() =>
@@ -86,8 +86,8 @@ test("throws if resize command is not valid", () => {
       fromMatrix([
         ["A", "A"],
         ["A", "A"],
-      ])
-    ).resize({ itemId: "A", path: [new Position({ x: 3, y: 2 })] })
+      ]),
+    ).resize({ itemId: "A", path: [new Position({ x: 3, y: 2 })] }),
   ).toThrowError("Invalid resize: outside grid.");
 });
 
@@ -99,10 +99,10 @@ test("throws if insert command is not valid", () => {
   ]);
 
   expect(() =>
-    new LayoutEngine(grid).insert({ itemId: "X", width: 2, height: 1, path: [new Position({ x: 2, y: 2 })] })
+    new LayoutEngine(grid).insert({ itemId: "X", width: 2, height: 1, path: [new Position({ x: 2, y: 2 })] }),
   ).toThrowError("Inserting item is outside the boundaries.");
   expect(() =>
-    new LayoutEngine(grid).insert({ itemId: "X", width: 2, height: 0, path: [new Position({ x: 1, y: 1 })] })
+    new LayoutEngine(grid).insert({ itemId: "X", width: 2, height: 0, path: [new Position({ x: 1, y: 1 })] }),
   ).toThrowError("Inserting item has invalid size.");
 });
 

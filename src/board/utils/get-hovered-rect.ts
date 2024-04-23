@@ -20,6 +20,6 @@ export function getHoveredRect(collisionsIds: readonly ItemId[], placeholders: r
       left: Number.POSITIVE_INFINITY,
       bottom: Number.NEGATIVE_INFINITY,
       right: Number.NEGATIVE_INFINITY,
-    }
+    },
   );
 }

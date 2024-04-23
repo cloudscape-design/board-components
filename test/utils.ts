@@ -10,7 +10,7 @@ const windowSize = { width: 1600, height: 800 };
 export function setupTest<P extends BasePageObject & { init?(): Promise<void> }>(
   url: string,
   PageClass: new (browser: WebdriverIO.Browser) => P,
-  test: (page: P) => Promise<void>
+  test: (page: P) => Promise<void>,
 ) {
   return useBrowser(windowSize, async (browser) => {
     await browser.url(url);

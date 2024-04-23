@@ -21,13 +21,13 @@ writeFile(
   `${basePath}.js`,
   Object.entries(values)
     .map(([key, value]) => `export var ${key} = ${JSON.stringify(value)};`)
-    .join("\n")
+    .join("\n"),
 );
 writeFile(
   `${basePath}.d.ts`,
   Object.keys(values)
     .map((key) => `export const ${key}: string;`)
-    .join("\n")
+    .join("\n"),
 );
 
 function writeFile(filepath, content) {
