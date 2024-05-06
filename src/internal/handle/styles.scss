@@ -4,7 +4,8 @@
   appearance: none;
   background: transparent;
   border: none;
-  padding: cs.$space-scaled-xxs;
+  padding-block: cs.$space-scaled-xxs;
+  padding-inline: cs.$space-scaled-xxs;
 
   color: cs.$color-text-interactive-default;
 
