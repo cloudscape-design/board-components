@@ -297,11 +297,13 @@ function updateTransitionWithKeyboardEvent<D>(
     }
   };
 
+  const isRtl = document.documentElement.dir === "rtl";
+
   switch (direction) {
     case "left":
-      return updateManualItemTransition(transition, "left");
+      return updateManualItemTransition(transition, !isRtl ? "left" : "right");
     case "right":
-      return updateManualItemTransition(transition, "right");
+      return updateManualItemTransition(transition, !isRtl ? "right" : "left");
     case "up":
       return updateManualItemTransition(transition, "up");
     case "down":

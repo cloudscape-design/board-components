@@ -38,7 +38,11 @@ export default function Grid({ layout, children: render, columns }: GridProps) {
     return colspan * cellWidth + (colspan - 1) * gridGap;
   };
   const getHeight = (rowspan: number) => rowspan * rowspanHeight + (rowspan - 1) * gridGap;
-  const getColOffset = (x: number) => getWidth(x) + gridGap;
+  const getColOffset = (x: number) => {
+    const offset = getWidth(x) + gridGap;
+    const isRtl = document.documentElement.dir === "rtl";
+    return !isRtl ? offset : -offset;
+  };
   const getRowOffset = (y: number) => getHeight(y) + gridGap;
 
   const gridContext = { getWidth, getHeight, getColOffset, getRowOffset };
