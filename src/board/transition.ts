@@ -7,6 +7,7 @@ import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getDefaultColumnSpan, getDefaultRowSpan, getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { getLogicalBoundingClientRect } from "../internal/utils/screen";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
@@ -323,9 +324,12 @@ function acquireTransitionItem<D>(
 
   const { columns } = transition.itemsLayout;
 
-  const layoutRect = layoutElement.getBoundingClientRect();
+  const layoutRect = getLogicalBoundingClientRect(layoutElement);
   const itemRect = transition.draggableRect;
-  const offset = new Coordinates({ x: itemRect.left - layoutRect.x, y: itemRect.top - layoutRect.y });
+  const isRtl = document.documentElement.dir === "rtl";
+  // TODO: update
+  const coordinatesX = !isRtl ? itemRect.left - layoutRect.left : itemRect.left - layoutRect.left;
+  const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.top });
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PointerEvent as ReactPointerEvent } from "react";
+import { getLogicalClientX } from "./screen";
 
 export class Coordinates {
   readonly __type = "Coordinates";
@@ -11,7 +12,9 @@ export class Coordinates {
   readonly scrollY = window.scrollY;
 
   static fromEvent(event: PointerEvent | ReactPointerEvent<unknown>): Coordinates {
-    return new Coordinates({ x: event.clientX, y: event.clientY });
+    const clientX = getLogicalClientX(event);
+    const clientY = event.clientY;
+    return new Coordinates({ x: clientX, y: clientY });
   }
 
   static cursorOffset(current: Coordinates, start: Coordinates): Coordinates {
