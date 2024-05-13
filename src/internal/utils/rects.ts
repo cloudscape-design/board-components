@@ -72,6 +72,13 @@ export function getClosestNeighbor(target: Rect, sources: readonly Rect[], direc
   const verticalDiff = (r1: Rect, r2: Rect) => Math.abs(r1.top - target.top) - Math.abs(r2.top - target.top);
   const horizontalDiff = (r1: Rect, r2: Rect) => Math.abs(r1.left - target.left) - Math.abs(r2.left - target.left);
 
+  const isRtl = document.documentElement.dir === "rtl";
+  if (isRtl && direction === "left") {
+    direction = "right";
+  } else if (isRtl && direction === "right") {
+    direction = "left";
+  }
+
   switch (direction) {
     case "left":
       return getFirst(

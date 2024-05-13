@@ -326,9 +326,7 @@ function acquireTransitionItem<D>(
 
   const layoutRect = getLogicalBoundingClientRect(layoutElement);
   const itemRect = transition.draggableRect;
-  const isRtl = document.documentElement.dir === "rtl";
-  // TODO: update
-  const coordinatesX = !isRtl ? itemRect.left - layoutRect.left : itemRect.left - layoutRect.left;
+  const coordinatesX = itemRect.left - layoutRect.left;
   const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.top });
   const insertionDirection = getInsertionDirection(offset);
 
