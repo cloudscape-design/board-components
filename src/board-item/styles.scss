@@ -50,6 +50,6 @@
 .resizer {
   position: absolute;
   // offset for inner paddings in the handle
-  bottom: calc(#{cs.$space-static-xs} - #{cs.$space-static-xxxs});
-  right: calc(#{cs.$space-static-xs} - #{cs.$space-static-xxxs});
+  inset-block-end: calc(#{cs.$space-static-xs} - #{cs.$space-static-xxxs});
+  inset-inline-end: calc(#{cs.$space-static-xs} - #{cs.$space-static-xxxs});
 }
