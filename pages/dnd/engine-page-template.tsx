@@ -41,6 +41,7 @@ export function EnginePageTemplate({
                   ariaLabel="Widget settings"
                   variant="icon"
                   onItemClick={() => actions.removeItem()}
+                  expandToViewport={true}
                 />
               }
               i18nStrings={boardItemI18nStrings}
