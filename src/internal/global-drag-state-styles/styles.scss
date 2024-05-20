@@ -4,6 +4,10 @@
 
 .show-resize-cursor * {
   cursor: nwse-resize;
+
+  @include shared.with-direction('rtl') {
+    cursor: nesw-resize;
+  }
 }
 
 .disable-selection * {

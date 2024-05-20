@@ -19,3 +19,9 @@
     border: 2px solid cs.$color-border-item-focused;
   }
 }
+
+@mixin with-direction($direction) {
+  &:dir(#{$direction}) {
+    @content;
+  }
+}
