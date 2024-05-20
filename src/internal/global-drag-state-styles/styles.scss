@@ -1,3 +1,5 @@
+@use "../shared.scss" as shared;
+
 .show-grab-cursor * {
   cursor: grabbing;
 }
