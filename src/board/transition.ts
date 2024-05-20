@@ -7,7 +7,7 @@ import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getDefaultColumnSpan, getDefaultRowSpan, getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { getLogicalBoundingClientRect } from "../internal/utils/screen";
+import { getIsRtl, getLogicalBoundingClientRect } from "../internal/utils/screen";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
@@ -298,7 +298,7 @@ function updateTransitionWithKeyboardEvent<D>(
     }
   };
 
-  const isRtl = document.documentElement.dir === "rtl";
+  const isRtl = getIsRtl(document.documentElement);
 
   switch (direction) {
     case "left":
@@ -326,8 +326,8 @@ function acquireTransitionItem<D>(
 
   const layoutRect = getLogicalBoundingClientRect(layoutElement);
   const itemRect = transition.draggableRect;
-  const coordinatesX = itemRect.left - layoutRect.left;
-  const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.top });
+  const coordinatesX = itemRect.left - layoutRect.insetInlineStart;
+  const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.insetBlockStart });
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.

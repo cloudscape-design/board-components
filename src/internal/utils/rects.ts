@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Direction, Rect } from "../interfaces";
+import { getIsRtl } from "./screen";
 
 export function isInside(rect: Rect, bounds: Rect) {
   return (
@@ -68,11 +69,11 @@ export function getGridPlacement(target: Rect, grid: readonly Rect[]): Rect {
 }
 
 export function getClosestNeighbor(target: Rect, sources: readonly Rect[], direction: Direction): null | Rect {
+  const isRtl = getIsRtl(document.documentElement);
   const getFirst = (rects: Rect[]) => rects[0] ?? null;
   const verticalDiff = (r1: Rect, r2: Rect) => Math.abs(r1.top - target.top) - Math.abs(r2.top - target.top);
   const horizontalDiff = (r1: Rect, r2: Rect) => Math.abs(r1.left - target.left) - Math.abs(r2.left - target.left);
 
-  const isRtl = document.documentElement.dir === "rtl";
   if (isRtl && direction === "left") {
     direction = "right";
   } else if (isRtl && direction === "right") {

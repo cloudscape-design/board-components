@@ -28,7 +28,7 @@ import {
 } from "../dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getLogicalBoundingClientRect, getLogicalClientX, getNormalizedElementRect } from "../utils/screen";
+import { getIsRtl, getLogicalBoundingClientRect, getLogicalClientX, getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
@@ -114,6 +114,7 @@ function ItemContainerComponent(
   const [isHidden, setIsHidden] = useState(false);
   const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
+  const isRtl = itemRef.current ? getIsRtl(itemRef.current) : false;
   const draggableApi = useDraggable({
     draggableItem: item,
     getCollisionRect: (operation, coordinates, dropTarget) => {
@@ -309,10 +310,13 @@ function ItemContainerComponent(
   function onDragHandlePointerDown(event: ReactPointerEvent) {
     // Calculate the offset between item's top-left corner and the pointer landing position.
     const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event);
+    const clientX = getLogicalClientX(event, isRtl);
     const clientY = event.clientY;
-    pointerOffsetRef.current = new Coordinates({ x: clientX - rect.left, y: clientY - rect.top });
-    originalSizeRef.current = { width: rect.width, height: rect.height };
+    pointerOffsetRef.current = new Coordinates({
+      x: clientX - rect.insetInlineStart,
+      y: clientY - rect.insetBlockStart,
+    });
+    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
     pointerBoundariesRef.current = null;
 
     draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
@@ -325,17 +329,17 @@ function ItemContainerComponent(
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
     // Calculate the offset between item's bottom-right corner and the pointer landing position.
     const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event);
+    const clientX = getLogicalClientX(event, isRtl);
     const clientY = event.clientY;
-    pointerOffsetRef.current = new Coordinates({ x: clientX - rect.right, y: clientY - rect.bottom });
-    originalSizeRef.current = { width: rect.width, height: rect.height };
+    pointerOffsetRef.current = new Coordinates({ x: clientX - rect.insetInlineEnd, y: clientY - rect.insetBlockEnd });
+    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
 
     // Calculate boundaries below which the cursor cannot move.
     const minWidth = getItemSize(null).minWidth;
     const minHeight = getItemSize(null).minHeight;
     pointerBoundariesRef.current = new Coordinates({
-      x: clientX - rect.width + minWidth,
-      y: clientY - rect.height + minHeight,
+      x: clientX - rect.inlineSize + minWidth,
+      y: clientY - rect.blockSize + minHeight,
     });
 
     draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
@@ -353,15 +357,12 @@ function ItemContainerComponent(
   }
 
   if (transition && transition.interactionType === "pointer") {
-    const isRtl = document.documentElement.dir === "rtl";
-    const property = !isRtl ? "left" : "right";
-
     // Adjust the dragged/resized item to the pointer's location.
     itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
-    itemTransitionStyle[property] = transition.positionTransform?.x;
-    itemTransitionStyle.top = transition.positionTransform?.y;
-    itemTransitionStyle.width = transition.sizeTransform?.width;
-    itemTransitionStyle.height = transition.sizeTransform?.height;
+    itemTransitionStyle.insetInlineStart = transition.positionTransform?.x;
+    itemTransitionStyle.insetBlockStart = transition.positionTransform?.y;
+    itemTransitionStyle.inlineSize = transition.sizeTransform?.width;
+    itemTransitionStyle.blockSize = transition.sizeTransform?.height;
     itemTransitionStyle.pointerEvents = "none";
   }
 
