@@ -22,6 +22,7 @@ import {
   interpretItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { getIsRtl } from "../internal/utils/screen";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 
@@ -112,11 +113,15 @@ export function InternalBoard<D>({
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
     const boardContains = (target: null | Element) => board === target || board.contains(target);
+    const isRtl = getIsRtl(document.documentElement);
+    const left = !isRtl ? rect.left : document.documentElement.clientWidth - rect.left;
+    const right = !isRtl ? rect.right : document.documentElement.clientWidth - rect.right;
+    const { top, bottom } = rect;
     return (
-      boardContains(document.elementFromPoint(rect.left, rect.top)) ||
-      boardContains(document.elementFromPoint(rect.right, rect.top)) ||
-      boardContains(document.elementFromPoint(rect.right, rect.bottom)) ||
-      boardContains(document.elementFromPoint(rect.left, rect.bottom))
+      boardContains(document.elementFromPoint(left, top)) ||
+      boardContains(document.elementFromPoint(right, top)) ||
+      boardContains(document.elementFromPoint(right, bottom)) ||
+      boardContains(document.elementFromPoint(left, bottom))
     );
   }
 
