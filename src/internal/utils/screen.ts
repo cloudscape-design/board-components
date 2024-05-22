@@ -24,7 +24,10 @@ export function getNormalizedElementRect(element: HTMLElement): {
   };
 }
 
-export function getIsRtl(element: HTMLElement | SVGElement) {
+export function getIsRtl(element: null | HTMLElement | SVGElement) {
+  if (!element || !(element instanceof HTMLElement) || !(element instanceof SVGElement)) {
+    return false;
+  }
   return getComputedStyle(element).direction === "rtl";
 }
 
@@ -33,8 +36,8 @@ export function getIsRtl(element: HTMLElement | SVGElement) {
  * the document in order for computations to yield the same result in both
  * element directions.
  */
-export function getLogicalClientX(event: PointerEvent | ReactPointerEvent<unknown>, IsRtl: boolean) {
-  return IsRtl ? document.documentElement.clientWidth - event.clientX : event.clientX;
+export function getLogicalClientX(event: PointerEvent | ReactPointerEvent<unknown>, isRtl: boolean) {
+  return isRtl ? document.documentElement.clientWidth - event.clientX : event.clientX;
 }
 
 /**

@@ -5,7 +5,6 @@ import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { useDensityMode } from "@cloudscape-design/component-toolkit/internal";
 import clsx from "clsx";
 import { Children, useRef } from "react";
-import { getIsRtl } from "../../internal/utils/screen";
 import { useMergeRefs } from "../utils/use-merge-refs";
 import { zipTwoArrays } from "../utils/zip-arrays";
 
@@ -25,13 +24,12 @@ const ROWSPAN_HEIGHT = {
   compact: 76,
 };
 
-export default function Grid({ layout, children: render, columns }: GridProps) {
+export default function Grid({ layout, children: render, columns, isRtl }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
   const densityMode = useDensityMode(gridRef);
   const gridGap = GRID_GAP[densityMode];
   const rowspanHeight = ROWSPAN_HEIGHT[densityMode];
-  const isRtl = gridRef.current ? getIsRtl(gridRef.current) : false;
 
   // The below getters translate relative grid units into size/offset values in pixels.
   const getWidth = (colspan: number) => {

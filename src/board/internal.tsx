@@ -48,11 +48,13 @@ export function InternalBoard<D>({
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
+  const isRtl = getIsRtl(containerAccessRef.current);
+
   useGlobalDragStateStyles();
 
   const autoScrollHandlers = useAutoScroll();
 
-  const [transitionState, dispatch] = useTransition<D>();
+  const [transitionState, dispatch] = useTransition<D>({ isRtl });
   const transition = transitionState.transition;
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
@@ -113,7 +115,6 @@ export function InternalBoard<D>({
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
     const boardContains = (target: null | Element) => board === target || board.contains(target);
-    const isRtl = getIsRtl(document.documentElement);
     const left = !isRtl ? rect.left : document.documentElement.clientWidth - rect.left;
     const right = !isRtl ? rect.right : document.documentElement.clientWidth - rect.right;
     const { top, bottom } = rect;
@@ -233,7 +234,11 @@ export function InternalBoard<D>({
 
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
-          <Grid columns={itemsLayout.columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+          <Grid
+            isRtl={isRtl}
+            columns={itemsLayout.columns}
+            layout={[...placeholdersLayout.items, ...itemsLayout.items]}
+          >
             {(gridContext) => {
               const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
               const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves, gridContext) : {};
@@ -294,6 +299,7 @@ export function InternalBoard<D>({
                       maxHeight: gridContext.getHeight(itemMaxSize.height),
                     })}
                     onKeyMove={onItemMove}
+                    isRtl={isRtl}
                   >
                     {item.id === acquiredItem?.id && acquiredItemElement
                       ? () => acquiredItemElement

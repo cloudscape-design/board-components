@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PointerEvent as ReactPointerEvent } from "react";
-import { getIsRtl, getLogicalClientX } from "./screen";
+import { getLogicalClientX } from "./screen";
 
 export class Coordinates {
   readonly __type = "Coordinates";
@@ -11,8 +11,7 @@ export class Coordinates {
   readonly scrollX = window.scrollX;
   readonly scrollY = window.scrollY;
 
-  static fromEvent(event: PointerEvent | ReactPointerEvent<unknown>): Coordinates {
-    const isRtl = getIsRtl(document.documentElement);
+  static fromEvent(event: PointerEvent | ReactPointerEvent<unknown>, { isRtl }: { isRtl: boolean }): Coordinates {
     const clientX = getLogicalClientX(event, isRtl);
     const clientY = event.clientY;
     return new Coordinates({ x: clientX, y: clientY });

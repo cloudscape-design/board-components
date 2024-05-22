@@ -28,7 +28,7 @@ import {
 } from "../dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getIsRtl, getLogicalBoundingClientRect, getLogicalClientX, getNormalizedElementRect } from "../utils/screen";
+import { getLogicalBoundingClientRect, getLogicalClientX, getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
@@ -99,12 +99,13 @@ export interface ItemContainerProps {
   };
   onKeyMove?(direction: Direction): void;
   children: (hasDropTarget: boolean) => ReactNode;
+  isRtl: boolean;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children }: ItemContainerProps,
+  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children, isRtl }: ItemContainerProps,
   ref: Ref<ItemContainerRef>,
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
@@ -114,7 +115,6 @@ function ItemContainerComponent(
   const [isHidden, setIsHidden] = useState(false);
   const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
-  const isRtl = itemRef.current ? getIsRtl(itemRef.current) : false;
   const draggableApi = useDraggable({
     draggableItem: item,
     getCollisionRect: (operation, coordinates, dropTarget) => {
@@ -177,7 +177,7 @@ function ItemContainerComponent(
   const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
     const onPointerMove = throttle((event: PointerEvent) => {
-      const coordinates = Coordinates.fromEvent(event);
+      const coordinates = Coordinates.fromEvent(event, { isRtl });
       draggableApi.updateTransition(
         new Coordinates({
           x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
@@ -246,7 +246,7 @@ function ItemContainerComponent(
   function handleInsert(direction: Direction) {
     // Find the closest droppable (in the direction) to the item.
     const droppables = draggableApi.getDroppables();
-    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
+    const nextDroppable = getNextDroppable({ draggableElement: itemRef.current!, droppables, direction, isRtl });
 
     if (!nextDroppable) {
       // TODO: add announcement
@@ -319,7 +319,7 @@ function ItemContainerComponent(
     originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
     pointerBoundariesRef.current = null;
 
-    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event, { isRtl }));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -342,7 +342,7 @@ function ItemContainerComponent(
       y: clientY - rect.blockSize + minHeight,
     });
 
-    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event, { isRtl }));
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {

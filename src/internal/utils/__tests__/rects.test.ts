@@ -95,16 +95,72 @@ describe("getGridPlacement", () => {
 
 describe("getClosestNeighbor", () => {
   test("returns null if can't find a neighbor in the given direction", () => {
-    expect(getClosestNeighbor({ left: -2, right: -1, top: 0, bottom: 1 }, grid, "left")).toBe(null);
-    expect(getClosestNeighbor({ left: 12, right: 13, top: 0, bottom: 1 }, grid, "right")).toBe(null);
-    expect(getClosestNeighbor({ left: 0, right: 1, top: -2, bottom: -1 }, grid, "up")).toBe(null);
-    expect(getClosestNeighbor({ left: 0, right: 1, top: 8, bottom: 9 }, grid, "down")).toBe(null);
+    expect(
+      getClosestNeighbor({
+        target: { left: -2, right: -1, top: 0, bottom: 1 },
+        sources: grid,
+        direction: "left",
+        isRtl: false,
+      }),
+    ).toBe(null);
+    expect(
+      getClosestNeighbor({
+        target: { left: 12, right: 13, top: 0, bottom: 1 },
+        sources: grid,
+        direction: "right",
+        isRtl: false,
+      }),
+    ).toBe(null);
+    expect(
+      getClosestNeighbor({
+        target: { left: 0, right: 1, top: -2, bottom: -1 },
+        sources: grid,
+        direction: "up",
+        isRtl: false,
+      }),
+    ).toBe(null);
+    expect(
+      getClosestNeighbor({
+        target: { left: 0, right: 1, top: 8, bottom: 9 },
+        sources: grid,
+        direction: "down",
+        isRtl: false,
+      }),
+    ).toBe(null);
   });
 
   test("returns closest grid cell in the given direction", () => {
-    expect(getClosestNeighbor({ left: -2, right: -1, top: 3, bottom: 4 }, grid, "right")).toBe(grid[3]);
-    expect(getClosestNeighbor({ left: 12, right: 13, top: 3, bottom: 4 }, grid, "left")).toBe(grid[5]);
-    expect(getClosestNeighbor({ left: 5, right: 6, top: -2, bottom: -1 }, grid, "down")).toBe(grid[1]);
-    expect(getClosestNeighbor({ left: 5, right: 6, top: 8, bottom: 9 }, grid, "up")).toBe(grid[4]);
+    expect(
+      getClosestNeighbor({
+        target: { left: -2, right: -1, top: 3, bottom: 4 },
+        sources: grid,
+        direction: "right",
+        isRtl: false,
+      }),
+    ).toBe(grid[3]);
+    expect(
+      getClosestNeighbor({
+        target: { left: 12, right: 13, top: 3, bottom: 4 },
+        sources: grid,
+        direction: "left",
+        isRtl: false,
+      }),
+    ).toBe(grid[5]);
+    expect(
+      getClosestNeighbor({
+        target: { left: 5, right: 6, top: -2, bottom: -1 },
+        sources: grid,
+        direction: "down",
+        isRtl: false,
+      }),
+    ).toBe(grid[1]);
+    expect(
+      getClosestNeighbor({
+        target: { left: 5, right: 6, top: 8, bottom: 9 },
+        sources: grid,
+        direction: "up",
+        isRtl: false,
+      }),
+    ).toBe(grid[4]);
   });
 });

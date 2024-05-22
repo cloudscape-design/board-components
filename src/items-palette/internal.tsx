@@ -9,6 +9,7 @@ import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
+import { getIsRtl } from "../internal/utils/screen";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
@@ -23,6 +24,8 @@ export function InternalItemsPalette<D>({
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
   const [dropState, setDropState] = useState<{ id: string }>();
   const [announcement, setAnnouncement] = useState("");
+
+  const isRtl = getIsRtl(paletteRef.current);
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();
@@ -109,6 +112,7 @@ export function InternalItemsPalette<D>({
                 const { width, height } = dropContext.scale(item);
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };
               }}
+              isRtl={isRtl}
             >
               {(hasDropTarget) => renderItem(item, { showPreview: hasDropTarget })}
             </ItemContainer>
