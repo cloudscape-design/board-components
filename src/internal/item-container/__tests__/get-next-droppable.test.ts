@@ -7,7 +7,7 @@ import { getNextDroppable } from "../../../../lib/components/internal/item-conta
 
 function getMockElement({ left, right, top, bottom }: Rect) {
   return {
-    getBoundingClientRect: () => ({ left, right, top, bottom }),
+    getBoundingClientRect: () => ({ left, right, top, bottom, width: right - left, height: bottom - top }),
     ownerDocument: {
       defaultView: {
         pageXOffset: 0,
