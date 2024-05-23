@@ -25,15 +25,10 @@ export function getNormalizedElementRect(element: HTMLElement): {
 }
 
 export function useIsRtl(elementRef: React.RefObject<Element>) {
-  const getIsRtl = (): boolean => {
-    if (!elementRef.current) {
-      return false;
-    }
-    if (elementRef.current instanceof Element) {
-      return getComputedStyle(elementRef.current).direction === "rtl";
-    }
-    return false;
-  };
+  const getIsRtl = (): boolean =>
+    elementRef.current && elementRef.current instanceof Element
+      ? getComputedStyle(elementRef.current).direction === "rtl"
+      : false;
   return getIsRtl;
 }
 
