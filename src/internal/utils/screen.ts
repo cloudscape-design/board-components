@@ -24,11 +24,14 @@ export function getNormalizedElementRect(element: HTMLElement): {
   };
 }
 
-export function getIsRtl(element: null | HTMLElement | SVGElement) {
-  if (!element || !(element instanceof HTMLElement) || !(element instanceof SVGElement)) {
+export function getIsRtl(element: null | Element | SVGElement) {
+  if (!element) {
     return false;
   }
-  return getComputedStyle(element).direction === "rtl";
+  if (element instanceof Element) {
+    return getComputedStyle(element).direction === "rtl";
+  }
+  return false;
 }
 
 /**
