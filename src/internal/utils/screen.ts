@@ -24,14 +24,17 @@ export function getNormalizedElementRect(element: HTMLElement): {
   };
 }
 
-export function getIsRtl(element: null | Element | SVGElement) {
-  if (!element) {
+export function useIsRtl(elementRef: React.RefObject<Element>) {
+  const getIsRtl = (): boolean => {
+    if (!elementRef.current) {
+      return false;
+    }
+    if (elementRef.current instanceof Element) {
+      return getComputedStyle(elementRef.current).direction === "rtl";
+    }
     return false;
-  }
-  if (element instanceof Element) {
-    return getComputedStyle(element).direction === "rtl";
-  }
-  return false;
+  };
+  return getIsRtl;
 }
 
 /**
@@ -56,9 +59,10 @@ export function getLogicalBoundingClientRect(element: HTMLElement | SVGElement) 
   const inlineSize = boundingClientRect.width;
   const insetBlockStart = boundingClientRect.top;
   const insetBlockEnd = boundingClientRect.bottom;
-  const insetInlineStart = getIsRtl(element)
-    ? document.documentElement.clientWidth - boundingClientRect.right
-    : boundingClientRect.left;
+  const insetInlineStart =
+    element instanceof Element && getComputedStyle(element).direction === "rtl"
+      ? document.documentElement.clientWidth - boundingClientRect.right
+      : boundingClientRect.left;
   const insetInlineEnd = insetInlineStart + inlineSize;
 
   return {

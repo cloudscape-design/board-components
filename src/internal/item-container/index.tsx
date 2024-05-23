@@ -99,7 +99,7 @@ export interface ItemContainerProps {
   };
   onKeyMove?(direction: Direction): void;
   children: (hasDropTarget: boolean) => ReactNode;
-  isRtl: boolean;
+  isRtl: () => boolean;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
@@ -177,7 +177,7 @@ function ItemContainerComponent(
   const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
     const onPointerMove = throttle((event: PointerEvent) => {
-      const coordinates = Coordinates.fromEvent(event, { isRtl });
+      const coordinates = Coordinates.fromEvent(event, { isRtl: isRtl() });
       draggableApi.updateTransition(
         new Coordinates({
           x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
@@ -246,7 +246,12 @@ function ItemContainerComponent(
   function handleInsert(direction: Direction) {
     // Find the closest droppable (in the direction) to the item.
     const droppables = draggableApi.getDroppables();
-    const nextDroppable = getNextDroppable({ draggableElement: itemRef.current!, droppables, direction, isRtl });
+    const nextDroppable = getNextDroppable({
+      draggableElement: itemRef.current!,
+      droppables,
+      direction,
+      isRtl: isRtl(),
+    });
 
     if (!nextDroppable) {
       // TODO: add announcement
@@ -310,7 +315,7 @@ function ItemContainerComponent(
   function onDragHandlePointerDown(event: ReactPointerEvent) {
     // Calculate the offset between item's top-left corner and the pointer landing position.
     const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event, isRtl);
+    const clientX = getLogicalClientX(event, isRtl());
     const clientY = event.clientY;
     pointerOffsetRef.current = new Coordinates({
       x: clientX - rect.insetInlineStart,
@@ -319,7 +324,7 @@ function ItemContainerComponent(
     originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
     pointerBoundariesRef.current = null;
 
-    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event, { isRtl }));
+    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -329,7 +334,7 @@ function ItemContainerComponent(
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
     // Calculate the offset between item's bottom-right corner and the pointer landing position.
     const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event, isRtl);
+    const clientX = getLogicalClientX(event, isRtl());
     const clientY = event.clientY;
     pointerOffsetRef.current = new Coordinates({ x: clientX - rect.insetInlineEnd, y: clientY - rect.insetBlockEnd });
     originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
@@ -342,7 +347,7 @@ function ItemContainerComponent(
       y: clientY - rect.blockSize + minHeight,
     });
 
-    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event, { isRtl }));
+    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {

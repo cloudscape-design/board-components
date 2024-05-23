@@ -22,7 +22,7 @@ const defaultProps: ItemContainerProps = {
   inTransition: false,
   getItemSize: () => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 }),
   children: () => <Item />,
-  isRtl: false,
+  isRtl: () => false,
 };
 
 function Item() {

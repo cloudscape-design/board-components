@@ -40,7 +40,7 @@ export default function Grid({ layout, children: render, columns, isRtl }: GridP
   const getHeight = (rowspan: number) => rowspan * rowspanHeight + (rowspan - 1) * gridGap;
   const getColOffset = (x: number) => {
     const offset = getWidth(x) + gridGap;
-    return !isRtl ? offset : -offset;
+    return !isRtl?.() ? offset : -offset;
   };
   const getRowOffset = (y: number) => getHeight(y) + gridGap;
 

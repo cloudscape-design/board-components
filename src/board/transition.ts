@@ -67,7 +67,7 @@ interface AcquireItemAction {
   acquiredItemElement?: ReactNode;
 }
 
-export function useTransition<D>({ isRtl }: { isRtl: boolean }): [TransitionState<D>, Dispatch<Action<D>>] {
+export function useTransition<D>({ isRtl }: { isRtl: () => boolean }): [TransitionState<D>, Dispatch<Action<D>>] {
   return useReducer(createTransitionReducer<D>({ isRtl }), {
     transition: null,
     removeTransition: null,
@@ -79,7 +79,7 @@ export function selectTransitionRows<D>(state: TransitionState<D>) {
   return state.transition ? getLayoutRows(state.transition) : 0;
 }
 
-function createTransitionReducer<D>({ isRtl }: { isRtl: boolean }) {
+function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
   return function transitionReducer(state: TransitionState<D>, action: Action<D>): TransitionState<D> {
     switch (action.type) {
       case "init":
@@ -263,7 +263,7 @@ function updateTransitionWithPointerEvent<D>(
 function updateTransitionWithKeyboardEvent<D>(
   state: TransitionState<D>,
   { direction }: UpdateWithKeyboardAction,
-  { isRtl }: { isRtl: boolean },
+  { isRtl }: { isRtl: () => boolean },
 ): TransitionState<D> {
   const { transition } = state;
 
@@ -307,9 +307,9 @@ function updateTransitionWithKeyboardEvent<D>(
 
   switch (direction) {
     case "left":
-      return updateManualItemTransition(transition, !isRtl ? "left" : "right");
+      return updateManualItemTransition(transition, !isRtl() ? "left" : "right");
     case "right":
-      return updateManualItemTransition(transition, !isRtl ? "right" : "left");
+      return updateManualItemTransition(transition, !isRtl() ? "right" : "left");
     case "up":
       return updateManualItemTransition(transition, "up");
     case "down":

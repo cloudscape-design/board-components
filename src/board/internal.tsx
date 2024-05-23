@@ -22,7 +22,7 @@ import {
   interpretItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { getIsRtl } from "../internal/utils/screen";
+import { useIsRtl } from "../internal/utils/screen";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 
@@ -48,7 +48,7 @@ export function InternalBoard<D>({
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
-  const isRtl = getIsRtl(containerAccessRef.current);
+  const isRtl = useIsRtl(containerAccessRef);
 
   useGlobalDragStateStyles();
 
@@ -115,8 +115,8 @@ export function InternalBoard<D>({
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
     const boardContains = (target: null | Element) => board === target || board.contains(target);
-    const left = !isRtl ? rect.left : document.documentElement.clientWidth - rect.left;
-    const right = !isRtl ? rect.right : document.documentElement.clientWidth - rect.right;
+    const left = !isRtl() ? rect.left : document.documentElement.clientWidth - rect.left;
+    const right = !isRtl() ? rect.right : document.documentElement.clientWidth - rect.right;
     const { top, bottom } = rect;
     return (
       boardContains(document.elementFromPoint(left, top)) ||

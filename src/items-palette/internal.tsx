@@ -9,7 +9,7 @@ import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { getIsRtl } from "../internal/utils/screen";
+import { useIsRtl } from "../internal/utils/screen";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
@@ -25,7 +25,7 @@ export function InternalItemsPalette<D>({
   const [dropState, setDropState] = useState<{ id: string }>();
   const [announcement, setAnnouncement] = useState("");
 
-  const isRtl = getIsRtl(paletteRef.current);
+  const isRtl = useIsRtl(paletteRef);
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();

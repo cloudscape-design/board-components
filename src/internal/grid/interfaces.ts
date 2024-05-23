@@ -8,7 +8,7 @@ export interface GridProps {
   layout: GridLayoutItem[];
   columns: number;
   children?: (context: GridContext) => ReactNode;
-  isRtl?: boolean;
+  isRtl?: () => boolean;
 }
 
 export interface GridContext {
