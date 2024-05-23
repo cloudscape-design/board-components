@@ -67,10 +67,26 @@ export function getGridPlacement(target: Rect, grid: readonly Rect[]): Rect {
   return placement;
 }
 
-export function getClosestNeighbor(target: Rect, sources: readonly Rect[], direction: Direction): null | Rect {
+export function getClosestNeighbor({
+  target,
+  sources,
+  direction,
+  isRtl,
+}: {
+  target: Rect;
+  sources: readonly Rect[];
+  direction: Direction;
+  isRtl: boolean;
+}): null | Rect {
   const getFirst = (rects: Rect[]) => rects[0] ?? null;
   const verticalDiff = (r1: Rect, r2: Rect) => Math.abs(r1.top - target.top) - Math.abs(r2.top - target.top);
   const horizontalDiff = (r1: Rect, r2: Rect) => Math.abs(r1.left - target.left) - Math.abs(r2.left - target.left);
+
+  if (isRtl && direction === "left") {
+    direction = "right";
+  } else if (isRtl && direction === "right") {
+    direction = "left";
+  }
 
   switch (direction) {
     case "left":

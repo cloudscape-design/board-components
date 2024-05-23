@@ -44,6 +44,7 @@ export function WidgetsBoard({ loading, widgets, onWidgetsChange }: WidgetsBoard
                 ariaLabel={clientI18nStrings.widgetsBoard.widgetSettings}
                 variant="icon"
                 onItemClick={() => setDeleteConfirmation(item.id)}
+                expandToViewport={true}
               />
             }
             i18nStrings={boardItemI18nStrings}

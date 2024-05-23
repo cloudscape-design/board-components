@@ -1,9 +1,15 @@
+@use "../shared.scss" as shared;
+
 .show-grab-cursor * {
   cursor: grabbing;
 }
 
 .show-resize-cursor * {
   cursor: nwse-resize;
+
+  @include shared.with-direction('rtl') {
+    cursor: nesw-resize;
+  }
 }
 
 .disable-selection * {

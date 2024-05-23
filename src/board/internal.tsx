@@ -22,6 +22,7 @@ import {
   interpretItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { useIsRtl } from "../internal/utils/screen";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 
@@ -47,11 +48,13 @@ export function InternalBoard<D>({
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
+  const isRtl = useIsRtl(containerAccessRef);
+
   useGlobalDragStateStyles();
 
   const autoScrollHandlers = useAutoScroll();
 
-  const [transitionState, dispatch] = useTransition<D>();
+  const [transitionState, dispatch] = useTransition<D>({ isRtl });
   const transition = transitionState.transition;
   const removeTransition = transitionState.removeTransition;
   const transitionAnnouncement = transitionState.announcement;
@@ -112,11 +115,14 @@ export function InternalBoard<D>({
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
     const boardContains = (target: null | Element) => board === target || board.contains(target);
+    const left = !isRtl() ? rect.left : document.documentElement.clientWidth - rect.left;
+    const right = !isRtl() ? rect.right : document.documentElement.clientWidth - rect.right;
+    const { top, bottom } = rect;
     return (
-      boardContains(document.elementFromPoint(rect.left, rect.top)) ||
-      boardContains(document.elementFromPoint(rect.right, rect.top)) ||
-      boardContains(document.elementFromPoint(rect.right, rect.bottom)) ||
-      boardContains(document.elementFromPoint(rect.left, rect.bottom))
+      boardContains(document.elementFromPoint(left, top)) ||
+      boardContains(document.elementFromPoint(right, top)) ||
+      boardContains(document.elementFromPoint(right, bottom)) ||
+      boardContains(document.elementFromPoint(left, bottom))
     );
   }
 
@@ -228,7 +234,11 @@ export function InternalBoard<D>({
 
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
-          <Grid columns={itemsLayout.columns} layout={[...placeholdersLayout.items, ...itemsLayout.items]}>
+          <Grid
+            isRtl={isRtl}
+            columns={itemsLayout.columns}
+            layout={[...placeholdersLayout.items, ...itemsLayout.items]}
+          >
             {(gridContext) => {
               const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
               const transforms = layoutShift ? createTransforms(itemsLayout, layoutShift.moves, gridContext) : {};
@@ -289,6 +299,7 @@ export function InternalBoard<D>({
                       maxHeight: gridContext.getHeight(itemMaxSize.height),
                     })}
                     onKeyMove={onItemMove}
+                    isRtl={isRtl}
                   >
                     {item.id === acquiredItem?.id && acquiredItemElement
                       ? () => acquiredItemElement

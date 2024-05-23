@@ -28,7 +28,7 @@ import {
 } from "../dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getNormalizedElementRect } from "../utils/screen";
+import { getLogicalBoundingClientRect, getLogicalClientX, getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
@@ -99,12 +99,13 @@ export interface ItemContainerProps {
   };
   onKeyMove?(direction: Direction): void;
   children: (hasDropTarget: boolean) => ReactNode;
+  isRtl: () => boolean;
 }
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
 function ItemContainerComponent(
-  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children }: ItemContainerProps,
+  { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children, isRtl }: ItemContainerProps,
   ref: Ref<ItemContainerRef>,
 ) {
   const originalSizeRef = useRef({ width: 0, height: 0 });
@@ -176,7 +177,7 @@ function ItemContainerComponent(
   const transitionItemId = transition?.itemId ?? null;
   useEffect(() => {
     const onPointerMove = throttle((event: PointerEvent) => {
-      const coordinates = Coordinates.fromEvent(event);
+      const coordinates = Coordinates.fromEvent(event, { isRtl: isRtl() });
       draggableApi.updateTransition(
         new Coordinates({
           x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
@@ -245,7 +246,12 @@ function ItemContainerComponent(
   function handleInsert(direction: Direction) {
     // Find the closest droppable (in the direction) to the item.
     const droppables = draggableApi.getDroppables();
-    const nextDroppable = getNextDroppable(itemRef.current!, droppables, direction);
+    const nextDroppable = getNextDroppable({
+      draggableElement: itemRef.current!,
+      droppables,
+      direction,
+      isRtl: isRtl(),
+    });
 
     if (!nextDroppable) {
       // TODO: add announcement
@@ -308,12 +314,17 @@ function ItemContainerComponent(
 
   function onDragHandlePointerDown(event: ReactPointerEvent) {
     // Calculate the offset between item's top-left corner and the pointer landing position.
-    const rect = itemRef.current!.getBoundingClientRect();
-    pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.left, y: event.clientY - rect.top });
-    originalSizeRef.current = { width: rect.width, height: rect.height };
+    const rect = getLogicalBoundingClientRect(itemRef.current!);
+    const clientX = getLogicalClientX(event, isRtl());
+    const clientY = event.clientY;
+    pointerOffsetRef.current = new Coordinates({
+      x: clientX - rect.insetInlineStart,
+      y: clientY - rect.insetBlockStart,
+    });
+    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
     pointerBoundariesRef.current = null;
 
-    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
   }
 
   function onDragHandleKeyDown(event: KeyboardEvent) {
@@ -322,19 +333,21 @@ function ItemContainerComponent(
 
   function onResizeHandlePointerDown(event: ReactPointerEvent) {
     // Calculate the offset between item's bottom-right corner and the pointer landing position.
-    const rect = itemRef.current!.getBoundingClientRect();
-    pointerOffsetRef.current = new Coordinates({ x: event.clientX - rect.right, y: event.clientY - rect.bottom });
-    originalSizeRef.current = { width: rect.width, height: rect.height };
+    const rect = getLogicalBoundingClientRect(itemRef.current!);
+    const clientX = getLogicalClientX(event, isRtl());
+    const clientY = event.clientY;
+    pointerOffsetRef.current = new Coordinates({ x: clientX - rect.insetInlineEnd, y: clientY - rect.insetBlockEnd });
+    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
 
     // Calculate boundaries below which the cursor cannot move.
     const minWidth = getItemSize(null).minWidth;
     const minHeight = getItemSize(null).minHeight;
     pointerBoundariesRef.current = new Coordinates({
-      x: event.clientX - rect.width + minWidth,
-      y: event.clientY - rect.height + minHeight,
+      x: clientX - rect.inlineSize + minWidth,
+      y: clientY - rect.blockSize + minHeight,
     });
 
-    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event));
+    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
   }
 
   function onResizeHandleKeyDown(event: KeyboardEvent) {
@@ -351,10 +364,10 @@ function ItemContainerComponent(
   if (transition && transition.interactionType === "pointer") {
     // Adjust the dragged/resized item to the pointer's location.
     itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
-    itemTransitionStyle.left = transition.positionTransform?.x;
-    itemTransitionStyle.top = transition.positionTransform?.y;
-    itemTransitionStyle.width = transition.sizeTransform?.width;
-    itemTransitionStyle.height = transition.sizeTransform?.height;
+    itemTransitionStyle.insetInlineStart = transition.positionTransform?.x;
+    itemTransitionStyle.insetBlockStart = transition.positionTransform?.y;
+    itemTransitionStyle.inlineSize = transition.sizeTransform?.width;
+    itemTransitionStyle.blockSize = transition.sizeTransform?.height;
     itemTransitionStyle.pointerEvents = "none";
   }
 

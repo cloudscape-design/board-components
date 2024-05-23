@@ -7,7 +7,7 @@ import { getNextDroppable } from "../../../../lib/components/internal/item-conta
 
 function getMockElement({ left, right, top, bottom }: Rect) {
   return {
-    getBoundingClientRect: () => ({ left, right, top, bottom }),
+    getBoundingClientRect: () => ({ left, right, top, bottom, width: right - left, height: bottom - top }),
     ownerDocument: {
       defaultView: {
         pageXOffset: 0,
@@ -19,19 +19,22 @@ function getMockElement({ left, right, top, bottom }: Rect) {
 
 test("returns null if there are no droppables", () => {
   const elementMock = getMockElement({ left: 0, right: 0, top: 0, bottom: 0 });
-  expect(getNextDroppable(elementMock, [], "left")).toBe(null);
+  expect(getNextDroppable({ draggableElement: elementMock, droppables: [], direction: "left", isRtl: false })).toBe(
+    null,
+  );
 });
 
 test("returns next droppable matching the direction", () => {
   const elementMock = getMockElement({ left: 6, right: 4, top: 0, bottom: 0 });
-  const next = getNextDroppable(
-    elementMock,
-    [
+  const next = getNextDroppable({
+    draggableElement: elementMock,
+    droppables: [
       ["1", { element: getMockElement({ left: 0, right: 10, top: 0, bottom: 0 }) } as Droppable],
       ["2", { element: getMockElement({ left: 5, right: 5, top: 0, bottom: 0 }) } as Droppable],
       ["3", { element: getMockElement({ left: 10, right: 0, top: 0, bottom: 0 }) } as Droppable],
     ],
-    "right",
-  );
+    direction: "right",
+    isRtl: false,
+  });
   expect(next).toBe("2");
 });

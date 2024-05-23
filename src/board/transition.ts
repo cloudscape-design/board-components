@@ -7,6 +7,7 @@ import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getDefaultColumnSpan, getDefaultRowSpan, getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { getLogicalBoundingClientRect } from "../internal/utils/screen";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";
@@ -66,31 +67,37 @@ interface AcquireItemAction {
   acquiredItemElement?: ReactNode;
 }
 
-export function useTransition<D>(): [TransitionState<D>, Dispatch<Action<D>>] {
-  return useReducer(transitionReducer<D>, { transition: null, removeTransition: null, announcement: null });
+export function useTransition<D>({ isRtl }: { isRtl: () => boolean }): [TransitionState<D>, Dispatch<Action<D>>] {
+  return useReducer(createTransitionReducer<D>({ isRtl }), {
+    transition: null,
+    removeTransition: null,
+    announcement: null,
+  });
 }
 
 export function selectTransitionRows<D>(state: TransitionState<D>) {
   return state.transition ? getLayoutRows(state.transition) : 0;
 }
 
-function transitionReducer<D>(state: TransitionState<D>, action: Action<D>): TransitionState<D> {
-  switch (action.type) {
-    case "init":
-      return initTransition(action);
-    case "init-remove":
-      return initRemoveTransition(action);
-    case "submit":
-      return submitTransition(state);
-    case "discard":
-      return discardTransition(state);
-    case "update-with-pointer":
-      return updateTransitionWithPointerEvent(state, action);
-    case "update-with-keyboard":
-      return updateTransitionWithKeyboardEvent(state, action);
-    case "acquire-item":
-      return acquireTransitionItem(state, action);
-  }
+function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
+  return function transitionReducer(state: TransitionState<D>, action: Action<D>): TransitionState<D> {
+    switch (action.type) {
+      case "init":
+        return initTransition(action);
+      case "init-remove":
+        return initRemoveTransition(action);
+      case "submit":
+        return submitTransition(state);
+      case "discard":
+        return discardTransition(state);
+      case "update-with-pointer":
+        return updateTransitionWithPointerEvent(state, action);
+      case "update-with-keyboard":
+        return updateTransitionWithKeyboardEvent(state, action, { isRtl });
+      case "acquire-item":
+        return acquireTransitionItem(state, action);
+    }
+  };
 }
 
 function initTransition<D>({
@@ -256,6 +263,7 @@ function updateTransitionWithPointerEvent<D>(
 function updateTransitionWithKeyboardEvent<D>(
   state: TransitionState<D>,
   { direction }: UpdateWithKeyboardAction,
+  { isRtl }: { isRtl: () => boolean },
 ): TransitionState<D> {
   const { transition } = state;
 
@@ -299,9 +307,9 @@ function updateTransitionWithKeyboardEvent<D>(
 
   switch (direction) {
     case "left":
-      return updateManualItemTransition(transition, "left");
+      return updateManualItemTransition(transition, !isRtl() ? "left" : "right");
     case "right":
-      return updateManualItemTransition(transition, "right");
+      return updateManualItemTransition(transition, !isRtl() ? "right" : "left");
     case "up":
       return updateManualItemTransition(transition, "up");
     case "down":
@@ -321,9 +329,10 @@ function acquireTransitionItem<D>(
 
   const { columns } = transition.itemsLayout;
 
-  const layoutRect = layoutElement.getBoundingClientRect();
+  const layoutRect = getLogicalBoundingClientRect(layoutElement);
   const itemRect = transition.draggableRect;
-  const offset = new Coordinates({ x: itemRect.left - layoutRect.x, y: itemRect.top - layoutRect.y });
+  const coordinatesX = itemRect.left - layoutRect.insetInlineStart;
+  const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.insetBlockStart });
   const insertionDirection = getInsertionDirection(offset);
 
   // Update original insertion position if the item can't fit into the layout by width.

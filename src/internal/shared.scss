@@ -11,11 +11,17 @@
     display: block;
     position: absolute;
     box-sizing: border-box;
-    left: calc(-1 * #{$gutter});
-    top: calc(-1 * #{$gutter});
-    width: calc(100% + 2 * #{$gutter});
-    height: calc(100% + 2 * #{$gutter});
+    inset-inline-start: calc(-1 * #{$gutter});
+    inset-block-start: calc(-1 * #{$gutter});
+    inline-size: calc(100% + 2 * #{$gutter});
+    block-size: calc(100% + 2 * #{$gutter});
     border-radius: $border-radius;
     border: 2px solid cs.$color-border-item-focused;
+  }
+}
+
+@mixin with-direction($direction) {
+  &:dir(#{$direction}) {
+    @content;
   }
 }

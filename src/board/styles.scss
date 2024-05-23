@@ -2,7 +2,7 @@
 
 .placeholder {
   border-radius: cs.$border-radius-container;
-  height: 100%;
+  block-size: 100%;
   &--active {
     background-color: cs.$color-board-placeholder-active;
   }
@@ -17,8 +17,10 @@
 
 .empty {
   box-sizing: border-box;
-  width: 100%;
-  padding: cs.$space-scaled-m cs.$space-scaled-l cs.$space-scaled-l;
+  inline-size: 100%;
+  padding-block-start: cs.$space-scaled-m;
+  padding-block-end: cs.$space-scaled-l;
+  padding-inline: cs.$space-scaled-l;
   color: cs.$color-text-empty;
   display: flex;
   justify-content: center;

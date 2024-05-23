@@ -56,6 +56,7 @@ export default function WidgetContainerPermutations() {
                           { id: "two", text: "Two" },
                         ]}
                         variant="icon"
+                        expandToViewport={true}
                       />
                     }
                     i18nStrings={i18nStrings.boardItemI18nStrings}
@@ -91,6 +92,7 @@ export default function WidgetContainerPermutations() {
                           { id: "two", text: "Two" },
                         ]}
                         variant="icon"
+                        expandToViewport={true}
                       />
                     }
                     i18nStrings={i18nStrings.boardItemI18nStrings}
@@ -119,6 +121,7 @@ export default function WidgetContainerPermutations() {
                           { id: "two", text: "Two" },
                         ]}
                         variant="icon"
+                        expandToViewport={true}
                       />
                     }
                     i18nStrings={i18nStrings.boardItemI18nStrings}

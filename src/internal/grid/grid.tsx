@@ -24,7 +24,7 @@ const ROWSPAN_HEIGHT = {
   compact: 76,
 };
 
-export default function Grid({ layout, children: render, columns }: GridProps) {
+export default function Grid({ layout, children: render, columns, isRtl }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
   const densityMode = useDensityMode(gridRef);
@@ -38,7 +38,10 @@ export default function Grid({ layout, children: render, columns }: GridProps) {
     return colspan * cellWidth + (colspan - 1) * gridGap;
   };
   const getHeight = (rowspan: number) => rowspan * rowspanHeight + (rowspan - 1) * gridGap;
-  const getColOffset = (x: number) => getWidth(x) + gridGap;
+  const getColOffset = (x: number) => {
+    const offset = getWidth(x) + gridGap;
+    return !isRtl?.() ? offset : -offset;
+  };
   const getRowOffset = (y: number) => getHeight(y) + gridGap;
 
   const gridContext = { getWidth, getHeight, getColOffset, getRowOffset };

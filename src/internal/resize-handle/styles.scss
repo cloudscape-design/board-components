@@ -2,6 +2,10 @@
 
 .handle {
   cursor: nwse-resize;
+
+  @include shared.with-direction('rtl') {
+    cursor: nesw-resize;
+  }
 }
 
 .handle:not(.active):focus-visible {
