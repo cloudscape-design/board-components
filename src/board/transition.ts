@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
 import { Dispatch, ReactNode, useReducer } from "react";
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId, Rect } from "../internal/interfaces";
@@ -7,7 +8,6 @@ import { LayoutEngine } from "../internal/layout-engine/engine";
 import { Coordinates } from "../internal/utils/coordinates";
 import { getDefaultColumnSpan, getDefaultRowSpan, getMinColumnSpan, getMinRowSpan } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { getLogicalBoundingClientRect } from "../internal/utils/screen";
 import { BoardProps, RemoveTransition, Transition, TransitionAnnouncement } from "./interfaces";
 import { createOperationAnnouncement } from "./utils/announcements";
 import { getHoveredRect } from "./utils/get-hovered-rect";

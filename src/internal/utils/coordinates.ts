@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { getLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
 import { PointerEvent as ReactPointerEvent } from "react";
-import { getLogicalClientX } from "./screen";
 
 export class Coordinates {
   readonly __type = "Coordinates";

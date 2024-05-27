@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 import clsx from "clsx";
 import { ReactNode, useEffect, useRef } from "react";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -22,7 +23,6 @@ import {
   interpretItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
-import { useIsRtl } from "../internal/utils/screen";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
 
@@ -48,7 +48,7 @@ export function InternalBoard<D>({
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
-  const isRtl = useIsRtl(containerAccessRef);
+  const isRtl = () => getIsRtl(containerAccessRef.current);
 
   useGlobalDragStateStyles();
 

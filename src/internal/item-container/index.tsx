@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { getLogicalBoundingClientRect, getLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import {
@@ -28,7 +29,8 @@ import {
 } from "../dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
-import { getLogicalBoundingClientRect, getLogicalClientX, getNormalizedElementRect } from "../utils/screen";
+import { getNormalizedElementRect } from "../utils/screen";
+
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
