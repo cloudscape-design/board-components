@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useRef, useState } from "react";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -9,7 +10,6 @@ import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
-import { useIsRtl } from "../internal/utils/screen";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
@@ -25,7 +25,7 @@ export function InternalItemsPalette<D>({
   const [dropState, setDropState] = useState<{ id: string }>();
   const [announcement, setAnnouncement] = useState("");
 
-  const isRtl = useIsRtl(paletteRef);
+  const isRtl = () => getIsRtl(paletteRef.current);
 
   function focusItem(itemId: ItemId) {
     itemContainerRef.current[itemId].focusDragHandle();
