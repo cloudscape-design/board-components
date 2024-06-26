@@ -9,7 +9,6 @@ import { useDragSubscription } from "../internal/dnd-controller/controller";
 import { ItemId } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
-import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { ItemsPaletteProps } from "./interfaces";
 import styles from "./styles.css.js";
 
@@ -26,10 +25,6 @@ export function InternalItemsPalette<D>({
   const [announcement, setAnnouncement] = useState("");
 
   const isRtl = () => getIsRtl(paletteRef.current);
-
-  function focusItem(itemId: ItemId) {
-    itemContainerRef.current[itemId].focusDragHandle();
-  }
 
   useDragSubscription("start", ({ draggableItem: { id } }) => {
     setDropState({ id });
@@ -71,23 +66,8 @@ export function InternalItemsPalette<D>({
     }
   });
 
-  const itemsLayout = {
-    items: items.map((it, index) => ({ id: it.id, x: 0, y: index, width: 1, height: 1 })),
-    columns: 1,
-    rows: items.length,
-  };
-
   return (
     <div ref={__internalRootRef} {...getDataAttributes(rest)}>
-      <ScreenReaderGridNavigation
-        items={items}
-        itemsLayout={itemsLayout}
-        ariaLabel={i18nStrings.navigationAriaLabel}
-        ariaDescription={i18nStrings.navigationAriaDescription}
-        itemAriaLabel={(item) => i18nStrings.navigationItemAriaLabel(item!)}
-        onActivateItem={focusItem}
-      />
-
       <div ref={paletteRef} className={styles.root}>
         <SpaceBetween size="l">
           {items.map((item) => (

@@ -38,11 +38,6 @@ export interface ItemsPaletteProps<D = DataFallbackType> {
    * Live announcements:
    * * `liveAnnouncementDndStarted` (string) - live announcement string to indicate start of DnD.
    * * `liveAnnouncementDndDiscarded` (string) - live announcement string to indicate discard of DnD.
-   *
-   * Navigation labels:
-   * * `navigationAriaLabel` (string) - the ARIA label for the accessible board navigation element.
-   * * `navigationAriaDescription` (string, optional) - the ARIA description for the accessible board navigation element.
-   * * `navigationItemAriaLabel(null | BoardProps.Item<D>): string` - the function to create the ARIA label for a navigation board item.
    */
   i18nStrings: ItemsPaletteProps.I18nStrings<D>;
 }
@@ -57,8 +52,11 @@ export namespace ItemsPaletteProps {
   export interface I18nStrings<D> {
     liveAnnouncementDndStarted: string;
     liveAnnouncementDndDiscarded: string;
+    /** @deprecated Has no effect. */
     navigationAriaLabel: string;
+    /** @deprecated Has no effect. */
     navigationAriaDescription?: string;
+    /** @deprecated Has no effect. */
     navigationItemAriaLabel: (item: ItemsPaletteProps.Item<D>) => string;
   }
 }

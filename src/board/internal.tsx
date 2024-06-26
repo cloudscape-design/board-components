@@ -13,7 +13,6 @@ import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
-import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import {
   createPlaceholdersLayout,
   getDefaultColumnSpan,
@@ -206,10 +205,6 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
   };
 
-  function focusItem(itemId: ItemId) {
-    itemContainerRef.current[itemId].focusDragHandle();
-  }
-
   function onItemMove(direction: Direction) {
     if (transition) {
       dispatch({ type: "update-with-keyboard", direction });
@@ -223,15 +218,6 @@ export function InternalBoard<D>({
 
   return (
     <div ref={__internalRootRef} {...getDataAttributes(rest)}>
-      <ScreenReaderGridNavigation
-        items={items}
-        itemsLayout={itemsLayout}
-        ariaLabel={i18nStrings.navigationAriaLabel}
-        ariaDescription={i18nStrings.navigationAriaDescription}
-        itemAriaLabel={i18nStrings.navigationItemAriaLabel}
-        onActivateItem={focusItem}
-      />
-
       <div ref={containerRef} className={clsx(styles.root, { [styles.empty]: rows === 0 })}>
         {rows > 0 ? (
           <Grid

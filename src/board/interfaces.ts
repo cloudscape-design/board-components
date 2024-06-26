@@ -61,11 +61,6 @@ export interface BoardProps<D = DataFallbackType> {
    * * `liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string` - the function to create a live announcement string to indicate commit of DnD ("reorder", "resize" or "insert").
    * * `liveAnnouncementDndCommitted(BoardProps.DndOperationType): string` - the function to create a live announcement string to indicate discard of DnD ("reorder", "resize" or "insert").
    * * `liveAnnouncementItemRemoved(BoardProps.OperationStateRemove<D>): string` - the function to create a live announcement string to indicate when item is removed.
-   *
-   * Navigation labels:
-   * * `navigationAriaLabel` (string) - the ARIA label for the accessible board navigation element.
-   * * `navigationAriaDescription` (string, optional) - the ARIA description for the accessible board navigation element.
-   * * `navigationItemAriaLabel(null | BoardProps.Item<D>): string` - the function to create the ARIA label for a navigation board item or an empty slot.
    */
   i18nStrings: BoardProps.I18nStrings<D>;
 
@@ -113,8 +108,12 @@ export namespace BoardProps {
     liveAnnouncementDndCommitted: (operationType: DndOperationType) => string;
     liveAnnouncementDndDiscarded: (operationType: DndOperationType) => string;
     liveAnnouncementItemRemoved: (operation: ItemRemovedState<D>) => string;
+
+    /** @deprecated Has no effect. */
     navigationAriaLabel: string;
+    /** @deprecated Has no effect. */
     navigationAriaDescription?: string;
+    /** @deprecated Has no effect. */
     navigationItemAriaLabel: (item: null | BoardProps.Item<D>) => string;
   }
 

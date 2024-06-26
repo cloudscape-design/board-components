@@ -7,7 +7,7 @@
     "types": [],
     "lib": ["es2019", "dom", "dom.iterable"],
     "module": "ESNext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "Node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
