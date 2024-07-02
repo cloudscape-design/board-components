@@ -62,11 +62,6 @@ Live announcements:
 * \`liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate commit of DnD ("reorder", "resize" or "insert").
 * \`liveAnnouncementDndCommitted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate discard of DnD ("reorder", "resize" or "insert").
 * \`liveAnnouncementItemRemoved(BoardProps.OperationStateRemove<D>): string\` - the function to create a live announcement string to indicate when item is removed.
-
-Navigation labels:
-* \`navigationAriaLabel\` (string) - the ARIA label for the accessible board navigation element.
-* \`navigationAriaDescription\` (string, optional) - the ARIA description for the accessible board navigation element.
-* \`navigationItemAriaLabel(null | BoardProps.Item<D>): string\` - the function to create the ARIA label for a navigation board item or an empty slot.
 ",
       "inlineType": {
         "name": "BoardProps.I18nStrings",
@@ -258,11 +253,6 @@ exports[`definition for items-palette matches the snapshot > items-palette 1`] =
 Live announcements:
 * \`liveAnnouncementDndStarted\` (string) - live announcement string to indicate start of DnD.
 * \`liveAnnouncementDndDiscarded\` (string) - live announcement string to indicate discard of DnD.
-
-Navigation labels:
-* \`navigationAriaLabel\` (string) - the ARIA label for the accessible board navigation element.
-* \`navigationAriaDescription\` (string, optional) - the ARIA description for the accessible board navigation element.
-* \`navigationItemAriaLabel(null | BoardProps.Item<D>): string\` - the function to create the ARIA label for a navigation board item.
 ",
       "inlineType": {
         "name": "ItemsPaletteProps.I18nStrings",
