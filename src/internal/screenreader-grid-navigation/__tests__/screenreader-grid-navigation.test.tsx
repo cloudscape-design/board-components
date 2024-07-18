@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { cleanup, render } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
+import { cleanup, render } from "@testing-library/react";
+
 import { GridLayout } from "../../../../lib/components/internal/interfaces";
 import { ScreenReaderGridNavigation } from "../../../../lib/components/internal/screenreader-grid-navigation";
 

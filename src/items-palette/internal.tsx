@@ -1,7 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import SpaceBetween from "@cloudscape-design/components/space-between";
 import { useRef, useState } from "react";
+
+import SpaceBetween from "@cloudscape-design/components/space-between";
+
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useDragSubscription } from "../internal/dnd-controller/controller";
@@ -10,6 +12,7 @@ import { ItemContainer, ItemContainerRef } from "../internal/item-container";
 import LiveRegion from "../internal/live-region";
 import { ScreenReaderGridNavigation } from "../internal/screenreader-grid-navigation";
 import { ItemsPaletteProps } from "./interfaces";
+
 import styles from "./styles.css.js";
 
 export function InternalItemsPalette<D>({

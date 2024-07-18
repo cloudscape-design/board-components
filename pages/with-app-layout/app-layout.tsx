@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ReactNode, useState } from "react";
+
 import AppLayout from "@cloudscape-design/components/app-layout";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
@@ -8,7 +10,7 @@ import ContentLayout from "@cloudscape-design/components/content-layout";
 import Header from "@cloudscape-design/components/header";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import SplitPanel from "@cloudscape-design/components/split-panel";
-import { ReactNode, useState } from "react";
+
 import { appLayoutI18nStrings, clientI18nStrings, splitPanelI18nStrings } from "../shared/i18n";
 
 interface ClientAppLayoutProps {

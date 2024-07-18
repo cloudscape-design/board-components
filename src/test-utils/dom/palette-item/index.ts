@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
+
 import itemStyles from "../../../board-item/styles.selectors.js";
 import dragHandleStyles from "../../../internal/drag-handle/styles.selectors.js";
 

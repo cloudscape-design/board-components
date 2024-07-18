@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { AppLayoutProps } from "@cloudscape-design/components/app-layout";
 import { SplitPanelProps } from "@cloudscape-design/components/split-panel";
+
 import { BoardItemProps, BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { ItemData } from "./interfaces";
 

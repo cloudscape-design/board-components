@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Position } from "../utils/position";
-import { MoveSolution, MoveSolutionState, findNextSolutions } from "./engine-solution";
+import { findNextSolutions, MoveSolution, MoveSolutionState } from "./engine-solution";
 import { Conflicts, LayoutEngineState } from "./engine-state";
 import { ReadonlyLayoutEngineGrid } from "./grid";
 import { CommittedMove } from "./interfaces";

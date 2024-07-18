@@ -1,16 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { CSS as CSSUtil } from "@dnd-kit/utilities";
-import clsx from "clsx";
 import {
+  createContext,
   CSSProperties,
+  forwardRef,
   KeyboardEvent,
-  ReactNode,
   PointerEvent as ReactPointerEvent,
+  ReactNode,
   Ref,
   RefObject,
-  createContext,
-  forwardRef,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -18,13 +16,16 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import clsx from "clsx";
+import { CSS as CSSUtil } from "@dnd-kit/utilities";
+
 import {
   DragAndDropData,
   DropTargetContext,
   InteractionType,
   Operation,
-  useDragSubscription,
   useDraggable,
+  useDragSubscription,
 } from "../dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, ItemId, Transform } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
@@ -32,6 +33,7 @@ import { getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
+
 import styles from "./styles.css.js";
 
 export interface ItemContainerRef {

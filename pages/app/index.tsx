@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { HashRouter, Link, Route, Routes, useLocation } from "react-router-dom";
+
 import { pages } from "../pages";
 import Page from "./page";
 

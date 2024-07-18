@@ -3,6 +3,7 @@
 
 import deepFreeze from "deep-freeze-es6";
 import { describe, expect, test } from "vitest";
+
 import { fromMatrix, toString } from "../../debug-tools";
 import { BoardItemColumnOffset, BoardItemDefinition, BoardItemDefinitionBase } from "../../interfaces";
 import {

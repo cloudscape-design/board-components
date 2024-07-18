@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ReactNode } from "react";
+
 import { Board, BoardProps } from "../../lib/components";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";
 import { boardI18nStrings } from "../shared/i18n";
+
 import classnames from "./layouts.module.css";
 
 const singleItem: BoardProps.Item<any>[] = [

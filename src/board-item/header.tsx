@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import clsx from "clsx";
 import { ReactNode } from "react";
+import clsx from "clsx";
+
 import { useVisualRefresh } from "../internal/base-component/use-visual-refresh.js";
+
 import styles from "./styles.css.js";
 
 export interface WidgetContainerHeaderProps {

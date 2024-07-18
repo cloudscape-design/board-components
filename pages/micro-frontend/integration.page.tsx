@@ -1,14 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+
 import AppLayout from "@cloudscape-design/components/app-layout";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import ContentLayout from "@cloudscape-design/components/content-layout";
 import Header from "@cloudscape-design/components/header";
 import SplitPanel from "@cloudscape-design/components/split-panel";
-import { ReactNode, useLayoutEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
+
 import { Board, BoardItem, ItemsPalette } from "../../lib/components";
 import { createLetterItems } from "../dnd/items";
 import {

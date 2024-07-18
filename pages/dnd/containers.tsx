@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { ReactNode } from "react";
+
+import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+
 import classnames from "./engine.module.css";
 
 export function DefaultContainer({ children }: { children: ReactNode }) {
