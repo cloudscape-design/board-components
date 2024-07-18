@@ -1,7 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import { expect, test } from "vitest";
+
+import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
+
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { setupTest } from "../../utils";
 

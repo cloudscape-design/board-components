@@ -5,6 +5,7 @@ import Button from "@cloudscape-design/components/button";
 import Form from "@cloudscape-design/components/form";
 import Modal from "@cloudscape-design/components/modal";
 import SpaceBetween from "@cloudscape-design/components/space-between";
+
 import { clientI18nStrings } from "../shared/i18n";
 
 export function DeleteConfirmationModal({

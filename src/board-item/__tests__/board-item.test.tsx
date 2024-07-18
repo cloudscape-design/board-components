@@ -1,9 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import Container from "@cloudscape-design/components/container";
-import { cleanup, render as libRender } from "@testing-library/react";
 import { ReactElement } from "react";
 import { afterEach, describe, expect, test } from "vitest";
+import { cleanup, render as libRender } from "@testing-library/react";
+
+import Container from "@cloudscape-design/components/container";
+
 import BoardItem from "../../../lib/components/board-item";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { ItemContextWrapper } from "./board-item-wrapper";

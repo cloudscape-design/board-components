@@ -1,10 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test } from "vitest";
-import boardStyles from "../../../lib/components/board/styles.selectors.js";
+
 import createWrapper from "../../../lib/components/test-utils/selectors";
 import { makeQueryUrl, setupTest } from "../../utils";
 import { DndPageObject } from "./dnd-page-object";
+
+import boardStyles from "../../../lib/components/board/styles.selectors.js";
 
 const boardWrapper = createWrapper().findBoard();
 const itemsPaletteWrapper = createWrapper().findItemsPalette();

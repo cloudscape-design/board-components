@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
+import { act, cleanup, render } from "@testing-library/react";
+
 import { mockController, mockDraggable } from "../../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import { DragAndDropData } from "../../../../lib/components/internal/dnd-controller/controller";
 import { ItemContainer, ItemContainerProps, useItemContext } from "../../../../lib/components/internal/item-container";

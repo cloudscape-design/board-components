@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
-import { Position } from "../../../internal/utils/position";
 
+import { Position } from "../../../internal/utils/position";
 import { appendMovePath, appendResizePath, normalizeInsertionPath } from "../path";
 
 describe("normalizeInsertionPath", () => {

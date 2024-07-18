@@ -1,7 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 import { ReactNode, useEffect } from "react";
+
+import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
+
 import { BoardItemDefinitionBase, ItemId, Rect } from "../interfaces";
 import { Coordinates } from "../utils/coordinates";
 import { EventEmitter } from "./event-emitter";

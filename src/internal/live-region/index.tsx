@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { memo, useEffect, useRef } from "react";
+
 import ScreenreaderOnly, { ScreenreaderOnlyProps } from "../screenreader-only";
 
 // The code is copied from https://github.com/cloudscape-design/components/blob/main/src/internal/components/live-region/index.tsx

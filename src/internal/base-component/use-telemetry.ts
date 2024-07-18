@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ComponentConfiguration, useComponentMetrics } from "@cloudscape-design/component-toolkit/internal";
+
 import { PACKAGE_SOURCE, PACKAGE_VERSION, THEME } from "../environment";
 import { useVisualRefresh } from "./use-visual-refresh";
 

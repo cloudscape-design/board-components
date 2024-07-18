@@ -1,15 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { useState } from "react";
+
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
-import { useState } from "react";
+
 import { Board, BoardItem, BoardProps, ItemsPalette } from "../../lib/components";
 import { ItemsPaletteProps } from "../../src/items-palette/interfaces";
 import PageLayout from "../app/page-layout";
 import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";
-import classnames from "./engine.module.css";
 import { ItemWidgets } from "./items";
+
+import classnames from "./engine.module.css";
 
 export function EnginePageTemplate({
   initialBoardItems,

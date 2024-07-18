@@ -15,7 +15,7 @@
       "jsx": true
     }
   },
-  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header", "import"],
+  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header", "import", "simple-import-sort"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
@@ -73,14 +73,13 @@
         ]
       }
     ],
-    "sort-imports": ["error", { "ignoreDeclarationSort": true }],
-    "import/order": ["error", { "alphabetize": { "order": "asc" } }],
     "import/no-useless-path-segments": [
       "warn",
       {
         "noUselessIndex": true
       }
-    ]
+    ],
+    "simple-import-sort/imports": "warn"
   },
   "settings": {
     "react": {
@@ -101,6 +100,30 @@
       },
       "env": {
         "jest": true
+      }
+    },
+    {
+      "files": ["src/**", "pages/**", "test/**", "scripts/**"],
+      "rules": {
+        "simple-import-sort/imports": [
+          "warn",
+          {
+            "groups": [
+              // External packages come first.
+              ["^react", "^\\w", "^@testing", "^@vite", "^@dnd"],
+              // Cloudscape packages.
+              ["^@cloudscape"],
+              // Things that start with a letter (or digit or underscore), or `~` followed by a letter.
+              ["^~?\\w"],
+              // Anything not matched in another group.
+              ["^"],
+              // Styles come last.
+              [
+                "^.+\\.?(css)$","^.+\\.?(css.js)$", "^.+\\.?(scss)$", "^.+\\.?(selectors.js)$"
+              ]
+            ]
+          }
+        ]
       }
     }
   ]

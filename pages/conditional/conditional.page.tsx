@@ -1,10 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { useState } from "react";
+
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import Container from "@cloudscape-design/components/container";
 import Header from "@cloudscape-design/components/header";
-import { useState } from "react";
+
 import { Board, BoardItem, BoardProps } from "../../lib/components";
 import { boardI18nStrings, boardItemI18nStrings } from "../shared/i18n";
 import { ItemData } from "../shared/interfaces";

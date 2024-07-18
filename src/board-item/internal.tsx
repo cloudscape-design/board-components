@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import Container from "@cloudscape-design/components/container";
-import clsx from "clsx";
 import { useId } from "react";
+import clsx from "clsx";
+
+import Container from "@cloudscape-design/components/container";
+
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import DragHandle from "../internal/drag-handle";
@@ -11,6 +13,7 @@ import ResizeHandle from "../internal/resize-handle";
 import ScreenreaderOnly from "../internal/screenreader-only";
 import WidgetContainerHeader from "./header";
 import type { BoardItemProps } from "./interfaces";
+
 import styles from "./styles.css.js";
 
 export function InternalBoardItem({

@@ -3,6 +3,7 @@
 import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 import SpaceBetween from "@cloudscape-design/components/space-between";
+
 import { BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { fromMatrix } from "../../lib/components/internal/debug-tools";
 import { BoardItemDefinition, BoardItemDefinitionBase } from "../../lib/components/internal/interfaces";

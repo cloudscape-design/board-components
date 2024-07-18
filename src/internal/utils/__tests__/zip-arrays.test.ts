@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
+
 import { zipTwoArrays } from "../zip-arrays";
 
 test("zips arrays of same lengths", () => {
