@@ -110,7 +110,7 @@
           {
             "groups": [
               // External packages come first.
-              ["^react", "^\\w", "^@testing", "^@vite", "^@dnd"],
+              ["^react", "^\\w", "^(?!@cloudscape)@?\\w"],
               // Cloudscape packages.
               ["^@cloudscape"],
               // Things that start with a letter (or digit or underscore), or `~` followed by a letter.
