@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
+import { expect, test, vi } from "vitest";
 
 import { Board } from "../../../lib/components";
 import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";

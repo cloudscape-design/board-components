@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactElement } from "react";
-import { afterEach, expect, test, vi } from "vitest";
 import { act, cleanup, render as libRender } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
 
 import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import ItemsPalette, { ItemsPaletteProps } from "../../../lib/components/items-palette";

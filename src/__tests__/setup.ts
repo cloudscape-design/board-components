@@ -3,7 +3,7 @@
 
 // type-only import, because in runtime it tries to access Jest globals, which do not exist
 /// <reference types="@testing-library/jest-dom" />
-import { expect } from "vitest";
 import matchers from "@testing-library/jest-dom/matchers";
+import { expect } from "vitest";
 
 expect.extend(matchers);

@@ -16,8 +16,8 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import clsx from "clsx";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
+import clsx from "clsx";
 
 import { getLogicalBoundingClientRect, getLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
 

@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 
