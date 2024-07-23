@@ -1,7 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
 import { Dispatch, ReactNode, useReducer } from "react";
+
+import { getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
+
 import { InteractionType, Operation } from "../internal/dnd-controller/controller";
 import { BoardItemDefinitionBase, Direction, GridLayout, ItemId, Rect } from "../internal/interfaces";
 import { LayoutEngine } from "../internal/layout-engine/engine";

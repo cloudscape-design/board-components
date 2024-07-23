@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { act, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
+
 import { Board } from "../../../lib/components";
 import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import { DragAndDropData } from "../../../lib/components/internal/dnd-controller/controller";

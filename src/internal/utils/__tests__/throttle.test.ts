@@ -1,7 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Mock, SpyInstance, afterAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, Mock, SpyInstance, test, vi } from "vitest";
+
 import { throttle } from "../throttle";
 
 describe("throttle", () => {

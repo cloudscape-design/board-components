@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useEffect, useState } from "react";
+
 import { BoardProps } from "../../lib/components";
 import { demoBoardItems, demoPaletteItems } from "../dnd/items";
 import { ScreenshotArea } from "../screenshot-area";

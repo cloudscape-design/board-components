@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
+
 import { generateGrid, generateInsert, generateMove, generateResize } from "../../debug-tools";
 import { LayoutEngine } from "../engine";
-import { Measure, forEachTimes } from "./helpers";
+import { forEachTimes, Measure } from "./helpers";
 
 const TOTAL_RUNS = 1000;
 const AVERAGE_EXECUTION_TIME_MS = 3;

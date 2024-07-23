@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import clsx from "clsx";
+
 import Grid from "../../lib/components/internal/grid";
 import { TestBed } from "../app/test-bed";
 import { ScreenshotArea } from "../screenshot-area";

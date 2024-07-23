@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { beforeAll, expect, test } from "vitest";
+
 import { Droppable } from "../../../../lib/components/internal/dnd-controller/controller";
 import { Rect } from "../../../../lib/components/internal/interfaces";
 import { getNextDroppable } from "../../../../lib/components/internal/item-container/get-next-droppable";

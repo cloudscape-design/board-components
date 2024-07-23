@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect, test } from "vitest";
+
 import { fromMatrix, fromTextPath } from "../../debug-tools";
 import { Position } from "../../utils/position";
 import { LayoutEngine } from "../engine";

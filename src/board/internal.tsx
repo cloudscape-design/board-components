@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
-import clsx from "clsx";
 import { ReactNode, useEffect, useRef } from "react";
+import clsx from "clsx";
+
+import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
+
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
@@ -24,14 +26,14 @@ import {
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { useMergeRefs } from "../internal/utils/use-merge-refs";
-
 import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
-import styles from "./styles.css.js";
 import { selectTransitionRows, useTransition } from "./transition";
 import { announcementToString } from "./utils/announcements";
 import { createTransforms } from "./utils/create-transforms";
 import { createItemsChangeEvent } from "./utils/events";
+
+import styles from "./styles.css.js";
 
 export function InternalBoard<D>({
   items,

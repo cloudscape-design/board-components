@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, test } from "vitest";
+
 import { fromMatrix, generateGrid, generateInsert, toString } from "../../debug-tools";
 import { Position } from "../../utils/position";
 import { LayoutEngine } from "../engine";

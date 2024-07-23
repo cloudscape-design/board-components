@@ -1,15 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
+
+import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
+
 import Board from "../../../lib/components/board";
+import createWrapper from "../../../lib/components/test-utils/dom";
+import { defaultProps } from "./utils";
+
 import dragHandleStyles from "../../../lib/components/internal/drag-handle/styles.css.js";
 import globalStateStyles from "../../../lib/components/internal/global-drag-state-styles/styles.css.js";
 import resizeHandleStyles from "../../../lib/components/internal/resize-handle/styles.css.js";
-import createWrapper from "../../../lib/components/test-utils/dom";
-import { defaultProps } from "./utils";
 
 describe("Board", () => {
   beforeAll(() => {

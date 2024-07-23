@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Header from "@cloudscape-design/components/header";
+
 import { BoardItem, ItemsPalette, ItemsPaletteProps } from "../../lib/components";
 import LiveRegion from "../../lib/components/internal/live-region";
 import { boardItemI18nStrings, clientI18nStrings, itemsPaletteI18nStrings } from "../shared/i18n";

@@ -3,6 +3,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+
 import { pagesMap } from "../pages";
 
 export interface PageProps {

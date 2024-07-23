@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { render } from "@testing-library/react";
 import { ReactElement } from "react";
+import { render } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
+
 import { defaultProps, wrappers } from "./default-props";
 import { getAllComponents, requireComponent } from "./utils";
 
