@@ -81,14 +81,13 @@ export function InternalBoard<D>({
   items = [...items].sort((a, b) => (layoutItemIndexById.get(a.id) ?? -1) - (layoutItemIndexById.get(b.id) ?? -1));
 
   // When an item gets acquired or removed the focus needs to be dispatched on the next render.
-  const focusNextRenderIndexRef = useRef<null | number>(null);
-
+  const focusNextRenderIdRef = useRef<null | ItemId>(null);
   useEffect(() => {
-    const focusTarget = items[focusNextRenderIndexRef.current ?? -1]?.id;
+    const focusTarget = focusNextRenderIdRef.current;
     if (focusTarget) {
       itemContainerRef.current[focusTarget].focusDragHandle();
     }
-    focusNextRenderIndexRef.current = null;
+    focusNextRenderIdRef.current = null;
   });
 
   // Submit scheduled removal after a delay to let animations play.
@@ -189,7 +188,7 @@ export function InternalBoard<D>({
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  useDragSubscription("acquire", ({ droppableId, renderAcquiredItem }) => {
+  useDragSubscription("acquire", ({ droppableId, draggableItem, renderAcquiredItem }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
 
     // If missing then it does not belong to this board.
@@ -203,6 +202,7 @@ export function InternalBoard<D>({
       layoutElement: containerAccessRef.current!,
       acquiredItemElement: renderAcquiredItem(),
     });
+    focusNextRenderIdRef.current = draggableItem.id;
   });
 
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {

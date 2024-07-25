@@ -19,11 +19,13 @@ export function EnginePageTemplate({
   initialPaletteItems,
   widgets,
   layout = "grid",
+  asyncOnChangeItems = false,
 }: {
   initialBoardItems: readonly BoardProps.Item<ItemData>[];
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
   layout?: "grid" | "absolute";
+  asyncOnChangeItems?: boolean;
 }) {
   const [boardItems, setBoardItems] = useState(initialBoardItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
@@ -53,7 +55,13 @@ export function EnginePageTemplate({
             </BoardItem>
           )}
           onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-            setBoardItems(items);
+            if (asyncOnChangeItems) {
+              setTimeout(() => {
+                setBoardItems(items);
+              }, 50);
+            } else {
+              setBoardItems(items);
+            }
             if (addedItem) {
               setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
             }
