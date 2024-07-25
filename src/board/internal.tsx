@@ -111,7 +111,6 @@ export function InternalBoard<D>({
         nextIndexToFocus = items.length - 2;
       }
 
-      // Focus immediately if a valid index is found.
       if (nextIndexToFocus >= 0 && items[nextIndexToFocus]) {
         const focusTarget = items[nextIndexToFocus].id;
         if (itemContainerRef.current[focusTarget]) {
