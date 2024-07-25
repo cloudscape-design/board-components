@@ -82,14 +82,13 @@ export function InternalBoard<D>({
 
   // When an item gets acquired or removed the focus needs to be dispatched on the next render.
   const focusNextRenderIndexRef = useRef<null | number>(null);
-  const focusNextRenderIdRef = useRef<null | ItemId>(null);
+
   useEffect(() => {
-    const focusTarget = focusNextRenderIdRef.current ?? items[focusNextRenderIndexRef.current ?? -1]?.id;
+    const focusTarget = items[focusNextRenderIndexRef.current ?? -1]?.id;
     if (focusTarget) {
       itemContainerRef.current[focusTarget].focusDragHandle();
     }
     focusNextRenderIndexRef.current = null;
-    focusNextRenderIdRef.current = null;
   });
 
   // Submit scheduled removal after a delay to let animations play.
@@ -102,29 +101,19 @@ export function InternalBoard<D>({
       dispatch({ type: "submit" });
 
       const removedItemIndex = items.findIndex((it) => it.id === removeTransition.removedItem.id);
-      let nextIndexToFocus = -1;
-      if (removedItemIndex === 0) {
-        nextIndexToFocus = 0;
-      } else if (removedItemIndex > 0 && removedItemIndex < items.length - 1) {
-        nextIndexToFocus = removedItemIndex - 1;
-      } else if (removedItemIndex === items.length - 1) {
-        nextIndexToFocus = items.length - 2;
-      }
+      const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
+      const newItems = createItemsChangeEvent(items, removeTransition.layoutShift);
+      const itemIdToFocus = newItems.detail.items[nextIndexToFocus].id;
 
-      if (nextIndexToFocus >= 0 && items[nextIndexToFocus]) {
-        const focusTarget = items[nextIndexToFocus].id;
-        if (itemContainerRef.current[focusTarget]) {
-          itemContainerRef.current[focusTarget].focusDragHandle();
-        }
+      if (itemIdToFocus) {
+        itemContainerRef.current[itemIdToFocus].focusDragHandle();
       }
-
-      onItemsChange(createItemsChangeEvent(items, removeTransition.layoutShift));
+      onItemsChange(newItems);
     }, TRANSITION_DURATION_MS);
 
     return () => clearTimeout(timeoutId);
   }, [removeTransition, items, onItemsChange]);
-  // if items length changed and we were already focusing a board item handler, this can mean
-  // we can focus the next one?
+
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
 
@@ -200,7 +189,7 @@ export function InternalBoard<D>({
     autoScrollHandlers.removePointerEventHandlers();
   });
 
-  useDragSubscription("acquire", ({ droppableId, draggableItem, renderAcquiredItem }) => {
+  useDragSubscription("acquire", ({ droppableId, renderAcquiredItem }) => {
     const placeholder = placeholdersLayout.items.find((it) => it.id === droppableId);
 
     // If missing then it does not belong to this board.
@@ -214,8 +203,6 @@ export function InternalBoard<D>({
       layoutElement: containerAccessRef.current!,
       acquiredItemElement: renderAcquiredItem(),
     });
-
-    focusNextRenderIdRef.current = draggableItem.id;
   });
 
   const removeItemAction = (removedItem: BoardItemDefinition<D>) => {
