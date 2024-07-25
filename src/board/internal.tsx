@@ -102,14 +102,30 @@ export function InternalBoard<D>({
       dispatch({ type: "submit" });
 
       const removedItemIndex = items.findIndex((it) => it.id === removeTransition.removedItem.id);
-      const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
-      focusNextRenderIndexRef.current = nextIndexToFocus;
+      let nextIndexToFocus = -1;
+      if (removedItemIndex === 0) {
+        nextIndexToFocus = 0;
+      } else if (removedItemIndex > 0 && removedItemIndex < items.length - 1) {
+        nextIndexToFocus = removedItemIndex - 1;
+      } else if (removedItemIndex === items.length - 1) {
+        nextIndexToFocus = items.length - 2;
+      }
+
+      // Focus immediately if a valid index is found.
+      if (nextIndexToFocus >= 0 && items[nextIndexToFocus]) {
+        const focusTarget = items[nextIndexToFocus].id;
+        if (itemContainerRef.current[focusTarget]) {
+          itemContainerRef.current[focusTarget].focusDragHandle();
+        }
+      }
+
       onItemsChange(createItemsChangeEvent(items, removeTransition.layoutShift));
     }, TRANSITION_DURATION_MS);
 
     return () => clearTimeout(timeoutId);
   }, [removeTransition, items, onItemsChange]);
-
+  // if items length changed and we were already focusing a board item handler, this can mean
+  // we can focus the next one?
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
 
