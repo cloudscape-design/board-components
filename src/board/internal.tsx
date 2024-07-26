@@ -81,14 +81,12 @@ export function InternalBoard<D>({
   items = [...items].sort((a, b) => (layoutItemIndexById.get(a.id) ?? -1) - (layoutItemIndexById.get(b.id) ?? -1));
 
   // When an item gets acquired or removed the focus needs to be dispatched on the next render.
-  const focusNextRenderIndexRef = useRef<null | number>(null);
   const focusNextRenderIdRef = useRef<null | ItemId>(null);
   useEffect(() => {
-    const focusTarget = focusNextRenderIdRef.current ?? items[focusNextRenderIndexRef.current ?? -1]?.id;
+    const focusTarget = focusNextRenderIdRef.current;
     if (focusTarget) {
       itemContainerRef.current[focusTarget].focusDragHandle();
     }
-    focusNextRenderIndexRef.current = null;
     focusNextRenderIdRef.current = null;
   });
 
@@ -103,8 +101,13 @@ export function InternalBoard<D>({
 
       const removedItemIndex = items.findIndex((it) => it.id === removeTransition.removedItem.id);
       const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
-      focusNextRenderIndexRef.current = nextIndexToFocus;
-      onItemsChange(createItemsChangeEvent(items, removeTransition.layoutShift));
+      const newItems = createItemsChangeEvent(items, removeTransition.layoutShift);
+      const itemIdToFocus = newItems.detail.items[nextIndexToFocus].id;
+
+      if (itemIdToFocus) {
+        itemContainerRef.current[itemIdToFocus].focusDragHandle();
+      }
+      onItemsChange(newItems);
     }, TRANSITION_DURATION_MS);
 
     return () => clearTimeout(timeoutId);
@@ -199,7 +202,6 @@ export function InternalBoard<D>({
       layoutElement: containerAccessRef.current!,
       acquiredItemElement: renderAcquiredItem(),
     });
-
     focusNextRenderIdRef.current = draggableItem.id;
   });
 
