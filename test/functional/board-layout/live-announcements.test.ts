@@ -153,8 +153,8 @@ test(
     await page.keys(["Enter"]);
 
     // Waiting for remove transition plus an offset to prevent flakiness.
-    await page.pause(200 + 100);
-
-    await expect(page.getLiveAnnouncements()).resolves.toEqual(["Removed item Widget A. Disturbed 1 items."]);
+    await page.waitForAssertion(async () => {
+      await expect(page.getLiveAnnouncements()).resolves.toEqual(["Removed item Widget A. Disturbed 1 items."]);
+    });
   }),
 );
