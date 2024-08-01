@@ -1,10 +1,17 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
 .layout-grid {
   display: grid;
   grid-template-columns: 9fr 3fr;
   gap: 16px;
 }
+
 .layout-absolute {
+  /* used in test pages */
 }
+
 .layout-absolute > div:nth-child(1) {
   width: calc(100% - 300px);
 }

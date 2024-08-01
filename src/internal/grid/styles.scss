@@ -1,3 +1,7 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
 // plain `1fr` uses implicit `min-width: auto` which may overflow the container in some circumstances
 // more details: https://css-tricks.com/preventing-a-grid-blowout/
 $grid-col-width: minmax(0, 1fr);
