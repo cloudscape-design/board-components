@@ -1,3 +1,8 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 .stone {
   border: 1px solid black;
   aspect-ratio: 1;
@@ -22,6 +27,6 @@
 }
 
 .dummy {
-  background-color: #3F9FD9;
+  background-color: #3f9fd9;
   height: 100%;
 }

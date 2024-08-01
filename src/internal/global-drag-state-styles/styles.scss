@@ -1,3 +1,8 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 @use "../shared.scss" as shared;
 
 .show-grab-cursor * {
@@ -7,7 +12,7 @@
 .show-resize-cursor * {
   cursor: nwse-resize;
 
-  @include shared.with-direction('rtl') {
+  @include shared.with-direction("rtl") {
     cursor: nesw-resize;
   }
 }

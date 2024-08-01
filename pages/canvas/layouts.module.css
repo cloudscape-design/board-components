@@ -1,5 +1,9 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
 .block {
   border-radius: 6px;
-  background-color: #586EFB;
+  background-color: #586efb;
   height: 100%;
 }
