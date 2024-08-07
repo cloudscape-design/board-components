@@ -214,4 +214,24 @@ describe("Board", () => {
       ),
     );
   });
+
+  test("removes last item", async () => {
+    const onItemsChange = vi.fn();
+    render(<Board {...defaultProps} items={[{ id: "1", data: { title: "Item 1" } }]} onItemsChange={onItemsChange} />);
+
+    const removeButton = createWrapper().findBoardItem()!.findSettings()!.find('[data-testid="remove-button"]')!;
+
+    removeButton.click();
+
+    await waitFor(() =>
+      expect(onItemsChange).toBeCalledWith(
+        expect.objectContaining({
+          detail: {
+            removedItem: expect.objectContaining({ id: "1" }),
+            items: [],
+          },
+        }),
+      ),
+    );
+  });
 });

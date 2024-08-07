@@ -102,7 +102,7 @@ export function InternalBoard<D>({
       const removedItemIndex = items.findIndex((it) => it.id === removeTransition.removedItem.id);
       const nextIndexToFocus = removedItemIndex !== items.length - 1 ? removedItemIndex : items.length - 2;
       const newItems = createItemsChangeEvent(items, removeTransition.layoutShift);
-      const itemIdToFocus = newItems.detail.items[nextIndexToFocus].id;
+      const itemIdToFocus = newItems.detail.items[nextIndexToFocus]?.id;
 
       if (itemIdToFocus) {
         itemContainerRef.current[itemIdToFocus].focusDragHandle();
