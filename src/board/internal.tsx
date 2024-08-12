@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode, useEffect, useRef } from "react";
+import { usePrevious } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
@@ -112,6 +113,17 @@ export function InternalBoard<D>({
 
     return () => clearTimeout(timeoutId);
   }, [removeTransition, items, onItemsChange]);
+
+  // When item is inserting with the keyboard it keeps rendering by the palette and upon submission
+  // it starts rendering by the board. This transitions might lead to the focus being lost from the item's drag handle.
+  // The below code refocuses the drag handle when detecting the acquired item is no longer used.
+  const acquiredItemId = usePrevious(acquiredItem?.id);
+  const previousAcquiredItemElement = usePrevious(acquiredItemElement);
+  useEffect(() => {
+    if (acquiredItemId && previousAcquiredItemElement && !acquiredItemElement) {
+      itemContainerRef.current[acquiredItemId]?.focusDragHandle();
+    }
+  }, [acquiredItemId, previousAcquiredItemElement, acquiredItemElement]);
 
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
