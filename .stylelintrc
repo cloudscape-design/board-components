@@ -16,5 +16,5 @@
       }
     ]
   },
-  "plugins": ["./build-tools/stylelint"]
+  "plugins": ["@cloudscape-design/build-tools/stylelint"]
 }
