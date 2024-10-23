@@ -18,9 +18,9 @@ jobs:
     if: github.event.ref != 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
       - name: "Download artifacts"
         # Turns out you can not use artifacts from a previous workflow run.
@@ -47,9 +47,9 @@ jobs:
     if: github.event.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
       - run: npm install
       - run: npm run build
