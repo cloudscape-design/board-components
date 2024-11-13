@@ -27,6 +27,7 @@ test(
     ),
     DndPageObject,
     async (page) => {
+      await page.setWindowSize({ width: 1600, height: 1200 });
       await page.mouseDown(boardWrapper.findItemById("A").findDragHandle().toSelector());
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
