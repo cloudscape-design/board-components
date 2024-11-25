@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
-import SpaceBetween from "@cloudscape-design/components/space-between";
+import ColumnLayout from "@cloudscape-design/components/column-layout";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
@@ -72,7 +72,7 @@ export function InternalItemsPalette<D>({
   return (
     <div ref={__internalRootRef} {...getDataAttributes(rest)}>
       <div ref={paletteRef} className={styles.root}>
-        <SpaceBetween size="l">
+        <ColumnLayout columns={3}>
           {items.map((item) => (
             <ItemContainer
               ref={(elem) => {
@@ -100,7 +100,7 @@ export function InternalItemsPalette<D>({
               {(hasDropTarget) => renderItem(item, { showPreview: hasDropTarget })}
             </ItemContainer>
           ))}
-        </SpaceBetween>
+        </ColumnLayout>
       </div>
 
       <LiveRegion>{announcement}</LiveRegion>
