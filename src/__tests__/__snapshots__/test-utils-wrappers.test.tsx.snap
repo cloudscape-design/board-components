@@ -1,297 +1,298 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Generate test utils ElementWrapper > 'dom' ElementWrapper matches the snapshot 1`] = `
-"import { ElementWrapper } from '@cloudscape-design/test-utils-core/dom';
-import '@cloudscape-design/components/test-utils/dom';
+"
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+import { ElementWrapper } from '@cloudscape-design/test-utils-core/dom';
 import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
+
 export { ElementWrapper };
 
-        import BoardWrapper from './board';
-        export { BoardWrapper };
-      
+import BoardWrapper from './board';
+import BoardItemWrapper from './board-item';
+import ItemsPaletteWrapper from './items-palette';
+import PaletteItemWrapper from './palette-item';
 
-        import BoardItemWrapper from './board-item';
-        export { BoardItemWrapper };
-      
 
-        import ItemsPaletteWrapper from './items-palette';
-        export { ItemsPaletteWrapper };
-      
+export { BoardWrapper };
+export { BoardItemWrapper };
+export { ItemsPaletteWrapper };
+export { PaletteItemWrapper };
 
-        import PaletteItemWrapper from './palette-item';
-        export { PaletteItemWrapper };
-      
 declare module '@cloudscape-design/test-utils-core/dist/dom' {
-      interface ElementWrapper {
-        
-       /**
-        * Returns the wrapper of the first Board that matches the specified CSS selector.
-        * If no CSS selector is specified, returns the wrapper of the first Board.
-        * If no matching Board is found, returns \`null\`.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {BoardWrapper | null}
-        */
-       findBoard(selector?: string): BoardWrapper | null;
+   interface ElementWrapper {
+    
+/**
+ * Returns the wrapper of the first Board that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first Board.
+ * If no matching Board is found, returns \`null\`.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {BoardWrapper | null}
+ */
+findBoard(selector?: string): BoardWrapper | null;
 
-       /**
-        * Returns an array of Board wrapper that matches the specified CSS selector.
-        * If no CSS selector is specified, returns all of the Boards inside the current wrapper.
-        * If no matching Board is found, returns an empty array.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {Array<BoardWrapper>}
-        */
-       findAllBoards(selector?: string): Array<BoardWrapper>;
+/**
+ * Returns an array of Board wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the Boards inside the current wrapper.
+ * If no matching Board is found, returns an empty array.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {Array<BoardWrapper>}
+ */
+findAllBoards(selector?: string): Array<BoardWrapper>;
+/**
+ * Returns the wrapper of the first BoardItem that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first BoardItem.
+ * If no matching BoardItem is found, returns \`null\`.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {BoardItemWrapper | null}
+ */
+findBoardItem(selector?: string): BoardItemWrapper | null;
 
-       /**
-        * Returns the wrapper of the first BoardItem that matches the specified CSS selector.
-        * If no CSS selector is specified, returns the wrapper of the first BoardItem.
-        * If no matching BoardItem is found, returns \`null\`.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {BoardItemWrapper | null}
-        */
-       findBoardItem(selector?: string): BoardItemWrapper | null;
+/**
+ * Returns an array of BoardItem wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the BoardItems inside the current wrapper.
+ * If no matching BoardItem is found, returns an empty array.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {Array<BoardItemWrapper>}
+ */
+findAllBoardItems(selector?: string): Array<BoardItemWrapper>;
+/**
+ * Returns the wrapper of the first ItemsPalette that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first ItemsPalette.
+ * If no matching ItemsPalette is found, returns \`null\`.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {ItemsPaletteWrapper | null}
+ */
+findItemsPalette(selector?: string): ItemsPaletteWrapper | null;
 
-       /**
-        * Returns an array of BoardItem wrapper that matches the specified CSS selector.
-        * If no CSS selector is specified, returns all of the BoardItems inside the current wrapper.
-        * If no matching BoardItem is found, returns an empty array.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {Array<BoardItemWrapper>}
-        */
-       findAllBoardItems(selector?: string): Array<BoardItemWrapper>;
+/**
+ * Returns an array of ItemsPalette wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the ItemsPalettes inside the current wrapper.
+ * If no matching ItemsPalette is found, returns an empty array.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {Array<ItemsPaletteWrapper>}
+ */
+findAllItemsPalettes(selector?: string): Array<ItemsPaletteWrapper>;
+/**
+ * Returns the wrapper of the first PaletteItem that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first PaletteItem.
+ * If no matching PaletteItem is found, returns \`null\`.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {PaletteItemWrapper | null}
+ */
+findPaletteItem(selector?: string): PaletteItemWrapper | null;
 
-       /**
-        * Returns the wrapper of the first ItemsPalette that matches the specified CSS selector.
-        * If no CSS selector is specified, returns the wrapper of the first ItemsPalette.
-        * If no matching ItemsPalette is found, returns \`null\`.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {ItemsPaletteWrapper | null}
-        */
-       findItemsPalette(selector?: string): ItemsPaletteWrapper | null;
+/**
+ * Returns an array of PaletteItem wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the PaletteItems inside the current wrapper.
+ * If no matching PaletteItem is found, returns an empty array.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {Array<PaletteItemWrapper>}
+ */
+findAllPaletteItems(selector?: string): Array<PaletteItemWrapper>;
+   }
+}
 
-       /**
-        * Returns an array of ItemsPalette wrapper that matches the specified CSS selector.
-        * If no CSS selector is specified, returns all of the ItemsPalettes inside the current wrapper.
-        * If no matching ItemsPalette is found, returns an empty array.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {Array<ItemsPaletteWrapper>}
-        */
-       findAllItemsPalettes(selector?: string): Array<ItemsPaletteWrapper>;
 
-       /**
-        * Returns the wrapper of the first PaletteItem that matches the specified CSS selector.
-        * If no CSS selector is specified, returns the wrapper of the first PaletteItem.
-        * If no matching PaletteItem is found, returns \`null\`.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {PaletteItemWrapper | null}
-        */
-       findPaletteItem(selector?: string): PaletteItemWrapper | null;
+ElementWrapper.prototype.findBoard = function(selector) {
+  const rootSelector = \`.\${BoardWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardWrapper);
+};
 
-       /**
-        * Returns an array of PaletteItem wrapper that matches the specified CSS selector.
-        * If no CSS selector is specified, returns all of the PaletteItems inside the current wrapper.
-        * If no matching PaletteItem is found, returns an empty array.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {Array<PaletteItemWrapper>}
-        */
-       findAllPaletteItems(selector?: string): Array<PaletteItemWrapper>;
-      }
-  }
+ElementWrapper.prototype.findAllBoards = function(selector) {
+  return this.findAllComponents(BoardWrapper, selector);
+};
+ElementWrapper.prototype.findBoardItem = function(selector) {
+  const rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardItemWrapper);
+};
 
-      ElementWrapper.prototype.findBoard = function(selector) {
-        const rootSelector = \`.\${BoardWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardWrapper);
-      };
+ElementWrapper.prototype.findAllBoardItems = function(selector) {
+  return this.findAllComponents(BoardItemWrapper, selector);
+};
+ElementWrapper.prototype.findItemsPalette = function(selector) {
+  const rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, ItemsPaletteWrapper);
+};
 
-      ElementWrapper.prototype.findAllBoards = function(selector) {
-        return this.findAllComponents(BoardWrapper, selector);
-      };
+ElementWrapper.prototype.findAllItemsPalettes = function(selector) {
+  return this.findAllComponents(ItemsPaletteWrapper, selector);
+};
+ElementWrapper.prototype.findPaletteItem = function(selector) {
+  const rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PaletteItemWrapper);
+};
 
-      ElementWrapper.prototype.findBoardItem = function(selector) {
-        const rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardItemWrapper);
-      };
+ElementWrapper.prototype.findAllPaletteItems = function(selector) {
+  return this.findAllComponents(PaletteItemWrapper, selector);
+};
 
-      ElementWrapper.prototype.findAllBoardItems = function(selector) {
-        return this.findAllComponents(BoardItemWrapper, selector);
-      };
 
-      ElementWrapper.prototype.findItemsPalette = function(selector) {
-        const rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, ItemsPaletteWrapper);
-      };
-
-      ElementWrapper.prototype.findAllItemsPalettes = function(selector) {
-        return this.findAllComponents(ItemsPaletteWrapper, selector);
-      };
-
-      ElementWrapper.prototype.findPaletteItem = function(selector) {
-        const rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PaletteItemWrapper);
-      };
-
-      ElementWrapper.prototype.findAllPaletteItems = function(selector) {
-        return this.findAllComponents(PaletteItemWrapper, selector);
-      };
-export default function wrapper(root: Element = document.body) { if (document && document.body && !document.body.contains(root)) { console.warn('[AwsUi] [test-utils] provided element is not part of the document body, interactions may work incorrectly')}; return new ElementWrapper(root); }"
+export default function wrapper(root: Element = document.body) {
+  if (document && document.body && !document.body.contains(root)) {
+    console.warn('[AwsUi] [test-utils] provided element is not part of the document body, interactions may work incorrectly')
+  };
+  return new ElementWrapper(root);
+}
+"
 `;
 
 exports[`Generate test utils ElementWrapper > 'selectors' ElementWrapper matches the snapshot 1`] = `
-"import { ElementWrapper } from '@cloudscape-design/test-utils-core/selectors';
-import '@cloudscape-design/components/test-utils/selectors';
+"
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+import { ElementWrapper } from '@cloudscape-design/test-utils-core/selectors';
 import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
+
 export { ElementWrapper };
 
-        import BoardWrapper from './board';
-        export { BoardWrapper };
-      
+import BoardWrapper from './board';
+import BoardItemWrapper from './board-item';
+import ItemsPaletteWrapper from './items-palette';
+import PaletteItemWrapper from './palette-item';
 
-        import BoardItemWrapper from './board-item';
-        export { BoardItemWrapper };
-      
 
-        import ItemsPaletteWrapper from './items-palette';
-        export { ItemsPaletteWrapper };
-      
+export { BoardWrapper };
+export { BoardItemWrapper };
+export { ItemsPaletteWrapper };
+export { PaletteItemWrapper };
 
-        import PaletteItemWrapper from './palette-item';
-        export { PaletteItemWrapper };
-      
 declare module '@cloudscape-design/test-utils-core/dist/selectors' {
-      interface ElementWrapper {
-        
-       /**
-        * Returns a wrapper that matches the Boards with the specified CSS selector.
-        * If no CSS selector is specified, returns a wrapper that matches Boards.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {BoardWrapper}
-        */
-       findBoard(selector?: string): BoardWrapper;
+   interface ElementWrapper {
+    
+/**
+ * Returns a wrapper that matches the Boards with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches Boards.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {BoardWrapper}
+ */
+findBoard(selector?: string): BoardWrapper;
 
-       /**
-        * Returns a multi-element wrapper that matches Boards with the specified CSS selector.
-        * If no CSS selector is specified, returns a multi-element wrapper that matches Boards.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {MultiElementWrapper<BoardWrapper>}
-        */
-       findAllBoards(selector?: string): MultiElementWrapper<BoardWrapper>;
+/**
+ * Returns a multi-element wrapper that matches Boards with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches Boards.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {MultiElementWrapper<BoardWrapper>}
+ */
+findAllBoards(selector?: string): MultiElementWrapper<BoardWrapper>;
+/**
+ * Returns a wrapper that matches the BoardItems with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches BoardItems.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {BoardItemWrapper}
+ */
+findBoardItem(selector?: string): BoardItemWrapper;
 
-       /**
-        * Returns a wrapper that matches the BoardItems with the specified CSS selector.
-        * If no CSS selector is specified, returns a wrapper that matches BoardItems.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {BoardItemWrapper}
-        */
-       findBoardItem(selector?: string): BoardItemWrapper;
+/**
+ * Returns a multi-element wrapper that matches BoardItems with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches BoardItems.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {MultiElementWrapper<BoardItemWrapper>}
+ */
+findAllBoardItems(selector?: string): MultiElementWrapper<BoardItemWrapper>;
+/**
+ * Returns a wrapper that matches the ItemsPalettes with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches ItemsPalettes.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {ItemsPaletteWrapper}
+ */
+findItemsPalette(selector?: string): ItemsPaletteWrapper;
 
-       /**
-        * Returns a multi-element wrapper that matches BoardItems with the specified CSS selector.
-        * If no CSS selector is specified, returns a multi-element wrapper that matches BoardItems.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {MultiElementWrapper<BoardItemWrapper>}
-        */
-       findAllBoardItems(selector?: string): MultiElementWrapper<BoardItemWrapper>;
+/**
+ * Returns a multi-element wrapper that matches ItemsPalettes with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches ItemsPalettes.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {MultiElementWrapper<ItemsPaletteWrapper>}
+ */
+findAllItemsPalettes(selector?: string): MultiElementWrapper<ItemsPaletteWrapper>;
+/**
+ * Returns a wrapper that matches the PaletteItems with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches PaletteItems.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {PaletteItemWrapper}
+ */
+findPaletteItem(selector?: string): PaletteItemWrapper;
 
-       /**
-        * Returns a wrapper that matches the ItemsPalettes with the specified CSS selector.
-        * If no CSS selector is specified, returns a wrapper that matches ItemsPalettes.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {ItemsPaletteWrapper}
-        */
-       findItemsPalette(selector?: string): ItemsPaletteWrapper;
+/**
+ * Returns a multi-element wrapper that matches PaletteItems with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches PaletteItems.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {MultiElementWrapper<PaletteItemWrapper>}
+ */
+findAllPaletteItems(selector?: string): MultiElementWrapper<PaletteItemWrapper>;
+   }
+}
 
-       /**
-        * Returns a multi-element wrapper that matches ItemsPalettes with the specified CSS selector.
-        * If no CSS selector is specified, returns a multi-element wrapper that matches ItemsPalettes.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {MultiElementWrapper<ItemsPaletteWrapper>}
-        */
-       findAllItemsPalettes(selector?: string): MultiElementWrapper<ItemsPaletteWrapper>;
 
-       /**
-        * Returns a wrapper that matches the PaletteItems with the specified CSS selector.
-        * If no CSS selector is specified, returns a wrapper that matches PaletteItems.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {PaletteItemWrapper}
-        */
-       findPaletteItem(selector?: string): PaletteItemWrapper;
+ElementWrapper.prototype.findBoard = function(selector) {
+  const rootSelector = \`.\${BoardWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardWrapper);
+};
 
-       /**
-        * Returns a multi-element wrapper that matches PaletteItems with the specified CSS selector.
-        * If no CSS selector is specified, returns a multi-element wrapper that matches PaletteItems.
-        *
-        * @param {string} [selector] CSS Selector
-        * @returns {MultiElementWrapper<PaletteItemWrapper>}
-        */
-       findAllPaletteItems(selector?: string): MultiElementWrapper<PaletteItemWrapper>;
-      }
-  }
+ElementWrapper.prototype.findAllBoards = function(selector) {
+  return this.findAllComponents(BoardWrapper, selector);
+};
+ElementWrapper.prototype.findBoardItem = function(selector) {
+  const rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardItemWrapper);
+};
 
-      ElementWrapper.prototype.findBoard = function(selector) {
-        const rootSelector = \`.\${BoardWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardWrapper);
-      };
+ElementWrapper.prototype.findAllBoardItems = function(selector) {
+  return this.findAllComponents(BoardItemWrapper, selector);
+};
+ElementWrapper.prototype.findItemsPalette = function(selector) {
+  const rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, ItemsPaletteWrapper);
+};
 
-      ElementWrapper.prototype.findAllBoards = function(selector) {
-        return this.findAllComponents(BoardWrapper, selector);
-      };
+ElementWrapper.prototype.findAllItemsPalettes = function(selector) {
+  return this.findAllComponents(ItemsPaletteWrapper, selector);
+};
+ElementWrapper.prototype.findPaletteItem = function(selector) {
+  const rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PaletteItemWrapper);
+};
 
-      ElementWrapper.prototype.findBoardItem = function(selector) {
-        const rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardItemWrapper);
-      };
+ElementWrapper.prototype.findAllPaletteItems = function(selector) {
+  return this.findAllComponents(PaletteItemWrapper, selector);
+};
 
-      ElementWrapper.prototype.findAllBoardItems = function(selector) {
-        return this.findAllComponents(BoardItemWrapper, selector);
-      };
 
-      ElementWrapper.prototype.findItemsPalette = function(selector) {
-        const rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, ItemsPaletteWrapper);
-      };
-
-      ElementWrapper.prototype.findAllItemsPalettes = function(selector) {
-        return this.findAllComponents(ItemsPaletteWrapper, selector);
-      };
-
-      ElementWrapper.prototype.findPaletteItem = function(selector) {
-        const rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
-        // casting to 'any' is needed to avoid this issue with generics
-        // https://github.com/microsoft/TypeScript/issues/29132
-        return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PaletteItemWrapper);
-      };
-
-      ElementWrapper.prototype.findAllPaletteItems = function(selector) {
-        return this.findAllComponents(PaletteItemWrapper, selector);
-      };
-export default function wrapper(root: string = 'body') { return new ElementWrapper(root); }"
+export default function wrapper(root: string = 'body') {
+  return new ElementWrapper(root);
+}
+"
 `;
