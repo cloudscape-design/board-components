@@ -31,7 +31,7 @@ export function EnginePageTemplate({
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
   return (
-    <PageLayout header={<Header variant="h1">Configurable board demo test page</Header>}>
+    <PageLayout header={<Header variant="h1">Configurable board demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
         <Board
           i18nStrings={boardI18nStrings}
