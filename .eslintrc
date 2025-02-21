@@ -6,7 +6,8 @@
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
     "plugin:prettier/recommended",
-    "plugin:no-unsanitized/DOM"
+    "plugin:no-unsanitized/DOM",
+    "plugin:@vitest/legacy-recommended"
   ],
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -15,7 +16,7 @@
       "jsx": true
     }
   },
-  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header", "import", "simple-import-sort"],
+  "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header", "import", "simple-import-sort", "@vitest"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
@@ -79,7 +80,8 @@
         "noUselessIndex": true
       }
     ],
-    "simple-import-sort/imports": "warn"
+    "simple-import-sort/imports": "warn",
+    "@vitest/no-focused-tests": "error"
   },
   "settings": {
     "react": {
