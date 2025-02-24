@@ -18,7 +18,9 @@ export function setupTest<P extends BasePageObject & { init?(): Promise<void> }>
     await page.waitForVisible("main");
 
     // Custom initialization.
-    page.init && (await page.init());
+    if (page.init) {
+      await page.init();
+    }
 
     await test(page);
   });
