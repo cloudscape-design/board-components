@@ -78,7 +78,7 @@
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "@vitest/coverage-v8": "^1.4.0",
+    "@vitest/coverage-v8": "^1.6.1",
     "@vitest/eslint-plugin": "^1.1.31",
     "chokidar-cli": "^3.0.0",
     "deep-freeze-es6": "^1.4.1",
@@ -110,7 +110,7 @@
     "stylelint-prettier": "^5.0.2",
     "typescript": "^4.9.4",
     "vite": "^5.4.14",
-    "vitest": "^1.4.0"
+    "vitest": "^1.6.1"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
   "overrides": {
