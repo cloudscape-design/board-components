@@ -1,13 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { afterAll, beforeEach, describe, expect, Mock, SpyInstance, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, Mock, MockInstance, test, vi } from "vitest";
 
 import { throttle } from "../throttle";
 
 describe("throttle", () => {
-  let dateNowSpy: SpyInstance<[], number>;
-  let requestAnimationFrameSpy: SpyInstance<[FrameRequestCallback], number>;
+  let dateNowSpy: MockInstance;
+  let requestAnimationFrameSpy: MockInstance;
   let funcMock: Mock;
   let tick: () => void;
 
