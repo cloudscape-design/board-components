@@ -54,7 +54,6 @@
   },
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
-    "@cloudscape-design/design-tokens": "^3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
