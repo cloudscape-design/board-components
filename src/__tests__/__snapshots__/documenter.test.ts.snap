@@ -6,16 +6,16 @@ exports[`definition for board matches the snapshot > board 1`] = `
     {
       "cancelable": false,
       "description": "Called when a user modifies the size or position of board items.
+
 The change detail has the following properties:
 
 * \`items\`: (readonly Item<D>[]) - the updated items array.
 * \`addedItem\`: (Item<D>, optional) - the item that was added as part of the update, if applicable.
 * \`removedItem\`: (Item<D>, optional) - the item that was removed as part of the update, if applicable.
 * \`resizedItem\`: (Item<D>, optional) - the item that was resized as part of the update, if applicable.
-* \`movedItem\`: (Item<D>, optional) - the item that was moved as part of the update, if applicable.
-",
+* \`movedItem\`: (Item<D>, optional) - the item that was moved as part of the update, if applicable.",
       "detailInlineType": {
-        "name": "BoardProps.ItemsChangeDetail",
+        "name": "BoardProps.ItemsChangeDetail<D>",
         "properties": [
           {
             "name": "addedItem",
@@ -54,6 +54,7 @@ The change detail has the following properties:
   "properties": [
     {
       "description": "An object containing all the necessary localized strings required by the component.
+
 Live announcements:
 * \`liveAnnouncementDndStarted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate start of DnD ("reorder", "resize" or "insert").
 * \`liveAnnouncementDndItemReordered(BoardProps.DndReorderState<D>): string\` - the function to create a live announcement string to indicate when DnD reorder is performed.
@@ -61,10 +62,9 @@ Live announcements:
 * \`liveAnnouncementDndItemInserted(BoardProps.DndInsertState<D>): string\` - the function to create a live announcement string to indicate when DnD insert is performed.
 * \`liveAnnouncementDndDiscarded(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate commit of DnD ("reorder", "resize" or "insert").
 * \`liveAnnouncementDndCommitted(BoardProps.DndOperationType): string\` - the function to create a live announcement string to indicate discard of DnD ("reorder", "resize" or "insert").
-* \`liveAnnouncementItemRemoved(BoardProps.OperationStateRemove<D>): string\` - the function to create a live announcement string to indicate when item is removed.
-",
+* \`liveAnnouncementItemRemoved(BoardProps.OperationStateRemove<D>): string\` - the function to create a live announcement string to indicate when item is removed.",
       "inlineType": {
-        "name": "BoardProps.I18nStrings",
+        "name": "BoardProps.I18nStrings<D>",
         "properties": [
           {
             "name": "liveAnnouncementDndCommitted",
@@ -126,6 +126,7 @@ Live announcements:
     {
       "description": "Specifies the items displayed in the board. Each item includes its position on the board and
 optional data. The content of an item is controlled by the \`renderItem\` property.
+
 The BoardProps.Item includes:
 * \`id\` (string) - the unique item identifier. The IDs of any two items in a page must be different.
 * \`definition.minRowSpan\` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
@@ -135,27 +136,41 @@ The BoardProps.Item includes:
 * \`columnOffset\` (mapping, optional) - the item's offset from the first column (per layout) starting from zero. The value is updated by \`onItemsChange\` after an update is committed.
 * \`rowSpan\` (number, optional) - the item's vertical size starting from two. The value is updated by \`onItemsChange\` after an update is committed.
 * \`columnSpan\` (number, optional) - the item's horizontal size starting from one. The value is updated by \`onItemsChange\` after an update is committed.
-* \`data\` (D) - optional item data which can include the specific configurations of an item, such as its title.
-",
+* \`data\` (D) - optional item data which can include the specific configurations of an item, such as its title.",
       "name": "items",
       "optional": false,
       "type": "ReadonlyArray<BoardProps.Item<D>>",
     },
     {
       "description": "Specifies a function to render content for board items. The return value must include board item component.
+
 The function takes the item and its associated actions (BoardProps.ItemActions) that include:
-* \`removeItem(): void\` - the callback to issue the item's removal. Once issued, the \`onItemsChange\` will fire to update the state.
-",
+* \`removeItem(): void\` - the callback to issue the item's removal. Once issued, the \`onItemsChange\` will fire to update the state.",
+      "inlineType": {
+        "name": "(item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => JSX.Element",
+        "parameters": [
+          {
+            "name": "item",
+            "type": "BoardProps.Item<D>",
+          },
+          {
+            "name": "actions",
+            "type": "BoardProps.ItemActions",
+          },
+        ],
+        "returnType": "JSX.Element",
+        "type": "function",
+      },
       "name": "renderItem",
       "optional": false,
-      "type": "(item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => Element",
+      "type": "(item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => JSX.Element",
     },
   ],
   "regions": [
     {
       "description": "Rendered when the \`items\` array is empty.
-When items are loading the slot can be used to render the loading indicator.
-",
+
+When items are loading the slot can be used to render the loading indicator.",
       "isDefault": false,
       "name": "empty",
     },
@@ -179,12 +194,12 @@ from the content area.",
     },
     {
       "description": "An object containing all the necessary localized strings required by the component.
+
 ARIA labels:
 * \`dragHandleAriaLabel\` (string) - the ARIA label for the drag handle.
 * \`dragHandleAriaDescription\` (string, optional) - the ARIA description for the drag handle.
 * \`resizeHandleAriaLabel\` (string) - the ARIA label for the resize handle.
-* \`resizeHandleAriaDescription\` (string, optional) - the ARIA description for the resize handle.
-",
+* \`resizeHandleAriaDescription\` (string, optional) - the ARIA description for the resize handle.",
       "inlineType": {
         "name": "BoardItemProps.I18nStrings",
         "properties": [
@@ -250,12 +265,12 @@ exports[`definition for items-palette matches the snapshot > items-palette 1`] =
   "properties": [
     {
       "description": "An object containing all the necessary localized strings required by the component.
+
 Live announcements:
 * \`liveAnnouncementDndStarted\` (string) - live announcement string to indicate start of DnD.
-* \`liveAnnouncementDndDiscarded\` (string) - live announcement string to indicate discard of DnD.
-",
+* \`liveAnnouncementDndDiscarded\` (string) - live announcement string to indicate discard of DnD.",
       "inlineType": {
-        "name": "ItemsPaletteProps.I18nStrings",
+        "name": "ItemsPaletteProps.I18nStrings<D>",
         "properties": [
           {
             "name": "liveAnnouncementDndDiscarded",
@@ -291,26 +306,41 @@ Live announcements:
     },
     {
       "description": "Specifies the items displayed in the palette. The content of each item is controlled by the \`renderItem\` property.
+
 The ItemsPaletteProps.Item includes:
 * \`id\` (string) - the unique item identifier. The IDs of any two items in a page must be different.
 * \`definition.minRowSpan\` (number, optional) - the minimal number of rows the item is allowed to take. It can't be less than two. Defaults to two.
 * \`definition.minColumnSpan\` (number, optional) - the minimal number of columns the item is allowed to take (in a 4 column layout). It can't be less than one. Defaults to one.
 * \`definition.defaultRowSpan\` (number) - the number or rows the item will take when inserted to the board. It can't be less than \`definition.minRowSpan\`.
 * \`definition.defaultColumnSpan\` (number) - the number or columns the item will take (in a 4 column layout) when inserted to the board. It can't be less than \`definition.minColumnSpan\`.
-* \`data\` (D) - optional item data which can include the specific configurations of an item, such as its title.
-",
+* \`data\` (D) - optional item data which can include the specific configurations of an item, such as its title.",
       "name": "items",
       "optional": false,
       "type": "ReadonlyArray<ItemsPaletteProps.Item<D>>",
     },
     {
       "description": "Specifies a function to render content for a palette item. The return value must include board item component.
+
 The function takes the item and its associated context (ItemsPaletteProps.ItemContext) that include:
-* \`showPreview\` (boolean) - a flag that indicates if the item's content needs to be rendered in preview mode.
-",
+* \`showPreview\` (boolean) - a flag that indicates if the item's content needs to be rendered in preview mode.",
+      "inlineType": {
+        "name": "(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => JSX.Element",
+        "parameters": [
+          {
+            "name": "item",
+            "type": "ItemsPaletteProps.Item<D>",
+          },
+          {
+            "name": "context",
+            "type": "ItemsPaletteProps.ItemContext",
+          },
+        ],
+        "returnType": "JSX.Element",
+        "type": "function",
+      },
       "name": "renderItem",
       "optional": false,
-      "type": "(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => Element",
+      "type": "(item: ItemsPaletteProps.Item<D>, context: ItemsPaletteProps.ItemContext) => JSX.Element",
     },
   ],
   "regions": [],
