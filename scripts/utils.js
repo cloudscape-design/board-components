@@ -1,15 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import lodash from "lodash";
 import fs from "node:fs";
 import path from "node:path";
-import lodash from "lodash";
 
 export function pascalCase(text) {
   return capitalize(lodash.camelCase(text));
-}
-
-export function dashCase(text) {
-  return lodash.kebabCase(text);
 }
 
 function capitalize(text) {
