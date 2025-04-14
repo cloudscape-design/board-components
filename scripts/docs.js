@@ -3,7 +3,8 @@
 import path from "node:path";
 
 import { documentComponents, documentTestUtils } from "@cloudscape-design/documenter";
-import { dashCase, listPublicDirs, writeSourceFile } from "./utils.js";
+
+import { listPublicDirs, writeSourceFile } from "./utils.js";
 
 const publicDirs = listPublicDirs("src");
 const targetDir = "lib/components/internal/api-docs";
@@ -20,27 +21,22 @@ function validatePublicFiles(definitionFiles) {
 }
 
 function componentDocs() {
-  const definitions = documentComponents(path.resolve("tsconfig.json"), "src/*/index.tsx");
+  const definitions = documentComponents({
+    tsconfigPath: path.resolve("tsconfig.json"),
+    publicFilesGlob: "src/*/index.tsx",
+  });
   const outDir = path.join(targetDir, "components");
-  const fileNames = definitions
-    .filter((definition) => {
-      const fileName = dashCase(definition.name);
-      if (!publicDirs.includes(fileName)) {
-        console.warn(`Excluded "${fileName}" from components definitions.`);
-        return false;
-      }
-      return true;
-    })
-    .map((definition) => {
-      const fileName = dashCase(definition.name);
-      writeSourceFile(path.join(outDir, fileName + ".js"), `module.exports = ${JSON.stringify(definition, null, 2)};`);
-      return fileName;
-    });
-  validatePublicFiles(fileNames);
+  for (const definition of definitions) {
+    writeSourceFile(
+      path.join(outDir, definition.dashCaseName + ".js"),
+      `module.exports = ${JSON.stringify(definition, null, 2)};`,
+    );
+  }
   const indexContent = `module.exports = {
-    ${fileNames.map((name) => `${JSON.stringify(name)}:require('./${name}')`).join(",\n")}
+    ${definitions.map((definition) => `${JSON.stringify(definition.dashCaseName)}:require('./${definition.dashCaseName}')`).join(",\n")}
   }`;
   writeSourceFile(path.join(outDir, "index.js"), indexContent);
+  validatePublicFiles(definitions.map((def) => def.dashCaseName));
 }
 
 function testUtilDocs() {

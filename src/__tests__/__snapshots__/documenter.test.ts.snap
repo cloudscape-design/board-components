@@ -2,6 +2,7 @@
 
 exports[`definition for board matches the snapshot > board 1`] = `
 {
+  "dashCaseName": "board",
   "events": [
     {
       "cancelable": false,
@@ -181,6 +182,7 @@ When items are loading the slot can be used to render the loading indicator.",
 
 exports[`definition for board-item matches the snapshot > board-item 1`] = `
 {
+  "dashCaseName": "board-item",
   "events": [],
   "functions": [],
   "name": "BoardItem",
@@ -259,6 +261,7 @@ ARIA labels:
 
 exports[`definition for items-palette matches the snapshot > items-palette 1`] = `
 {
+  "dashCaseName": "items-palette",
   "events": [],
   "functions": [],
   "name": "ItemsPalette",
