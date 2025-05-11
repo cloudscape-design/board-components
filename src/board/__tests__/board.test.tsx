@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import { afterEach, beforeAll, describe, expect, test } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 
@@ -46,7 +46,7 @@ describe("Board", () => {
     itemDragHandle.keydown(KeyCode.escape);
   });
 
-  test("applies reorder operation classname", () => {
+  test("applies reorder operation classname on pointer interaction", () => {
     const { container } = render(<Board {...defaultProps} />);
 
     const reorderClass = globalStateStyles["show-grab-cursor"];
@@ -63,7 +63,7 @@ describe("Board", () => {
     expect(container.ownerDocument.body).not.toHaveClass(reorderClass);
   });
 
-  test("applies resize operation classname", () => {
+  test("applies resize operation classname on pointer interaction", () => {
     const { container } = render(<Board {...defaultProps} />);
 
     const resizeClass = globalStateStyles["show-resize-cursor"];
@@ -110,41 +110,75 @@ describe("Board", () => {
     expect(container.ownerDocument.body).not.toHaveClass(disableSelectionClass);
   });
 
-  test("sets active state for drag handle", () => {
-    render(<Board {...defaultProps} />);
+  describe("sets pointer active states for drag and resize handles", () => {
+    let dragHandle: HTMLElement;
+    let resizeHandle: HTMLElement;
+    let dragHandlePointerActiveClassName: string;
+    let dragHandleUapActiveClassName: string;
+    let resizeHandlePointerActiveClassName: string;
+    let resizeHandleUapActiveClassName: string;
 
-    const findBoardItem = () => createWrapper().findBoard()!.findItemById("1")!;
-    const findDragHandle = () => findBoardItem().findDragHandle().getElement();
-    const findResizeHandle = () => findBoardItem().findResizeHandle().getElement();
+    beforeEach(() => {
+      render(<Board {...defaultProps} />);
 
-    expect(findDragHandle()).not.toHaveClass(dragHandleStyles.active);
+      dragHandle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
+      resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+      dragHandlePointerActiveClassName = dragHandleStyles.active;
+      dragHandleUapActiveClassName = dragHandleStyles["active-uap"];
+      resizeHandlePointerActiveClassName = resizeHandleStyles.active;
+      resizeHandleUapActiveClassName = resizeHandleStyles["active-uap"];
+    });
+    test("drag handle", () => {
+      expect(dragHandle).not.toHaveClass(dragHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandleUapActiveClassName);
 
-    // Start operation
-    fireEvent(findDragHandle(), new MouseEvent("pointerdown", { bubbles: true }));
-    expect(findDragHandle()).toHaveClass(dragHandleStyles.active);
-    expect(findResizeHandle()).not.toHaveClass(dragHandleStyles.active);
+      // Pointerdown - activates pointer class
+      fireEvent(dragHandle, new MouseEvent("pointerdown", { bubbles: true }));
+      expect(dragHandle).toHaveClass(dragHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandleUapActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandleUapActiveClassName);
 
-    // End operation
-    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
-    expect(findDragHandle()).not.toHaveClass(dragHandleStyles.active);
-  });
+      // Pointerup - removes pointer class - adds UAP active class
+      fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
+      expect(dragHandle).toHaveClass(dragHandleUapActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandleUapActiveClassName);
 
-  test("sets active state for resize handle", () => {
-    render(<Board {...defaultProps} />);
+      // Blur handle - removes UAP active class
+      fireEvent.blur(dragHandle);
+      expect(dragHandle).not.toHaveClass(dragHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandleUapActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandleUapActiveClassName);
+    });
 
-    const dragHandle = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
-    const resizeHandle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+    test("resize handle", () => {
+      expect(resizeHandle).not.toHaveClass(resizeHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandleUapActiveClassName);
 
-    expect(resizeHandle).not.toHaveClass(resizeHandleStyles.active);
+      // Pointerdown - activates pointer class
+      fireEvent(resizeHandle, new MouseEvent("pointerdown", { bubbles: true }));
+      expect(resizeHandle).toHaveClass(resizeHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandleUapActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandleUapActiveClassName);
 
-    // Start operation
-    fireEvent(resizeHandle, new MouseEvent("pointerdown", { bubbles: true }));
-    expect(resizeHandle).toHaveClass(resizeHandleStyles.active);
-    expect(dragHandle).not.toHaveClass(resizeHandleStyles.active);
+      // Pointerup - removes pointer class - adds UAP active class
+      fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
+      expect(resizeHandle).toHaveClass(resizeHandleUapActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandleUapActiveClassName);
 
-    // End operation
-    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }));
-    expect(resizeHandle).not.toHaveClass(resizeHandleStyles.active);
+      // Blur handle - removes UAP active class
+      fireEvent.blur(resizeHandle);
+      expect(resizeHandle).not.toHaveClass(resizeHandlePointerActiveClassName);
+      expect(resizeHandle).not.toHaveClass(resizeHandleUapActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandlePointerActiveClassName);
+      expect(dragHandle).not.toHaveClass(dragHandleUapActiveClassName);
+    });
   });
 
   test("triggers onItemsChange on drag", () => {

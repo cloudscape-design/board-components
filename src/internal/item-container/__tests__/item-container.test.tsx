@@ -48,19 +48,19 @@ test("renders item container", () => {
 
 test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-  getByTestId("drag-handle").click();
+  fireEvent.click(getByTestId("drag-handle"));
   expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
 });
 
 test("starts insert transition when drag handle is clicked and item does not belong to grid", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} />);
-  getByTestId("drag-handle").click();
+  fireEvent.click(getByTestId("drag-handle"));
   expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates));
 });
 
 test("starts resize transition when resize handle is clicked", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-  getByTestId("resize-handle").click();
+  fireEvent.click(getByTestId("resize-handle"));
   expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
 });
 

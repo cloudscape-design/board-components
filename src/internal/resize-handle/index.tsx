@@ -3,9 +3,9 @@
 import { KeyboardEvent, PointerEvent } from "react";
 import clsx from "clsx";
 
-import Icon from "@cloudscape-design/components/icon";
-
-import Handle from "../handle";
+import InternalDragHandle, {
+  DragHandleProps as InternalDragHandleProps,
+} from "@cloudscape-design/components/internal/components/drag-handle";
 
 import styles from "./styles.css.js";
 
@@ -14,7 +14,9 @@ export interface ResizeHandleProps {
   ariaDescribedBy: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
-  isActive: boolean;
+  isActivePointer: boolean;
+  isActiveUap: boolean;
+  onDirectionClick: InternalDragHandleProps["onDirectionClick"];
 }
 
 export default function ResizeHandle({
@@ -22,17 +24,41 @@ export default function ResizeHandle({
   ariaDescribedBy,
   onPointerDown,
   onKeyDown,
-  isActive,
+  isActivePointer,
+  isActiveUap,
+  onDirectionClick,
 }: ResizeHandleProps) {
   return (
-    <Handle
-      className={clsx(styles.handle, isActive && styles.active)}
-      aria-labelledby={ariaLabelledBy}
-      aria-describedby={ariaDescribedBy}
-      onPointerDown={onPointerDown}
-      onKeyDown={onKeyDown}
-    >
-      <Icon name="resize-area" />
-    </Handle>
+    <>
+      <InternalDragHandle
+        className={clsx(styles.handle, isActivePointer && styles.active, isActiveUap && styles["active-uap"])}
+        ariaLabelledBy={ariaLabelledBy}
+        ariaDescribedby={ariaDescribedBy}
+        variant="resize-area"
+        // Provide an arbitrary large value to valueMax since the editor can be
+        // resized to be infinitely large.
+        ariaValue={{ valueMin: 0, valueMax: 1000000, valueNow: 100 }}
+        tooltipText={"Tooltip Text"}
+        onKeyDown={onKeyDown}
+        onPointerDown={onPointerDown}
+        directions={{
+          "block-start": "active",
+          "block-end": "active",
+          "inline-start": "active",
+          "inline-end": "active",
+        }}
+        interactionMode="controlled"
+        onDirectionClick={onDirectionClick}
+      />
+      {/*<Handle*/}
+      {/*  className={clsx(styles.handle, isActive && styles.active)}*/}
+      {/*  aria-labelledby={ariaLabelledBy}*/}
+      {/*  aria-describedby={ariaDescribedBy}*/}
+      {/*  onPointerDown={onPointerDown}*/}
+      {/*  onKeyDown={onKeyDown}*/}
+      {/*>*/}
+      {/*  <Icon name="resize-area" />*/}
+      {/*</Handle>*/}
+    </>
   );
 }

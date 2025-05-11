@@ -13,12 +13,16 @@ export function ItemContextWrapper({ children }: { children: ReactNode }) {
           ref: { current: null },
           onPointerDown: () => {},
           onKeyDown: () => {},
-          isActive: false,
+          isActivePointer: false,
+          isActiveUap: false,
+          onDirectionClick: () => {},
         },
         resizeHandle: {
           onPointerDown: () => {},
           onKeyDown: () => {},
-          isActive: false,
+          isActivePointer: false,
+          isActiveUap: false,
+          onDirectionClick: () => {},
         },
       }}
     >

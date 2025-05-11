@@ -17,6 +17,7 @@
   @include shared.focus-highlight();
 }
 
-.active {
+.active,
+.active-uap {
   outline: none;
 }

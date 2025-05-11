@@ -9,13 +9,18 @@ function assertNever(value: never) {
 }
 
 function setup({ operation, interactionType }: DragAndDropData) {
+  const isPointerInteraction = interactionType === "pointer";
   switch (operation) {
     case "insert":
     case "reorder":
-      document.body.classList.add(styles["show-grab-cursor"]);
+      if (isPointerInteraction) {
+        document.body.classList.add(styles["show-grab-cursor"]);
+      }
       break;
     case "resize":
-      document.body.classList.add(styles["show-resize-cursor"]);
+      if (isPointerInteraction) {
+        document.body.classList.add(styles["show-resize-cursor"]);
+      }
       break;
     default:
       // there will be a type error if not all operation types are handled
