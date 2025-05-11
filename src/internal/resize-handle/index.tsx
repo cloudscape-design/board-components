@@ -29,36 +29,25 @@ export default function ResizeHandle({
   onDirectionClick,
 }: ResizeHandleProps) {
   return (
-    <>
-      <InternalDragHandle
-        className={clsx(styles.handle, isActivePointer && styles.active, isActiveUap && styles["active-uap"])}
-        ariaLabelledBy={ariaLabelledBy}
-        ariaDescribedby={ariaDescribedBy}
-        variant="resize-area"
-        // Provide an arbitrary large value to valueMax since the editor can be
-        // resized to be infinitely large.
-        ariaValue={{ valueMin: 0, valueMax: 1000000, valueNow: 100 }}
-        tooltipText={"Tooltip Text"}
-        onKeyDown={onKeyDown}
-        onPointerDown={onPointerDown}
-        directions={{
-          "block-start": "active",
-          "block-end": "active",
-          "inline-start": "active",
-          "inline-end": "active",
-        }}
-        interactionMode="controlled"
-        onDirectionClick={onDirectionClick}
-      />
-      {/*<Handle*/}
-      {/*  className={clsx(styles.handle, isActive && styles.active)}*/}
-      {/*  aria-labelledby={ariaLabelledBy}*/}
-      {/*  aria-describedby={ariaDescribedBy}*/}
-      {/*  onPointerDown={onPointerDown}*/}
-      {/*  onKeyDown={onKeyDown}*/}
-      {/*>*/}
-      {/*  <Icon name="resize-area" />*/}
-      {/*</Handle>*/}
-    </>
+    <InternalDragHandle
+      className={clsx(styles.handle, isActivePointer && styles.active, isActiveUap && styles["active-uap"])}
+      ariaLabelledBy={ariaLabelledBy}
+      ariaDescribedby={ariaDescribedBy}
+      variant="resize-area"
+      // Provide an arbitrary large value to valueMax since the editor can be
+      // resized to be infinitely large.
+      ariaValue={{ valueMin: 0, valueMax: 1000000, valueNow: 100 }}
+      tooltipText={"Tooltip Text"}
+      onKeyDown={onKeyDown}
+      onPointerDown={onPointerDown}
+      directions={{
+        "block-start": "active",
+        "block-end": "active",
+        "inline-start": "active",
+        "inline-end": "active",
+      }}
+      interactionMode="controlled"
+      onDirectionClick={onDirectionClick}
+    />
   );
 }
