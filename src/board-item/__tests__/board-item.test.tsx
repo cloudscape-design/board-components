@@ -18,6 +18,8 @@ import { ItemContextWrapper } from "./board-item-wrapper";
 const i18nStrings = {
   dragHandleAriaLabel: "Drag handle",
   resizeHandleAriaLabel: "Resize handle",
+  dragHandleTooltipText: "Drag or select to move",
+  resizeHandleTooltipText: "Drag or select to resize",
 };
 
 function render(jsx: ReactElement) {
@@ -60,5 +62,15 @@ describe("WidgetContainer", () => {
 
     expect(getByLabelText("Drag handle")).toBeDefined();
     expect(getByLabelText("Resize handle")).toBeDefined();
+  });
+
+  test.skip("renders drag handle tooltip text", () => {
+    render(<BoardItem i18nStrings={i18nStrings} />);
+    // TODO implement test to verify tooltip is shown on hover
+  });
+
+  test.skip("renders resize handle tooltip text", () => {
+    render(<BoardItem i18nStrings={i18nStrings} />);
+    // TODO implement test to verify tooltip is shown on hover
   });
 });

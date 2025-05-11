@@ -18,6 +18,7 @@ export interface DragHandleProps {
   isActiveUap: boolean;
   showButtons?: boolean;
   onDirectionClick: InternalDragHandleProps["onDirectionClick"];
+  dragHandleTooltipText?: string;
 }
 
 function DragHandle(
@@ -30,6 +31,7 @@ function DragHandle(
     isActiveUap,
     showButtons,
     onDirectionClick,
+    dragHandleTooltipText,
   }: DragHandleProps,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
@@ -45,7 +47,7 @@ function DragHandle(
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedby={ariaDescribedBy}
       variant="drag-indicator"
-      tooltipText={"Tooltip Text"}
+      tooltipText={dragHandleTooltipText}
       onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
       directions={{

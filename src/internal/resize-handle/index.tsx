@@ -17,6 +17,7 @@ export interface ResizeHandleProps {
   isActivePointer: boolean;
   isActiveUap: boolean;
   onDirectionClick: InternalDragHandleProps["onDirectionClick"];
+  resizeHandleTooltipText?: string;
 }
 
 export default function ResizeHandle({
@@ -27,6 +28,7 @@ export default function ResizeHandle({
   isActivePointer,
   isActiveUap,
   onDirectionClick,
+  resizeHandleTooltipText,
 }: ResizeHandleProps) {
   return (
     <InternalDragHandle
@@ -34,7 +36,7 @@ export default function ResizeHandle({
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedby={ariaDescribedBy}
       variant="resize-area"
-      tooltipText={"Tooltip Text"}
+      tooltipText={resizeHandleTooltipText}
       onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
       directions={{

@@ -68,6 +68,7 @@ export function InternalBoardItem({
                 onDirectionClick={(direction) => {
                   dragHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction));
                 }}
+                dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
               />
             }
             settings={settings}
@@ -93,6 +94,7 @@ export function InternalBoardItem({
             onDirectionClick={(direction) => {
               resizeHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction));
             }}
+            resizeHandleTooltipText={i18nStrings.resizeHandleTooltipText}
           />
         </div>
       )}

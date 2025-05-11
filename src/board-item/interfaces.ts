@@ -47,5 +47,7 @@ export namespace BoardItemProps {
     dragHandleAriaDescription?: string;
     resizeHandleAriaLabel: string;
     resizeHandleAriaDescription?: string;
+    dragHandleTooltipText?: string;
+    resizeHandleTooltipText?: string;
   }
 }
