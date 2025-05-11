@@ -45,9 +45,6 @@ function DragHandle(
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedby={ariaDescribedBy}
       variant="drag-indicator"
-      // Provide an arbitrary large value to valueMax since the editor can be
-      // resized to be infinitely large.
-      ariaValue={{ valueMin: 0, valueMax: 1000000, valueNow: 100 }}
       tooltipText={"Tooltip Text"}
       onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
