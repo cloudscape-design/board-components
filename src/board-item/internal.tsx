@@ -53,58 +53,22 @@ export function InternalBoardItem({
         header={
           <WidgetContainerHeader
             handle={
-              <>
-                {/*<InternalDragHandle*/}
-                {/*  ref={dragHandle.ref}*/}
-                {/*  showButtons={dragHandle.showButtons}*/}
-                {/*  ariaLabelledBy={dragHandleAriaLabelledBy}*/}
-                {/*  ariaDescribedby={dragHandleAriaDescribedBy}*/}
-                {/*  variant="drag-indicator"*/}
-                {/*  // Provide an arbitrary large value to valueMax since the editor can be*/}
-                {/*  // resized to be infinitely large.*/}
-                {/*  ariaValue={{ valueMin: 0, valueMax: 1000000, valueNow: 100 }}*/}
-                {/*  tooltipText={"Tooltip Text"}*/}
-                {/*  onKeyDown={(event) => {*/}
-                {/*    console.log("onKeyDown triggered", event.key);*/}
-                {/*    dragHandle.onKeyDown(event);*/}
-                {/*  }}*/}
-                {/*  onPointerDown={dragHandle.onPointerDown}*/}
-                {/*  directions={{*/}
-                {/*    "block-start": "active",*/}
-                {/*    "block-end": "active",*/}
-                {/*    "inline-start": "active",*/}
-                {/*    "inline-end": "active",*/}
-                {/*  }}*/}
-                {/*  interactionMode="controlled"*/}
-                {/*  onDirectionClick={(direction) => {*/}
-                {/*    const directionMap = {*/}
-                {/*      "inline-start": "left",*/}
-                {/*      "inline-end": "right",*/}
-                {/*      "block-start": "up",*/}
-                {/*      "block-end": "down",*/}
-                {/*    };*/}
-                {/*    dragHandle.onDirectionClick(directionMap[direction]);*/}
-                {/*  }}*/}
-                {/*/>*/}
-                <DragHandle
-                  ref={dragHandle.ref}
-                  ariaLabelledBy={dragHandleAriaLabelledBy}
-                  ariaDescribedBy={dragHandleAriaDescribedBy}
-                  onPointerDown={dragHandle.onPointerDown}
-                  onKeyDown={(event) => {
-                    console.log("onKeyDown triggered", event.key);
-                    dragHandle.onKeyDown(event);
-                  }}
-                  isActivePointer={dragHandle.isActivePointer}
-                  isActiveUap={dragHandle.isActiveUap}
-                  showButtons={dragHandle.showButtons}
-                  onDirectionClick={(direction) => {
-                    dragHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction));
-                  }}
-                />
-
-                {/*ShowButtons: {dragHandle.showButtons?.toString()}*/}
-              </>
+              <DragHandle
+                ref={dragHandle.ref}
+                ariaLabelledBy={dragHandleAriaLabelledBy}
+                ariaDescribedBy={dragHandleAriaDescribedBy}
+                onPointerDown={dragHandle.onPointerDown}
+                onKeyDown={(event) => {
+                  console.log("onKeyDown triggered", event.key);
+                  dragHandle.onKeyDown(event);
+                }}
+                isActivePointer={dragHandle.isActivePointer}
+                isActiveUap={dragHandle.isActiveUap}
+                showButtons={dragHandle.showButtons}
+                onDirectionClick={(direction) => {
+                  dragHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction));
+                }}
+              />
             }
             settings={settings}
           >
@@ -119,37 +83,6 @@ export function InternalBoardItem({
       </Container>
       {resizeHandle && (
         <div className={styles.resizer}>
-          {/*<InternalDragHandle*/}
-          {/*  showButtons={dragHandle.showButtons}*/}
-          {/*  ariaLabelledBy={resizeHandleAriaLabelledBy}*/}
-          {/*  ariaDescribedby={resizeHandleAriaDescribedBy}*/}
-          {/*  variant="resize-area"*/}
-          {/*  // Provide an arbitrary large value to valueMax since the editor can be*/}
-          {/*  // resized to be infinitely large.*/}
-          {/*  ariaValue={{ valueMin: 0, valueMax: 1000000, valueNow: 100 }}*/}
-          {/*  tooltipText={"Tooltip Text"}*/}
-          {/*  onKeyDown={(event) => {*/}
-          {/*    console.log("onKeyDown triggered", event.key);*/}
-          {/*    resizeHandle.onKeyDown(event);*/}
-          {/*  }}*/}
-          {/*  onPointerDown={resizeHandle.onPointerDown}*/}
-          {/*  directions={{*/}
-          {/*    "block-start": "active",*/}
-          {/*    "block-end": "active",*/}
-          {/*    "inline-start": "active",*/}
-          {/*    "inline-end": "active",*/}
-          {/*  }}*/}
-          {/*  interactionMode="controlled"*/}
-          {/*  onDirectionClick={(direction) => {*/}
-          {/*    const directionMap = {*/}
-          {/*      "inline-start": "left",*/}
-          {/*      "inline-end": "right",*/}
-          {/*      "block-start": "up",*/}
-          {/*      "block-end": "down",*/}
-          {/*    };*/}
-          {/*    resizeHandle.onDirectionClick(directionMap[direction]);*/}
-          {/*  }}*/}
-          {/*/>*/}
           <ResizeHandle
             ariaLabelledBy={resizeHandleAriaLabelledBy}
             ariaDescribedBy={resizeHandleAriaDescribedBy}
