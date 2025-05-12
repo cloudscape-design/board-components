@@ -20,9 +20,9 @@ import clsx from "clsx";
 
 import { getLogicalBoundingClientRect, getLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
 import {
-  useDragHandleInteractionState,
-  UseDragHandleInteractionStateProps,
-} from "@cloudscape-design/components/internal/components/drag-handle/hooks/use-drag-handle-interaction-state";
+  useInternalDragHandleInteractionState,
+  UseInternalDragHandleInteractionStateProps,
+} from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
 import {
   DragAndDropData,
@@ -434,7 +434,7 @@ function ItemContainerComponent(
     childrenRef.current = children(!!transition?.hasDropTarget);
   }
 
-  const hookProps: UseDragHandleInteractionStateProps<HandleOperation> = {
+  const hookProps: UseInternalDragHandleInteractionStateProps<HandleOperation> = {
     onDndStartAction: (event, handleOperation) => {
       if (handleOperation === "drag") {
         onDragHandleDndTransitionStart(event);
@@ -460,7 +460,7 @@ function ItemContainerComponent(
     },
   };
 
-  const dragInteractionHook = useDragHandleInteractionState<HandleOperation>(hookProps);
+  const dragInteractionHook = useInternalDragHandleInteractionState<HandleOperation>(hookProps);
 
   // Memoize handlers for adding/removing event listeners
   function handleGlobalPointerMove(event: PointerEvent) {

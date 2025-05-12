@@ -3,9 +3,10 @@
 import { KeyboardEvent, PointerEvent } from "react";
 import clsx from "clsx";
 
-import InternalDragHandle, {
-  DragHandleProps as InternalDragHandleProps,
-} from "@cloudscape-design/components/internal/components/drag-handle";
+import {
+  InternalDragHandle,
+  InternalDragHandleProps,
+} from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
 import styles from "./styles.css.js";
 

@@ -3,10 +3,11 @@
 import { ForwardedRef, forwardRef, KeyboardEvent, PointerEvent } from "react";
 import clsx from "clsx";
 
-import InternalDragHandle from "@cloudscape-design/components/internal/components/drag-handle";
-import { DragHandleProps as InternalDragHandleProps } from "@cloudscape-design/components/internal/components/drag-handle";
+import {
+  InternalDragHandle,
+  InternalDragHandleProps,
+} from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
-import handleStyles from "../handle/styles.css.js";
 import styles from "./styles.css.js";
 
 export interface DragHandleProps {
@@ -38,12 +39,7 @@ function DragHandle(
   return (
     <InternalDragHandle
       ref={ref}
-      className={clsx(
-        styles.handle,
-        handleStyles.handle,
-        isActivePointer && styles.active,
-        isActiveUap && styles["active-uap"],
-      )}
+      className={clsx(styles.handle, isActivePointer && styles.active, isActiveUap && styles["active-uap"])}
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedby={ariaDescribedBy}
       variant="drag-indicator"

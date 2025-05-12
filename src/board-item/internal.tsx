@@ -4,8 +4,8 @@ import { useId } from "react";
 import clsx from "clsx";
 
 import Container from "@cloudscape-design/components/container";
-import { DragHandleProps } from "@cloudscape-design/components/internal/components/drag-handle";
 
+import { InternalDragHandleProps } from "../../../components/lib/components/internal/do-not-use/drag-handle";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import DragHandle from "../internal/drag-handle";
@@ -17,7 +17,7 @@ import type { BoardItemProps } from "./interfaces";
 
 import styles from "./styles.css.js";
 
-const mapHandleDirectionToKeyboardDirection = (direction: DragHandleProps.Direction) => {
+const mapHandleDirectionToKeyboardDirection = (direction: InternalDragHandleProps.Direction) => {
   const directionMap = {
     "inline-start": "left",
     "inline-end": "right",
