@@ -30,7 +30,7 @@
     "build:src:js": "tsc -p tsconfig.json --inlineSources --sourceMap",
     "build:src:css": "node scripts/compile-styles.js",
     "build:src:test-utils": "node scripts/test-utils.js",
-    "build:src:copy": "cp README.md lib/components/",
+    "build:src:copy": "cp README.md NOTICE LICENSE lib/components/",
     "build:src:docs": "node scripts/docs.js",
     "build:src:environment": "node scripts/environment",
     "build:themeable": "node scripts/themeable-source",
