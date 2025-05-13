@@ -9,8 +9,10 @@ import {
   useComponentMetadata,
 } from "@cloudscape-design/component-toolkit/internal";
 
-import { PACKAGE_SOURCE, PACKAGE_VERSION } from "../environment";
+import { PACKAGE_SOURCE, PACKAGE_VERSION, THEME } from "../environment";
+import { getVisualTheme } from "../utils/get-visual-theme";
 import { useTelemetry } from "./use-telemetry";
+import { useVisualRefresh } from "./use-visual-refresh";
 
 initAwsUiVersions(PACKAGE_SOURCE, PACKAGE_VERSION);
 
@@ -25,6 +27,12 @@ export interface InternalBaseComponentProps {
  */
 export default function useBaseComponent<T = any>(componentName: string, config?: ComponentConfiguration) {
   useTelemetry(componentName, config);
-  const elementRef = useComponentMetadata<T>(componentName, PACKAGE_VERSION);
+  const isVisualRefresh = useVisualRefresh();
+  const theme = getVisualTheme(THEME, isVisualRefresh);
+  const elementRef = useComponentMetadata<T>(componentName, {
+    packageName: PACKAGE_SOURCE,
+    version: PACKAGE_VERSION,
+    theme,
+  });
   return { __internalRootRef: elementRef };
 }
