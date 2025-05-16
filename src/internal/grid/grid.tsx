@@ -5,9 +5,8 @@ import { Children, useRef } from "react";
 import clsx from "clsx";
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
-import { useDensityMode } from "@cloudscape-design/component-toolkit/internal";
+import { useDensityMode, useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 
-import { useMergeRefs } from "../utils/use-merge-refs";
 import { zipTwoArrays } from "../utils/zip-arrays";
 import { GridProps } from "./interfaces";
 import GridItem from "./item";
@@ -15,16 +14,10 @@ import GridItem from "./item";
 import styles from "./styles.css.js";
 
 /* Matches grid gap in CSS. */
-const GRID_GAP = {
-  comfortable: 20,
-  compact: 16,
-};
+const GRID_GAP = { comfortable: 20, compact: 16 };
 
 /* Matches grid-auto-rows in CSS. */
-const ROWSPAN_HEIGHT = {
-  comfortable: 96,
-  compact: 76,
-};
+const ROWSPAN_HEIGHT = { comfortable: 96, compact: 76 };
 
 export default function Grid({ layout, children: render, columns, isRtl }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
