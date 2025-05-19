@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 
 import { mockController, mockDraggable } from "../../../../lib/components/internal/dnd-controller/__mocks__/controller";
@@ -48,19 +48,19 @@ test("renders item container", () => {
 
 test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-  getByTestId("drag-handle").click();
+  fireEvent.click(getByTestId("drag-handle"));
   expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
 });
 
 test("starts insert transition when drag handle is clicked and item does not belong to grid", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} />);
-  getByTestId("drag-handle").click();
+  fireEvent.click(getByTestId("drag-handle"));
   expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates));
 });
 
 test("starts resize transition when resize handle is clicked", () => {
   const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-  getByTestId("resize-handle").click();
+  fireEvent.click(getByTestId("resize-handle"));
   expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
 });
 
