@@ -30,3 +30,18 @@
     @content;
   }
 }
+
+@mixin handle {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding-block: cs.$space-scaled-xxs;
+  padding-inline: cs.$space-scaled-xxs;
+  block-size: auto;
+
+  color: cs.$color-text-interactive-default;
+
+  &:hover {
+    color: cs.$color-text-interactive-hover;
+  }
+}

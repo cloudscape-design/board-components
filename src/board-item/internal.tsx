@@ -4,6 +4,7 @@ import { useId } from "react";
 import clsx from "clsx";
 
 import Container from "@cloudscape-design/components/container";
+import { InternalDragHandleProps } from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
@@ -16,6 +17,16 @@ import type { BoardItemProps } from "./interfaces";
 
 import styles from "./styles.css.js";
 
+const mapHandleDirectionToKeyboardDirection = (direction: InternalDragHandleProps.Direction) => {
+  const directionMap = {
+    "inline-start": "left",
+    "inline-end": "right",
+    "block-start": "up",
+    "block-end": "down",
+  };
+  return directionMap[direction] as any;
+};
+
 export function InternalBoardItem({
   children,
   header,
@@ -26,7 +37,7 @@ export function InternalBoardItem({
   __internalRootRef,
   ...rest
 }: BoardItemProps & InternalBaseComponentProps) {
-  const { dragHandle, resizeHandle, isActive } = useItemContext();
+  const { dragHandle, resizeHandle, isActive, isHidden } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();
   const dragHandleAriaDescribedBy = useId();
@@ -42,14 +53,24 @@ export function InternalBoardItem({
         header={
           <WidgetContainerHeader
             handle={
-              <DragHandle
-                ref={dragHandle.ref}
-                ariaLabelledBy={dragHandleAriaLabelledBy}
-                ariaDescribedBy={dragHandleAriaDescribedBy}
-                onPointerDown={dragHandle.onPointerDown}
-                onKeyDown={dragHandle.onKeyDown}
-                isActive={dragHandle.isActive}
-              />
+              <>
+                {!isHidden && (
+                  <DragHandle
+                    ref={dragHandle.ref}
+                    ariaLabelledBy={dragHandleAriaLabelledBy}
+                    ariaDescribedBy={dragHandleAriaDescribedBy}
+                    onPointerDown={dragHandle.onPointerDown}
+                    onKeyDown={dragHandle.onKeyDown}
+                    isActivePointer={dragHandle.isActivePointer}
+                    isActiveUap={dragHandle.isActiveUap}
+                    initialShowButtons={dragHandle.initialShowButtons}
+                    onDirectionClick={(direction) =>
+                      dragHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction), "drag")
+                    }
+                    dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
+                  />
+                )}
+              </>
             }
             settings={settings}
           >
@@ -62,14 +83,19 @@ export function InternalBoardItem({
       >
         {children}
       </Container>
-      {resizeHandle && (
+      {resizeHandle && !isHidden && (
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabelledBy={resizeHandleAriaLabelledBy}
             ariaDescribedBy={resizeHandleAriaDescribedBy}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
-            isActive={resizeHandle.isActive}
+            isActivePointer={resizeHandle.isActivePointer}
+            isActiveUap={resizeHandle.isActiveUap}
+            onDirectionClick={(direction) => {
+              resizeHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction), "resize");
+            }}
+            resizeHandleTooltipText={i18nStrings.resizeHandleTooltipText}
           />
         </div>
       )}
