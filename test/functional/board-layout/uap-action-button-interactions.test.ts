@@ -14,7 +14,6 @@ const boardItemDragHandle = (id: string) => boardWrapper.findItemById(id).findDr
 const boardItemResizeHandle = (id: string) => boardWrapper.findItemById(id).findResizeHandle().toSelector();
 const paletteItemDragHandle = (id: string) => itemsPaletteWrapper.findItemById(id).findDragHandle().toSelector();
 const dragHandleWrapper = new DragHandleWrapper("body");
-const directionButtons = () => dragHandleWrapper.findAllVisibleDirectionButtons().toSelector();
 const directionButtonUp = () => dragHandleWrapper.findVisibleDirectionButtonBlockStart().toSelector();
 const directionButtonDown = () => dragHandleWrapper.findVisibleDirectionButtonBlockEnd().toSelector();
 const directionButtonLeft = () => dragHandleWrapper.findVisibleDirectionButtonInlineStart().toSelector();
@@ -25,7 +24,7 @@ describe("items reordered with UAP actions", () => {
     "item move can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
       await page.click(boardItemDragHandle("A"));
-      await page.waitForVisible(directionButtons());
+      await page.waitForVisible(directionButtonRight());
       await page.click(directionButtonRight());
       await page.click(directionButtonRight());
       await page.click(directionButtonDown());
