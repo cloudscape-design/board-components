@@ -23,13 +23,12 @@ describe("items reordered with UAP actions", () => {
   test(
     "item move can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.click(boardItemDragHandle("A"));
-      await page.waitForVisible(directionButtonRight());
-      await page.click(directionButtonRight());
-      await page.click(directionButtonRight());
-      await page.click(directionButtonDown());
-      await page.click(directionButtonLeft());
-      await page.click(directionButtonUp());
+      await page.handlerClick(boardItemDragHandle("A"));
+      await page.handlerClick(directionButtonRight());
+      await page.handlerClick(directionButtonRight());
+      await page.handlerClick(directionButtonDown());
+      await page.handlerClick(directionButtonLeft());
+      await page.handlerClick(directionButtonUp());
       await page.keys(["Enter"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -44,12 +43,11 @@ describe("items reordered with UAP actions", () => {
   test(
     "item move via UAP actions and keyboard can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(boardItemDragHandle("A"));
-      await page.mouseUp();
-      await page.click(directionButtonRight());
+      await page.handlerClick(boardItemDragHandle("A"));
+      await page.handlerClick(directionButtonRight());
       await page.keys(["ArrowRight"]);
       await page.keys(["ArrowDown"]);
-      await page.click(directionButtonLeft());
+      await page.handlerClick(directionButtonLeft());
       await page.keys(["ArrowUp"]);
       await page.keys(["Enter"]);
 
@@ -65,9 +63,8 @@ describe("items reordered with UAP actions", () => {
   test(
     "item move can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(boardItemDragHandle("A"));
-      await page.mouseUp();
-      await page.click(directionButtonRight());
+      await page.handlerClick(boardItemDragHandle("A"));
+      await page.handlerClick(directionButtonRight());
       await page.keys(["Escape"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -82,9 +79,8 @@ describe("items reordered with UAP actions", () => {
   test(
     "item keyboard move automatically submits after leaving focus",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(boardItemDragHandle("A"));
-      await page.mouseUp();
-      await page.click(directionButtonRight());
+      await page.handlerClick(boardItemDragHandle("A"));
+      await page.handlerClick(directionButtonRight());
       await page.keys(["Tab"]);
       await expect(page.getGrid()).resolves.toEqual([
         ["B", "A", "C", "D"],
@@ -100,10 +96,9 @@ describe("items resized with keyboard", () => {
   test(
     "item resize can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(boardItemResizeHandle("A"));
-      await page.mouseUp();
-      await page.click(directionButtonRight());
-      await page.click(directionButtonDown());
+      await page.handlerClick(boardItemResizeHandle("A"));
+      await page.handlerClick(directionButtonRight());
+      await page.handlerClick(directionButtonDown());
       await page.keys(["Enter"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -121,9 +116,8 @@ describe("items resized with keyboard", () => {
   test(
     "item resize via UAP actions and keyboard can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(boardItemResizeHandle("A"));
-      await page.mouseUp();
-      await page.click(directionButtonRight());
+      await page.handlerClick(boardItemResizeHandle("A"));
+      await page.handlerClick(directionButtonRight());
       await page.keys(["ArrowDown"]);
       await page.keys(["Enter"]);
 
@@ -142,10 +136,9 @@ describe("items resized with keyboard", () => {
   test(
     "item resize can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(boardItemResizeHandle("A"));
-      await page.mouseUp();
-      await page.click(directionButtonRight());
-      await page.click(directionButtonDown());
+      await page.handlerClick(boardItemResizeHandle("A"));
+      await page.handlerClick(directionButtonRight());
+      await page.handlerClick(directionButtonDown());
       await page.keys(["Escape"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -171,10 +164,9 @@ describe("items resized with keyboard", () => {
       ),
       DndPageObject,
       async (page) => {
-        await page.mouseDown(boardItemResizeHandle("X"));
-        await page.mouseUp();
-        await page.click(directionButtonLeft());
-        await page.click(directionButtonUp());
+        await page.handlerClick(boardItemResizeHandle("X"));
+        await page.handlerClick(directionButtonLeft());
+        await page.handlerClick(directionButtonUp());
         await page.keys(["Enter"]);
         await expect(page.getGrid()).resolves.toEqual([
           ["X", "X", " ", " "],
@@ -191,18 +183,14 @@ describe("items inserted with keyboard", () => {
   test(
     "item insert can be submitted",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(paletteItemDragHandle("I"));
-      await page.mouseUp();
-
-      await page.click(directionButtonLeft());
-
-      await page.click(directionButtonDown());
-      await page.click(directionButtonDown());
-
-      await page.click(directionButtonDown());
-      await page.click(directionButtonDown());
-
+      await page.handlerClick(paletteItemDragHandle("I"));
+      await page.handlerClick(directionButtonLeft());
+      await page.handlerClick(directionButtonDown());
+      await page.handlerClick(directionButtonDown());
+      await page.handlerClick(directionButtonDown());
+      await page.handlerClick(directionButtonDown());
       await page.keys(["Enter"]);
+
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "D"],
         ["A", "B", "C", "D"],
@@ -214,19 +202,14 @@ describe("items inserted with keyboard", () => {
     }),
   );
 
-  test.skip(
+  test(
     "item insert with keyboard automatically submits after mouse interaction",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      // await page.focus(paletteItemDragHandle("I"));
-      // await page.keys(["Enter"]);
-      await page.mouseDown(paletteItemDragHandle("I"));
-      await page.mouseUp();
-
-      // await page.keys(["ArrowLeft"]);
-      await page.click(directionButtonLeft());
+      await page.handlerClick(paletteItemDragHandle("I"));
+      await page.handlerClick(directionButtonLeft());
 
       // click anywhere on the page to submit the current transition, for example on another item handle
-      await page.click(boardItemResizeHandle("A"));
+      await page.handlerClick(boardItemResizeHandle("A"));
 
       await expect(page.getGrid()).resolves.toEqual([
         ["A", "B", "C", "I"],
@@ -242,11 +225,10 @@ describe("items inserted with keyboard", () => {
   test(
     "item insert can be discarded",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(paletteItemDragHandle("I"));
-      await page.mouseUp();
+      await page.handlerClick(paletteItemDragHandle("I"));
 
-      await page.click(directionButtonDown());
-      await page.click(directionButtonDown());
+      await page.handlerClick(directionButtonDown());
+      await page.handlerClick(directionButtonDown());
       await page.keys(["Escape"]);
 
       await expect(page.getGrid()).resolves.toEqual([
@@ -261,9 +243,8 @@ describe("items inserted with keyboard", () => {
   test(
     "item to be inserted with keyboard has preview content",
     setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
-      await page.mouseDown(paletteItemDragHandle("I"));
-      await page.mouseUp();
-      await page.click(directionButtonLeft());
+      await page.handlerClick(paletteItemDragHandle("I"));
+      await page.handlerClick(directionButtonLeft());
       await expect(page.getText(boardWrapper.find(`[data-item-id="I"]`).toSelector())).resolves.toBe(
         "Widget I\n(preview) Empty widget",
       );
@@ -274,9 +255,8 @@ describe("items inserted with keyboard", () => {
   test(
     "item in palette should be hidden when it is acquired by the board",
     setupTest("/index.html#/micro-frontend/integration", DndPageObject, async (page) => {
-      await page.mouseDown(paletteItemDragHandle("M"));
-      await page.mouseUp();
-      await page.click(directionButtonLeft());
+      await page.handlerClick(paletteItemDragHandle("M"));
+      await page.handlerClick(directionButtonLeft());
       await expect(page.isDisplayed(paletteItemDragHandle("M"))).resolves.toBe(false);
     }),
   );
