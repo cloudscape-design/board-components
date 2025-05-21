@@ -9,6 +9,7 @@ import { InternalDragHandleProps } from "@cloudscape-design/components/internal/
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import DragHandle from "../internal/drag-handle";
+import { Direction } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-container";
 import ResizeHandle from "../internal/resize-handle";
 import ScreenreaderOnly from "../internal/screenreader-only";
@@ -17,14 +18,14 @@ import type { BoardItemProps } from "./interfaces";
 
 import styles from "./styles.css.js";
 
-const mapHandleDirectionToKeyboardDirection = (direction: InternalDragHandleProps.Direction) => {
-  const directionMap = {
+const mapToKeyboardDirection = (direction: InternalDragHandleProps.Direction) => {
+  const directionMap: Record<InternalDragHandleProps.Direction, Direction> = {
     "inline-start": "left",
     "inline-end": "right",
     "block-start": "up",
     "block-end": "down",
   };
-  return directionMap[direction] as any;
+  return directionMap[direction];
 };
 
 export function InternalBoardItem({
@@ -65,7 +66,7 @@ export function InternalBoardItem({
                     isActiveUap={dragHandle.isActiveUap}
                     initialShowButtons={dragHandle.initialShowButtons}
                     onDirectionClick={(direction) =>
-                      dragHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction), "drag")
+                      dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")
                     }
                     dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
                   />
@@ -93,7 +94,7 @@ export function InternalBoardItem({
             isActivePointer={resizeHandle.isActivePointer}
             isActiveUap={resizeHandle.isActiveUap}
             onDirectionClick={(direction) => {
-              resizeHandle.onDirectionClick(mapHandleDirectionToKeyboardDirection(direction), "resize");
+              resizeHandle.onDirectionClick(mapToKeyboardDirection(direction), "resize");
             }}
             resizeHandleTooltipText={i18nStrings.resizeHandleTooltipText}
           />
