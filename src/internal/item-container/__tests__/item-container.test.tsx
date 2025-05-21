@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { mockController, mockDraggable } from "../../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import { DragAndDropData } from "../../../../lib/components/internal/dnd-controller/controller";
@@ -12,6 +12,7 @@ afterEach(cleanup);
 
 vi.mock("../../../../lib/components/internal/dnd-controller/controller");
 
+const onKeyMoveMock = vi.fn();
 const defaultProps: ItemContainerProps = {
   item: {
     id: "ID",
@@ -24,6 +25,7 @@ const defaultProps: ItemContainerProps = {
   getItemSize: () => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 }),
   children: () => <Item />,
   isRtl: () => false,
+  onKeyMove: onKeyMoveMock,
 };
 
 function Item() {
@@ -31,10 +33,18 @@ function Item() {
 
   return (
     <div data-testid="content">
-      <button data-testid="drag-handle" onClick={(event) => context.dragHandle.onPointerDown(event as any)}>
+      <button
+        data-testid="drag-handle"
+        onClick={(event) => context.dragHandle.onPointerDown(event as any)}
+        onKeyDown={(e) => context.dragHandle.onKeyDown(e)}
+      >
         Drag handle
       </button>
-      <button data-testid="resize-handle" onClick={(event) => context.resizeHandle?.onPointerDown(event as any)}>
+      <button
+        data-testid="resize-handle"
+        onClick={(event) => context.resizeHandle?.onPointerDown(event as any)}
+        onKeyDown={(e) => context.resizeHandle?.onKeyDown(e)}
+      >
         Resize handle
       </button>
     </div>
@@ -46,22 +56,45 @@ test("renders item container", () => {
   expect(getByTestId("content")).not.toBe(null);
 });
 
-test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
-  const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-  fireEvent.click(getByTestId("drag-handle"));
-  expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
+describe("pointer interaction", () => {
+  test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+    fireEvent.click(getByTestId("drag-handle"));
+    expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
+  });
+
+  test("starts insert transition when drag handle is clicked and item does not belong to grid", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} />);
+    fireEvent.click(getByTestId("drag-handle"));
+    expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates));
+  });
+
+  test("starts resize transition when resize handle is clicked", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+    fireEvent.click(getByTestId("resize-handle"));
+    expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
+  });
 });
 
-test("starts insert transition when drag handle is clicked and item does not belong to grid", () => {
-  const { getByTestId } = render(<ItemContainer {...defaultProps} />);
-  fireEvent.click(getByTestId("drag-handle"));
-  expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates));
-});
+describe("keyboard interaction", () => {
+  describe.each(["drag", "resize"])("%s handle", (handle: string) => {
+    test(`starts keyboard transition when ${handle} handle receives enter and item belongs to grid`, () => {
+      const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+      fireEvent.keyDown(getByTestId(`${handle}-handle`), { key: "Enter" });
+      expect(mockDraggable.start).toBeCalledWith("reorder", "keyboard", expect.any(Coordinates));
+    });
 
-test("starts resize transition when resize handle is clicked", () => {
-  const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-  fireEvent.click(getByTestId("resize-handle"));
-  expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
+    test.each([
+      { key: "ArrowUp", direction: "up" },
+      { key: "ArrowDown", direction: "down" },
+      { key: "ArrowLeft", direction: "left" },
+      { key: "ArrowRight", direction: "right" },
+    ])(`calls onKeyMove($direction) when ${handle} handle receives $key keyDown event`, () => {
+      const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+      fireEvent.keyDown(getByTestId(`${handle}-handle`), { key: "ArrowUp" });
+      expect(onKeyMoveMock).toBeCalledWith("up");
+    });
+  });
 });
 
 test("does not renders in portal when item in reorder state by a pointer", () => {
