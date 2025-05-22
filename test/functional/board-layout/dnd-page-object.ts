@@ -175,7 +175,7 @@ export class DndPageObject extends BasePageObject {
     return liveAnnouncements;
   }
 
-  // Clicking on a drag/resize handler performs an animation (show the UAP actions, moving the board item).
+  // Clicking on a drag/resize handle performs an animation (show the UAP actions, moving the board item).
   // The pause after the click makes the functional test stable.
   async handlerClick(selector: string) {
     await this.click(selector);
