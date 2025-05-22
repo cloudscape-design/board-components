@@ -46,6 +46,12 @@ export function InternalBoardItem({
   const resizeHandleAriaLabelledBy = useId();
   const resizeHandleAriaDescribedBy = useId();
 
+  // A board item is hidden while moving a board item from the palette to the board via keyboard or UAP.
+  // The wrapping container is set to invisible, so we don't need to render anything.
+  if (isHidden) {
+    return null;
+  }
+
   return (
     <div ref={__internalRootRef} className={styles.root} {...getDataAttributes(rest)}>
       <Container
@@ -54,24 +60,18 @@ export function InternalBoardItem({
         header={
           <WidgetContainerHeader
             handle={
-              <>
-                {!isHidden && (
-                  <DragHandle
-                    ref={dragHandle.ref}
-                    ariaLabelledBy={dragHandleAriaLabelledBy}
-                    ariaDescribedBy={dragHandleAriaDescribedBy}
-                    onPointerDown={dragHandle.onPointerDown}
-                    onKeyDown={dragHandle.onKeyDown}
-                    isActivePointer={dragHandle.isActivePointer}
-                    isActiveUap={dragHandle.isActiveUap}
-                    initialShowButtons={dragHandle.initialShowButtons}
-                    onDirectionClick={(direction) =>
-                      dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")
-                    }
-                    dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
-                  />
-                )}
-              </>
+              <DragHandle
+                ref={dragHandle.ref}
+                ariaLabelledBy={dragHandleAriaLabelledBy}
+                ariaDescribedBy={dragHandleAriaDescribedBy}
+                onPointerDown={dragHandle.onPointerDown}
+                onKeyDown={dragHandle.onKeyDown}
+                isActivePointer={dragHandle.isActivePointer}
+                isActiveUap={dragHandle.isActiveUap}
+                initialShowButtons={dragHandle.initialShowButtons}
+                onDirectionClick={(direction) => dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")}
+                dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
+              />
             }
             settings={settings}
           >
