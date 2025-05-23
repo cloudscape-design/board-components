@@ -236,8 +236,8 @@ function ItemContainerComponent(
     muteEventsRef.current = false;
   });
 
-  // Handles keyboard transition logic shared between different keyboard interactions.
-  function handleKeyboardTransition(operation: HandleOperation, submitExisting = false) {
+  // Handles incremental transition logic shared between different keyboard and UAP interactions.
+  function handleIncrementalTransition(operation: HandleOperation, submitExisting = false) {
     // The acquired item is a copy and does not have the transition state.
     // However, pressing "Space" or "Enter" on the acquired item must submit the active transition.
     if (acquired) {
@@ -316,7 +316,7 @@ function ItemContainerComponent(
         return handleDirectionalMovement("right", operation);
       case " ":
       case "Enter":
-        return handleKeyboardTransition(operation, true);
+        return handleIncrementalTransition(operation, true);
       case "Escape":
         return discard();
     }
@@ -464,7 +464,7 @@ function ItemContainerComponent(
       }
     },
     onUapActionStartAction: (handleOperation) => {
-      handleKeyboardTransition(handleOperation!);
+      handleIncrementalTransition(handleOperation!);
     },
   };
 
