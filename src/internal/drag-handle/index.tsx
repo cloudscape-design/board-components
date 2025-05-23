@@ -19,11 +19,12 @@ export interface DragHandleProps {
 
 function DragHandle(
   { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown, isActive }: DragHandleProps,
-  ref: ForwardedRef<HTMLButtonElement>,
+  ref: ForwardedRef<HTMLElement>,
 ) {
   return (
     <Handle
       ref={ref}
+      role={isActive ? "application" : "button"}
       className={clsx(styles.handle, isActive && styles.active)}
       aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
