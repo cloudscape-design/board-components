@@ -26,6 +26,7 @@ export default function ResizeHandle({
 }: ResizeHandleProps) {
   return (
     <Handle
+      role={isActive ? "application" : "button"}
       className={clsx(styles.handle, isActive && styles.active)}
       aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}

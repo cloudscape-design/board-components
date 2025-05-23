@@ -45,7 +45,7 @@ export interface ItemContainerRef {
 interface ItemContextType {
   isActive: boolean;
   dragHandle: {
-    ref: RefObject<HTMLButtonElement>;
+    ref: RefObject<HTMLElement>;
     onPointerDown(event: ReactPointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
     isActive: boolean;
@@ -399,7 +399,7 @@ function ItemContainerComponent(
     }
   }
 
-  const dragHandleRef = useRef<HTMLButtonElement>(null);
+  const dragHandleRef = useRef<HTMLElement>(null);
   useImperativeHandle(ref, () => ({
     focusDragHandle: () => dragHandleRef.current?.focus(),
   }));

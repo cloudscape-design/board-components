@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ButtonHTMLAttributes, ForwardedRef, forwardRef, PointerEvent } from "react";
+import { ForwardedRef, forwardRef, HTMLAttributes, PointerEvent } from "react";
 import clsx from "clsx";
 
 import styles from "./styles.css.js";
 
-function Handle(props: ButtonHTMLAttributes<HTMLButtonElement>, ref: ForwardedRef<HTMLButtonElement>) {
-  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+function Handle(props: HTMLAttributes<HTMLElement>, ref: ForwardedRef<HTMLElement>) {
+  function handlePointerDown(event: PointerEvent<HTMLElement>) {
     if (event.button !== 0) {
       return;
     }
@@ -14,7 +14,19 @@ function Handle(props: ButtonHTMLAttributes<HTMLButtonElement>, ref: ForwardedRe
   }
 
   return (
-    <button {...props} onPointerDown={handlePointerDown} className={clsx(styles.handle, props.className)} ref={ref} />
+    <div
+      {...props}
+      tabIndex={0}
+      onPointerDown={handlePointerDown}
+      onKeyDown={(event) => {
+        props.onKeyDown?.(event);
+        if (event.key === " ") {
+          event.preventDefault();
+        }
+      }}
+      className={clsx(styles.handle, props.className)}
+      ref={ref as any}
+    />
   );
 }
 
