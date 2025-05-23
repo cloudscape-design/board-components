@@ -66,8 +66,7 @@ export function InternalBoardItem({
                 ariaDescribedBy={dragHandleAriaDescribedBy}
                 onPointerDown={dragHandle.onPointerDown}
                 onKeyDown={dragHandle.onKeyDown}
-                isActivePointer={dragHandle.isActivePointer}
-                isActiveUap={dragHandle.isActiveUap}
+                activeState={dragHandle.activeState}
                 initialShowButtons={dragHandle.initialShowButtons}
                 onDirectionClick={(direction) => dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")}
                 dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
@@ -91,8 +90,7 @@ export function InternalBoardItem({
             ariaDescribedBy={resizeHandleAriaDescribedBy}
             onPointerDown={resizeHandle.onPointerDown}
             onKeyDown={resizeHandle.onKeyDown}
-            isActivePointer={resizeHandle.isActivePointer}
-            isActiveUap={resizeHandle.isActiveUap}
+            activeState={resizeHandle.activeState}
             onDirectionClick={(direction) => {
               resizeHandle.onDirectionClick(mapToKeyboardDirection(direction), "resize");
             }}

@@ -8,6 +8,8 @@ import {
   InternalDragHandleProps,
 } from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
+import { HandleActiveState } from "../item-container";
+
 import styles from "./styles.css.js";
 import testUtilsStyles from "./test-classes/styles.css.js";
 
@@ -16,8 +18,7 @@ export interface DragHandleProps {
   ariaDescribedBy: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
-  isActivePointer: boolean;
-  isActiveUap: boolean;
+  activeState: HandleActiveState;
   initialShowButtons?: boolean;
   onDirectionClick: InternalDragHandleProps["onDirectionClick"];
   dragHandleTooltipText?: string;
@@ -29,8 +30,7 @@ function DragHandle(
     ariaDescribedBy,
     onPointerDown,
     onKeyDown,
-    isActivePointer,
-    isActiveUap,
+    activeState,
     initialShowButtons,
     onDirectionClick,
     dragHandleTooltipText,
@@ -40,7 +40,11 @@ function DragHandle(
   return (
     <InternalDragHandle
       ref={ref}
-      className={clsx(styles.handle, isActivePointer && styles.active, isActiveUap && testUtilsStyles["active-uap"])}
+      className={clsx(
+        styles.handle,
+        activeState === "pointer" && styles.active,
+        activeState === "uap" && testUtilsStyles["active-uap"],
+      )}
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedby={ariaDescribedBy}
       variant="drag-indicator"

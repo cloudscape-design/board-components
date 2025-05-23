@@ -45,6 +45,8 @@ export interface ItemContainerRef {
   focusDragHandle(): void;
 }
 
+export type HandleActiveState = null | "pointer" | "uap";
+
 interface ItemContextType {
   /**
    * Flag indicating if a drag or resize interaction is currently active.
@@ -71,13 +73,9 @@ interface ItemContextType {
      */
     onKeyDown(event: KeyboardEvent): void;
     /**
-     * Flag indicating if a pointer interaction is active.
+     * Indicating if drag handle is active.
      */
-    isActivePointer: boolean;
-    /**
-     * Flag indicating if UAP interaction mode is active.
-     */
-    isActiveUap: boolean;
+    activeState: HandleActiveState;
     /**
      * Listen to UAP direction button clicks.
      */
@@ -99,13 +97,9 @@ interface ItemContextType {
      */
     onKeyDown(event: KeyboardEvent): void;
     /**
-     * Flag indicating if a pointer interaction is active.
+     * Indicating if resize handle is active.
      */
-    isActivePointer: boolean;
-    /**
-     * Flag indicating if UAP interaction mode is active.
-     */
-    isActiveUap: boolean;
+    activeState: HandleActiveState;
     /**
      * Listen to UAP direction button clicks.
      */
@@ -471,16 +465,18 @@ function ItemContainerComponent(
   const dragInteractionHook = useInternalDragHandleInteractionState<HandleOperation>(hookProps);
 
   const isActive = (!!transition && !isHidden) || !!acquired;
-
-  const isActiveUapDragHandle =
-    isActive && transition?.operation === "reorder" && dragInteractionHook.interaction.value === "uap-action-start";
-  const isActiveUapResizeHandle =
-    isActive && transition?.operation === "resize" && dragInteractionHook.interaction.value === "uap-action-start";
-
-  const isActivePointerDragHandle =
-    isActive && transition?.operation === "reorder" && dragInteractionHook.interaction.value === "dnd-start";
-  const isActivePointerResizeHandle =
-    isActive && transition?.operation === "resize" && dragInteractionHook.interaction.value === "dnd-start";
+  const getHandleActiveState = (operation: Operation): HandleActiveState => {
+    if (isActive && transition?.operation === operation && dragInteractionHook.interaction.value === "dnd-start") {
+      return "pointer";
+    } else if (
+      isActive &&
+      transition?.operation === operation &&
+      dragInteractionHook.interaction.value === "uap-action-start"
+    ) {
+      return "uap";
+    }
+    return null;
+  };
 
   const shouldUsePortal =
     transition?.operation === "insert" &&
@@ -507,8 +503,7 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: (e) => onDragHandlePointerDown(e, "drag"),
             onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("drag", event),
-            isActivePointer: isActivePointerDragHandle,
-            isActiveUap: isActiveUapDragHandle,
+            activeState: getHandleActiveState("reorder"),
             onDirectionClick: handleDirectionalMovement,
             initialShowButtons:
               dragInteractionHook.interaction.value === "uap-action-start" || (inTransition && acquired),
@@ -517,8 +512,7 @@ function ItemContainerComponent(
             ? {
                 onPointerDown: (e) => onDragHandlePointerDown(e, "resize"),
                 onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("resize", event),
-                isActivePointer: isActivePointerResizeHandle,
-                isActiveUap: isActiveUapResizeHandle,
+                activeState: getHandleActiveState("resize"),
                 onDirectionClick: handleDirectionalMovement,
               }
             : null,
