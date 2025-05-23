@@ -18,7 +18,7 @@ import { createPortal } from "react-dom";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
-import { getLogicalBoundingClientRect, getLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
+import { getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
 import {
   useInternalDragHandleInteractionState,
   UseInternalDragHandleInteractionStateProps,
@@ -38,6 +38,7 @@ import { getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
+import { calculateInitialPointerData, determineHandleActiveState, getDndOperationType } from "./utils";
 
 import styles from "./styles.css.js";
 
@@ -107,7 +108,7 @@ interface ItemContextType {
   };
 }
 
-interface Transition {
+export interface Transition {
   itemId: ItemId;
   operation: Operation;
   interactionType: InteractionType;
@@ -116,7 +117,7 @@ interface Transition {
   hasDropTarget?: boolean;
 }
 
-type HandleOperation = "drag" | "resize";
+export type HandleOperation = "drag" | "resize";
 
 export const ItemContext = createContext<ItemContextType | null>(null);
 
@@ -349,19 +350,29 @@ function ItemContainerComponent(
     window.addEventListener("pointerup", handleGlobalPointerUp);
   }
 
-  function onDragHandleDndTransitionStart(event: PointerEvent) {
-    // Calculate the offset between item's top-left corner and the pointer landing position.
-    const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event, isRtl());
-    const clientY = event.clientY;
-    pointerOffsetRef.current = new Coordinates({
-      x: clientX - rect.insetInlineStart,
-      y: clientY - rect.insetBlockStart,
-    });
-    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
-    pointerBoundariesRef.current = null;
+  function handlePointerInteractionStart(event: PointerEvent, operation: "drag" | "resize") {
+    const currentItemElement = itemRef.current;
+    if (!currentItemElement) {
+      console.warn("ItemContainer: itemRef.current is not available on interaction start.");
+      return;
+    }
 
-    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
+    const rect = getLogicalBoundingClientRect(currentItemElement);
+    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
+
+    const { pointerOffset, pointerBoundaries } = calculateInitialPointerData({
+      event,
+      operation,
+      rect,
+      getMinSize: () => getItemSize(null),
+      isRtl: isRtl(),
+    });
+    pointerOffsetRef.current = pointerOffset;
+    pointerBoundariesRef.current = pointerBoundaries;
+
+    const dndOperation = getDndOperationType(operation, placed);
+    const startCoordinates = Coordinates.fromEvent(event, { isRtl: isRtl() });
+    draggableApi.start(dndOperation, "pointer", startCoordinates);
   }
 
   const onHandleDndTransitionActive = throttle((event: PointerEvent) => {
@@ -373,25 +384,6 @@ function ItemContainerComponent(
       }),
     );
   }, 10) as (event: PointerEvent) => void;
-
-  function onResizeHandlePointerDown(event: PointerEvent) {
-    // Calculate the offset between item's bottom-right corner and the pointer landing position.
-    const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event, isRtl());
-    const clientY = event.clientY;
-    pointerOffsetRef.current = new Coordinates({ x: clientX - rect.insetInlineEnd, y: clientY - rect.insetBlockEnd });
-    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
-
-    // Calculate boundaries below which the cursor cannot move.
-    const minWidth = getItemSize(null).minWidth;
-    const minHeight = getItemSize(null).minHeight;
-    pointerBoundariesRef.current = new Coordinates({
-      x: clientX - rect.inlineSize + minWidth,
-      y: clientY - rect.blockSize + minHeight,
-    });
-
-    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
-  }
 
   const itemTransitionStyle: CSSProperties = {};
   const itemTransitionClassNames: string[] = [];
@@ -443,11 +435,7 @@ function ItemContainerComponent(
 
   const hookProps: UseInternalDragHandleInteractionStateProps<HandleOperation> = {
     onDndStartAction: (event, handleOperation) => {
-      if (handleOperation === "drag") {
-        onDragHandleDndTransitionStart(event);
-        return;
-      }
-      onResizeHandlePointerDown(event);
+      handlePointerInteractionStart(event, handleOperation!);
     },
     onDndActiveAction: (event) => {
       onHandleDndTransitionActive(event);
@@ -465,19 +453,6 @@ function ItemContainerComponent(
   const dragInteractionHook = useInternalDragHandleInteractionState<HandleOperation>(hookProps);
 
   const isActive = (!!transition && !isHidden) || !!acquired;
-  const getHandleActiveState = (operation: Operation): HandleActiveState => {
-    if (isActive && transition?.operation === operation && dragInteractionHook.interaction.value === "dnd-start") {
-      return "pointer";
-    } else if (
-      isActive &&
-      transition?.operation === operation &&
-      dragInteractionHook.interaction.value === "uap-action-start"
-    ) {
-      return "uap";
-    }
-    return null;
-  };
-
   const shouldUsePortal =
     transition?.operation === "insert" &&
     transition?.interactionType === "pointer" &&
@@ -503,7 +478,12 @@ function ItemContainerComponent(
             ref: dragHandleRef,
             onPointerDown: (e) => onDragHandlePointerDown(e, "drag"),
             onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("drag", event),
-            activeState: getHandleActiveState("reorder"),
+            activeState: determineHandleActiveState({
+              isHandleActive: isActive,
+              currentTransition: transition,
+              interactionHookValue: dragInteractionHook.interaction.value,
+              targetOperation: "reorder",
+            }),
             onDirectionClick: handleDirectionalMovement,
             initialShowButtons:
               dragInteractionHook.interaction.value === "uap-action-start" || (inTransition && acquired),
@@ -512,7 +492,12 @@ function ItemContainerComponent(
             ? {
                 onPointerDown: (e) => onDragHandlePointerDown(e, "resize"),
                 onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("resize", event),
-                activeState: getHandleActiveState("resize"),
+                activeState: determineHandleActiveState({
+                  isHandleActive: isActive,
+                  currentTransition: transition,
+                  interactionHookValue: dragInteractionHook.interaction.value,
+                  targetOperation: "resize",
+                }),
                 onDirectionClick: handleDirectionalMovement,
               }
             : null,
