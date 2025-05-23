@@ -10,7 +10,6 @@ import {
   Ref,
   RefObject,
   useContext,
-  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -19,7 +18,11 @@ import { createPortal } from "react-dom";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
-import { getLogicalBoundingClientRect, getLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
+import { getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
+import {
+  useInternalDragHandleInteractionState,
+  UseInternalDragHandleInteractionStateProps,
+} from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
 import {
   DragAndDropData,
@@ -35,6 +38,7 @@ import { getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
+import { calculateInitialPointerData, determineHandleActiveState, getDndOperationType } from "./utils";
 
 import styles from "./styles.css.js";
 
@@ -42,20 +46,78 @@ export interface ItemContainerRef {
   focusDragHandle(): void;
 }
 
+export type HandleActiveState = null | "pointer" | "uap";
+
 interface ItemContextType {
+  /**
+   * Flag indicating if a drag or resize interaction is currently active.
+   */
   isActive: boolean;
+  /**
+   * Flag indicating if the item is currently hidden.
+   * (When a board item is moved from the palette to the board and the transition is not submitted)
+   */
+  isHidden: boolean;
   dragHandle: {
-    ref: RefObject<HTMLButtonElement>;
+    /**
+     * Ref to the drag button. Used to focus the drag handle when moving an item
+     * from the palette to the board via keyboard or UAP actions.
+     */
+    ref: RefObject<HTMLDivElement>;
+    /**
+     * Listen to pointerDown events on the drag handle.
+     * Used to start a transition and attach global event handlers.
+     */
     onPointerDown(event: ReactPointerEvent): void;
+    /**
+     * Listen to keyDown events on the drag handle.
+     */
     onKeyDown(event: KeyboardEvent): void;
-    isActive: boolean;
+    /**
+     * Indicating if drag handle is active.
+     */
+    activeState: HandleActiveState;
+    /**
+     * Listen to UAP direction button clicks.
+     */
+    onDirectionClick(direction: KeyboardEvent["key"], operation: HandleOperation): void;
+    /**
+     * Flag indicating if the UAP buttons should be shown. E.g. when a item is moved from
+     * the palette via keyboard or UAP to the board.
+     */
+    initialShowButtons?: boolean;
   };
   resizeHandle: null | {
+    /**
+     * Listen to pointerDown events on the drag handle.
+     * Used to start a transition and attach global event handlers.
+     */
     onPointerDown(event: ReactPointerEvent): void;
+    /**
+     * Listen to keyDown events on the drag handle.
+     */
     onKeyDown(event: KeyboardEvent): void;
-    isActive: boolean;
+    /**
+     * Indicating if resize handle is active.
+     */
+    activeState: HandleActiveState;
+    /**
+     * Listen to UAP direction button clicks.
+     */
+    onDirectionClick(direction: KeyboardEvent["key"], operation: HandleOperation): void;
   };
 }
+
+export interface Transition {
+  itemId: ItemId;
+  operation: Operation;
+  interactionType: InteractionType;
+  sizeTransform: null | { width: number; height: number };
+  positionTransform: null | { x: number; y: number };
+  hasDropTarget?: boolean;
+}
+
+export type HandleOperation = "drag" | "resize";
 
 export const ItemContext = createContext<ItemContextType | null>(null);
 
@@ -65,15 +127,6 @@ export function useItemContext() {
     throw new Error("Unable to find BoardItem context.");
   }
   return ctx;
-}
-
-interface Transition {
-  itemId: ItemId;
-  operation: Operation;
-  interactionType: InteractionType;
-  sizeTransform: null | { width: number; height: number };
-  positionTransform: null | { x: number; y: number };
-  hasDropTarget?: boolean;
 }
 
 /**
@@ -101,7 +154,9 @@ export interface ItemContainerProps {
     minHeight: number;
     maxHeight: number;
   };
+
   onKeyMove?(direction: Direction): void;
+
   children: (hasDropTarget: boolean) => ReactNode;
   isRtl: () => boolean;
 }
@@ -176,74 +231,31 @@ function ItemContainerComponent(
     muteEventsRef.current = false;
   });
 
-  // During the transition listen to pointer move and pointer up events to update/submit transition.
-  const transitionInteractionType = transition?.interactionType ?? null;
-  const transitionItemId = transition?.itemId ?? null;
-  useEffect(() => {
-    const onPointerMove = throttle((event: PointerEvent) => {
-      const coordinates = Coordinates.fromEvent(event, { isRtl: isRtl() });
-      draggableApi.updateTransition(
-        new Coordinates({
-          x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
-          y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
-        }),
-      );
-    }, 10);
-    const onPointerUp = () => {
-      onPointerMove.cancel();
-      draggableApi.submitTransition();
-    };
-
-    if (transitionInteractionType === "pointer" && transitionItemId === item.id) {
-      window.addEventListener("pointermove", onPointerMove);
-      window.addEventListener("pointerup", onPointerUp);
-    }
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-    };
-    // draggableApi is not expected to change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id, transitionInteractionType, transitionItemId]);
-
-  useEffect(() => {
-    if (transitionInteractionType === "keyboard" && transitionItemId === item.id) {
-      const onPointerDown = () => draggableApi.submitTransition();
-      window.addEventListener("pointerdown", onPointerDown, true);
-      return () => {
-        window.removeEventListener("pointerdown", onPointerDown, true);
-      };
-    }
-    // draggableApi is not expected to change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id, transitionInteractionType, transitionItemId]);
-
-  function onKeyboardTransitionToggle(operation: "drag" | "resize") {
+  // Handles incremental transition logic shared between different keyboard and UAP interactions.
+  function handleIncrementalTransition(operation: HandleOperation, submitExisting = false) {
     // The acquired item is a copy and does not have the transition state.
     // However, pressing "Space" or "Enter" on the acquired item must submit the active transition.
     if (acquired) {
       return draggableApi.submitTransition();
     }
 
-    // Create new transition if missing.
-    if (!transition) {
-      const rect = getNormalizedElementRect(itemRef.current!);
-      const coordinates = new Coordinates({
-        x: operation === "drag" ? rect.left : rect.right,
-        y: operation === "drag" ? rect.top : rect.bottom,
-      });
-
-      if (operation === "drag" && !placed) {
-        draggableApi.start("insert", "keyboard", coordinates);
-      } else if (operation === "drag") {
-        draggableApi.start("reorder", "keyboard", coordinates);
-      } else {
-        draggableApi.start("resize", "keyboard", coordinates);
-      }
+    // Submit existing transition if requested and one exists
+    if (submitExisting && transition) {
+      return draggableApi.submitTransition();
     }
-    // Submit a transition if existing.
-    else {
-      draggableApi.submitTransition();
+
+    const rect = getNormalizedElementRect(itemRef.current!);
+    const coordinates = new Coordinates({
+      x: operation === "drag" ? rect.left : rect.right,
+      y: operation === "drag" ? rect.top : rect.bottom,
+    });
+
+    if (operation === "drag" && !placed) {
+      draggableApi.start("insert", "keyboard", coordinates);
+    } else if (operation === "drag") {
+      draggableApi.start("reorder", "keyboard", coordinates);
+    } else {
+      draggableApi.start("resize", "keyboard", coordinates);
     }
   }
 
@@ -271,19 +283,17 @@ function ItemContainerComponent(
     muteEventsRef.current = true;
   }
 
-  function onHandleKeyDown(operation: "drag" | "resize", event: KeyboardEvent) {
+  function handleDirectionalMovement(direction: Direction, operation: HandleOperation) {
     const canInsert = transition && operation === "drag" && !placed;
     const canNavigate = transition || operation === "drag";
+    if (canInsert) {
+      handleInsert(direction);
+    } else if (canNavigate) {
+      onKeyMove?.(direction);
+    }
+  }
 
-    // The insert is handled by the item and the navigation is delegated to the containing layout.
-    const move = (direction: Direction) => {
-      if (canInsert) {
-        handleInsert(direction);
-      } else if (canNavigate) {
-        onKeyMove?.(direction);
-      }
-    };
-
+  function onHandleKeyDown(operation: HandleOperation, event: KeyboardEvent) {
     const discard = () => {
       if (transition || acquired) {
         draggableApi.discardTransition();
@@ -292,16 +302,16 @@ function ItemContainerComponent(
 
     switch (event.key) {
       case "ArrowUp":
-        return move("up");
+        return handleDirectionalMovement("up", operation);
       case "ArrowDown":
-        return move("down");
+        return handleDirectionalMovement("down", operation);
       case "ArrowLeft":
-        return move("left");
+        return handleDirectionalMovement("left", operation);
       case "ArrowRight":
-        return move("right");
+        return handleDirectionalMovement("right", operation);
       case " ":
       case "Enter":
-        return onKeyboardTransitionToggle(operation);
+        return handleIncrementalTransition(operation, true);
       case "Escape":
         return discard();
     }
@@ -311,52 +321,69 @@ function ItemContainerComponent(
     // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
-    if (transition && transition.interactionType === "keyboard" && !muteEventsRef.current) {
+    dragInteractionHook.processBlur();
+    if (acquired || (transition && transition.interactionType === "keyboard" && !muteEventsRef.current)) {
       draggableApi.submitTransition();
     }
   }
 
-  function onDragHandlePointerDown(event: ReactPointerEvent) {
-    // Calculate the offset between item's top-left corner and the pointer landing position.
-    const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event, isRtl());
-    const clientY = event.clientY;
-    pointerOffsetRef.current = new Coordinates({
-      x: clientX - rect.insetInlineStart,
-      y: clientY - rect.insetBlockStart,
-    });
+  function handleGlobalPointerMove(event: PointerEvent) {
+    dragInteractionHook.processPointerMove(event);
+  }
+
+  function handleGlobalPointerUp(event: PointerEvent) {
+    dragInteractionHook.processPointerUp(event);
+    // Clean up global listeners after interaction ends
+    window.removeEventListener("pointermove", handleGlobalPointerMove);
+    window.removeEventListener("pointerup", handleGlobalPointerUp);
+  }
+
+  function onDragHandlePointerDown(event: ReactPointerEvent, operation: HandleOperation) {
+    // Ignore right clicks
+    if (event.button !== 0) {
+      return;
+    }
+
+    dragInteractionHook.processPointerDown(event.nativeEvent, operation);
+    // If pointerdown is on our button, start listening for global move and up
+    window.addEventListener("pointermove", handleGlobalPointerMove);
+    window.addEventListener("pointerup", handleGlobalPointerUp);
+  }
+
+  function handlePointerInteractionStart(event: PointerEvent, operation: "drag" | "resize") {
+    const currentItemElement = itemRef.current;
+    if (!currentItemElement) {
+      console.warn("ItemContainer: itemRef.current is not available on interaction start.");
+      return;
+    }
+
+    const rect = getLogicalBoundingClientRect(currentItemElement);
     originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
-    pointerBoundariesRef.current = null;
 
-    draggableApi.start(!placed ? "insert" : "reorder", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
-  }
-
-  function onDragHandleKeyDown(event: KeyboardEvent) {
-    onHandleKeyDown("drag", event);
-  }
-
-  function onResizeHandlePointerDown(event: ReactPointerEvent) {
-    // Calculate the offset between item's bottom-right corner and the pointer landing position.
-    const rect = getLogicalBoundingClientRect(itemRef.current!);
-    const clientX = getLogicalClientX(event, isRtl());
-    const clientY = event.clientY;
-    pointerOffsetRef.current = new Coordinates({ x: clientX - rect.insetInlineEnd, y: clientY - rect.insetBlockEnd });
-    originalSizeRef.current = { width: rect.inlineSize, height: rect.blockSize };
-
-    // Calculate boundaries below which the cursor cannot move.
-    const minWidth = getItemSize(null).minWidth;
-    const minHeight = getItemSize(null).minHeight;
-    pointerBoundariesRef.current = new Coordinates({
-      x: clientX - rect.inlineSize + minWidth,
-      y: clientY - rect.blockSize + minHeight,
+    const { pointerOffset, pointerBoundaries } = calculateInitialPointerData({
+      event,
+      operation,
+      rect,
+      getMinSize: () => getItemSize(null),
+      isRtl: isRtl(),
     });
+    pointerOffsetRef.current = pointerOffset;
+    pointerBoundariesRef.current = pointerBoundaries;
 
-    draggableApi.start("resize", "pointer", Coordinates.fromEvent(event, { isRtl: isRtl() }));
+    const dndOperation = getDndOperationType(operation, placed);
+    const startCoordinates = Coordinates.fromEvent(event, { isRtl: isRtl() });
+    draggableApi.start(dndOperation, "pointer", startCoordinates);
   }
 
-  function onResizeHandleKeyDown(event: KeyboardEvent) {
-    onHandleKeyDown("resize", event);
-  }
+  const onHandleDndTransitionActive = throttle((event: PointerEvent) => {
+    const coordinates = Coordinates.fromEvent(event, { isRtl: isRtl() });
+    draggableApi.updateTransition(
+      new Coordinates({
+        x: Math.max(coordinates.x, pointerBoundariesRef.current?.x ?? Number.NEGATIVE_INFINITY),
+        y: Math.max(coordinates.y, pointerBoundariesRef.current?.y ?? Number.NEGATIVE_INFINITY),
+      }),
+    );
+  }, 10) as (event: PointerEvent) => void;
 
   const itemTransitionStyle: CSSProperties = {};
   const itemTransitionClassNames: string[] = [];
@@ -399,13 +426,37 @@ function ItemContainerComponent(
     }
   }
 
-  const dragHandleRef = useRef<HTMLButtonElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => ({
-    focusDragHandle: () => dragHandleRef.current?.focus(),
+    focusDragHandle: () => {
+      return dragHandleRef.current?.focus();
+    },
   }));
 
+  const hookProps: UseInternalDragHandleInteractionStateProps<HandleOperation> = {
+    onDndStartAction: (event, handleOperation) => {
+      handlePointerInteractionStart(event, handleOperation!);
+    },
+    onDndActiveAction: (event) => {
+      onHandleDndTransitionActive(event);
+    },
+    onDndEndAction: () => {
+      if (transition) {
+        draggableApi.submitTransition();
+      }
+    },
+    onUapActionStartAction: (handleOperation) => {
+      handleIncrementalTransition(handleOperation!);
+    },
+  };
+
+  const dragInteractionHook = useInternalDragHandleInteractionState<HandleOperation>(hookProps);
+
   const isActive = (!!transition && !isHidden) || !!acquired;
-  const shouldUsePortal = transition?.operation === "insert" && transition?.interactionType === "pointer";
+  const shouldUsePortal =
+    transition?.operation === "insert" &&
+    transition?.interactionType === "pointer" &&
+    dragInteractionHook.interaction.value === "dnd-active";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
     childrenRef.current = children(!!transition?.hasDropTarget);
@@ -422,17 +473,32 @@ function ItemContainerComponent(
       <ItemContext.Provider
         value={{
           isActive,
+          isHidden,
           dragHandle: {
             ref: dragHandleRef,
-            onPointerDown: onDragHandlePointerDown,
-            onKeyDown: onDragHandleKeyDown,
-            isActive: isActive && transition?.operation === "reorder",
+            onPointerDown: (e) => onDragHandlePointerDown(e, "drag"),
+            onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("drag", event),
+            activeState: determineHandleActiveState({
+              isHandleActive: isActive,
+              currentTransition: transition,
+              interactionHookValue: dragInteractionHook.interaction.value,
+              targetOperation: "reorder",
+            }),
+            onDirectionClick: handleDirectionalMovement,
+            initialShowButtons:
+              dragInteractionHook.interaction.value === "uap-action-start" || (inTransition && acquired),
           },
           resizeHandle: placed
             ? {
-                onPointerDown: onResizeHandlePointerDown,
-                onKeyDown: onResizeHandleKeyDown,
-                isActive: isActive && transition?.operation === "resize",
+                onPointerDown: (e) => onDragHandlePointerDown(e, "resize"),
+                onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("resize", event),
+                activeState: determineHandleActiveState({
+                  isHandleActive: isActive,
+                  currentTransition: transition,
+                  interactionHookValue: dragInteractionHook.interaction.value,
+                  targetOperation: "resize",
+                }),
+                onDirectionClick: handleDirectionalMovement,
               }
             : null,
         }}
