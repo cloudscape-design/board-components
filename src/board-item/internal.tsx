@@ -83,7 +83,7 @@ export function InternalBoardItem({
       >
         {children}
       </Container>
-      {resizeHandle && !isHidden && (
+      {resizeHandle && (
         <div className={styles.resizer}>
           <ResizeHandle
             ariaLabelledBy={resizeHandleAriaLabelledBy}

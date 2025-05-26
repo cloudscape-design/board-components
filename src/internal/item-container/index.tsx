@@ -339,7 +339,9 @@ function ItemContainerComponent(
   }
 
   function onDragHandlePointerDown(event: ReactPointerEvent, operation: HandleOperation) {
-    // Ignore right clicks
+    // Prevent UI issues when right-clicking: in such a case the OS context menu will be shown and
+    // the board while the board-item is active. Because of the context menu under the pointer,
+    // onPointerUp is not called anymore. In such a case the board item would stuck in onPointerUp.
     if (event.button !== 0) {
       return;
     }
