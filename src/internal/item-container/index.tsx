@@ -321,18 +321,18 @@ function ItemContainerComponent(
     // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
-    dragInteractionHook.processBlur();
+    selectedHook.current.processBlur();
     if (acquired || (transition && transition.interactionType === "keyboard" && !muteEventsRef.current)) {
       draggableApi.submitTransition();
     }
   }
 
   function handleGlobalPointerMove(event: PointerEvent) {
-    dragInteractionHook.processPointerMove(event);
+    selectedHook.current.processPointerMove(event);
   }
 
   function handleGlobalPointerUp(event: PointerEvent) {
-    dragInteractionHook.processPointerUp(event);
+    selectedHook.current.processPointerUp(event);
     // Clean up global listeners after interaction ends
     window.removeEventListener("pointermove", handleGlobalPointerMove);
     window.removeEventListener("pointerup", handleGlobalPointerUp);
@@ -346,7 +346,13 @@ function ItemContainerComponent(
       return;
     }
 
-    dragInteractionHook.processPointerDown(event.nativeEvent, operation);
+    if (operation === "drag") {
+      selectedHook.current = dragInteractionHook;
+    } else {
+      selectedHook.current = resizeInteractionHook;
+    }
+    selectedHook.current.processPointerDown(event.nativeEvent);
+
     // If pointerdown is on our button, start listening for global move and up
     window.addEventListener("pointermove", handleGlobalPointerMove);
     window.addEventListener("pointerup", handleGlobalPointerUp);
@@ -435,30 +441,28 @@ function ItemContainerComponent(
     },
   }));
 
-  const hookProps: UseInternalDragHandleInteractionStateProps<HandleOperation> = {
-    onDndStartAction: (event, handleOperation) => {
-      handlePointerInteractionStart(event, handleOperation!);
-    },
-    onDndActiveAction: (event) => {
-      onHandleDndTransitionActive(event);
-    },
-    onDndEndAction: () => {
-      if (transition) {
-        draggableApi.submitTransition();
-      }
-    },
-    onUapActionStartAction: (handleOperation) => {
-      handleIncrementalTransition(handleOperation!);
-    },
+  const dragHookProps: UseInternalDragHandleInteractionStateProps = {
+    onDndStartAction: (event) => handlePointerInteractionStart(event, "drag"),
+    onDndActiveAction: onHandleDndTransitionActive,
+    onDndEndAction: () => transition && draggableApi.submitTransition(),
+    onUapActionStartAction: () => handleIncrementalTransition("drag"),
   };
-
-  const dragInteractionHook = useInternalDragHandleInteractionState<HandleOperation>(hookProps);
+  const resizeHookProps: UseInternalDragHandleInteractionStateProps = {
+    onDndStartAction: (event) => handlePointerInteractionStart(event, "resize"),
+    onDndActiveAction: onHandleDndTransitionActive,
+    onDndEndAction: () => transition && draggableApi.submitTransition(),
+    onUapActionStartAction: () => handleIncrementalTransition("resize"),
+  };
+  const dragInteractionHook = useInternalDragHandleInteractionState(dragHookProps);
+  const resizeInteractionHook = useInternalDragHandleInteractionState(resizeHookProps);
+  // We use a ref to the hook for the handle which is currently active. Distinguishment is managed in the handle button's onPointerDown callback.
+  const selectedHook = useRef(dragInteractionHook);
 
   const isActive = (!!transition && !isHidden) || !!acquired;
   const shouldUsePortal =
     transition?.operation === "insert" &&
     transition?.interactionType === "pointer" &&
-    dragInteractionHook.interaction.value === "dnd-active";
+    selectedHook.current.interaction.value === "dnd-active";
   const childrenRef = useRef<ReactNode>(null);
   if (!inTransition || isActive) {
     childrenRef.current = children(!!transition?.hasDropTarget);
@@ -497,7 +501,7 @@ function ItemContainerComponent(
                 activeState: determineHandleActiveState({
                   isHandleActive: isActive,
                   currentTransition: transition,
-                  interactionHookValue: dragInteractionHook.interaction.value,
+                  interactionHookValue: resizeInteractionHook.interaction.value,
                   targetOperation: "resize",
                 }),
                 onDirectionClick: handleDirectionalMovement,
