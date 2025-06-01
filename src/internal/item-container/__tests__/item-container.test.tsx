@@ -35,14 +35,14 @@ function Item() {
     <div data-testid="content">
       <button
         data-testid="drag-handle"
-        onClick={(event) => context.dragHandle.onPointerDown(event as any)}
+        onPointerDown={(event) => context.dragHandle.onPointerDown(event as any)}
         onKeyDown={(e) => context.dragHandle.onKeyDown(e)}
       >
         Drag handle
       </button>
       <button
         data-testid="resize-handle"
-        onClick={(event) => context.resizeHandle?.onPointerDown(event as any)}
+        onPointerDown={(event) => context.resizeHandle?.onPointerDown(event as any)}
         onKeyDown={(e) => context.resizeHandle?.onKeyDown(e)}
       >
         Resize handle
@@ -57,21 +57,33 @@ test("renders item container", () => {
 });
 
 describe("pointer interaction", () => {
+  const clickHandle = (selector: HTMLElement, pointerDownOptions?: MouseEventInit) => {
+    fireEvent(selector, new MouseEvent("pointerdown", { bubbles: true, button: 0, ...pointerDownOptions }));
+    fireEvent(selector, new MouseEvent("pointerup", { bubbles: true }));
+  };
+  afterEach(vi.resetAllMocks);
+
+  test.each(["drag-handle", "resize-handle"])("ignores right-click on %s", (handleSelector) => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+    clickHandle(getByTestId(handleSelector), { button: 1 });
+    expect(mockDraggable.start).not.toHaveBeenCalled();
+  });
+
   test("starts drag transition when drag handle is clicked and item belongs to grid", () => {
     const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-    fireEvent.click(getByTestId("drag-handle"));
+    clickHandle(getByTestId("drag-handle"));
     expect(mockDraggable.start).toBeCalledWith("reorder", "pointer", expect.any(Coordinates));
   });
 
   test("starts insert transition when drag handle is clicked and item does not belong to grid", () => {
     const { getByTestId } = render(<ItemContainer {...defaultProps} />);
-    fireEvent.click(getByTestId("drag-handle"));
+    clickHandle(getByTestId("drag-handle"));
     expect(mockDraggable.start).toBeCalledWith("insert", "pointer", expect.any(Coordinates));
   });
 
   test("starts resize transition when resize handle is clicked", () => {
     const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
-    fireEvent.click(getByTestId("resize-handle"));
+    clickHandle(getByTestId("resize-handle"));
     expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
   });
 });
