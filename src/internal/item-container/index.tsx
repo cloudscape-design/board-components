@@ -38,7 +38,12 @@ import { getNormalizedElementRect } from "../utils/screen";
 import { throttle } from "../utils/throttle";
 import { getCollisionRect } from "./get-collision-rect";
 import { getNextDroppable } from "./get-next-droppable";
-import { calculateInitialPointerData, determineHandleActiveState, getDndOperationType } from "./utils";
+import {
+  calculateInitialPointerData,
+  determineHandleActiveState,
+  getDndOperationType,
+  hasPointerMovedBeyondThreshold,
+} from "./utils";
 
 import styles from "./styles.css.js";
 
@@ -163,6 +168,12 @@ export interface ItemContainerProps {
 
 export const ItemContainer = forwardRef(ItemContainerComponent);
 
+// The amount of distance after pointer down that the cursor is allowed to
+// jitter for a subsequent mouseup to still register as a "press" instead of
+// a drag. A little allowance is needed for usability reasons, but this number
+// isn't set in stone.
+export const CLICK_DRAG_THRESHOLD = 3;
+
 function ItemContainerComponent(
   { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children, isRtl }: ItemContainerProps,
   ref: Ref<ItemContainerRef>,
@@ -174,6 +185,7 @@ function ItemContainerComponent(
   const [isHidden, setIsHidden] = useState(false);
   const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
+  const initialPointerDownPosition = useRef<{ x: number; y: number } | undefined>();
   const draggableApi = useDraggable({
     draggableItem: item,
     getCollisionRect: (operation, coordinates, dropTarget) => {
@@ -322,17 +334,21 @@ function ItemContainerComponent(
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
     selectedHook.current.processBlur();
+    initialPointerDownPosition.current = undefined;
     if (acquired || (transition && transition.interactionType === "keyboard" && !muteEventsRef.current)) {
       draggableApi.submitTransition();
     }
   }
 
   function handleGlobalPointerMove(event: PointerEvent) {
-    selectedHook.current.processPointerMove(event);
+    if (hasPointerMovedBeyondThreshold(event, initialPointerDownPosition.current)) {
+      selectedHook.current.processPointerMove(event);
+    }
   }
 
   function handleGlobalPointerUp(event: PointerEvent) {
     selectedHook.current.processPointerUp(event);
+    initialPointerDownPosition.current = undefined;
     // Clean up global listeners after interaction ends
     window.removeEventListener("pointermove", handleGlobalPointerMove);
     window.removeEventListener("pointerup", handleGlobalPointerUp);
@@ -345,6 +361,7 @@ function ItemContainerComponent(
     if (event.button !== 0) {
       return;
     }
+    initialPointerDownPosition.current = { x: event.clientX, y: event.clientY };
 
     if (operation === "drag") {
       selectedHook.current = dragInteractionHook;

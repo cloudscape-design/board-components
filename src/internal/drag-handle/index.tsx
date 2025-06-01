@@ -8,7 +8,7 @@ import {
   InternalDragHandleProps,
 } from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
-import { HandleActiveState } from "../item-container";
+import { CLICK_DRAG_THRESHOLD, HandleActiveState } from "../item-container";
 
 import styles from "./styles.css.js";
 import testUtilsStyles from "./test-classes/styles.css.js";
@@ -60,6 +60,8 @@ function DragHandle(
       triggerMode="keyboard-activate"
       onDirectionClick={onDirectionClick}
       initialShowButtons={initialShowButtons}
+      hideButtonsOnDrag={true}
+      clickDragThreshold={CLICK_DRAG_THRESHOLD}
     />
   );
 }

@@ -4,11 +4,16 @@ import { beforeEach, describe, expect, Mock, test, vi } from "vitest";
 
 import { getLogicalClientX as originalGetLogicalClientX } from "@cloudscape-design/component-toolkit/internal";
 
+import type { Operation } from "../../../../lib/components/internal/dnd-controller/controller";
 import type { Transition } from "../../../../lib/components/internal/item-container";
 import { determineHandleActiveState } from "../../../../lib/components/internal/item-container/utils";
-import type { Operation } from "../../dnd-controller/controller";
-import { Coordinates } from "../../utils/coordinates";
-import { calculateInitialPointerData, DetermineHandleActiveStateArgs, getDndOperationType } from "../utils";
+import {
+  calculateInitialPointerData,
+  DetermineHandleActiveStateArgs,
+  getDndOperationType,
+  hasPointerMovedBeyondThreshold,
+} from "../../../../lib/components/internal/item-container/utils";
+import { Coordinates } from "../../../../lib/components/internal/utils/coordinates";
 
 const mockRect = {
   insetInlineStart: 10,
@@ -170,6 +175,51 @@ describe("calculateInitialPointerData", () => {
       const expectedBoundaryY = event.clientY - mockRect.blockSize + minHeight; // 160 - 100 + 50 = 110
       expect(result.pointerBoundaries).toEqual(new Coordinates({ x: expectedBoundaryX, y: expectedBoundaryY }));
     });
+  });
+});
+
+describe("hasPointerMovedBeyondThreshold", () => {
+  const threshold = 3;
+
+  test("should return false when initialPosition is undefined", () => {
+    const event = mockPointerEvent(50, 60) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, undefined)).toBe(false);
+  });
+
+  test("should return false when pointer hasn't moved beyond threshold", () => {
+    const initialPosition = { x: 50, y: 60 };
+    const event = mockPointerEvent(51, 61) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, initialPosition, threshold)).toBe(false);
+  });
+
+  test("should return true when pointer moved beyond threshold in positive X direction", () => {
+    const initialPosition = { x: 50, y: 60 };
+    const event = mockPointerEvent(54, 60) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, initialPosition, threshold)).toBe(true);
+  });
+
+  test("should return true when pointer moved beyond threshold in negative X direction", () => {
+    const initialPosition = { x: 50, y: 60 };
+    const event = mockPointerEvent(46, 60) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, initialPosition, threshold)).toBe(true);
+  });
+
+  test("should return true when pointer moved beyond threshold in positive Y direction", () => {
+    const initialPosition = { x: 50, y: 60 };
+    const event = mockPointerEvent(50, 64) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, initialPosition, threshold)).toBe(true);
+  });
+
+  test("should return true when pointer moved beyond threshold in negative Y direction", () => {
+    const initialPosition = { x: 50, y: 60 };
+    const event = mockPointerEvent(50, 56) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, initialPosition, threshold)).toBe(true);
+  });
+
+  test("should use default threshold when not provided", () => {
+    const initialPosition = { x: 50, y: 60 };
+    const event = mockPointerEvent(54, 60) as PointerEvent;
+    expect(hasPointerMovedBeyondThreshold(event, initialPosition)).toBe(true);
   });
 });
 

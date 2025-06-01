@@ -86,6 +86,20 @@ describe("pointer interaction", () => {
     clickHandle(getByTestId("resize-handle"));
     expect(mockDraggable.start).toBeCalledWith("resize", "pointer", expect.any(Coordinates));
   });
+
+  test("does not call updateTransition on pointer down and a mouse movement within the CLICK_DRAG_THRESHOLD", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} />);
+    clickHandle(getByTestId("drag-handle"));
+    expect(mockDraggable.updateTransition).not.toBeCalledWith();
+  });
+
+  test("call updateTransition on pointer down and a mouse movement outside the CLICK_DRAG_THRESHOLD", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} />);
+    const dragHandleEl = getByTestId("drag-handle");
+    fireEvent(dragHandleEl, new MouseEvent("pointerdown", { clientX: 10, clientY: 20, bubbles: true, button: 0 }));
+    fireEvent(dragHandleEl, new MouseEvent("pointermove", { clientX: 15, clientY: 20, bubbles: true }));
+    expect(mockDraggable.updateTransition).toBeCalledWith(expect.any(Coordinates));
+  });
 });
 
 describe("keyboard interaction", () => {

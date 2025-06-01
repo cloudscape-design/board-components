@@ -5,7 +5,7 @@ import { InteractionState } from "@cloudscape-design/components/internal/compone
 
 import { Operation } from "../dnd-controller/controller"; // Adjust this path
 import { Coordinates } from "../utils/coordinates"; // Adjust this path based on your project structure
-import { Transition } from ".";
+import { CLICK_DRAG_THRESHOLD, Transition } from ".";
 
 export type HandleActiveState = null | "pointer" | "uap";
 
@@ -73,6 +73,22 @@ export function calculateInitialPointerData({
   }
 
   return { pointerOffset, pointerBoundaries };
+}
+
+export function hasPointerMovedBeyondThreshold(
+  event: PointerEvent,
+  initialPosition: { x: number; y: number } | undefined,
+  threshold: number = CLICK_DRAG_THRESHOLD,
+): boolean {
+  if (!initialPosition) {
+    return false;
+  }
+  return (
+    event.clientX > initialPosition.x + threshold ||
+    event.clientX < initialPosition.x - threshold ||
+    event.clientY > initialPosition.y + threshold ||
+    event.clientY < initialPosition.y - threshold
+  );
 }
 
 export function determineHandleActiveState({
