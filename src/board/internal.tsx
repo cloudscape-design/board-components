@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useRef } from "react";
 import { usePrevious } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
-import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
+import { getIsRtl, useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
@@ -26,7 +26,6 @@ import {
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
-import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
 import { selectTransitionRows, useTransition } from "./transition";
