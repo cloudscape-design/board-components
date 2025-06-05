@@ -3,6 +3,8 @@
 name: Release
 
 on:
+  repository_dispatch:
+    types: [run-release]
   push:
     branches:
       - main
