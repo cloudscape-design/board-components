@@ -7,11 +7,14 @@
 
 .handle {
   cursor: nwse-resize;
-  @include shared.handle();
 
   @include shared.with-direction("rtl") {
     cursor: nesw-resize;
   }
+}
+
+.handle:not(.active):focus-visible {
+  @include shared.focus-highlight();
 }
 
 .active {

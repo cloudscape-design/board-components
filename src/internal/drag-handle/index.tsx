@@ -3,66 +3,35 @@
 import { ForwardedRef, forwardRef, KeyboardEvent, PointerEvent } from "react";
 import clsx from "clsx";
 
-import {
-  InternalDragHandle,
-  InternalDragHandleProps,
-} from "@cloudscape-design/components/internal/do-not-use/drag-handle";
+import Icon from "@cloudscape-design/components/icon";
 
-import { CLICK_DRAG_THRESHOLD, HandleActiveState } from "../item-container";
+import Handle from "../handle";
 
 import styles from "./styles.css.js";
-import testUtilsStyles from "./test-classes/styles.css.js";
 
 export interface DragHandleProps {
   ariaLabelledBy: string;
   ariaDescribedBy: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
-  activeState: HandleActiveState;
-  initialShowButtons?: boolean;
-  onDirectionClick: InternalDragHandleProps["onDirectionClick"];
-  dragHandleTooltipText?: string;
+  isActive: boolean;
 }
 
 function DragHandle(
-  {
-    ariaLabelledBy,
-    ariaDescribedBy,
-    onPointerDown,
-    onKeyDown,
-    activeState,
-    initialShowButtons,
-    onDirectionClick,
-    dragHandleTooltipText,
-  }: DragHandleProps,
-  ref: ForwardedRef<HTMLDivElement>,
+  { ariaLabelledBy, ariaDescribedBy, onPointerDown, onKeyDown, isActive }: DragHandleProps,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
-    <InternalDragHandle
+    <Handle
       ref={ref}
-      className={clsx(
-        styles.handle,
-        activeState === "pointer" && styles.active,
-        activeState === "uap" && testUtilsStyles["active-uap"],
-      )}
-      ariaLabelledBy={ariaLabelledBy}
-      ariaDescribedby={ariaDescribedBy}
-      variant="drag-indicator"
-      tooltipText={dragHandleTooltipText}
-      onKeyDown={onKeyDown}
+      className={clsx(styles.handle, isActive && styles.active)}
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
       onPointerDown={onPointerDown}
-      directions={{
-        "block-start": "active",
-        "block-end": "active",
-        "inline-start": "active",
-        "inline-end": "active",
-      }}
-      triggerMode="keyboard-activate"
-      onDirectionClick={onDirectionClick}
-      initialShowButtons={initialShowButtons}
-      hideButtonsOnDrag={true}
-      clickDragThreshold={CLICK_DRAG_THRESHOLD}
-    />
+      onKeyDown={onKeyDown}
+    >
+      <Icon name="drag-indicator" />
+    </Handle>
   );
 }
 
