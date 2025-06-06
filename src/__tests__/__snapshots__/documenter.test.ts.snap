@@ -201,7 +201,9 @@ ARIA labels:
 * \`dragHandleAriaLabel\` (string) - the ARIA label for the drag handle.
 * \`dragHandleAriaDescription\` (string, optional) - the ARIA description for the drag handle.
 * \`resizeHandleAriaLabel\` (string) - the ARIA label for the resize handle.
-* \`resizeHandleAriaDescription\` (string, optional) - the ARIA description for the resize handle.",
+* \`resizeHandleAriaDescription\` (string, optional) - the ARIA description for the resize handle.
+* \`dragHandleTooltipText\` (string, optional) - the ARIA description for the resize handle.
+* \`resizeHandleTooltipText\` (string, optional) - the Text for the resize handle Tooltip.",
       "inlineType": {
         "name": "BoardItemProps.I18nStrings",
         "properties": [
@@ -216,6 +218,11 @@ ARIA labels:
             "type": "string",
           },
           {
+            "name": "dragHandleTooltipText",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "resizeHandleAriaDescription",
             "optional": true,
             "type": "string",
@@ -223,6 +230,11 @@ ARIA labels:
           {
             "name": "resizeHandleAriaLabel",
             "optional": false,
+            "type": "string",
+          },
+          {
+            "name": "resizeHandleTooltipText",
+            "optional": true,
             "type": "string",
           },
         ],
