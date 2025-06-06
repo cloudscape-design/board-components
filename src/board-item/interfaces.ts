@@ -37,8 +37,6 @@ export interface BoardItemProps {
    * * `dragHandleAriaDescription` (string, optional) - the ARIA description for the drag handle.
    * * `resizeHandleAriaLabel` (string) - the ARIA label for the resize handle.
    * * `resizeHandleAriaDescription` (string, optional) - the ARIA description for the resize handle.
-   * * `dragHandleTooltipText` (string, optional) - the ARIA description for the resize handle.
-   * * `resizeHandleTooltipText` (string, optional) - the Text for the resize handle Tooltip.
    */
   i18nStrings: BoardItemProps.I18nStrings;
 }
@@ -49,7 +47,5 @@ export namespace BoardItemProps {
     dragHandleAriaDescription?: string;
     resizeHandleAriaLabel: string;
     resizeHandleAriaDescription?: string;
-    dragHandleTooltipText?: string;
-    resizeHandleTooltipText?: string;
   }
 }

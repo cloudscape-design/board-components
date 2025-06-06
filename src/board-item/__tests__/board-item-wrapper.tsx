@@ -9,19 +9,16 @@ export function ItemContextWrapper({ children }: { children: ReactNode }) {
     <ItemContext.Provider
       value={{
         isActive: false,
-        isHidden: false,
         dragHandle: {
           ref: { current: null },
           onPointerDown: () => {},
           onKeyDown: () => {},
-          activeState: null,
-          onDirectionClick: () => {},
+          isActive: false,
         },
         resizeHandle: {
           onPointerDown: () => {},
           onKeyDown: () => {},
-          activeState: null,
-          onDirectionClick: () => {},
+          isActive: false,
         },
       }}
     >

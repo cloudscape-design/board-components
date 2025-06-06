@@ -7,11 +7,14 @@
 
 .handle {
   cursor: grab;
-  @include shared.handle();
 }
 
 .handle:active {
   cursor: grabbing;
+}
+
+.handle:not(.active):focus-visible {
+  @include shared.focus-highlight();
 }
 
 .active {

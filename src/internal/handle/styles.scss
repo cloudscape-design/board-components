@@ -1,0 +1,20 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+.handle {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding-block: cs.$space-scaled-xxs;
+  padding-inline: cs.$space-scaled-xxs;
+
+  color: cs.$color-text-interactive-default;
+
+  &:hover {
+    color: cs.$color-text-interactive-hover;
+  }
+}
