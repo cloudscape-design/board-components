@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`definition for board matches the snapshot > board 1`] = `
+exports[`definition for 'board' matches the snapshot 1`] = `
 {
   "dashCaseName": "board",
   "events": [
@@ -180,7 +180,7 @@ When items are loading the slot can be used to render the loading indicator.",
 }
 `;
 
-exports[`definition for board-item matches the snapshot > board-item 1`] = `
+exports[`definition for 'board-item' matches the snapshot 1`] = `
 {
   "dashCaseName": "board-item",
   "events": [],
@@ -259,7 +259,7 @@ ARIA labels:
 }
 `;
 
-exports[`definition for items-palette matches the snapshot > items-palette 1`] = `
+exports[`definition for 'items-palette' matches the snapshot 1`] = `
 {
   "dashCaseName": "items-palette",
   "events": [],

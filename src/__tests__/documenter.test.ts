@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test } from "vitest";
 
-import { getAllComponents, requireComponentDefinition } from "./utils";
+import apiDocs from "../../lib/components/internal/api-docs/components";
 
-test.each<string>(getAllComponents())(`definition for %s matches the snapshot`, (componentName: string) => {
-  const definition = requireComponentDefinition(componentName);
-  expect(definition).toMatchSnapshot(componentName);
+test.each(Object.entries(apiDocs))("definition for $0 matches the snapshot", (name, definition) => {
+  expect(definition).toMatchSnapshot();
 });
