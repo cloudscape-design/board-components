@@ -3,18 +3,24 @@
 import { KeyboardEvent, PointerEvent } from "react";
 import clsx from "clsx";
 
-import Icon from "@cloudscape-design/components/icon";
+import {
+  InternalDragHandle,
+  InternalDragHandleProps,
+} from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
-import Handle from "../handle";
+import { CLICK_DRAG_THRESHOLD, HandleActiveState } from "../item-container";
 
 import styles from "./styles.css.js";
+import testUtilsStyles from "./test-classes/styles.css.js";
 
 export interface ResizeHandleProps {
   ariaLabelledBy: string;
   ariaDescribedBy: string;
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
-  isActive: boolean;
+  activeState: HandleActiveState;
+  onDirectionClick: InternalDragHandleProps["onDirectionClick"];
+  resizeHandleTooltipText?: string;
 }
 
 export default function ResizeHandle({
@@ -22,17 +28,33 @@ export default function ResizeHandle({
   ariaDescribedBy,
   onPointerDown,
   onKeyDown,
-  isActive,
+  activeState,
+  onDirectionClick,
+  resizeHandleTooltipText,
 }: ResizeHandleProps) {
   return (
-    <Handle
-      className={clsx(styles.handle, isActive && styles.active)}
-      aria-labelledby={ariaLabelledBy}
-      aria-describedby={ariaDescribedBy}
-      onPointerDown={onPointerDown}
+    <InternalDragHandle
+      className={clsx(
+        styles.handle,
+        activeState === "pointer" && styles.active,
+        activeState === "uap" && testUtilsStyles["active-uap"],
+      )}
+      ariaLabelledBy={ariaLabelledBy}
+      ariaDescribedby={ariaDescribedBy}
+      variant="resize-area"
+      tooltipText={resizeHandleTooltipText}
       onKeyDown={onKeyDown}
-    >
-      <Icon name="resize-area" />
-    </Handle>
+      onPointerDown={onPointerDown}
+      directions={{
+        "block-start": "active",
+        "block-end": "active",
+        "inline-start": "active",
+        "inline-end": "active",
+      }}
+      triggerMode="keyboard-activate"
+      onDirectionClick={onDirectionClick}
+      hideButtonsOnDrag={true}
+      clickDragThreshold={CLICK_DRAG_THRESHOLD}
+    />
   );
 }
