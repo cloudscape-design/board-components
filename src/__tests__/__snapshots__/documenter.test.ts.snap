@@ -19,6 +19,76 @@ The change detail has the following properties:
         "name": "BoardProps.ItemsChangeDetail<D>",
         "properties": [
           {
+            "inlineType": {
+              "name": "BoardProps.Item<D>",
+              "properties": [
+                {
+                  "name": "columnOffset",
+                  "optional": true,
+                  "type": "BoardItemColumnOffset",
+                },
+                {
+                  "name": "columnSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+                {
+                  "inlineType": {
+                    "name": "NonNullable<D>",
+                    "type": "union",
+                    "values": [
+                      "D",
+                      "{}",
+                    ],
+                  },
+                  "name": "data",
+                  "optional": false,
+                  "type": "NonNullable<D>",
+                },
+                {
+                  "inlineType": {
+                    "name": "object",
+                    "properties": [
+                      {
+                        "name": "defaultColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "defaultRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                    ],
+                    "type": "object",
+                  },
+                  "name": "definition",
+                  "optional": true,
+                  "type": "{ minRowSpan?: number | undefined; minColumnSpan?: number | undefined; defaultRowSpan?: number | undefined; defaultColumnSpan?: number | undefined; }",
+                },
+                {
+                  "name": "id",
+                  "optional": false,
+                  "type": "string",
+                },
+                {
+                  "name": "rowSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+              ],
+              "type": "object",
+            },
             "name": "addedItem",
             "optional": true,
             "type": "BoardProps.Item<D>",
@@ -29,16 +99,226 @@ The change detail has the following properties:
             "type": "ReadonlyArray<BoardProps.Item<D>>",
           },
           {
+            "inlineType": {
+              "name": "BoardProps.Item<D>",
+              "properties": [
+                {
+                  "name": "columnOffset",
+                  "optional": true,
+                  "type": "BoardItemColumnOffset",
+                },
+                {
+                  "name": "columnSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+                {
+                  "inlineType": {
+                    "name": "NonNullable<D>",
+                    "type": "union",
+                    "values": [
+                      "D",
+                      "{}",
+                    ],
+                  },
+                  "name": "data",
+                  "optional": false,
+                  "type": "NonNullable<D>",
+                },
+                {
+                  "inlineType": {
+                    "name": "object",
+                    "properties": [
+                      {
+                        "name": "defaultColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "defaultRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                    ],
+                    "type": "object",
+                  },
+                  "name": "definition",
+                  "optional": true,
+                  "type": "{ minRowSpan?: number | undefined; minColumnSpan?: number | undefined; defaultRowSpan?: number | undefined; defaultColumnSpan?: number | undefined; }",
+                },
+                {
+                  "name": "id",
+                  "optional": false,
+                  "type": "string",
+                },
+                {
+                  "name": "rowSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+              ],
+              "type": "object",
+            },
             "name": "movedItem",
             "optional": true,
             "type": "BoardProps.Item<D>",
           },
           {
+            "inlineType": {
+              "name": "BoardProps.Item<D>",
+              "properties": [
+                {
+                  "name": "columnOffset",
+                  "optional": true,
+                  "type": "BoardItemColumnOffset",
+                },
+                {
+                  "name": "columnSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+                {
+                  "inlineType": {
+                    "name": "NonNullable<D>",
+                    "type": "union",
+                    "values": [
+                      "D",
+                      "{}",
+                    ],
+                  },
+                  "name": "data",
+                  "optional": false,
+                  "type": "NonNullable<D>",
+                },
+                {
+                  "inlineType": {
+                    "name": "object",
+                    "properties": [
+                      {
+                        "name": "defaultColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "defaultRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                    ],
+                    "type": "object",
+                  },
+                  "name": "definition",
+                  "optional": true,
+                  "type": "{ minRowSpan?: number | undefined; minColumnSpan?: number | undefined; defaultRowSpan?: number | undefined; defaultColumnSpan?: number | undefined; }",
+                },
+                {
+                  "name": "id",
+                  "optional": false,
+                  "type": "string",
+                },
+                {
+                  "name": "rowSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+              ],
+              "type": "object",
+            },
             "name": "removedItem",
             "optional": true,
             "type": "BoardProps.Item<D>",
           },
           {
+            "inlineType": {
+              "name": "BoardProps.Item<D>",
+              "properties": [
+                {
+                  "name": "columnOffset",
+                  "optional": true,
+                  "type": "BoardItemColumnOffset",
+                },
+                {
+                  "name": "columnSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+                {
+                  "inlineType": {
+                    "name": "NonNullable<D>",
+                    "type": "union",
+                    "values": [
+                      "D",
+                      "{}",
+                    ],
+                  },
+                  "name": "data",
+                  "optional": false,
+                  "type": "NonNullable<D>",
+                },
+                {
+                  "inlineType": {
+                    "name": "object",
+                    "properties": [
+                      {
+                        "name": "defaultColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "defaultRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minColumnSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                      {
+                        "name": "minRowSpan",
+                        "optional": true,
+                        "type": "number",
+                      },
+                    ],
+                    "type": "object",
+                  },
+                  "name": "definition",
+                  "optional": true,
+                  "type": "{ minRowSpan?: number | undefined; minColumnSpan?: number | undefined; defaultRowSpan?: number | undefined; defaultColumnSpan?: number | undefined; }",
+                },
+                {
+                  "name": "id",
+                  "optional": false,
+                  "type": "string",
+                },
+                {
+                  "name": "rowSpan",
+                  "optional": true,
+                  "type": "number",
+                },
+              ],
+              "type": "object",
+            },
             "name": "resizedItem",
             "optional": true,
             "type": "BoardProps.Item<D>",
@@ -68,36 +348,113 @@ Live announcements:
         "name": "BoardProps.I18nStrings<D>",
         "properties": [
           {
+            "inlineType": {
+              "name": "(operationType: BoardProps.DndOperationType) => string",
+              "parameters": [
+                {
+                  "name": "operationType",
+                  "type": "BoardProps.DndOperationType",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementDndCommitted",
             "optional": false,
             "type": "(operationType: BoardProps.DndOperationType) => string",
           },
           {
+            "inlineType": {
+              "name": "(operationType: BoardProps.DndOperationType) => string",
+              "parameters": [
+                {
+                  "name": "operationType",
+                  "type": "BoardProps.DndOperationType",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementDndDiscarded",
             "optional": false,
             "type": "(operationType: BoardProps.DndOperationType) => string",
           },
           {
+            "inlineType": {
+              "name": "(operation: BoardProps.DndInsertState<D>) => string",
+              "parameters": [
+                {
+                  "name": "operation",
+                  "type": "BoardProps.DndInsertState<D>",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementDndItemInserted",
             "optional": false,
             "type": "(operation: BoardProps.DndInsertState<D>) => string",
           },
           {
+            "inlineType": {
+              "name": "(operation: BoardProps.DndReorderState<D>) => string",
+              "parameters": [
+                {
+                  "name": "operation",
+                  "type": "BoardProps.DndReorderState<D>",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementDndItemReordered",
             "optional": false,
             "type": "(operation: BoardProps.DndReorderState<D>) => string",
           },
           {
+            "inlineType": {
+              "name": "(operation: BoardProps.DndResizeState<D>) => string",
+              "parameters": [
+                {
+                  "name": "operation",
+                  "type": "BoardProps.DndResizeState<D>",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementDndItemResized",
             "optional": false,
             "type": "(operation: BoardProps.DndResizeState<D>) => string",
           },
           {
+            "inlineType": {
+              "name": "(operationType: BoardProps.DndOperationType) => string",
+              "parameters": [
+                {
+                  "name": "operationType",
+                  "type": "BoardProps.DndOperationType",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementDndStarted",
             "optional": false,
             "type": "(operationType: BoardProps.DndOperationType) => string",
           },
           {
+            "inlineType": {
+              "name": "(operation: BoardProps.ItemRemovedState<D>) => string",
+              "parameters": [
+                {
+                  "name": "operation",
+                  "type": "BoardProps.ItemRemovedState<D>",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "liveAnnouncementItemRemoved",
             "optional": false,
             "type": "(operation: BoardProps.ItemRemovedState<D>) => string",
@@ -113,6 +470,17 @@ Live announcements:
             "type": "string",
           },
           {
+            "inlineType": {
+              "name": "(item: BoardProps.Item<D> | null) => string",
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": "BoardProps.Item<D> | null",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "navigationItemAriaLabel",
             "optional": false,
             "type": "(item: BoardProps.Item<D> | null) => string",
@@ -308,6 +676,17 @@ Live announcements:
             "type": "string",
           },
           {
+            "inlineType": {
+              "name": "(item: ItemsPaletteProps.Item<D>) => string",
+              "parameters": [
+                {
+                  "name": "item",
+                  "type": "ItemsPaletteProps.Item<D>",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
             "name": "navigationItemAriaLabel",
             "optional": false,
             "type": "(item: ItemsPaletteProps.Item<D>) => string",
