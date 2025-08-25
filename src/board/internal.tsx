@@ -155,7 +155,7 @@ export function InternalBoard<D>({
       collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
     });
 
-    autoScrollHandlers.addPointerEventHandlers();
+    autoScrollHandlers.run();
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
@@ -170,7 +170,7 @@ export function InternalBoard<D>({
   useDragSubscription("submit", () => {
     dispatch({ type: "submit" });
 
-    autoScrollHandlers.removePointerEventHandlers();
+    autoScrollHandlers.stop();
 
     if (!transition) {
       throw new Error("Invariant violation: no transition.");
@@ -196,7 +196,7 @@ export function InternalBoard<D>({
   useDragSubscription("discard", () => {
     dispatch({ type: "discard" });
 
-    autoScrollHandlers.removePointerEventHandlers();
+    autoScrollHandlers.stop();
   });
 
   useDragSubscription("acquire", ({ droppableId, draggableItem, renderAcquiredItem }) => {

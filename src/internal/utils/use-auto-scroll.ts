@@ -1,80 +1,88 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { useLastInteraction } from "./use-last-interaction";
+const AUTO_SCROLL_INCREMENT = 5;
+const AUTO_SCROLL_MARGIN = 50;
+const AUTO_SCROLL_DELAY = 10;
 
 export function useAutoScroll() {
-  const [activeAutoScroll, setActiveAutoScroll] = useState<"up" | "down" | "none">("none");
-  const scrollIntoViewTimerRef = useRef<null | ReturnType<typeof setTimeout>>(null);
   const getLastInteraction = useLastInteraction();
+  const scrollControllerRef = useRef(new AutoScrollController(getLastInteraction));
+  useEffect(() => scrollControllerRef.current.init(), []);
+  return scrollControllerRef.current;
+}
 
-  // Scroll window repeatedly if activeAutoScroll="up" or activeAutoScroll="down".
-  useEffect(() => {
-    if (activeAutoScroll === "none") {
+class AutoScrollController {
+  private getLastInteraction: () => "pointer" | "keyboard";
+  private active = false;
+  private direction: 0 | -1 | 1 = 0;
+  private timeout = setTimeout(() => {}, 0);
+
+  constructor(getLastInteraction: () => "pointer" | "keyboard") {
+    this.getLastInteraction = getLastInteraction;
+  }
+
+  public init() {
+    this.scrollRepeat();
+    window.addEventListener("pointermove", this.onPointerMove);
+    window.addEventListener("pointerup", this.onPointerUp);
+    return () => {
+      clearTimeout(this.timeout);
+      window.removeEventListener("pointermove", this.onPointerMove);
+      window.removeEventListener("pointerup", this.onPointerUp);
+    };
+  }
+
+  public run() {
+    this.active = true;
+  }
+
+  public stop() {
+    this.active = false;
+  }
+
+  public scheduleActiveElementScrollIntoView(delay: number) {
+    clearTimeout(this.timeout);
+
+    const activeElementBeforeDelay = document.activeElement;
+    this.timeout = setTimeout(() => {
+      if (
+        document.activeElement &&
+        document.activeElement === activeElementBeforeDelay &&
+        this.getLastInteraction() === "keyboard"
+      ) {
+        document.activeElement.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+      }
+      this.scrollRepeat();
+    }, delay);
+  }
+
+  private onPointerMove = (event: PointerEvent) => {
+    if (!this.active) {
       return;
     }
-    const direction = activeAutoScroll === "up" ? -1 : 1;
-
-    let timer: ReturnType<typeof setTimeout>;
-
-    function scrollLoop() {
-      timer = setTimeout(() => {
-        window.scrollBy({ top: direction * 5 });
-        scrollLoop();
-      }, 10);
-    }
-    scrollLoop();
-
-    return () => clearTimeout(timer);
-  }, [activeAutoScroll]);
-
-  const onPointerMove = useCallback((event: PointerEvent) => {
-    const autoScrollMargin = 50;
-    if (event.clientY > window.innerHeight - autoScrollMargin) {
-      setActiveAutoScroll("down");
-    } else if (event.clientY < autoScrollMargin) {
-      setActiveAutoScroll("up");
+    if (event.clientY > window.innerHeight - AUTO_SCROLL_MARGIN) {
+      this.direction = 1;
+    } else if (event.clientY < AUTO_SCROLL_MARGIN) {
+      this.direction = -1;
     } else {
-      setActiveAutoScroll("none");
+      this.direction = 0;
     }
-  }, []);
+  };
 
-  const onPointerUp = useCallback(() => {
-    setActiveAutoScroll("none");
-  }, []);
+  private onPointerUp = () => {
+    this.direction = 0;
+  };
 
-  const addPointerEventHandlers = useCallback(() => {
-    if (getLastInteraction() === "pointer") {
-      window.addEventListener("pointermove", onPointerMove);
-      window.addEventListener("pointerup", onPointerUp);
-    }
-  }, [getLastInteraction, onPointerMove, onPointerUp]);
-
-  const removePointerEventHandlers = useCallback(() => {
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-  }, [onPointerMove, onPointerUp]);
-
-  const scheduleActiveElementScrollIntoView = useCallback(
-    (delay: number) => {
-      scrollIntoViewTimerRef.current && clearTimeout(scrollIntoViewTimerRef.current);
-
-      const activeElementBeforeDelay = document.activeElement;
-
-      scrollIntoViewTimerRef.current = setTimeout(() => {
-        if (
-          document.activeElement &&
-          document.activeElement === activeElementBeforeDelay &&
-          getLastInteraction() === "keyboard"
-        ) {
-          document.activeElement.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
-        }
-      }, delay);
-    },
-    [getLastInteraction],
-  );
-
-  return { addPointerEventHandlers, removePointerEventHandlers, scheduleActiveElementScrollIntoView };
+  private scrollRepeat() {
+    this.timeout = setTimeout(() => {
+      if (this.active && this.direction !== 0) {
+        window.scrollBy({ top: this.direction * AUTO_SCROLL_INCREMENT });
+      }
+      this.scrollRepeat();
+    }, AUTO_SCROLL_DELAY);
+  }
 }
