@@ -21,7 +21,7 @@ test(
     expect(scroll1.top).toBe(0);
 
     // This should cancel the operation.
-    await page.mouseMove(0, 230);
+    await page.mouseMove(0, 255);
     await page.pause(25);
     await page.mouseUp();
 
