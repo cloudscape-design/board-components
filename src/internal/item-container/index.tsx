@@ -355,8 +355,9 @@ function ItemContainerComponent(
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
     selectedHook.current.processBlur();
-    initialPointerDownPosition.current = undefined;
+
     if (acquired || (transition && transition.interactionType === "keyboard" && !muteEventsRef.current)) {
+      initialPointerDownPosition.current = undefined;
       draggableApi.submitTransition();
     }
   }
