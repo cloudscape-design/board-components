@@ -34,3 +34,27 @@ test(
     expect(scroll4.top).toBe(scroll3.top);
   }),
 );
+
+test.each(["Enter", "Space", "Escape", "ArrowRight", "ArrowDown"])("start d&d operation and cancel it with %s", (key) =>
+  setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
+    const handle = Math.random() > 0.5 ? "findDragHandle" : "findResizeHandle";
+    await page.mouseDown(boardWrapper.findItemById("A")[handle]().toSelector());
+
+    // This should cancel the operation.
+    await page.mouseMove(10, 10);
+    await page.keys([key]);
+
+    // These should have no effect.
+    await page.mouseMove(10, 10);
+    await page.keys([key]);
+    await page.mouseMove(10, 10);
+    await page.keys([key]);
+
+    await expect(page.getGrid()).resolves.toEqual([
+      ["A", "B", "C", "D"],
+      ["A", "B", "C", "D"],
+      ["E", "F", "G", "H"],
+      ["E", "F", "G", "H"],
+    ]);
+  })(),
+);

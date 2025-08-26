@@ -18,7 +18,7 @@ import { createPortal } from "react-dom";
 import { CSS as CSSUtil } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
-import { getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
+import { createSingletonHandler, getLogicalBoundingClientRect } from "@cloudscape-design/component-toolkit/internal";
 import {
   useInternalDragHandleInteractionState,
   UseInternalDragHandleInteractionStateProps,
@@ -174,6 +174,18 @@ export const ItemContainer = forwardRef(ItemContainerComponent);
 // isn't set in stone.
 export const CLICK_DRAG_THRESHOLD = 3;
 
+// We use singleton helper to avoid creating event listeners per each board item.
+const usePointerEventListeners = createSingletonHandler<
+  { type: "move"; event: PointerEvent } | { type: "up"; event: PointerEvent }
+>((setEvent) => {
+  const handleGlobalPointerMove = (event: PointerEvent) => setEvent({ type: "move", event });
+  const handleGlobalPointerUp = (event: PointerEvent) => setEvent({ type: "up", event });
+  const controller = new AbortController();
+  window.addEventListener("pointermove", handleGlobalPointerMove, { signal: controller.signal });
+  window.addEventListener("pointerup", handleGlobalPointerUp, { signal: controller.signal });
+  return () => controller.abort();
+});
+
 function ItemContainerComponent(
   { item, placed, acquired, inTransition, transform, getItemSize, onKeyMove, children, isRtl }: ItemContainerProps,
   ref: Ref<ItemContainerRef>,
@@ -185,6 +197,8 @@ function ItemContainerComponent(
   const [isHidden, setIsHidden] = useState(false);
   const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
+  // Keeps the starting position of active pointer-based d&d transition.
+  // If undefined - it means the pointer-based d&d is not engaged.
   const initialPointerDownPosition = useRef<{ x: number; y: number } | undefined>();
   const draggableApi = useDraggable({
     draggableItem: item,
@@ -306,12 +320,19 @@ function ItemContainerComponent(
   }
 
   function onHandleKeyDown(operation: HandleOperation, event: KeyboardEvent) {
+    // We do not expect keyboard input when pointer-based d&d is performed.
+    // Upon receiving any, we discard the current transition immediately.
+    if (transition && initialPointerDownPosition.current) {
+      initialPointerDownPosition.current = undefined;
+      draggableApi.discardTransition();
+      return;
+    }
+
     const discard = () => {
       if (transition || acquired) {
         draggableApi.discardTransition();
       }
     };
-
     switch (event.key) {
       case "ArrowUp":
         return handleDirectionalMovement("up", operation);
@@ -340,21 +361,8 @@ function ItemContainerComponent(
     }
   }
 
-  function handleGlobalPointerMove(event: PointerEvent) {
-    if (hasPointerMovedBeyondThreshold(event, initialPointerDownPosition.current)) {
-      selectedHook.current.processPointerMove(event);
-    }
-  }
-
-  function handleGlobalPointerUp(event: PointerEvent) {
-    selectedHook.current.processPointerUp(event);
-    initialPointerDownPosition.current = undefined;
-    // Clean up global listeners after interaction ends
-    window.removeEventListener("pointermove", handleGlobalPointerMove);
-    window.removeEventListener("pointerup", handleGlobalPointerUp);
-  }
-
-  function onDragHandlePointerDown(event: ReactPointerEvent, operation: HandleOperation) {
+  // Pointer-down handler, added to each drag- and resize handle.
+  function onHandlePointerDown(event: ReactPointerEvent, operation: HandleOperation) {
     // Prevent UI issues when right-clicking: in such a case the OS context menu will be shown and
     // the board while the board-item is active. Because of the context menu under the pointer,
     // onPointerUp is not called anymore. In such a case the board item would stuck in onPointerUp.
@@ -369,11 +377,25 @@ function ItemContainerComponent(
       selectedHook.current = resizeInteractionHook;
     }
     selectedHook.current.processPointerDown(event.nativeEvent);
-
-    // If pointerdown is on our button, start listening for global move and up
-    window.addEventListener("pointermove", handleGlobalPointerMove);
-    window.addEventListener("pointerup", handleGlobalPointerUp);
   }
+  // Global pointer-move and pointer-up handlers.
+  usePointerEventListeners(({ type, event }) => {
+    switch (type) {
+      case "move": {
+        if (hasPointerMovedBeyondThreshold(event, initialPointerDownPosition.current)) {
+          selectedHook.current.processPointerMove(event);
+        }
+        break;
+      }
+      case "up": {
+        if (initialPointerDownPosition.current) {
+          selectedHook.current.processPointerUp(event);
+        }
+        initialPointerDownPosition.current = undefined;
+        break;
+      }
+    }
+  });
 
   function handlePointerInteractionStart(event: PointerEvent, operation: "drag" | "resize") {
     const currentItemElement = itemRef.current;
@@ -470,9 +492,11 @@ function ItemContainerComponent(
     onDndEndAction: () => transition && draggableApi.submitTransition(),
     onUapActionStartAction: () => handleIncrementalTransition("resize"),
   };
+
+  // When d&d is active, either drag- or resize hook should be used.
+  // We determine the correct one in the onHandlePointerDown handler, and store it to the selectedHook ref.
   const dragInteractionHook = useInternalDragHandleInteractionState(dragHookProps);
   const resizeInteractionHook = useInternalDragHandleInteractionState(resizeHookProps);
-  // We use a ref to the hook for the handle which is currently active. Distinguishment is managed in the handle button's onPointerDown callback.
   const selectedHook = useRef(dragInteractionHook);
 
   const isActive = (!!transition && !isHidden) || !!acquired;
@@ -499,7 +523,7 @@ function ItemContainerComponent(
           isHidden,
           dragHandle: {
             ref: dragHandleRef,
-            onPointerDown: (e) => onDragHandlePointerDown(e, "drag"),
+            onPointerDown: (e) => onHandlePointerDown(e, "drag"),
             onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("drag", event),
             activeState: determineHandleActiveState({
               isHandleActive: isActive,
@@ -513,7 +537,7 @@ function ItemContainerComponent(
           },
           resizeHandle: placed
             ? {
-                onPointerDown: (e) => onDragHandlePointerDown(e, "resize"),
+                onPointerDown: (e) => onHandlePointerDown(e, "resize"),
                 onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("resize", event),
                 activeState: determineHandleActiveState({
                   isHandleActive: isActive,
