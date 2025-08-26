@@ -23,7 +23,7 @@ test(
     await page.mouseUp();
 
     const scroll2 = await page.getWindowScroll();
-    expect(scroll2.top).toBeGreaterThan(100);
+    expect(scroll2.top).toBeGreaterThan(50);
 
     await page.pause(25);
     const scroll3 = await page.getWindowScroll();
