@@ -14,6 +14,9 @@ test(
   setupTest("/index.html#/dnd/engine-a2h-test", DndPageObject, async (page) => {
     await page.mouseDown(boardWrapper.findItemById("G").findResizeHandle().toSelector());
 
+    const viewport = await page.getViewportSize();
+    console.log("viewport size", viewport);
+
     const scroll1 = await page.getWindowScroll();
     expect(scroll1.top).toBe(0);
 
