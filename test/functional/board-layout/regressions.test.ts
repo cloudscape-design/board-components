@@ -17,6 +17,9 @@ test(
     const viewport = await page.getViewportSize();
     console.log("viewport size", viewport);
 
+    const html = await page.getHTML();
+    console.log("html", html);
+
     const scroll1 = await page.getWindowScroll();
     expect(scroll1.top).toBe(0);
 

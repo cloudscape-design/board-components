@@ -96,6 +96,10 @@ export class DndPageObject extends BasePageObject {
     return grid.flatMap((r) => r).filter((id) => id === widgetId);
   }
 
+  getHTML() {
+    return this.browser.execute(() => document.body.outerHTML);
+  }
+
   async focus(selector: string) {
     await this.browser.execute((target) => {
       (document.querySelector(target) as HTMLButtonElement)!.focus();
