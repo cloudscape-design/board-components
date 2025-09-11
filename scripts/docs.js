@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import path from "node:path";
 
-import { documentTestUtils, writeComponentsDocumentation } from "@cloudscape-design/documenter";
-
-import { writeSourceFile } from "./utils.js";
+import { writeComponentsDocumentation, writeTestUtilsDocumentation } from "@cloudscape-design/documenter";
 
 const targetDir = "lib/components/internal/api-docs";
 
@@ -20,16 +18,16 @@ function componentDocs() {
 }
 
 function testUtilDocs() {
-  const tsconfig = path.resolve("src/test-utils/tsconfig.json");
-  ["dom", "selectors"].forEach((testUtilType) => {
-    const componentWrapperDefinitions = documentTestUtils({ tsconfig }, `**/{${testUtilType},types}/**/*`);
-
-    const indexContent = `module.exports = {
-      classes: ${JSON.stringify(componentWrapperDefinitions)}
-    }
-    `;
-
-    const outPath = path.join(targetDir, "test-utils-doc", `${testUtilType}.js`);
-    writeSourceFile(outPath, indexContent);
+  writeTestUtilsDocumentation({
+    outDir: path.join(targetDir, "test-utils-doc"),
+    tsconfigPath: path.resolve("src/test-utils/tsconfig.json"),
+    domUtils: {
+      root: "src/test-utils/dom/index.ts",
+      extraExports: ["default", "ElementWrapper"],
+    },
+    selectorsUtils: {
+      root: "src/test-utils/selectors/index.ts",
+      extraExports: ["default", "ElementWrapper"],
+    },
   });
 }
