@@ -104,7 +104,10 @@ findAllPaletteItems(selector?: string): Array<PaletteItemWrapper>;
 
 
 ElementWrapper.prototype.findBoard = function(selector) {
-  const rootSelector = \`.\${BoardWrapper.rootSelector}\`;
+  let rootSelector = \`.\${BoardWrapper.rootSelector}\`;
+  if("legacyRootSelector" in BoardWrapper && BoardWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${BoardWrapper.rootSelector}, .\${BoardWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardWrapper);
@@ -114,7 +117,10 @@ ElementWrapper.prototype.findAllBoards = function(selector) {
   return this.findAllComponents(BoardWrapper, selector);
 };
 ElementWrapper.prototype.findBoardItem = function(selector) {
-  const rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
+  let rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
+  if("legacyRootSelector" in BoardItemWrapper && BoardItemWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${BoardItemWrapper.rootSelector}, .\${BoardItemWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardItemWrapper);
@@ -124,7 +130,10 @@ ElementWrapper.prototype.findAllBoardItems = function(selector) {
   return this.findAllComponents(BoardItemWrapper, selector);
 };
 ElementWrapper.prototype.findItemsPalette = function(selector) {
-  const rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
+  let rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
+  if("legacyRootSelector" in ItemsPaletteWrapper && ItemsPaletteWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${ItemsPaletteWrapper.rootSelector}, .\${ItemsPaletteWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, ItemsPaletteWrapper);
@@ -134,7 +143,10 @@ ElementWrapper.prototype.findAllItemsPalettes = function(selector) {
   return this.findAllComponents(ItemsPaletteWrapper, selector);
 };
 ElementWrapper.prototype.findPaletteItem = function(selector) {
-  const rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
+  let rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
+  if("legacyRootSelector" in PaletteItemWrapper && PaletteItemWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${PaletteItemWrapper.rootSelector}, .\${PaletteItemWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PaletteItemWrapper);
@@ -250,7 +262,10 @@ findAllPaletteItems(selector?: string): MultiElementWrapper<PaletteItemWrapper>;
 
 
 ElementWrapper.prototype.findBoard = function(selector) {
-  const rootSelector = \`.\${BoardWrapper.rootSelector}\`;
+  let rootSelector = \`.\${BoardWrapper.rootSelector}\`;
+  if("legacyRootSelector" in BoardWrapper && BoardWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${BoardWrapper.rootSelector}, .\${BoardWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardWrapper);
@@ -260,7 +275,10 @@ ElementWrapper.prototype.findAllBoards = function(selector) {
   return this.findAllComponents(BoardWrapper, selector);
 };
 ElementWrapper.prototype.findBoardItem = function(selector) {
-  const rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
+  let rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
+  if("legacyRootSelector" in BoardItemWrapper && BoardItemWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${BoardItemWrapper.rootSelector}, .\${BoardItemWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardItemWrapper);
@@ -270,7 +288,10 @@ ElementWrapper.prototype.findAllBoardItems = function(selector) {
   return this.findAllComponents(BoardItemWrapper, selector);
 };
 ElementWrapper.prototype.findItemsPalette = function(selector) {
-  const rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
+  let rootSelector = \`.\${ItemsPaletteWrapper.rootSelector}\`;
+  if("legacyRootSelector" in ItemsPaletteWrapper && ItemsPaletteWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${ItemsPaletteWrapper.rootSelector}, .\${ItemsPaletteWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, ItemsPaletteWrapper);
@@ -280,7 +301,10 @@ ElementWrapper.prototype.findAllItemsPalettes = function(selector) {
   return this.findAllComponents(ItemsPaletteWrapper, selector);
 };
 ElementWrapper.prototype.findPaletteItem = function(selector) {
-  const rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
+  let rootSelector = \`.\${PaletteItemWrapper.rootSelector}\`;
+  if("legacyRootSelector" in PaletteItemWrapper && PaletteItemWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${PaletteItemWrapper.rootSelector}, .\${PaletteItemWrapper.legacyRootSelector})\`;
+  }
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PaletteItemWrapper);
