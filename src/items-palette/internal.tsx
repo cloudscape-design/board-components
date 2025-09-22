@@ -90,7 +90,7 @@ export function InternalItemsPalette<D>({
               inTransition={false}
               getItemSize={(dropContext) => {
                 if (!dropContext) {
-                  throw new Error("Invariant violation: cannot query palette item size with no drop context.");
+                  throw new Error("Invariant violation: no drop context in palette.");
                 }
                 const { width, height } = dropContext.scale(item);
                 return { width, minWidth: width, maxWidth: width, height, minHeight: height, maxHeight: height };

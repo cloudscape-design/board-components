@@ -88,7 +88,7 @@ export function transformItems<D>(
   const getItem = (itemId: ItemId) => {
     const item = itemById.get(itemId);
     if (!item) {
-      throw new Error("Invariant violation: no matching source item found.");
+      throw new Error("Invariant violation: no layout item matches given id.");
     }
     return item;
   };
