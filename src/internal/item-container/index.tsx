@@ -129,7 +129,7 @@ export const ItemContext = createContext<ItemContextType | null>(null);
 export function useItemContext() {
   const ctx = useContext(ItemContext);
   if (!ctx) {
-    throw new Error("Unable to find BoardItem context.");
+    throw new Error("Invariant violation: no board item context.");
   }
   return ctx;
 }

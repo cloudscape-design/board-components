@@ -167,12 +167,11 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
   }
 
   if (!transition) {
-    throw new Error("Invariant violation: no transition.");
+    return { transition: null, removeTransition: null, announcement: null };
   }
 
   const { operation, itemsLayout, draggableItem: item, acquiredItem } = transition;
   const itemBelongsToBoard = item.id === acquiredItem?.id || itemsLayout.items.some((it) => it.id === item.id);
-
   return transition.layoutShift?.conflicts.length === 0
     ? {
         transition: null,
@@ -190,16 +189,15 @@ function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
   const { transition, removeTransition } = state;
 
   if (removeTransition) {
-    throw new Error("Can't discard remove transition.");
+    throw new Error("Invariant violation: can't discard remove transition.");
   }
 
   if (!transition) {
-    throw new Error("Invariant violation: no transition.");
+    return { transition: null, removeTransition: null, announcement: null };
   }
 
   const { operation, itemsLayout, draggableItem: item, acquiredItem } = transition;
   const itemBelongsToBoard = item.id === acquiredItem?.id || itemsLayout.items.some((it) => it.id === item.id);
-
   return {
     transition: null,
     removeTransition: null,
@@ -214,7 +212,7 @@ function updateTransitionWithPointerEvent<D>(
   const { transition } = state;
 
   if (!transition) {
-    throw new Error("Invariant violation: no transition.");
+    return { transition: null, removeTransition: null, announcement: null };
   }
 
   const layout = transition.layoutShift?.next ?? transition.itemsLayout;
@@ -270,7 +268,7 @@ function updateTransitionWithKeyboardEvent<D>(
   const { transition } = state;
 
   if (!transition) {
-    throw new Error("Invariant violation: no transition.");
+    return { transition: null, removeTransition: null, announcement: null };
   }
 
   const updateManualItemTransition = (transition: Transition<D>, direction: Direction): TransitionState<D> => {
@@ -326,7 +324,7 @@ function acquireTransitionItem<D>(
   const { transition } = state;
 
   if (!transition) {
-    throw new Error("Invariant violation: no transition.");
+    return { transition: null, removeTransition: null, announcement: null };
   }
 
   const { columns } = transition.itemsLayout;
