@@ -92,7 +92,7 @@ describe("appendMovePath", () => {
   test("throws if can't find incremental path within 100 steps", () => {
     const path = [new Position({ x: 0, y: 0 })];
     const rect = { left: 0, right: 1, top: 100, bottom: 101 };
-    expect(() => appendMovePath(path, rect)).toThrow("Infinite loop in appendPath.");
+    expect(() => appendMovePath(path, rect)).toThrow("Invariant violation: infinite loop in appendPath.");
   });
 });
 

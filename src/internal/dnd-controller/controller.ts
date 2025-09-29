@@ -74,14 +74,16 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
    */
   public start(transition: Transition) {
     this.transition = { ...transition };
-    this.emit("start", this.getDragAndDropData(transition.startCoordinates));
+    this.emit("start", this.getDragAndDropData(transition, transition.startCoordinates));
   }
 
   /**
    * Updates current transition with given coordinates and issues an "update" event.
    */
   public update(coordinates: Coordinates) {
-    this.emit("update", this.getDragAndDropData(coordinates));
+    if (this.transition) {
+      this.emit("update", this.getDragAndDropData(this.transition, coordinates));
+    }
   }
 
   /**
@@ -104,10 +106,9 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
    * Issues an "acquire" event to notify the current transition draggable is acquired by the given droppable.
    */
   public acquire(droppableId: ItemId, renderAcquiredItem: () => ReactNode) {
-    if (!this.transition) {
-      throw new Error("Invariant violation: no transition present for acquire.");
+    if (this.transition) {
+      this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem, renderAcquiredItem });
     }
-    this.emit("acquire", { droppableId, draggableItem: this.transition.draggableItem, renderAcquiredItem });
   }
 
   /**
@@ -131,14 +132,11 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     return [...this.droppables.entries()];
   }
 
-  private getDragAndDropData(coordinates: Coordinates): DragAndDropData {
-    if (!this.transition) {
-      throw new Error("Invariant violation: no transition present for interaction.");
-    }
-    const positionOffset = Coordinates.cursorOffset(coordinates, this.transition.startCoordinates);
-    const collisionRect = this.getCollisionRect(this.transition, coordinates);
+  private getDragAndDropData(transition: Transition, coordinates: Coordinates): DragAndDropData {
+    const positionOffset = Coordinates.cursorOffset(coordinates, transition.startCoordinates);
+    const collisionRect = this.getCollisionRect(transition, coordinates);
     const { collisionIds, dropTarget } = this.getCollisions(collisionRect);
-    return { ...this.transition, positionOffset, coordinates, collisionRect, collisionIds, dropTarget };
+    return { ...transition, positionOffset, coordinates, collisionRect, collisionIds, dropTarget };
   }
 
   private getCollisionRect(transition: Transition, coordinates: Coordinates) {
@@ -154,7 +152,6 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
     if (collisionIds.length === 0) {
       return { collisionIds, dropTarget: null };
     }
-
     const matchedDroppable = droppableEntries.find(([id]) => id === collisionIds[0]);
     if (!matchedDroppable) {
       throw new Error("Invariant violation: no droppable matches collision.");

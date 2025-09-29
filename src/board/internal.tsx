@@ -172,10 +172,8 @@ export function InternalBoard<D>({
 
     autoScrollHandlers.stop();
 
-    if (!transition) {
-      throw new Error("Invariant violation: no transition.");
-    }
     if (
+      !transition ||
       !transition.layoutShift ||
       transition.layoutShift.conflicts.length > 0 ||
       transition.layoutShift.moves.length === 0

@@ -76,7 +76,7 @@ function appendPath(prevPath: readonly Position[], nextPosition: Position): Posi
 
   while (x !== nextPosition.x || y !== nextPosition.y) {
     if (++safetyCounter === 100) {
-      throw new Error("Infinite loop in appendPath.");
+      throw new Error("Invariant violation: infinite loop in appendPath.");
     }
     if (x !== nextPosition.x) {
       x += vx;

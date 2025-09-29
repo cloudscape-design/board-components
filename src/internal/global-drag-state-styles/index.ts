@@ -4,10 +4,6 @@ import { DragAndDropData, useDragSubscription } from "../dnd-controller/controll
 
 import styles from "./styles.css.js";
 
-function assertNever(value: never) {
-  throw new Error("Unexpected value: " + value);
-}
-
 function setup({ operation, interactionType }: DragAndDropData) {
   const isPointerInteraction = interactionType === "pointer";
   switch (operation) {
@@ -23,8 +19,7 @@ function setup({ operation, interactionType }: DragAndDropData) {
       }
       break;
     default:
-      // there will be a type error if not all operation types are handled
-      assertNever(operation);
+      throw new Error("Invariant violation: unexpected operation type.");
   }
 
   if (isPointerInteraction) {
