@@ -8,6 +8,8 @@ import { DragAndDropData } from "../../../../lib/components/internal/dnd-control
 import { ItemContainer, ItemContainerProps, useItemContext } from "../../../../lib/components/internal/item-container";
 import { Coordinates } from "../../../../lib/components/internal/utils/coordinates";
 
+import styles from "../../../../lib/components/internal/item-container/styles.css.js";
+
 afterEach(cleanup);
 
 vi.mock("../../../../lib/components/internal/dnd-controller/controller");
@@ -120,6 +122,23 @@ describe("keyboard interaction", () => {
       fireEvent.keyDown(getByTestId(`${handle}-handle`), { key: "ArrowUp" });
       expect(onKeyMoveMock).toBeCalledWith("up");
     });
+  });
+
+  test("applies keyboardDragged class when keyboard drag transition is active", () => {
+    const { container } = render(<ItemContainer {...defaultProps} placed={true} />);
+
+    act(() => {
+      mockController.start({
+        interactionType: "keyboard",
+        operation: "reorder",
+        draggableItem: defaultProps.item,
+        collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+      } as DragAndDropData);
+    });
+
+    const itemElement = container.querySelector('[data-item-id="ID"]');
+    expect(itemElement).toHaveClass(styles.keyboardDragged);
   });
 });
 
