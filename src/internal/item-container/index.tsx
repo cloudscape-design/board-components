@@ -440,14 +440,19 @@ function ItemContainerComponent(
     itemTransitionClassNames.push(styles.inTransition);
   }
 
-  if (transition && transition.interactionType === "pointer") {
-    // Adjust the dragged/resized item to the pointer's location.
-    itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
-    itemTransitionStyle.insetInlineStart = transition.positionTransform?.x;
-    itemTransitionStyle.insetBlockStart = transition.positionTransform?.y;
-    itemTransitionStyle.inlineSize = transition.sizeTransform?.width;
-    itemTransitionStyle.blockSize = transition.sizeTransform?.height;
-    itemTransitionStyle.pointerEvents = "none";
+  if (transition) {
+    if (transition.interactionType === "pointer") {
+      // Adjust the dragged/resized item to the pointer's location.
+      itemTransitionClassNames.push(transition.operation === "resize" ? styles.resized : styles.dragged);
+      itemTransitionStyle.insetInlineStart = transition.positionTransform?.x;
+      itemTransitionStyle.insetBlockStart = transition.positionTransform?.y;
+      itemTransitionStyle.inlineSize = transition.sizeTransform?.width;
+      itemTransitionStyle.blockSize = transition.sizeTransform?.height;
+      itemTransitionStyle.pointerEvents = "none";
+    }
+    if (transition.interactionType === "keyboard") {
+      itemTransitionClassNames.push(styles.keyboardDragged);
+    }
   }
 
   if (isHidden) {
