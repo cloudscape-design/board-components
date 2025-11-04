@@ -485,3 +485,92 @@ test(
     ]);
   }),
 );
+
+test(
+  "adjusts default layout when screen resizes",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+      ],
+      [],
+    ),
+    DndPageObject,
+    async (page) => {
+      // 4-column layout
+      await page.setWindowSize({ width: 1600, height: 1200 });
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+        ["E", "F", "G", "H"],
+      ]);
+
+      // 2-column layout
+      await page.setWindowSize({ width: 1000, height: 1200 });
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "A", "B"],
+        ["C", "D", "C", "D"],
+        ["E", "F", "E", "F"],
+        ["G", "H", "G", "H"],
+      ]);
+
+      // 1-column layout
+      await page.setWindowSize({ width: 500, height: 1200 });
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "A", "B", "B"],
+        ["C", "C", "D", "D"],
+        ["E", "E", "F", "F"],
+        ["G", "G", "H", "H"],
+      ]);
+    },
+  ),
+);
+
+test(
+  "preserves custom layout preference when screen resizes",
+  setupTest(
+    makeQueryUrl(
+      [
+        ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+      ],
+      [],
+    ),
+    DndPageObject,
+    async (page) => {
+      await expect(page.getGrid()).resolves.toEqual([
+        ["A", "B", "C", "D"],
+        ["A", "B", "C", "D"],
+      ]);
+
+      // Swap A and B.
+      await page.dragAndDropTo(
+        boardWrapper.findItemById("A").findDragHandle().toSelector(),
+        boardWrapper.findItemById("B").findDragHandle().toSelector(),
+      );
+
+      await expect(page.getGrid()).resolves.toEqual([
+        ["B", "A", "C", "D"],
+        ["B", "A", "C", "D"],
+      ]);
+
+      // Resize to 1-column layout.
+      await page.setWindowSize({ width: 800, height: 800 });
+      await expect(page.getGrid()).resolves.toEqual([
+        ["B", "B", "A", "A"],
+        ["C", "C", "D", "D"],
+      ]);
+
+      // Resize back to 4-column layout.
+      await page.setWindowSize({ width: 1600, height: 800 });
+      await expect(page.getGrid()).resolves.toEqual([
+        ["B", "A", "C", "D"],
+        ["B", "A", "C", "D"],
+      ]);
+    },
+  ),
+);
