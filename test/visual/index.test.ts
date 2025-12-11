@@ -7,7 +7,7 @@ import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page
 
 import { setupTest } from "../utils";
 
-const pagesMap = import.meta.glob("../../pages/**/*.page.tsx", { as: "raw" });
+const pagesMap = import.meta.glob("../../pages/**/*.page.tsx", { query: "?raw" });
 const pages = Object.keys(pagesMap)
   .map((page) => page.replace(/\.page\.tsx$/, ""))
   .map((page) => "/#/" + path.relative("../../pages/", page));
