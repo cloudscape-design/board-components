@@ -112,7 +112,8 @@
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
   "overrides": {
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "glob": "^10.5.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
