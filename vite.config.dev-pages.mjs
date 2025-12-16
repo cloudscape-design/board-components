@@ -8,6 +8,10 @@ import { defineConfig } from "vite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const componentsPath = resolve(__dirname, "lib/components");
+
+const globals = { [componentsPath]: "components", react: "React" };
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react({ fastRefresh: false })],
@@ -19,7 +23,10 @@ export default defineConfig({
     },
     outDir: "lib/dev-pages/bundle",
     rollupOptions: {
-      external: [resolve(__dirname, "lib/components"), /^@cloudscape-design\/*/, "react"],
+      external: [...Object.keys(globals), /^@cloudscape-design\/*/],
+      output: {
+        globals,
+      },
     },
   },
 });
