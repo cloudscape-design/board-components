@@ -125,7 +125,7 @@
       "stylelint --fix"
     ],
     "package-lock.json": [
-      "./scripts/prepare-package-lock.js"
+      "prepare-package-lock"
     ]
   }
 }
