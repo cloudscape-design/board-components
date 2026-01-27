@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@cloudscape-design/browser-test-tools": "^3.0.4",
-    "@cloudscape-design/build-tools": "github:cloudscape-design/build-tools#main",
+    "@cloudscape-design/build-tools": "github:cloudscape-design/build-tools#chore-do-not-compile",
     "@cloudscape-design/components": "^3",
     "@cloudscape-design/design-tokens": "^3",
     "@cloudscape-design/documenter": "^1.0.0",
