@@ -8,6 +8,7 @@ const snapshotDir = join(__dirname, "./..", process.env.VISUAL_REGRESSION_SNAPSH
 
 const toMatchImageSnapshot = configureToMatchImageSnapshot({
   customSnapshotsDir: snapshotDir,
+  customSnapshotIdentifier: ({ currentTestName }) => currentTestName.replace("/#/", "").replace(/[\s]/g, "-"),
 });
 
 expect.extend({ toMatchImageSnapshot });
