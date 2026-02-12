@@ -38,7 +38,7 @@ const scenarios: Scenario[] = [
 
 for (const { desc, url } of scenarios) {
   test(
-    `${desc}`,
+    desc,
     setupScreenshotTest(url, async (page) => {
       const pngString = await page.fullPageScreenshot();
       expect(pngString).toMatchImageSnapshot();
