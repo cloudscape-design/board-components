@@ -36,7 +36,8 @@
     "build:themeable": "node scripts/themeable-source",
     "build:pages:vite": "vite build",
     "build:pages:tsc": "tsc -p pages/tsconfig.json",
-    "build:pages:bundle": "vite build -c vite.config.dev-pages.mjs"
+    "build:pages:bundle": "vite build -c vite.config.dev-pages.mjs",
+    "postinstall": "prepare-package-lock"
   },
   "exports": {
     ".": "./index.js",
