@@ -42,6 +42,15 @@ findBoard(selector?: string): BoardWrapper | null;
  * @returns {Array<BoardWrapper>}
  */
 findAllBoards(selector?: string): Array<BoardWrapper>;
+
+/**
+ * Returns the wrapper of the closest parent Board for the current element,
+ * or the element itself if it is an instance of Board.
+ * If no Board is found, returns \`null\`.
+ *
+ * @returns {BoardWrapper | null}
+ */
+findClosestBoard(): BoardWrapper | null;
 /**
  * Returns the wrapper of the first BoardItem that matches the specified CSS selector.
  * If no CSS selector is specified, returns the wrapper of the first BoardItem.
@@ -61,6 +70,15 @@ findBoardItem(selector?: string): BoardItemWrapper | null;
  * @returns {Array<BoardItemWrapper>}
  */
 findAllBoardItems(selector?: string): Array<BoardItemWrapper>;
+
+/**
+ * Returns the wrapper of the closest parent BoardItem for the current element,
+ * or the element itself if it is an instance of BoardItem.
+ * If no BoardItem is found, returns \`null\`.
+ *
+ * @returns {BoardItemWrapper | null}
+ */
+findClosestBoardItem(): BoardItemWrapper | null;
 /**
  * Returns the wrapper of the first ItemsPalette that matches the specified CSS selector.
  * If no CSS selector is specified, returns the wrapper of the first ItemsPalette.
@@ -80,6 +98,15 @@ findItemsPalette(selector?: string): ItemsPaletteWrapper | null;
  * @returns {Array<ItemsPaletteWrapper>}
  */
 findAllItemsPalettes(selector?: string): Array<ItemsPaletteWrapper>;
+
+/**
+ * Returns the wrapper of the closest parent ItemsPalette for the current element,
+ * or the element itself if it is an instance of ItemsPalette.
+ * If no ItemsPalette is found, returns \`null\`.
+ *
+ * @returns {ItemsPaletteWrapper | null}
+ */
+findClosestItemsPalette(): ItemsPaletteWrapper | null;
 /**
  * Returns the wrapper of the first PaletteItem that matches the specified CSS selector.
  * If no CSS selector is specified, returns the wrapper of the first PaletteItem.
@@ -99,6 +126,15 @@ findPaletteItem(selector?: string): PaletteItemWrapper | null;
  * @returns {Array<PaletteItemWrapper>}
  */
 findAllPaletteItems(selector?: string): Array<PaletteItemWrapper>;
+
+/**
+ * Returns the wrapper of the closest parent PaletteItem for the current element,
+ * or the element itself if it is an instance of PaletteItem.
+ * If no PaletteItem is found, returns \`null\`.
+ *
+ * @returns {PaletteItemWrapper | null}
+ */
+findClosestPaletteItem(): PaletteItemWrapper | null;
    }
 }
 
@@ -156,6 +192,26 @@ ElementWrapper.prototype.findAllPaletteItems = function(selector) {
   return this.findAllComponents(PaletteItemWrapper, selector);
 };
 
+ElementWrapper.prototype.findClosestBoard = function() {
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findClosestComponent(BoardWrapper);
+};
+ElementWrapper.prototype.findClosestBoardItem = function() {
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findClosestComponent(BoardItemWrapper);
+};
+ElementWrapper.prototype.findClosestItemsPalette = function() {
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findClosestComponent(ItemsPaletteWrapper);
+};
+ElementWrapper.prototype.findClosestPaletteItem = function() {
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findClosestComponent(PaletteItemWrapper);
+};
 
 export default function wrapper(root: Element = document.body) {
   if (document && document.body && !document.body.contains(root)) {
