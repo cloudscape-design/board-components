@@ -299,7 +299,7 @@ function updateTransitionWithKeyboardEvent<D>(
         removeTransition: null,
         announcement: createOperationAnnouncement(nextTransition, direction),
       };
-    } catch (e) {
+    } catch {
       // Can't create next layout because the next path is out of bounds.
       return state;
     }
