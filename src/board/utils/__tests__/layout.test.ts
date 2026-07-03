@@ -19,6 +19,7 @@ function createMockTransition(
     operation,
     acquiredItem: null,
     interactionType: "keyboard",
+    boardId: "test-board",
     itemsLayout,
     layoutEngine: new LayoutEngine(itemsLayout),
     insertionDirection: null,

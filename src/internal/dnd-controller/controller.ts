@@ -166,7 +166,9 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   }
 }
 
-// Controller is a singleton and is shared between all d&d elements.
+// Controller is a singleton and is shared between all d&d elements. Multiple boards on the same
+// page therefore share this controller; isolation between them is achieved by scoping placeholder
+// droppable IDs per board and filtering events/collisions to the owning board (see InternalBoard).
 const controller = new DragAndDropController();
 
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {

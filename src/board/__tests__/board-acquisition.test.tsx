@@ -1,17 +1,31 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useState } from "react";
-import { act, render, screen } from "@testing-library/react";
-import { expect, test, vi } from "vitest";
+import { act, cleanup, render, screen } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
 
 import { Board, BoardProps } from "../../../lib/components";
-import { mockController } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
+import { mockController, mockDroppables } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import { DragAndDropData } from "../../../lib/components/internal/dnd-controller/controller";
 import { Coordinates } from "../../../lib/components/internal/utils/coordinates";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { defaultProps } from "./utils";
 
 vi.mock("../../../lib/components/internal/dnd-controller/controller");
+
+// Placeholder droppable IDs are scoped with a runtime-generated boardId
+// (`awsui-placeholder-<boardId>-<row>-<col>`), so resolve the target placeholder by its row/col
+// suffix instead of hardcoding the full ID.
+afterEach(cleanup);
+
+function getPlaceholderId(row: number, col: number): string {
+  const suffix = `-${row}-${col}`;
+  const id = [...mockDroppables].find((droppableId) => String(droppableId).endsWith(suffix));
+  if (!id) {
+    throw new Error(`No placeholder droppable registered for row ${row}, col ${col}.`);
+  }
+  return String(id);
+}
 
 test("renders acquired item", () => {
   render(<Board {...defaultProps} />);
@@ -30,7 +44,7 @@ test("renders acquired item", () => {
 
   act(() =>
     mockController.acquire({
-      droppableId: "awsui-placeholder-1-0",
+      droppableId: getPlaceholderId(1, 0),
       draggableItem,
       renderAcquiredItem: () => <div data-testid="acquired-item"></div>,
     }),
@@ -62,7 +76,7 @@ test("focuses on acquired item's drag handle upon submission", () => {
 
   act(() =>
     mockController.acquire({
-      droppableId: "awsui-placeholder-1-0",
+      droppableId: getPlaceholderId(1, 0),
       draggableItem,
       renderAcquiredItem: () => <div></div>,
     }),

@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useId, useRef } from "react";
 import { usePrevious } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
@@ -48,6 +48,10 @@ export function InternalBoard<D>({
   const [currentColumns, containerQueryRef] = useContainerColumns();
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
+
+  // Scopes this board's placeholder droppable IDs so that multiple boards sharing a single d&d
+  // controller do not register colliding droppables. See createPlaceholdersLayout.
+  const boardId = useId();
 
   const isRtl = () => getIsRtl(containerAccessRef.current);
 
@@ -125,7 +129,16 @@ export function InternalBoard<D>({
   }, [acquiredItemId, previousAcquiredItemElement, acquiredItemElement]);
 
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
-  const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
+  const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns, boardId);
+
+  // The set of placeholder droppable IDs owned by this board. All boards share one d&d controller,
+  // which computes collisions against every registered droppable on the page, so a pointer rect
+  // straddling two adjacent boards can surface a neighbor's placeholder IDs here. Restricting the
+  // collision IDs to this board's own placeholders keeps each board's transition state (hovered
+  // cells, collision counts, resulting layout shift) driven only by its own grid.
+  const ownPlaceholderIds = new Set(placeholdersLayout.items.map((placeholder) => placeholder.id));
+  const filterOwnCollisions = (collisionIds: readonly ItemId[]) =>
+    collisionIds.filter((id) => ownPlaceholderIds.has(id));
 
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
@@ -142,17 +155,29 @@ export function InternalBoard<D>({
   }
 
   useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
+    // The d&d controller broadcasts events to every board subscribed to it (multiple boards can
+    // share a controller). Reorder and resize operations concern a single, already-placed item, so
+    // only the board that owns that item should react. Insert operations originate from a palette
+    // and can target any board, so they are not filtered here (the drop target is resolved via
+    // collisions / placeholder ownership instead).
+    const ownsDraggable = itemsLayout.items.some((it) => it.id === draggableItem.id);
+    if (operation !== "insert" && !ownsDraggable) {
+      return;
+    }
+
     dispatch({
       type: "init",
       operation,
       interactionType,
+      boardId,
       itemsLayout,
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
       draggableItem: draggableItem as BoardItemDefinitionBase<any>,
       draggableRect: collisionRect,
-      collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
+      collisionIds:
+        interactionType === "pointer" && isElementOverBoard(collisionRect) ? filterOwnCollisions(collisionIds) : [],
     });
 
     autoScrollHandlers.run();
@@ -161,7 +186,8 @@ export function InternalBoard<D>({
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
+      collisionIds:
+        interactionType === "pointer" && isElementOverBoard(collisionRect) ? filterOwnCollisions(collisionIds) : [],
       positionOffset,
       draggableRect: collisionRect,
     });

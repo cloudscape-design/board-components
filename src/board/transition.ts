@@ -36,6 +36,7 @@ interface InitAction<D> {
   type: "init";
   operation: Operation;
   interactionType: InteractionType;
+  boardId: string;
   itemsLayout: GridLayout;
   draggableItem: BoardItemDefinitionBase<D>;
   draggableRect: Rect;
@@ -106,6 +107,7 @@ function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
 function initTransition<D>({
   operation,
   interactionType,
+  boardId,
   itemsLayout,
   draggableItem,
   draggableRect,
@@ -114,6 +116,7 @@ function initTransition<D>({
   const transition: Transition<D> = {
     operation,
     interactionType,
+    boardId,
     itemsLayout,
     layoutEngine: new LayoutEngine(itemsLayout),
     insertionDirection: null,

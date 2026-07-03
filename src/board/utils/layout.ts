@@ -32,7 +32,7 @@ export function getLayoutRows<D>(transition: Transition<D>) {
 export function getLayoutPlaceholders<D>(transition: Transition<D>) {
   const rows = getLayoutRows(transition);
   const columns = getLayoutColumns(transition);
-  return createPlaceholdersLayout(rows, columns);
+  return createPlaceholdersLayout(rows, columns, transition.boardId);
 }
 
 /**

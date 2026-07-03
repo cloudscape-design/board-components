@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { vi } from "vitest";
 
+import { ItemId } from "../../interfaces";
 import { AcquireData, DragAndDropData, DragAndDropEvents } from "../controller";
 import { EventEmitter } from "../event-emitter";
 
@@ -31,6 +32,11 @@ class MockController extends EventEmitter<DragAndDropEvents> {
 
 export const mockController = new MockController();
 
+// Records droppable IDs registered via useDroppable. Because placeholder IDs are scoped per board
+// with a runtime-generated boardId, tests can use this to resolve the actual scoped ID instead of
+// hardcoding it. Reset it between tests when needed.
+export const mockDroppables = new Set<ItemId>();
+
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
   useEffect(() => mockController.on(event, handler), [event, handler]);
 }
@@ -47,4 +53,11 @@ export function useDraggable() {
   return mockDraggable;
 }
 
-export function useDroppable() {}
+export function useDroppable({ itemId }: { itemId: ItemId }) {
+  useEffect(() => {
+    mockDroppables.add(itemId);
+    return () => {
+      mockDroppables.delete(itemId);
+    };
+  }, [itemId]);
+}

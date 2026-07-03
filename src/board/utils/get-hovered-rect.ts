@@ -7,7 +7,12 @@ import { GridLayoutItem, ItemId } from "../../internal/interfaces";
  * Creates a minimal hovered rectangle (in grid units) that contains all collided placeholders.
  */
 export function getHoveredRect(collisionsIds: readonly ItemId[], placeholders: readonly GridLayoutItem[]) {
-  const hoveredPlaceholders = collisionsIds.map((id) => placeholders.find((p) => p.id === id)!);
+  // Only consider collision IDs that belong to the given placeholder set. Callers already scope
+  // collisions to the owning board, so this is defensive: skip any unknown ID rather than
+  // dereferencing a missing placeholder (which would throw).
+  const hoveredPlaceholders = collisionsIds
+    .map((id) => placeholders.find((p) => p.id === id))
+    .filter((placeholder): placeholder is GridLayoutItem => !!placeholder);
   return hoveredPlaceholders.reduce(
     (rect, collision) => ({
       top: Math.min(rect.top, collision.y),
