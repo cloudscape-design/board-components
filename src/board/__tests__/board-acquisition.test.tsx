@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useState } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 import { Board, BoardProps } from "../../../lib/components";
 import { mockController, mockDroppables } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
@@ -10,6 +10,8 @@ import { DragAndDropData } from "../../../lib/components/internal/dnd-controller
 import { Coordinates } from "../../../lib/components/internal/utils/coordinates";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { defaultProps } from "./utils";
+
+import boardStyles from "../../../lib/components/board/styles.css.js";
 
 vi.mock("../../../lib/components/internal/dnd-controller/controller");
 
@@ -55,6 +57,31 @@ test("renders acquired item", () => {
   expect(screen.queryByTestId("acquired-item")).toBeNull();
 });
 
+test("ignores acquire for a droppable that belongs to another board", () => {
+  render(<Board {...defaultProps} />);
+  const draggableItem = { id: "test", data: { title: "Test item" }, definition: {} };
+
+  act(() =>
+    mockController.start({
+      interactionType: "keyboard",
+      operation: "insert",
+      draggableItem,
+      collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+      coordinates: new Coordinates({ x: 0, y: 0 }),
+    } as DragAndDropData),
+  );
+
+  act(() =>
+    mockController.acquire({
+      droppableId: "awsui-placeholder-other-board-1-0",
+      draggableItem,
+      renderAcquiredItem: () => <div data-testid="acquired-item"></div>,
+    }),
+  );
+
+  expect(screen.queryByTestId("acquired-item")).toBeNull();
+});
+
 function StatefulBoard(props: BoardProps<{ title: string }>) {
   const [items, setItems] = useState(props.items);
   return <Board {...props} items={items} onItemsChange={({ detail }) => setItems(detail.items)} />;
@@ -84,4 +111,59 @@ test("focuses on acquired item's drag handle upon submission", () => {
 
   act(() => mockController.submit());
   expect(createWrapper().findBoard()!.findItemById("test")!.findDragHandle().getElement()).toHaveFocus();
+});
+
+describe("pointer collision scoping", () => {
+  // isElementOverBoard relies on elementFromPoint; jsdom has no layout, so point it at the board.
+  let boardElement: Element | null = null;
+  beforeAll(() => {
+    document.elementFromPoint = () => boardElement;
+  });
+  afterAll(() => {
+    boardElement = null;
+  });
+
+  function hoveredPlaceholderCount() {
+    return document.querySelectorAll(`.${boardStyles["placeholder--hover"]}`).length;
+  }
+
+  const draggableItem = { id: "1", data: { title: "Item 1" }, definition: {} };
+  const zeroRect = { top: 0, bottom: 0, left: 0, right: 0 };
+
+  function pointerReorder(collisionIds: string[]) {
+    act(() =>
+      mockController.start({
+        interactionType: "pointer",
+        operation: "reorder",
+        draggableItem,
+        collisionRect: zeroRect,
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+        collisionIds: [],
+        positionOffset: new Coordinates({ x: 0, y: 0 }),
+        dropTarget: null,
+      } as unknown as DragAndDropData),
+    );
+    act(() =>
+      mockController.update({
+        interactionType: "pointer",
+        operation: "reorder",
+        draggableItem,
+        collisionRect: zeroRect,
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+        positionOffset: new Coordinates({ x: 0, y: 0 }),
+        dropTarget: null,
+        collisionIds,
+      } as unknown as DragAndDropData),
+    );
+  }
+
+  test("ignores pointer collision ids that belong to another board", () => {
+    const { container } = render(<Board {...defaultProps} />);
+    boardElement = container.querySelector(`.${boardStyles.root}`);
+
+    pointerReorder(["awsui-placeholder-other-board-0-0"]);
+
+    // The foreign id was filtered out, so this board highlights nothing and does not crash.
+    expect(hoveredPlaceholderCount()).toBe(0);
+  });
 });
