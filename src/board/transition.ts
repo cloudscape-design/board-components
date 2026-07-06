@@ -136,7 +136,9 @@ function initTransition<D>({
   if (interactionType === "pointer" || operation === "insert") {
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-    path = layoutItem ? appendPath([], collisionRect) : [];
+    // No collision rect means the reported collisions do not belong to this board's grid; start with
+    // an empty path rather than seeding it with an out-of-range position.
+    path = layoutItem && collisionRect ? appendPath([], collisionRect) : [];
   } else if (layoutItem) {
     path =
       operation === "resize"
@@ -244,6 +246,24 @@ function updateTransitionWithPointerEvent<D>(
 
   const placeholdersLayout = getLayoutPlaceholders(transition);
   const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+
+  // The collisions do not map onto this board's placeholder grid (e.g. they belong to another board
+  // sharing the controller, or are stale). Treat this like being out of boundaries instead of
+  // extending the path with an out-of-range position.
+  if (!collisionRect) {
+    return {
+      transition: {
+        ...transition,
+        draggableRect,
+        collisionIds: new Set(),
+        layoutShift: null,
+        insertionDirection: null,
+      },
+      removeTransition: null,
+      announcement: null,
+    };
+  }
+
   const appendPath = transition.operation === "resize" ? appendResizePath : appendMovePath;
   const path = appendPath(transition.path, collisionRect);
 

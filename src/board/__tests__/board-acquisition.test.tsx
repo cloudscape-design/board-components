@@ -130,7 +130,7 @@ describe("pointer collision scoping", () => {
   const draggableItem = { id: "1", data: { title: "Item 1" }, definition: {} };
   const zeroRect = { top: 0, bottom: 0, left: 0, right: 0 };
 
-  function pointerReorder(collisionIds: string[]) {
+  function startReorder(collisionIds: string[]) {
     act(() =>
       mockController.start({
         interactionType: "pointer",
@@ -138,11 +138,14 @@ describe("pointer collision scoping", () => {
         draggableItem,
         collisionRect: zeroRect,
         coordinates: new Coordinates({ x: 0, y: 0 }),
-        collisionIds: [],
+        collisionIds,
         positionOffset: new Coordinates({ x: 0, y: 0 }),
         dropTarget: null,
       } as unknown as DragAndDropData),
     );
+  }
+
+  function updateReorder(collisionIds: string[]) {
     act(() =>
       mockController.update({
         interactionType: "pointer",
@@ -161,9 +164,25 @@ describe("pointer collision scoping", () => {
     const { container } = render(<Board {...defaultProps} />);
     boardElement = container.querySelector(`.${boardStyles.root}`);
 
-    pointerReorder(["awsui-placeholder-other-board-0-0"]);
+    startReorder([]);
+    updateReorder(["awsui-placeholder-other-board-0-0"]);
 
     // The foreign id was filtered out, so this board highlights nothing and does not crash.
     expect(hoveredPlaceholderCount()).toBe(0);
+  });
+
+  // Regression for the "infinite loop in appendPath" crash: collisions that do not map onto this
+  // board's placeholder grid must never seed or extend the transition path. Before the fix, an
+  // unmatched collision produced an Infinity rect that poisoned the path, so the next matching
+  // update looped forever. Feeding an unmatched collision first, then a matching one, must not throw.
+  test("does not crash when an unmatched collision precedes a matching one", () => {
+    const { container } = render(<Board {...defaultProps} />);
+    boardElement = container.querySelector(`.${boardStyles.root}`);
+
+    expect(() => {
+      startReorder(["awsui-placeholder-other-board-0-0"]);
+      updateReorder(["awsui-placeholder-other-board-1-1"]);
+      updateReorder([getPlaceholderId(0, 0)]);
+    }).not.toThrow();
   });
 });

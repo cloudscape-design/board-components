@@ -214,3 +214,53 @@ test("does not renders in portal when item in reorder state by a pointer", () =>
   });
   expect(container).toContainElement(getByTestId("drag-handle"));
 });
+
+// Regression: all boards and palettes share one d&d controller, so a palette item and the board
+// item created by inserting it can transiently share an id. A palette item (placed=false) whose
+// getItemSize throws without a drop context (as ItemsPalette does) must ignore a "resize" event —
+// resize only ever targets the placed board item. Before the fix this crashed with
+// "no drop context in palette".
+describe("shared-controller cross-container events", () => {
+  const paletteLikeProps: ItemContainerProps = {
+    ...defaultProps,
+    placed: false,
+    getItemSize: (dropContext) => {
+      if (!dropContext) {
+        throw new Error("Invariant violation: no drop context in palette.");
+      }
+      return { width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 };
+    },
+  };
+
+  test("a non-placed (palette) container ignores a resize for a same-id item", () => {
+    render(<ItemContainer {...paletteLikeProps} />);
+    expect(() =>
+      act(() => {
+        mockController.start({
+          interactionType: "pointer",
+          operation: "resize",
+          draggableItem: paletteLikeProps.item,
+          collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+          coordinates: new Coordinates({ x: 0, y: 0 }),
+        } as DragAndDropData);
+      }),
+    ).not.toThrow();
+  });
+
+  test("a placed (board) container ignores an insert for a same-id item", () => {
+    // Symmetric guard: an insert targets the non-placed source; the placed board item must not react
+    // (it would double-handle the same id).
+    render(<ItemContainer {...defaultProps} placed={true} />);
+    expect(() =>
+      act(() => {
+        mockController.start({
+          interactionType: "pointer",
+          operation: "insert",
+          draggableItem: defaultProps.item,
+          collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+          coordinates: new Coordinates({ x: 0, y: 0 }),
+        } as DragAndDropData);
+      }),
+    ).not.toThrow();
+  });
+});
