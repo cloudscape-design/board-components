@@ -59,10 +59,10 @@ function DemoBoard({
   );
 }
 
-// A board paired with a palette. Board and palette communicate through the shared d&d controller,
-// so items can be inserted from the palette into this board — the legacy Board + ItemsPalette
-// sibling pattern, shown here living alongside other boards on the same page. The palette items
-// live at the page level so that dropping a palette item onto any board removes it from the palette.
+// A board rendered next to the shared `ItemsPalette`. This board is not special — because all boards
+// share one d&d controller, palette widgets can be dropped onto any board on the page. The palette is
+// simply placed here for layout. The palette items live at the page level so that dropping a palette
+// item onto any board removes it from the palette.
 function BoardWithPalette({
   initialBoardItems,
   paletteItems,
@@ -101,7 +101,7 @@ function BoardWithPalette({
           </BoardItem>
         )}
       />
-      <Header variant="h3">Add widgets</Header>
+      <Header variant="h3">Add widgets (drag onto any board)</Header>
       <ItemsPalette
         items={paletteItems}
         i18nStrings={itemsPaletteI18nStrings}
@@ -206,17 +206,17 @@ export default function MultipleBoardsPage() {
       <PageLayout header={<Header variant="h1">Multiple boards on the same page</Header>}>
         <SpaceBetween size="xxl">
           <div>
-            <Header variant="h2">Board 1 (independent)</Header>
+            <Header variant="h2">Board 1</Header>
             <DemoBoard boardLabel="Board 1" initialItems={boardOneItems} onPaletteSync={syncPalette} />
           </div>
 
           <div>
-            <Header variant="h2">Board 2 (independent)</Header>
+            <Header variant="h2">Board 2</Header>
             <DemoBoard boardLabel="Board 2" initialItems={boardTwoItems} onPaletteSync={syncPalette} />
           </div>
 
           <div>
-            <Header variant="h2">Board 3 with a palette</Header>
+            <Header variant="h2">Board 3</Header>
             <BoardWithPalette
               initialBoardItems={paletteBoardItems}
               paletteItems={currentPaletteItems}
