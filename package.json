@@ -49,7 +49,6 @@
     "./internal/api-docs/*.js": "./internal/api-docs/*.js"
   },
   "dependencies": {
-    "@babel/core": "^7.29.7",
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
     "@cloudscape-design/test-utils-core": "^1.0.0",
     "@dnd-kit/utilities": "^3.2.1",
