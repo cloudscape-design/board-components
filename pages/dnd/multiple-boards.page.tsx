@@ -106,7 +106,10 @@ function BoardWithPalette({
         items={paletteItems}
         i18nStrings={itemsPaletteI18nStrings}
         renderItem={(item, context) => {
-          const widgetConfig = demoWidgets[item.id]!.data;
+          // Render from the item's own data, not a lookup in `demoWidgets`. Items re-added to the
+          // palette after being removed from any board (e.g. Board 1/2 ids like "1-1") are not keys
+          // in `demoWidgets`, so a lookup there would be undefined and crash the page.
+          const widgetConfig = item.data;
           return (
             <BoardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={boardItemI18nStrings}>
               {context.showPreview ? `(preview) ${widgetConfig.description}` : widgetConfig.description}
@@ -118,15 +121,56 @@ function BoardWithPalette({
   );
 }
 
+// Seed the demo boards with a multi-row layout (2 columns per item → a 2×2 grid). The Board engine
+// only floats items straight up when an item is removed — it never shifts them sideways. With a
+// single-row layout, removing a middle item would leave a permanent gap (nothing below to float up).
+// A multi-row layout lets the item below float up to fill the gap, so removals reflow cleanly.
 const boardOneItems: readonly BoardProps.Item<ItemData>[] = [
-  { id: "1-1", data: { title: "Board 1 · Widget A", description: "", content: "Content A" } },
-  { id: "1-2", data: { title: "Board 1 · Widget B", description: "", content: "Content B" } },
-  { id: "1-3", data: { title: "Board 1 · Widget C", description: "", content: "Content C" } },
+  {
+    id: "1-1",
+    columnSpan: 2,
+    columnOffset: { 4: 0, 6: 0 },
+    data: { title: "Board 1 · Widget A", description: "", content: "Content A" },
+  },
+  {
+    id: "1-2",
+    columnSpan: 2,
+    columnOffset: { 4: 2, 6: 2 },
+    data: { title: "Board 1 · Widget B", description: "", content: "Content B" },
+  },
+  {
+    id: "1-3",
+    columnSpan: 2,
+    columnOffset: { 4: 0, 6: 0 },
+    data: { title: "Board 1 · Widget C", description: "", content: "Content C" },
+  },
+  {
+    id: "1-4",
+    columnSpan: 2,
+    columnOffset: { 4: 2, 6: 2 },
+    data: { title: "Board 1 · Widget D", description: "", content: "Content D" },
+  },
 ];
 
 const boardTwoItems: readonly BoardProps.Item<ItemData>[] = [
-  { id: "2-1", data: { title: "Board 2 · Widget X", description: "", content: "Content X" } },
-  { id: "2-2", data: { title: "Board 2 · Widget Y", description: "", content: "Content Y" } },
+  {
+    id: "2-1",
+    columnSpan: 2,
+    columnOffset: { 4: 0, 6: 0 },
+    data: { title: "Board 2 · Widget X", description: "", content: "Content X" },
+  },
+  {
+    id: "2-2",
+    columnSpan: 2,
+    columnOffset: { 4: 2, 6: 2 },
+    data: { title: "Board 2 · Widget Y", description: "", content: "Content Y" },
+  },
+  {
+    id: "2-3",
+    columnSpan: 2,
+    columnOffset: { 4: 0, 6: 0 },
+    data: { title: "Board 2 · Widget Z", description: "", content: "Content Z" },
+  },
 ];
 
 const paletteBoardItems: readonly BoardProps.Item<ItemData>[] = Object.entries(demoWidgets)
@@ -137,16 +181,22 @@ const paletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = Object.entries
   .slice(2, 5)
   .map(([id, widget]) => ({ id, definition: widget!.definition, data: widget!.data }));
 
+// Ids of the widgets that originate from the palette. Only these return to the palette when removed
+// from a board — a board's own initial items (e.g. "1-1", "2-1") are not palette widgets, so removing
+// them just drops them without re-populating the palette.
+const paletteOriginIds = new Set(paletteItems.map((item) => item.id));
+
 export default function MultipleBoardsPage() {
   // The palette items live here at the page level. Since every board shares a single d&d controller,
-  // dropping a palette item onto any board must remove it from the palette (and removing a widget from
-  // any board re-adds it), keeping the palette consistent regardless of which board receives the item.
+  // dropping a palette item onto any board must remove it from the palette, keeping the palette
+  // consistent regardless of which board receives the item. Removing a palette-origin widget from any
+  // board re-adds it; removing a board's own initial item does not add it to the palette.
   const [currentPaletteItems, setCurrentPaletteItems] = useState(paletteItems);
   const syncPalette = (added?: BoardProps.Item<ItemData>, removed?: BoardProps.Item<ItemData>) => {
     if (added) {
       setCurrentPaletteItems((prev) => prev.filter((item) => item.id !== added.id));
     }
-    if (removed) {
+    if (removed && paletteOriginIds.has(removed.id)) {
       setCurrentPaletteItems((prev) => [...prev, removed].sort((a, b) => a.data.title.localeCompare(b.data.title)));
     }
   };
