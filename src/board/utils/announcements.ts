@@ -3,13 +3,13 @@
 
 import { Direction, ItemId } from "../../internal/interfaces";
 import { getMinColumnSpan, getMinRowSpan } from "../../internal/utils/layout";
+import { BoardProps } from "../interfaces";
 import {
-  BoardProps,
   DndActionAnnouncement,
   ItemRemovedAnnouncement,
   Transition,
   TransitionAnnouncement,
-} from "../interfaces";
+} from "../internal-interfaces";
 
 /**
  * Creates an announcement object describing the last user move.

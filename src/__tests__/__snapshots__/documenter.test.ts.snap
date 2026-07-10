@@ -25,7 +25,7 @@ The change detail has the following properties:
                 {
                   "name": "columnOffset",
                   "optional": true,
-                  "type": "BoardItemColumnOffset",
+                  "type": "{ [columns: number]: number; }",
                 },
                 {
                   "name": "columnSpan",
@@ -105,7 +105,7 @@ The change detail has the following properties:
                 {
                   "name": "columnOffset",
                   "optional": true,
-                  "type": "BoardItemColumnOffset",
+                  "type": "{ [columns: number]: number; }",
                 },
                 {
                   "name": "columnSpan",
@@ -180,7 +180,7 @@ The change detail has the following properties:
                 {
                   "name": "columnOffset",
                   "optional": true,
-                  "type": "BoardItemColumnOffset",
+                  "type": "{ [columns: number]: number; }",
                 },
                 {
                   "name": "columnSpan",
@@ -255,7 +255,7 @@ The change detail has the following properties:
                 {
                   "name": "columnOffset",
                   "optional": true,
-                  "type": "BoardItemColumnOffset",
+                  "type": "{ [columns: number]: number; }",
                 },
                 {
                   "name": "columnSpan",

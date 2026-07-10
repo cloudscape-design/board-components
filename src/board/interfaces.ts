@@ -2,21 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ReactNode } from "react";
 
-import { InteractionType, Operation } from "../internal/dnd-controller/controller";
-import {
-  BoardItemDefinition,
-  BoardItemDefinitionBase,
-  DataFallbackType,
-  Direction,
-  GridLayout,
-  GridLayoutItem,
-  ItemId,
-  Rect,
-} from "../internal/interfaces";
-import { LayoutEngine } from "../internal/layout-engine/engine";
-import { LayoutShift } from "../internal/layout-engine/interfaces";
-import { NonCancelableEventHandler } from "../internal/utils/events";
-import { Position } from "../internal/utils/position";
+import { NonCancelableEventHandler } from "../types/events";
+
+export type DataFallbackType = Record<string, unknown>;
 
 /*
   Note:
@@ -87,7 +75,14 @@ export interface BoardProps<D = DataFallbackType> {
 }
 
 export namespace BoardProps {
-  export type Item<D = DataFallbackType> = BoardItemDefinition<D>;
+  export interface Item<D = DataFallbackType> {
+    id: string;
+    data: D;
+    definition?: { minRowSpan?: number; minColumnSpan?: number; defaultRowSpan?: number; defaultColumnSpan?: number };
+    columnOffset?: { [columns: number]: number };
+    rowSpan?: number;
+    columnSpan?: number;
+  }
 
   export interface ItemActions {
     removeItem(): void;
@@ -156,62 +151,4 @@ export namespace BoardProps {
     item: Item<D>;
     disturbed: readonly Item<D>[];
   }
-}
-
-export interface Transition<D> {
-  operation: Operation;
-  interactionType: InteractionType;
-  itemsLayout: GridLayout;
-  layoutEngine: LayoutEngine;
-  insertionDirection: null | Direction;
-  draggableItem: BoardItemDefinitionBase<D>;
-  draggableRect: Rect;
-  acquiredItem: null | BoardItemDefinitionBase<D>;
-  collisionIds: Set<ItemId>;
-  layoutShift: null | LayoutShift;
-  path: readonly Position[];
-  acquiredItemElement?: ReactNode;
-}
-
-export interface RemoveTransition<D> {
-  items: readonly BoardProps.Item<D>[];
-  removedItem: BoardItemDefinitionBase<D>;
-  layoutShift: LayoutShift;
-}
-
-export type TransitionAnnouncement =
-  | DndStartedAnnouncement
-  | DndActionAnnouncement
-  | DndCommittedAnnouncement
-  | DndDiscardedAnnouncement
-  | ItemRemovedAnnouncement;
-
-export interface DndStartedAnnouncement {
-  type: "dnd-started";
-  item: BoardItemDefinitionBase<unknown>;
-  operation: Operation;
-}
-export interface DndActionAnnouncement {
-  type: "dnd-action";
-  item: BoardItemDefinitionBase<unknown>;
-  operation: Operation;
-  placement: Omit<GridLayoutItem, "id">;
-  direction: null | Direction;
-  conflicts: Set<ItemId>;
-  disturbed: Set<ItemId>;
-}
-export interface DndCommittedAnnouncement {
-  type: "dnd-committed";
-  item: BoardItemDefinitionBase<unknown>;
-  operation: Operation;
-}
-export interface DndDiscardedAnnouncement {
-  type: "dnd-discarded";
-  item: BoardItemDefinitionBase<unknown>;
-  operation: Operation;
-}
-export interface ItemRemovedAnnouncement {
-  type: "item-removed";
-  item: BoardItemDefinitionBase<unknown>;
-  disturbed: Set<ItemId>;
 }
