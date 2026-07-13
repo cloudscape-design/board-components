@@ -142,6 +142,60 @@ describe("keyboard interaction", () => {
   });
 });
 
+describe("hook swap on pointer down", () => {
+  afterEach(vi.resetAllMocks);
+
+  test("switching from resize to drag discards the previous interaction", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+
+    // Start a resize interaction
+    fireEvent(getByTestId("resize-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    fireEvent(getByTestId("resize-handle"), new MouseEvent("pointerup", { bubbles: true }));
+
+    // Simulate an active transition via the mock controller
+    act(() => {
+      mockController.start({
+        interactionType: "pointer",
+        operation: "resize",
+        draggableItem: defaultProps.item,
+        collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+      } as DragAndDropData);
+    });
+
+    mockDraggable.discardTransition.mockClear();
+
+    // Now pointer-down on the drag handle — should discard the resize transition
+    fireEvent(getByTestId("drag-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    expect(mockDraggable.discardTransition).toHaveBeenCalled();
+  });
+
+  test("switching from drag to resize discards the previous interaction", () => {
+    const { getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
+
+    // Start a drag interaction
+    fireEvent(getByTestId("drag-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    fireEvent(getByTestId("drag-handle"), new MouseEvent("pointerup", { bubbles: true }));
+
+    // Simulate an active transition via the mock controller
+    act(() => {
+      mockController.start({
+        interactionType: "pointer",
+        operation: "reorder",
+        draggableItem: defaultProps.item,
+        collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+      } as DragAndDropData);
+    });
+
+    mockDraggable.discardTransition.mockClear();
+
+    // Now pointer-down on the resize handle — should discard the drag transition
+    fireEvent(getByTestId("resize-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    expect(mockDraggable.discardTransition).toHaveBeenCalled();
+  });
+});
+
 test("does not renders in portal when item in reorder state by a pointer", () => {
   const { container, getByTestId } = render(<ItemContainer {...defaultProps} placed={true} />);
   expect(container).toContainElement(getByTestId("drag-handle"));

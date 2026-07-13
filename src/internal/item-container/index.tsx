@@ -372,10 +372,15 @@ function ItemContainerComponent(
     }
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY };
 
-    if (operation === "drag") {
-      selectedHook.current = dragInteractionHook;
-    } else {
-      selectedHook.current = resizeInteractionHook;
+    const nextHook = operation === "drag" ? dragInteractionHook : resizeInteractionHook;
+
+    // Discard any in-progress interaction before switching to a different hook.
+    if (selectedHook.current !== nextHook) {
+      selectedHook.current.processBlur();
+      if (transition) {
+        draggableApi.discardTransition();
+      }
+      selectedHook.current = nextHook;
     }
     selectedHook.current.processPointerDown(event.nativeEvent);
   }
@@ -489,13 +494,13 @@ function ItemContainerComponent(
   const dragHookProps: UseInternalDragHandleInteractionStateProps = {
     onDndStartAction: (event) => handlePointerInteractionStart(event, "drag"),
     onDndActiveAction: onHandleDndTransitionActive,
-    onDndEndAction: () => transition && draggableApi.submitTransition(),
+    onDndEndAction: () => draggableApi.submitTransition(),
     onUapActionStartAction: () => handleIncrementalTransition("drag"),
   };
   const resizeHookProps: UseInternalDragHandleInteractionStateProps = {
     onDndStartAction: (event) => handlePointerInteractionStart(event, "resize"),
     onDndActiveAction: onHandleDndTransitionActive,
-    onDndEndAction: () => transition && draggableApi.submitTransition(),
+    onDndEndAction: () => draggableApi.submitTransition(),
     onUapActionStartAction: () => handleIncrementalTransition("resize"),
   };
 
