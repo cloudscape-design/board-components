@@ -90,6 +90,9 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
    * Removes transition and issues a "submit" event.
    */
   public submit() {
+    if (!this.transition) {
+      return;
+    }
     this.emit("submit");
     this.transition = null;
   }
@@ -98,6 +101,9 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
    * Removes transition and issues a "discard" event.
    */
   public discard() {
+    if (!this.transition) {
+      return;
+    }
     this.emit("discard");
     this.transition = null;
   }
