@@ -1,0 +1,14 @@
+name: Deploy fork preview
+
+on:
+  workflow_run:
+    workflows: ["Build, lint and test"]
+    types:
+      - completed
+
+jobs:
+  fork-preview:
+    uses: cloudscape-design/actions/.github/workflows/deploy-fork-preview.yml@main
+    secrets: inherit
+    with:
+      artifact-name: dev-pages
