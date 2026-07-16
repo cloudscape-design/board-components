@@ -2,16 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 import { HashRouter, Link, Route, Routes, useLocation } from "react-router-dom";
 
+import { AppModesProvider } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
+
 import { pages } from "../pages";
 import Page from "./page";
 
 export default function App() {
   return (
     <HashRouter>
-      <Routes>
-        <Route path="/" element={<Start />} />
-        <Route path="/*" element={<PageWithFallback />} />
-      </Routes>
+      <AppModesProvider>
+        <Routes>
+          <Route path="/" element={<Start />} />
+          <Route path="/*" element={<PageWithFallback />} />
+        </Routes>
+      </AppModesProvider>
     </HashRouter>
   );
 }
