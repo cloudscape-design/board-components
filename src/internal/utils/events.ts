@@ -1,8 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-export type { NonCancelableEventHandler } from "../../types/events";
-
 class CustomEventStub<T> {
   defaultPrevented = false;
   cancelBubble = false;
