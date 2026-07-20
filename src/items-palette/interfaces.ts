@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { BoardItemDefinitionBase, DataFallbackType } from "../internal/interfaces";
+import { DataFallbackType } from "../board/interfaces";
 
 /*
   Note:
@@ -43,7 +43,11 @@ export interface ItemsPaletteProps<D = DataFallbackType> {
 }
 
 export namespace ItemsPaletteProps {
-  export type Item<D = DataFallbackType> = BoardItemDefinitionBase<D>;
+  export interface Item<D = DataFallbackType> {
+    id: string;
+    data: D;
+    definition?: { minRowSpan?: number; minColumnSpan?: number; defaultRowSpan?: number; defaultColumnSpan?: number };
+  }
 
   export interface ItemContext {
     showPreview: boolean;

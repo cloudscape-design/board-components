@@ -6,7 +6,7 @@ import { LayoutShift } from "../../internal/layout-engine/interfaces";
 import { Coordinates } from "../../internal/utils/coordinates";
 import { createPlaceholdersLayout, getDefaultColumnSpan, getDefaultRowSpan } from "../../internal/utils/layout";
 import { Position } from "../../internal/utils/position";
-import { Transition } from "../interfaces";
+import { Transition } from "../internal-interfaces";
 import { normalizeInsertionPath } from "./path";
 
 export function getLayoutColumns<D>(transition: Transition<D>) {

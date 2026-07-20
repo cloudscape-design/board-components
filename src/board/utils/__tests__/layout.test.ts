@@ -7,7 +7,7 @@ import { Operation } from "../../../internal/dnd-controller/controller";
 import { GridLayout } from "../../../internal/interfaces";
 import { LayoutEngine } from "../../../internal/layout-engine/engine";
 import { LayoutShift } from "../../../internal/layout-engine/interfaces";
-import { Transition } from "../../interfaces";
+import { Transition } from "../../internal-interfaces";
 import { getLayoutRows } from "../layout";
 
 function createMockTransition(

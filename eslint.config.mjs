@@ -72,6 +72,7 @@ export default tsEslint.config(
       eqeqeq: "error",
       "no-return-await": "error",
       "require-await": "error",
+      "@cloudscape-design/build-tools/no-internal-in-public-interfaces": "error",
       "header/header": [
         "error",
         {
