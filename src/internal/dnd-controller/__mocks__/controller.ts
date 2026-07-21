@@ -53,6 +53,13 @@ export function useDraggable() {
   return mockDraggable;
 }
 
+export function useBoardTransfer() {
+  return {
+    acquire: vi.fn(),
+    getDroppables: vi.fn(() => [...mockDroppables].map((id) => [id, { element: document.body, context: {} }])),
+  };
+}
+
 export function useDroppable({ itemId }: { itemId: ItemId }) {
   useEffect(() => {
     mockDroppables.add(itemId);

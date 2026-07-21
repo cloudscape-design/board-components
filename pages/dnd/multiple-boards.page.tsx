@@ -14,6 +14,17 @@ import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from 
 import { ItemData } from "../shared/interfaces";
 import { demoWidgets } from "./items";
 
+// Multiple boards share one page, so a screen-reader user needs to know WHICH board an item is being
+// inserted into. There is no board-name prop on the component — instead each Board is given its own
+// i18nStrings, so the board name can be woven into the live announcements the board produces. This
+// helper wraps the shared strings and prefixes the insert announcement with the board's name.
+function boardI18nStringsWithName(boardLabel: string): BoardProps.I18nStrings<ItemData> {
+  return {
+    ...boardI18nStrings,
+    liveAnnouncementDndItemInserted: (op) => `${boardLabel}: ${boardI18nStrings.liveAnnouncementDndItemInserted(op)}`,
+  };
+}
+
 // A small, self-contained board used multiple times on the same page. Each instance keeps its own
 // items state and reacts only to its own drag-and-drop interactions. Because all boards on the page
 // share a single d&d controller, an item can be dragged here from the palette too — so we forward
@@ -30,7 +41,7 @@ function DemoBoard({
   const [items, setItems] = useState(initialItems);
   return (
     <Board
-      i18nStrings={boardI18nStrings}
+      i18nStrings={boardI18nStringsWithName(boardLabel)}
       items={items}
       onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
         setItems(items);
@@ -64,10 +75,12 @@ function DemoBoard({
 // simply placed here for layout. The palette items live at the page level so that dropping a palette
 // item onto any board removes it from the palette.
 function BoardWithPalette({
+  boardLabel,
   initialBoardItems,
   paletteItems,
   onPaletteSync,
 }: {
+  boardLabel: string;
   initialBoardItems: readonly BoardProps.Item<ItemData>[];
   paletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   onPaletteSync: (added?: BoardProps.Item<ItemData>, removed?: BoardProps.Item<ItemData>) => void;
@@ -76,7 +89,7 @@ function BoardWithPalette({
   return (
     <SpaceBetween size="l">
       <Board
-        i18nStrings={boardI18nStrings}
+        i18nStrings={boardI18nStringsWithName(boardLabel)}
         items={boardItems}
         empty="No items"
         onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
@@ -105,14 +118,18 @@ function BoardWithPalette({
       <ItemsPalette
         items={paletteItems}
         i18nStrings={itemsPaletteI18nStrings}
-        renderItem={(item, context) => {
+        renderItem={(item) => {
           // Render from the item's own data, not a lookup in `demoWidgets`. Items re-added to the
           // palette after being removed from any board (e.g. Board 1/2 ids like "1-1") are not keys
           // in `demoWidgets`, so a lookup there would be undefined and crash the page.
           const widgetConfig = item.data;
+          // The palette intentionally shows a text description rather than the full board content
+          // (which may include large containers that overflow the narrow palette card). The board's
+          // renderItem shows data.content when the item is placed. This difference is inherent to the
+          // palette→board UX: the palette is a summary card, the board shows the full widget.
           return (
             <BoardItem header={<Header>{widgetConfig.title}</Header>} i18nStrings={boardItemI18nStrings}>
-              {context.showPreview ? `(preview) ${widgetConfig.description}` : widgetConfig.description}
+              {widgetConfig.description}
             </BoardItem>
           );
         }}
@@ -218,6 +235,7 @@ export default function MultipleBoardsPage() {
           <div>
             <Header variant="h2">Board 3</Header>
             <BoardWithPalette
+              boardLabel="Board 3"
               initialBoardItems={paletteBoardItems}
               paletteItems={currentPaletteItems}
               onPaletteSync={syncPalette}

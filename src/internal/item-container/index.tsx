@@ -160,7 +160,7 @@ export interface ItemContainerProps {
     maxHeight: number;
   };
 
-  onKeyMove?(direction: Direction): void;
+  onKeyMove?(direction: Direction): boolean;
 
   children: (hasDropTarget: boolean) => ReactNode;
   isRtl: () => boolean;
@@ -329,6 +329,9 @@ function ItemContainerComponent(
     } else if (canNavigate) {
       onKeyMove?.(direction);
     }
+    // Note: for acquired items (placed=false, transition=null in this container) the board's
+    // onKeyMove handles cross-board boundary transfer internally — the item container doesn't
+    // need special handling here because onKeyMove orchestrates the full transfer at the board level.
   }
 
   function onHandleKeyDown(operation: HandleOperation, event: KeyboardEvent) {

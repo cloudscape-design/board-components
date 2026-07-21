@@ -114,4 +114,47 @@ describe("getLayoutRows", () => {
     const insertTransition = createMockTransition("insert", current, { current, next, moves: [], conflicts: [] });
     expect(getLayoutRows(insertTransition)).toBe(4);
   });
+
+  // Keyboard insert transitions are broadcast to every board that shares the d&d controller. Until a
+  // board actually acquires the item, a non-empty board must NOT reserve the extra bottom landing
+  // rows, otherwise every board on the page grows the moment a keyboard drag starts and scrolls the
+  // focused palette out of view (AWSUI-62123 bug bash finding #2). Pointer inserts keep growing on
+  // start (useful drop-zone affordance, no focus to displace). Reorder/resize are unaffected: they
+  // are only ever dispatched to the board that owns the dragged item.
+  describe("insert row scoping for multiple boards", () => {
+    const itemsLayout = fromMatrix([
+      ["A", "A"],
+      ["A", "A"],
+      ["B", "B"],
+    ]);
+
+    function createInsertTransition(interactionType: "pointer" | "keyboard", layout = itemsLayout) {
+      const shift: LayoutShift = { current: layout, next: layout, moves: [], conflicts: [] };
+      return { ...createMockTransition("insert", layout, shift), interactionType };
+    }
+
+    test("a keyboard insert does not grow a board that has not acquired the item", () => {
+      // No acquired item: this board is not (yet) the keyboard drop target.
+      expect(getLayoutRows(createInsertTransition("keyboard"))).toBe(3);
+    });
+
+    test("a keyboard insert grows the board once it has acquired the item", () => {
+      const transition = createInsertTransition("keyboard");
+      transition.acquiredItem = { id: "X", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: null };
+      // Item default row span is 2, so rows grow from 3 to 3 + 2 = 5.
+      expect(getLayoutRows(transition)).toBe(5);
+    });
+
+    test("an empty board reserves keyboard landing rows so it is a reachable target", () => {
+      const emptyLayout: GridLayout = { items: [], columns: 2, rows: 0 };
+      // Item default row span is 2, so an empty board still exposes 0 + 2 = 2 rows to navigate onto.
+      expect(getLayoutRows(createInsertTransition("keyboard", emptyLayout))).toBe(2);
+    });
+
+    test("a pointer insert still grows on start (drop-zone affordance is preserved)", () => {
+      // Pointer inserts are unchanged: the board pre-reserves rows even before any collision so the
+      // user sees where the held item can drop.
+      expect(getLayoutRows(createInsertTransition("pointer"))).toBe(5);
+    });
+  });
 });

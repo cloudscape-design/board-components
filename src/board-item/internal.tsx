@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useId } from "react";
+import { useId, useState } from "react";
 import clsx from "clsx";
 
 import Container from "@cloudscape-design/components/container";
@@ -8,6 +8,7 @@ import { InternalDragHandleProps } from "@cloudscape-design/components/internal/
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
+import { useDragSubscription } from "../internal/dnd-controller/controller";
 import DragHandle from "../internal/drag-handle";
 import { Direction } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-container";
@@ -40,6 +41,17 @@ export function InternalBoardItem({
 }: BoardItemProps & InternalBaseComponentProps) {
   const { dragHandle, resizeHandle, isActive, isHidden } = useItemContext();
 
+  // Tracks whether any drag transition is in progress on the page. All boards, board items and
+  // palettes share a single d&d controller, so a drag started anywhere flips this on. We use it to
+  // hide the drag/resize handle hover tooltips during a drag: without this, moving the pointer over
+  // a different item's handle (including an item on another board) surfaces that handle's
+  // "Drag or select to move" tooltip mid-drag, which is confusing. The tooltip is only useful at
+  // rest, so suppressing it while dragging is both safe and an improvement for single boards too.
+  const [isDragActive, setIsDragActive] = useState(false);
+  useDragSubscription("start", () => setIsDragActive(true));
+  useDragSubscription("submit", () => setIsDragActive(false));
+  useDragSubscription("discard", () => setIsDragActive(false));
+
   const dragHandleAriaLabelledBy = useId();
   const dragHandleAriaDescribedBy = useId();
 
@@ -69,7 +81,7 @@ export function InternalBoardItem({
                 activeState={dragHandle.activeState}
                 initialShowButtons={dragHandle.initialShowButtons}
                 onDirectionClick={(direction) => dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")}
-                dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
+                dragHandleTooltipText={isDragActive ? undefined : i18nStrings.dragHandleTooltipText}
               />
             }
             settings={settings}
@@ -94,7 +106,7 @@ export function InternalBoardItem({
             onDirectionClick={(direction) => {
               resizeHandle.onDirectionClick(mapToKeyboardDirection(direction), "resize");
             }}
-            resizeHandleTooltipText={i18nStrings.resizeHandleTooltipText}
+            resizeHandleTooltipText={isDragActive ? undefined : i18nStrings.resizeHandleTooltipText}
           />
         </div>
       )}

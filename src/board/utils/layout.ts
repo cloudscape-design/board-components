@@ -23,7 +23,28 @@ export function getLayoutRows<D>(transition: Transition<D>) {
   if (transition.operation === "resize") {
     return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
   }
-  // Add extra row(s) for reorder/insert based on item's height.
+  // Insert transitions are broadcast to every board that shares the d&d controller, not just the drop
+  // target (a palette item can be inserted into any board). For a KEYBOARD insert the item lives in
+  // the palette until the user acquires it into a board with the arrow keys, and there are never
+  // pointer collisions. If every board reserved its extra landing rows the moment the keyboard drag
+  // started, all boards on the page would grow at once, shifting content and scrolling the focused
+  // palette handle out of view (AWSUI-62123 bug bash #2). So for keyboard, a board only reserves the
+  // landing rows once it is actually involved:
+  //  - it has already acquired the item, or
+  //  - it is empty (rows === 0): an empty board renders no placeholders to navigate onto, so it must
+  //    pre-reserve rows to be a reachable keyboard drop target at all.
+  // Pointer inserts are left unchanged: the growth is a useful drop-zone affordance while the user
+  // holds the item, and pointer interactions do not move focus, so there is no scroll-jump to fix.
+  else if (transition.operation === "insert") {
+    if (transition.interactionType === "keyboard") {
+      const isParticipating = !!transition.acquiredItem || transition.itemsLayout.rows === 0;
+      if (!isParticipating) {
+        return layout.rows;
+      }
+    }
+    return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
+  }
+  // Add extra row(s) for reorder based on item's height.
   else {
     return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
   }

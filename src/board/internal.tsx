@@ -10,11 +10,12 @@ import { getDataAttributes } from "../internal/base-component/get-data-attribute
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller/controller";
+import { useBoardTransfer, useDragSubscription } from "../internal/dnd-controller/controller";
 import { useGlobalDragStateStyles } from "../internal/global-drag-state-styles";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import { getNextDroppable } from "../internal/item-container/get-next-droppable";
 import LiveRegion from "../internal/live-region";
 import {
   createPlaceholdersLayout,
@@ -57,6 +58,7 @@ export function InternalBoard<D>({
 
   useGlobalDragStateStyles();
 
+  const boardTransfer = useBoardTransfer();
   const autoScrollHandlers = useAutoScroll();
 
   const [transitionState, dispatch] = useTransition<D>({ isRtl });
@@ -244,11 +246,60 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
   };
 
-  function onItemMove(direction: Direction) {
-    if (transition) {
-      dispatch({ type: "update-with-keyboard", direction });
-      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+  function onItemMove(direction: Direction): boolean {
+    if (!transition) {
+      return false;
     }
+
+    // For an insert operation (item came from a palette and is still in transit), check if the
+    // item has reached the boundary of this board's grid. If so, transfer it to the adjacent board
+    // in that direction rather than silently swallowing the arrow press.
+    if (transition.operation === "insert" && transition.acquiredItem) {
+      const lastPosition = transition.path[transition.path.length - 1];
+      if (lastPosition) {
+        const layout = transition.layoutShift?.next ?? transition.itemsLayout;
+        const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+        const width = layoutItem?.width ?? getDefaultColumnSpan(transition.draggableItem, layout.columns);
+
+        const xDelta = direction === "left" ? -1 : direction === "right" ? 1 : 0;
+        const yDelta = direction === "up" ? -1 : direction === "down" ? 1 : 0;
+        const nextX = lastPosition.x + xDelta;
+        const nextY = lastPosition.y + yDelta;
+
+        // Boundary check matching the layout engine's validateMovePath:
+        // x < 0, y < 0, or x + width > columns. These are the hard boundaries where the engine
+        // would throw "Invalid move: outside grid." The downward direction is intentionally NOT
+        // bounded: extra rows are reserved for the user to place the item below existing content,
+        // and forcing a transfer downward would break single-board insert flows.
+        const isAtBoundary = nextX < 0 || nextY < 0 || nextX + width > layout.columns;
+
+        if (isAtBoundary) {
+          // Find a droppable on a neighboring board (exclude this board's own placeholders).
+          const allDroppables = boardTransfer.getDroppables();
+          const foreignDroppables = allDroppables.filter(([id]) => !ownPlaceholderIds.has(id));
+          const nextDroppable = getNextDroppable({
+            draggableElement: containerAccessRef.current!,
+            droppables: foreignDroppables,
+            direction,
+            isRtl: isRtl(),
+          });
+
+          if (nextDroppable) {
+            // Transfer: clear this board's transition silently, then acquire on the target board.
+            const itemElement = transition.acquiredItemElement;
+            dispatch({ type: "transfer-out" });
+            boardTransfer.acquire(nextDroppable, () => itemElement);
+            return true;
+          }
+          // No neighboring board in this direction — the item stays at the boundary.
+          return false;
+        }
+      }
+    }
+
+    dispatch({ type: "update-with-keyboard", direction });
+    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+    return true;
   }
 
   const announcement = transitionAnnouncement

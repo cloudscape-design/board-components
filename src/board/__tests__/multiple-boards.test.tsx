@@ -1,9 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useState } from "react";
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
+import TooltipWrapper from "@cloudscape-design/components/test-utils/dom/internal/tooltip";
 import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
 
 import Board from "../../../lib/components/board";
@@ -155,5 +156,43 @@ describe("Multiple boards on the same page", () => {
     expect(boardB().find('[data-item-id="b2"]')).not.toBeNull();
     expect(boardB().find('[data-item-id="1"]')).toBeNull();
     expect(boardB().find('[data-item-id="2"]')).toBeNull();
+  });
+
+  // AWSUI-62123 bug bash finding #1: while dragging an item, hovering another item's drag handle
+  // (on the same or another board — they share one controller) used to surface that handle's
+  // "Drag or select to move" tooltip, which is confusing mid-drag. The tooltip is only meaningful at
+  // rest, so it is suppressed for every board item while any drag transition is active.
+  describe("drag handle tooltip during an active drag", () => {
+    function hover(element: HTMLElement) {
+      fireEvent(element, new MouseEvent("pointerover", { bubbles: true }));
+    }
+
+    test("shows the handle tooltip on hover when no drag is active", () => {
+      render(<TwoBoards />);
+      hover(boardB().findItemById("b1")!.findDragHandle().getElement());
+      expect(createWrapper().findByClassName(TooltipWrapper.rootSelector)).not.toBeNull();
+    });
+
+    test("suppresses the handle tooltip on another board while a drag is active", () => {
+      render(<TwoBoards />);
+
+      // Start (but do not submit) a keyboard reorder in board A.
+      boardA().findItemById("1")!.findDragHandle().keydown(KeyCode.enter);
+
+      // Hovering board B's handle must not surface its tooltip mid-drag.
+      hover(boardB().findItemById("b1")!.findDragHandle().getElement());
+      expect(createWrapper().findByClassName(TooltipWrapper.rootSelector)).toBeNull();
+    });
+
+    test("restores the handle tooltip after the drag ends", () => {
+      render(<TwoBoards />);
+
+      const dragHandle = boardA().findItemById("1")!.findDragHandle();
+      dragHandle.keydown(KeyCode.enter);
+      dragHandle.keydown(KeyCode.escape);
+
+      hover(boardB().findItemById("b1")!.findDragHandle().getElement());
+      expect(createWrapper().findByClassName(TooltipWrapper.rootSelector)).not.toBeNull();
+    });
   });
 });

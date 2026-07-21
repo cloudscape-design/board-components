@@ -28,6 +28,7 @@ export type Action<D> =
   | InitRemoveAction<D>
   | SubmitAction
   | DiscardAction
+  | TransferOutAction
   | UpdateWithPointerAction
   | UpdateWithKeyboardAction
   | AcquireItemAction;
@@ -53,6 +54,9 @@ interface SubmitAction {
 }
 interface DiscardAction {
   type: "discard";
+}
+interface TransferOutAction {
+  type: "transfer-out";
 }
 interface UpdateWithPointerAction {
   type: "update-with-pointer";
@@ -94,6 +98,11 @@ function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
         return submitTransition(state);
       case "discard":
         return discardTransition(state);
+      case "transfer-out":
+        // Clears the transition silently (no announcement) when the item is being transferred to
+        // an adjacent board via keyboard navigation. Unlike "discard" this does not produce a
+        // "dnd-discarded" announcement because the drag is continuing on the other board.
+        return { transition: null, removeTransition: null, announcement: null };
       case "update-with-pointer":
         return updateTransitionWithPointerEvent(state, action);
       case "update-with-keyboard":

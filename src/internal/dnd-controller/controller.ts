@@ -205,6 +205,21 @@ export function useDraggable({
   };
 }
 
+/**
+ * Provides board-level access to acquire and droppable lookup. Used by InternalBoard to orchestrate
+ * cross-board keyboard transfers (moving an acquired item from one board to an adjacent one).
+ */
+export function useBoardTransfer() {
+  return {
+    acquire(droppableId: ItemId, renderAcquiredItem: () => ReactNode) {
+      controller.acquire(droppableId, renderAcquiredItem);
+    },
+    getDroppables() {
+      return controller.getDroppables();
+    },
+  };
+}
+
 export function useDroppable({
   itemId,
   context,
