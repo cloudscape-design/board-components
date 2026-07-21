@@ -53,11 +53,15 @@ export function useDraggable() {
   return mockDraggable;
 }
 
+// Shared instance so tests can assert on cross-board transfer calls (e.g. acquire on a foreign
+// droppable) regardless of how many times the hook re-runs across renders.
+export const mockBoardTransfer = {
+  acquire: vi.fn(),
+  getDroppables: vi.fn(() => [...mockDroppables].map((id) => [id, { element: document.body, context: {} }])),
+};
+
 export function useBoardTransfer() {
-  return {
-    acquire: vi.fn(),
-    getDroppables: vi.fn(() => [...mockDroppables].map((id) => [id, { element: document.body, context: {} }])),
-  };
+  return mockBoardTransfer;
 }
 
 export function useDroppable({ itemId }: { itemId: ItemId }) {

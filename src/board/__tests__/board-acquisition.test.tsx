@@ -4,8 +4,15 @@ import { useState } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
+import { KeyCode } from "@cloudscape-design/test-utils-core/utils";
+
 import { Board, BoardProps } from "../../../lib/components";
-import { mockController, mockDroppables } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
+import BoardItem from "../../../lib/components/board-item";
+import {
+  mockBoardTransfer,
+  mockController,
+  mockDroppables,
+} from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import { DragAndDropData } from "../../../lib/components/internal/dnd-controller/controller";
 import { Coordinates } from "../../../lib/components/internal/utils/coordinates";
 import createWrapper from "../../../lib/components/test-utils/dom";
@@ -156,6 +163,94 @@ describe("start event ownership filtering", () => {
 
     // The board accepted the event — discard cleans up without error.
     act(() => mockController.discard());
+  });
+});
+
+describe("keyboard boundary transfer for acquired items", () => {
+  const draggableItem = { id: "test", data: { title: "Test item" }, definition: {} };
+
+  const itemI18nStrings = {
+    dragHandleAriaLabel: "Drag handle",
+    resizeHandleAriaLabel: "Resize handle",
+  };
+
+  // Starts a keyboard insert and acquires the item at placeholder (row 1, col 0), i.e. grid
+  // position x=0. From x=0 pressing "left" always crosses the board's left boundary.
+  function startInsertAndAcquire() {
+    act(() =>
+      mockController.start({
+        interactionType: "keyboard",
+        operation: "insert",
+        draggableItem,
+        collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+      } as DragAndDropData),
+    );
+    act(() =>
+      mockController.acquire({
+        droppableId: getPlaceholderId(1, 0),
+        draggableItem,
+        renderAcquiredItem: () => <BoardItem i18nStrings={itemI18nStrings}>Acquired</BoardItem>,
+      }),
+    );
+  }
+
+  function acquiredItemDragHandle() {
+    return createWrapper().findBoard()!.findItemById("test")!.findDragHandle();
+  }
+
+  test("transfers the acquired item to a neighboring board when moving past the left boundary", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(<Board {...defaultProps} />);
+    startInsertAndAcquire();
+
+    // Expose a foreign droppable (as if another board is present on the page). In jsdom all
+    // elements have zero-sized rects, which qualify as "left of" this board's item.
+    const foreignElement = document.createElement("div");
+    mockBoardTransfer.getDroppables.mockReturnValueOnce([
+      ["awsui-placeholder-other-board-0-0", { element: foreignElement, context: {} }],
+    ] as ReturnType<typeof mockBoardTransfer.getDroppables>);
+
+    acquiredItemDragHandle().keydown(KeyCode.left);
+
+    // The board transferred the item: acquire fired for the foreign droppable and this board's
+    // transition was cleared silently, so the acquired item is no longer rendered here.
+    expect(mockBoardTransfer.acquire).toHaveBeenCalledWith("awsui-placeholder-other-board-0-0", expect.any(Function));
+    expect(createWrapper().findBoard()!.findItemById("test")).toBeNull();
+  });
+
+  test("keeps the acquired item at the boundary when there is no neighboring board", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(<Board {...defaultProps} />);
+    startInsertAndAcquire();
+
+    // Default mock getDroppables returns only this board's own placeholders, which are excluded
+    // from transfer targets, so there is no foreign droppable to move to.
+    acquiredItemDragHandle().keydown(KeyCode.left);
+
+    expect(mockBoardTransfer.acquire).not.toHaveBeenCalled();
+    expect(createWrapper().findBoard()!.findItemById("test")).not.toBeNull();
+  });
+
+  test("moves the acquired item within the board when not at a boundary", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(<Board {...defaultProps} />);
+    startInsertAndAcquire();
+
+    // Downward movement is never a transfer boundary (extra rows are reserved below), so this
+    // must take the regular update-with-keyboard path and keep the item on this board.
+    acquiredItemDragHandle().keydown(KeyCode.down);
+
+    expect(mockBoardTransfer.acquire).not.toHaveBeenCalled();
+    expect(createWrapper().findBoard()!.findItemById("test")).not.toBeNull();
+  });
+
+  test("arrow keys on a drag handle without an active transition are ignored", () => {
+    render(<Board {...defaultProps} />);
+
+    // No transition was started: onItemMove must return early without dispatching anything.
+    const dragHandle = createWrapper().findBoard()!.findItemById("1")!.findDragHandle();
+    expect(() => dragHandle.keydown(KeyCode.down)).not.toThrow();
   });
 });
 
