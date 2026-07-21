@@ -5,6 +5,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import {
+  useBoardTransfer,
   useDraggable,
   useDragSubscription,
   useDroppable,
@@ -80,6 +81,65 @@ describe("shared controller", () => {
 
     // The draggable sees both droppables registered in the shared controller.
     expect(droppablesSeenByA).toEqual(["a", "b"]);
+  });
+});
+
+describe("useBoardTransfer", () => {
+  test("getDroppables returns all registered droppables", () => {
+    let droppables: [string, unknown][] = [];
+
+    function TransferConsumer() {
+      const transfer = useBoardTransfer();
+      useDragSubscription("start", () => {
+        droppables = transfer.getDroppables().map(([id, entry]) => [String(id), entry]);
+      });
+      return null;
+    }
+
+    render(
+      <>
+        <DndActor droppableId="x" />
+        <DndActor droppableId="y" />
+        <TransferConsumer />
+      </>,
+    );
+
+    (document.querySelector('[data-testid="start-x"]') as HTMLButtonElement).click();
+    const ids = droppables.map(([id]) => id).sort();
+    expect(ids).toEqual(["x", "y"]);
+  });
+
+  test("acquire triggers the acquire event on the shared controller", () => {
+    const acquireHandler = vi.fn();
+
+    function AcquireListener() {
+      useDragSubscription("acquire", acquireHandler);
+      return null;
+    }
+
+    function AcquireInitiator() {
+      const transfer = useBoardTransfer();
+      return (
+        <button data-testid="do-acquire" onClick={() => transfer.acquire("target-drop", () => <span>acquired</span>)}>
+          acquire
+        </button>
+      );
+    }
+
+    render(
+      <>
+        <DndActor droppableId="target-drop" />
+        <AcquireListener />
+        <AcquireInitiator />
+      </>,
+    );
+
+    // Start a transition first (acquire is a no-op on the controller if there's no active transition,
+    // but the event emitter still fires).
+    (document.querySelector('[data-testid="start-target-drop"]') as HTMLButtonElement).click();
+    (document.querySelector('[data-testid="do-acquire"]') as HTMLButtonElement).click();
+
+    expect(acquireHandler).toHaveBeenCalledWith(expect.objectContaining({ droppableId: "target-drop" }));
   });
 });
 

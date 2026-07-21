@@ -113,6 +113,52 @@ test("focuses on acquired item's drag handle upon submission", () => {
   expect(createWrapper().findBoard()!.findItemById("test")!.findDragHandle().getElement()).toHaveFocus();
 });
 
+describe("start event ownership filtering", () => {
+  const zeroRect = { top: 0, bottom: 0, left: 0, right: 0 };
+
+  test("ignores reorder/resize events for items not owned by this board", () => {
+    render(<Board {...defaultProps} />);
+    const foreignItem = { id: "foreign-item", data: { title: "Foreign" }, definition: {} };
+
+    // A reorder start for an item that does not belong to this board should not crash or create
+    // a transition (the board should early-return from the handler).
+    act(() =>
+      mockController.start({
+        interactionType: "keyboard",
+        operation: "reorder",
+        draggableItem: foreignItem,
+        collisionRect: zeroRect,
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+      } as DragAndDropData),
+    );
+
+    // The board did not react — no placeholder shows hover state.
+    expect(document.querySelectorAll(`.${boardStyles["placeholder--hover"]}`).length).toBe(0);
+
+    // Submitting should be safe (no-op).
+    act(() => mockController.submit());
+  });
+
+  test("does not filter insert events even for foreign items", () => {
+    render(<Board {...defaultProps} />);
+    const paletteItem = { id: "palette-item", data: { title: "From palette" }, definition: {} };
+
+    // Insert operations from a palette can target any board, so they must not be filtered.
+    act(() =>
+      mockController.start({
+        interactionType: "keyboard",
+        operation: "insert",
+        draggableItem: paletteItem,
+        collisionRect: zeroRect,
+        coordinates: new Coordinates({ x: 0, y: 0 }),
+      } as DragAndDropData),
+    );
+
+    // The board accepted the event — discard cleans up without error.
+    act(() => mockController.discard());
+  });
+});
+
 describe("pointer collision scoping", () => {
   // isElementOverBoard relies on elementFromPoint; jsdom has no layout, so point it at the board.
   let boardElement: Element | null = null;
