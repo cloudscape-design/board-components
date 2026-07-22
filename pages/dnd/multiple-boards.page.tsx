@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useState } from "react";
 
+import Box from "@cloudscape-design/components/box";
 import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import Header from "@cloudscape-design/components/header";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -14,14 +15,21 @@ import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from 
 import { ItemData } from "../shared/interfaces";
 import { demoWidgets } from "./items";
 
+import classnames from "./multiple-boards.module.css";
+
 // Multiple boards share one page, so a screen-reader user needs to know WHICH board an item is being
 // inserted into. There is no board-name prop on the component — instead each Board is given its own
 // i18nStrings, so the board name can be woven into the live announcements the board produces. This
-// helper wraps the shared strings and prefixes the insert announcement with the board's name.
+// helper wraps the shared strings and prefixes the board's name onto both the insert-placement
+// announcement AND the final commit announcement. The commit is the confirmation the user hears when
+// the item is actually placed, so without the prefix it would just say "insert committed" with no
+// indication of which board received the item. Because a commit only fires on the board that owns the
+// item, prefixing every commit (insert/reorder/resize) with this board's name is always correct.
 function boardI18nStringsWithName(boardLabel: string): BoardProps.I18nStrings<ItemData> {
   return {
     ...boardI18nStrings,
     liveAnnouncementDndItemInserted: (op) => `${boardLabel}: ${boardI18nStrings.liveAnnouncementDndItemInserted(op)}`,
+    liveAnnouncementDndCommitted: (op) => `${boardLabel}: ${boardI18nStrings.liveAnnouncementDndCommitted(op)}`,
   };
 }
 
@@ -70,50 +78,13 @@ function DemoBoard({
   );
 }
 
-// A board rendered next to the shared `ItemsPalette`. This board is not special — because all boards
-// share one d&d controller, palette widgets can be dropped onto any board on the page. The palette is
-// simply placed here for layout. The palette items live at the page level so that dropping a palette
-// item onto any board removes it from the palette.
-function BoardWithPalette({
-  boardLabel,
-  initialBoardItems,
-  paletteItems,
-  onPaletteSync,
-}: {
-  boardLabel: string;
-  initialBoardItems: readonly BoardProps.Item<ItemData>[];
-  paletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
-  onPaletteSync: (added?: BoardProps.Item<ItemData>, removed?: BoardProps.Item<ItemData>) => void;
-}) {
-  const [boardItems, setBoardItems] = useState(initialBoardItems);
+// The shared `ItemsPalette`, rendered once as a persistent right-hand column next to all boards.
+// Because every board shares a single d&d controller, palette widgets can be dropped onto any board
+// on the page. The palette items live at the page level so that dropping a palette item onto any
+// board removes it from the palette regardless of which board received it.
+function Palette({ paletteItems }: { paletteItems: readonly ItemsPaletteProps.Item<ItemData>[] }) {
   return (
-    <SpaceBetween size="l">
-      <Board
-        i18nStrings={boardI18nStringsWithName(boardLabel)}
-        items={boardItems}
-        empty="No items"
-        onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-          setBoardItems(items);
-          onPaletteSync(addedItem, removedItem);
-        }}
-        renderItem={(item, actions) => (
-          <BoardItem
-            header={<Header>{item.data.title}</Header>}
-            settings={
-              <ButtonDropdown
-                items={[{ id: "remove", text: "Remove widget" }]}
-                ariaLabel="Widget settings"
-                variant="icon"
-                onItemClick={() => actions.removeItem()}
-                expandToViewport={true}
-              />
-            }
-            i18nStrings={boardItemI18nStrings}
-          >
-            {item.data.content}
-          </BoardItem>
-        )}
-      />
+    <div className={classnames.palette}>
       <Header variant="h3">Add widgets (drag onto any board)</Header>
       <ItemsPalette
         items={paletteItems}
@@ -134,7 +105,7 @@ function BoardWithPalette({
           );
         }}
       />
-    </SpaceBetween>
+    </div>
   );
 }
 
@@ -221,27 +192,28 @@ export default function MultipleBoardsPage() {
   return (
     <ScreenshotArea>
       <PageLayout header={<Header variant="h1">Multiple boards on the same page</Header>}>
-        <SpaceBetween size="xxl">
-          <div>
-            <Header variant="h2">Board 1</Header>
-            <DemoBoard boardLabel="Board 1" initialItems={boardOneItems} onPaletteSync={syncPalette} />
-          </div>
+        <Box padding="xxl">
+          <div className={classnames["page-layout"]}>
+            <SpaceBetween size="xxl">
+              <div>
+                <Header variant="h2">Board 1</Header>
+                <DemoBoard boardLabel="Board 1" initialItems={boardOneItems} onPaletteSync={syncPalette} />
+              </div>
 
-          <div>
-            <Header variant="h2">Board 2</Header>
-            <DemoBoard boardLabel="Board 2" initialItems={boardTwoItems} onPaletteSync={syncPalette} />
-          </div>
+              <div>
+                <Header variant="h2">Board 2</Header>
+                <DemoBoard boardLabel="Board 2" initialItems={boardTwoItems} onPaletteSync={syncPalette} />
+              </div>
 
-          <div>
-            <Header variant="h2">Board 3</Header>
-            <BoardWithPalette
-              boardLabel="Board 3"
-              initialBoardItems={paletteBoardItems}
-              paletteItems={currentPaletteItems}
-              onPaletteSync={syncPalette}
-            />
+              <div>
+                <Header variant="h2">Board 3</Header>
+                <DemoBoard boardLabel="Board 3" initialItems={paletteBoardItems} onPaletteSync={syncPalette} />
+              </div>
+            </SpaceBetween>
+
+            <Palette paletteItems={currentPaletteItems} />
           </div>
-        </SpaceBetween>
+        </Box>
       </PageLayout>
     </ScreenshotArea>
   );

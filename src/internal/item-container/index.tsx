@@ -327,11 +327,11 @@ function ItemContainerComponent(
     if (canInsert) {
       handleInsert(direction);
     } else if (canNavigate) {
-      onKeyMove?.(direction);
+      const moved = onKeyMove?.(direction);
+      if (moved && acquired) {
+        muteEventsRef.current = true;
+      }
     }
-    // Note: for acquired items (placed=false, transition=null in this container) the board's
-    // onKeyMove handles cross-board boundary transfer internally — the item container doesn't
-    // need special handling here because onKeyMove orchestrates the full transfer at the board level.
   }
 
   function onHandleKeyDown(operation: HandleOperation, event: KeyboardEvent) {
@@ -369,9 +369,15 @@ function ItemContainerComponent(
     // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
+    // 3. If muteEventsRef is set (the item was transferred to another board and will unmount — the
+    //    blur from unmounting must not trigger a spurious submit that would nuke the target board's state).
     selectedHook.current.processBlur();
 
-    if (acquired || (transition && transition.interactionType === "keyboard" && !muteEventsRef.current)) {
+    if (muteEventsRef.current) {
+      return;
+    }
+
+    if (acquired || (transition && transition.interactionType === "keyboard")) {
       initialPointerDownPosition.current = undefined;
       draggableApi.submitTransition();
     }

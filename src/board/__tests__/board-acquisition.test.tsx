@@ -219,6 +219,33 @@ describe("keyboard boundary transfer for acquired items", () => {
     expect(createWrapper().findBoard()!.findItemById("test")).toBeNull();
   });
 
+  test("re-acquires an item that was previously transferred out (transfer back)", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(<Board {...defaultProps} />);
+    startInsertAndAcquire();
+
+    // Transfer the item out to a neighboring board — this clears THIS board's transition.
+    const foreignElement = document.createElement("div");
+    mockBoardTransfer.getDroppables.mockReturnValueOnce([
+      ["awsui-placeholder-other-board-0-0", { element: foreignElement, context: {} }],
+    ] as ReturnType<typeof mockBoardTransfer.getDroppables>);
+    acquiredItemDragHandle().keydown(KeyCode.left);
+    expect(createWrapper().findBoard()!.findItemById("test")).toBeNull();
+
+    // The item is transferred back onto this board. Because the earlier transfer-out cleared the
+    // transition, the board must re-initialize one on acquire instead of silently dropping the
+    // item (AWSUI-62123: item vanished when moved back to a board it had left).
+    act(() =>
+      mockController.acquire({
+        droppableId: getPlaceholderId(1, 0),
+        draggableItem,
+        renderAcquiredItem: () => <BoardItem i18nStrings={itemI18nStrings}>Re-acquired</BoardItem>,
+      }),
+    );
+
+    expect(createWrapper().findBoard()!.findItemById("test")).not.toBeNull();
+  });
+
   test("keeps the acquired item at the boundary when there is no neighboring board", () => {
     mockBoardTransfer.acquire.mockClear();
     render(<Board {...defaultProps} />);
@@ -237,12 +264,29 @@ describe("keyboard boundary transfer for acquired items", () => {
     render(<Board {...defaultProps} />);
     startInsertAndAcquire();
 
-    // Downward movement is never a transfer boundary (extra rows are reserved below), so this
-    // must take the regular update-with-keyboard path and keep the item on this board.
+    // A single down press from y=0 keeps the item inside the board's reserved rows.
     acquiredItemDragHandle().keydown(KeyCode.down);
 
     expect(mockBoardTransfer.acquire).not.toHaveBeenCalled();
     expect(createWrapper().findBoard()!.findItemById("test")).not.toBeNull();
+  });
+
+  test("stops the acquired item at the downward boundary to prevent infinite scroll", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(<Board {...defaultProps} />);
+    startInsertAndAcquire();
+
+    // The board reserves a limited number of extra rows below existing content. Pressing down
+    // repeatedly must eventually hit the boundary (no transfer target, so item stays put). This
+    // prevents unbounded grid growth that caused infinite scrolling (AWSUI-62123).
+    for (let i = 0; i < 20; i++) {
+      acquiredItemDragHandle().keydown(KeyCode.down);
+    }
+
+    // Item is still on this board (not transferred, not lost).
+    expect(createWrapper().findBoard()!.findItemById("test")).not.toBeNull();
+    // No transfer was attempted since no foreign droppable was exposed.
+    expect(mockBoardTransfer.acquire).not.toHaveBeenCalled();
   });
 
   test("arrow keys on a drag handle without an active transition are ignored", () => {

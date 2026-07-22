@@ -26,6 +26,7 @@ import {
   interpretItems,
 } from "../internal/utils/layout";
 import { Position } from "../internal/utils/position";
+import { getNormalizedElementRect } from "../internal/utils/screen";
 import { useAutoScroll } from "../internal/utils/use-auto-scroll";
 import { BoardProps } from "./interfaces";
 import Placeholder from "./placeholder";
@@ -91,7 +92,7 @@ export function InternalBoard<D>({
   useEffect(() => {
     const focusTarget = focusNextRenderIdRef.current;
     if (focusTarget) {
-      itemContainerRef.current[focusTarget].focusDragHandle();
+      itemContainerRef.current[focusTarget]?.focusDragHandle();
     }
     focusNextRenderIdRef.current = null;
   });
@@ -238,6 +239,15 @@ export function InternalBoard<D>({
       position: new Position({ x: placeholder.x, y: placeholder.y }),
       layoutElement: containerAccessRef.current!,
       acquiredItemElement: renderAcquiredItem(),
+      // Fallback init data: used only if this board has no active transition (e.g. it previously
+      // transferred this item out to another board, clearing its transition). See acquireTransitionItem.
+      init: {
+        boardId,
+        itemsLayout,
+        draggableItem: draggableItem as BoardItemDefinitionBase<any>,
+        draggableRect: getNormalizedElementRect(containerAccessRef.current!),
+        interactionType: "keyboard",
+      },
     });
     focusNextRenderIdRef.current = draggableItem.id;
   });
@@ -260,18 +270,17 @@ export function InternalBoard<D>({
         const layout = transition.layoutShift?.next ?? transition.itemsLayout;
         const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
         const width = layoutItem?.width ?? getDefaultColumnSpan(transition.draggableItem, layout.columns);
+        const height = layoutItem?.height ?? getDefaultRowSpan(transition.draggableItem);
 
         const xDelta = direction === "left" ? -1 : direction === "right" ? 1 : 0;
         const yDelta = direction === "up" ? -1 : direction === "down" ? 1 : 0;
         const nextX = lastPosition.x + xDelta;
         const nextY = lastPosition.y + yDelta;
 
-        // Boundary check matching the layout engine's validateMovePath:
-        // x < 0, y < 0, or x + width > columns. These are the hard boundaries where the engine
-        // would throw "Invalid move: outside grid." The downward direction is intentionally NOT
-        // bounded: extra rows are reserved for the user to place the item below existing content,
-        // and forcing a transfer downward would break single-board insert flows.
-        const isAtBoundary = nextX < 0 || nextY < 0 || nextX + width > layout.columns;
+        // The maximum rows this board has reserved for the insert (original content + one item
+        // height of landing space). Moving past this limit would grow the grid unboundedly.
+        const maxRows = Math.max(layout.rows, transition.itemsLayout.rows + height);
+        const isAtBoundary = nextX < 0 || nextY < 0 || nextX + width > layout.columns || nextY + height > maxRows;
 
         if (isAtBoundary) {
           // Find a droppable on a neighboring board (exclude this board's own placeholders).

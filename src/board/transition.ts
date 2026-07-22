@@ -31,7 +31,7 @@ export type Action<D> =
   | TransferOutAction
   | UpdateWithPointerAction
   | UpdateWithKeyboardAction
-  | AcquireItemAction;
+  | AcquireItemAction<D>;
 
 interface InitAction<D> {
   type: "init";
@@ -68,11 +68,21 @@ interface UpdateWithKeyboardAction {
   type: "update-with-keyboard";
   direction: Direction;
 }
-interface AcquireItemAction {
+interface AcquireItemAction<D> {
   type: "acquire-item";
   position: Position;
   layoutElement: HTMLElement;
   acquiredItemElement?: ReactNode;
+  // Fallback init data used when the board has no active transition at acquire time. This happens
+  // when an item is transferred back to a board that previously transferred it out (which cleared
+  // its transition). See acquireTransitionItem.
+  init: {
+    boardId: string;
+    itemsLayout: GridLayout;
+    draggableItem: BoardItemDefinitionBase<D>;
+    draggableRect: Rect;
+    interactionType: InteractionType;
+  };
 }
 
 export function useTransition<D>({ isRtl }: { isRtl: () => boolean }): [TransitionState<D>, Dispatch<Action<D>>] {
@@ -352,13 +362,25 @@ function updateTransitionWithKeyboardEvent<D>(
 
 function acquireTransitionItem<D>(
   state: TransitionState<D>,
-  { position, layoutElement, acquiredItemElement }: AcquireItemAction,
+  { position, layoutElement, acquiredItemElement, init }: AcquireItemAction<D>,
 ): TransitionState<D> {
-  const { transition } = state;
-
-  if (!transition) {
-    return { transition: null, removeTransition: null, announcement: null };
-  }
+  // If the board has no active transition, initialize one. This happens when an item is transferred
+  // back to a board that previously transferred it out (transfer-out clears the transition). Without
+  // this, the acquire would be a silent no-op and the item would be lost.
+  const transition = state.transition ?? {
+    operation: "insert" as const,
+    interactionType: init.interactionType,
+    boardId: init.boardId,
+    itemsLayout: init.itemsLayout,
+    layoutEngine: new LayoutEngine(init.itemsLayout),
+    insertionDirection: null,
+    draggableItem: init.draggableItem,
+    draggableRect: init.draggableRect,
+    acquiredItem: null,
+    collisionIds: new Set<ItemId>(),
+    layoutShift: null,
+    path: [],
+  };
 
   const { columns } = transition.itemsLayout;
 
