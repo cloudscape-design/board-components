@@ -217,15 +217,13 @@ function ItemContainerComponent(
     dropTarget,
   }: DragAndDropData) {
     if (item.id === draggableItem.id) {
-      // All boards and palettes share a single d&d controller, so this container can receive events
-      // for an item that merely shares its id — e.g. a palette item and the board item created by
-      // inserting it coexist with the same id until the app removes the palette copy. The operation
-      // tells us whether the genuine drag subject is placed: "insert" targets a non-placed item
-      // (from a palette), while "reorder"/"resize" target a placed board item. If this container's
-      // placement does not match, it is not the real subject and must ignore the event. (Without
-      // this, a palette item would react to the board item's resize and crash in getItemSize.)
-      const isInsert = operation === "insert";
-      if (isInsert === placed) {
+      // A palette item and the board item created by inserting it share the same id (until the app
+      // removes the palette copy), and both listen on the shared d&d controller. An "insert" is
+      // owned by the palette container (placed=false); "reorder"/"resize" by the board container
+      // (placed=true). Ignore events meant for the other container, or a palette item would react to
+      // the board item's resize and crash in getItemSize.
+      const handledHere = operation === "insert" ? !placed : placed;
+      if (!handledHere) {
         return;
       }
 

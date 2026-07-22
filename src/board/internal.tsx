@@ -256,54 +256,59 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
   };
 
+  // Hands an acquired palette item off to a neighboring board when it is moved past this board's
+  // grid edge. Returns null when the move is not a cross-board case (caller does a normal in-board
+  // move), true when the item was transferred, or false when it is at the edge but there is no
+  // neighboring board to receive it (so it stays put).
+  function tryTransferAcrossBoundary(direction: Direction): boolean | null {
+    if (!transition || transition.operation !== "insert" || !transition.acquiredItem) {
+      return null;
+    }
+    const lastPosition = transition.path[transition.path.length - 1];
+    if (!lastPosition) {
+      return null;
+    }
+
+    const layout = transition.layoutShift?.next ?? transition.itemsLayout;
+    const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
+    const width = layoutItem?.width ?? getDefaultColumnSpan(transition.draggableItem, layout.columns);
+    const height = layoutItem?.height ?? getDefaultRowSpan(transition.draggableItem);
+    const nextX = lastPosition.x + (direction === "left" ? -1 : direction === "right" ? 1 : 0);
+    const nextY = lastPosition.y + (direction === "up" ? -1 : direction === "down" ? 1 : 0);
+
+    // maxRows = existing content plus one item-height of landing space; moving past it would grow
+    // the grid unboundedly.
+    const maxRows = Math.max(layout.rows, transition.itemsLayout.rows + height);
+    if (!(nextX < 0 || nextY < 0 || nextX + width > layout.columns || nextY + height > maxRows)) {
+      return null;
+    }
+
+    const foreignDroppables = boardTransfer.getDroppables().filter(([id]) => !ownPlaceholderIds.has(id));
+    const nextDroppable = getNextDroppable({
+      draggableElement: containerAccessRef.current!,
+      droppables: foreignDroppables,
+      direction,
+      isRtl: isRtl(),
+    });
+    if (!nextDroppable) {
+      return false;
+    }
+
+    // Clear this board's transition silently, then acquire the item on the target board.
+    const itemElement = transition.acquiredItemElement;
+    dispatch({ type: "transfer-out" });
+    boardTransfer.acquire(nextDroppable, () => itemElement);
+    return true;
+  }
+
   function onItemMove(direction: Direction): boolean {
     if (!transition) {
       return false;
     }
 
-    // For an insert operation (item came from a palette and is still in transit), check if the
-    // item has reached the boundary of this board's grid. If so, transfer it to the adjacent board
-    // in that direction rather than silently swallowing the arrow press.
-    if (transition.operation === "insert" && transition.acquiredItem) {
-      const lastPosition = transition.path[transition.path.length - 1];
-      if (lastPosition) {
-        const layout = transition.layoutShift?.next ?? transition.itemsLayout;
-        const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
-        const width = layoutItem?.width ?? getDefaultColumnSpan(transition.draggableItem, layout.columns);
-        const height = layoutItem?.height ?? getDefaultRowSpan(transition.draggableItem);
-
-        const xDelta = direction === "left" ? -1 : direction === "right" ? 1 : 0;
-        const yDelta = direction === "up" ? -1 : direction === "down" ? 1 : 0;
-        const nextX = lastPosition.x + xDelta;
-        const nextY = lastPosition.y + yDelta;
-
-        // The maximum rows this board has reserved for the insert (original content + one item
-        // height of landing space). Moving past this limit would grow the grid unboundedly.
-        const maxRows = Math.max(layout.rows, transition.itemsLayout.rows + height);
-        const isAtBoundary = nextX < 0 || nextY < 0 || nextX + width > layout.columns || nextY + height > maxRows;
-
-        if (isAtBoundary) {
-          // Find a droppable on a neighboring board (exclude this board's own placeholders).
-          const allDroppables = boardTransfer.getDroppables();
-          const foreignDroppables = allDroppables.filter(([id]) => !ownPlaceholderIds.has(id));
-          const nextDroppable = getNextDroppable({
-            draggableElement: containerAccessRef.current!,
-            droppables: foreignDroppables,
-            direction,
-            isRtl: isRtl(),
-          });
-
-          if (nextDroppable) {
-            // Transfer: clear this board's transition silently, then acquire on the target board.
-            const itemElement = transition.acquiredItemElement;
-            dispatch({ type: "transfer-out" });
-            boardTransfer.acquire(nextDroppable, () => itemElement);
-            return true;
-          }
-          // No neighboring board in this direction — the item stays at the boundary.
-          return false;
-        }
-      }
+    const transferred = tryTransferAcrossBoundary(direction);
+    if (transferred !== null) {
+      return transferred;
     }
 
     dispatch({ type: "update-with-keyboard", direction });
