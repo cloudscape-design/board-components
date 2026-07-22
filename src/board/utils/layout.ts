@@ -25,7 +25,7 @@ export function getLayoutRows<D>(transition: Transition<D>) {
   }
   // An insert is broadcast to every board sharing the controller. A keyboard insert must NOT make
   // every board reserve landing rows up front: that shifts all boards at once and scrolls the
-  // focused palette handle out of view (AWSUI-62123 bug bash #2). So a keyboard board reserves rows
+  // focused palette handle out of view So a keyboard board reserves rows
   // only once involved — it has acquired the item, or it is empty and would otherwise render no
   // placeholder to navigate onto. Pointer inserts keep the pre-reservation: it is a useful drop-zone
   // affordance and pointer moves don't shift focus.

@@ -8,9 +8,7 @@ import { GridLayoutItem, ItemId, Rect } from "../../internal/interfaces";
  *
  * Returns `null` when none of the collision IDs match the given placeholders. This happens when the
  * reported collisions belong to a different board (multiple boards share one d&d controller) or are
- * stale relative to the current placeholder grid. Callers must treat `null` as "no hovered cell"
- * rather than extending the transition path — a fabricated rect here would seed the path with
- * out-of-range coordinates and later break appendPath.
+ * stale relative to the current placeholder grid. Callers must treat `null` as "no hovered cell".
  */
 export function getHoveredRect(collisionsIds: readonly ItemId[], placeholders: readonly GridLayoutItem[]): null | Rect {
   const hoveredPlaceholders = collisionsIds

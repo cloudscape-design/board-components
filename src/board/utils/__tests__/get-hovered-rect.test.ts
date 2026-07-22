@@ -18,8 +18,6 @@ describe("getHoveredRect", () => {
     expect(rect).toEqual({ top: 0, left: 0, bottom: 2, right: 2 });
   });
 
-  // A stray ID that is not in the placeholder set (e.g. from another board sharing the controller)
-  // must be skipped, and the rect computed from the matching ones only.
   test("ignores collision ids that do not belong to the given placeholders", () => {
     const rect = getHoveredRect(
       ["awsui-placeholder-board-a-0-0", "awsui-placeholder-board-b-3-3", "awsui-placeholder-board-a-0-1"],
@@ -28,9 +26,7 @@ describe("getHoveredRect", () => {
     expect(rect).toEqual({ top: 0, left: 0, bottom: 1, right: 2 });
   });
 
-  // Regression: when NO collision id matches, the function must return null. Previously it returned
-  // an inverted `±Infinity` rect, which callers fed into appendPath, seeding the transition path
-  // with an out-of-range position and later throwing "infinite loop in appendPath".
+  // when no collision id matches, the function must return null
   test("returns null when no collision id matches", () => {
     expect(getHoveredRect(["awsui-placeholder-board-b-0-0"], placeholders)).toBeNull();
     expect(getHoveredRect([], placeholders)).toBeNull();

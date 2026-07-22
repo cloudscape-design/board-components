@@ -64,14 +64,14 @@ describe("shared controller", () => {
     const startB = vi.fn();
     let droppablesSeenByA: string[] = [];
 
-    render(
+    const rendered = render(
       <>
         <DndActor droppableId="a" onStart={startA} exposeDroppables={(ids) => (droppablesSeenByA = ids.sort())} />
         <DndActor droppableId="b" onStart={startB} />
       </>,
     );
 
-    (document.querySelector('[data-testid="start-a"]') as HTMLButtonElement).click();
+    rendered.queryByTestId("start-a")!.click();
 
     // The singleton controller broadcasts to every subscriber, which preserves the legacy
     // Board + ItemsPalette sibling behavior. Isolation between multiple boards is achieved at the
@@ -96,7 +96,7 @@ describe("useBoardTransfer", () => {
       return null;
     }
 
-    render(
+    const { queryByTestId } = render(
       <>
         <DndActor droppableId="x" />
         <DndActor droppableId="y" />
@@ -104,7 +104,7 @@ describe("useBoardTransfer", () => {
       </>,
     );
 
-    (document.querySelector('[data-testid="start-x"]') as HTMLButtonElement).click();
+    queryByTestId("start-x")!.click();
     const ids = droppables.map(([id]) => id).sort();
     expect(ids).toEqual(["x", "y"]);
   });
@@ -126,7 +126,7 @@ describe("useBoardTransfer", () => {
       );
     }
 
-    render(
+    const { queryByTestId } = render(
       <>
         <DndActor droppableId="target-drop" />
         <AcquireListener />
@@ -136,8 +136,8 @@ describe("useBoardTransfer", () => {
 
     // Start a transition first (acquire is a no-op on the controller if there's no active transition,
     // but the event emitter still fires).
-    (document.querySelector('[data-testid="start-target-drop"]') as HTMLButtonElement).click();
-    (document.querySelector('[data-testid="do-acquire"]') as HTMLButtonElement).click();
+    queryByTestId("start-target-drop")!.click();
+    queryByTestId("do-acquire")!.click();
 
     expect(acquireHandler).toHaveBeenCalledWith(expect.objectContaining({ droppableId: "target-drop" }));
   });
@@ -156,15 +156,15 @@ describe("droppable lifecycle", () => {
       );
     }
 
-    const { rerender } = render(<App showB={true} />);
+    const { rerender, queryByTestId } = render(<App showB={true} />);
 
     // Both droppables are registered.
-    (document.querySelector('[data-testid="start-a"]') as HTMLButtonElement).click();
+    queryByTestId("start-a")!.click();
     expect(droppablesSeenByA).toEqual(["a", "b"]);
 
     // Unmount the "b" subtree; its droppable must be cleaned up (no stale/leaked entry).
     rerender(<App showB={false} />);
-    (document.querySelector('[data-testid="start-a"]') as HTMLButtonElement).click();
+    queryByTestId("start-a")!.click();
     expect(droppablesSeenByA).toEqual(["a"]);
   });
 
@@ -174,14 +174,14 @@ describe("droppable lifecycle", () => {
     // StrictMode intentionally mounts, unmounts, and re-mounts effects in development. The
     // addDroppable/removeDroppable effect must be balanced so a droppable is registered exactly
     // once after the dust settles (a duplicate or a stranded entry would show up here).
-    render(
+    const { queryByTestId } = render(
       <StrictMode>
         <DndActor droppableId="a" exposeDroppables={(ids) => (droppablesSeenByA = ids.sort())} />
         <DndActor droppableId="b" />
       </StrictMode>,
     );
 
-    (document.querySelector('[data-testid="start-a"]') as HTMLButtonElement).click();
+    queryByTestId("start-a")!.click();
     expect(droppablesSeenByA).toEqual(["a", "b"]);
   });
 });

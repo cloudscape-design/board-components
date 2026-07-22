@@ -32,9 +32,6 @@ class MockController extends EventEmitter<DragAndDropEvents> {
 
 export const mockController = new MockController();
 
-// Records droppable IDs registered via useDroppable. Because placeholder IDs are scoped per board
-// with a runtime-generated boardId, tests can use this to resolve the actual scoped ID instead of
-// hardcoding it. Reset it between tests when needed.
 export const mockDroppables = new Set<ItemId>();
 
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {

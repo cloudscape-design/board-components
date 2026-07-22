@@ -12,10 +12,6 @@ import { BoardProps } from "../../../lib/components/board";
 import createWrapper, { BoardWrapper } from "../../../lib/components/test-utils/dom";
 import { defaultProps } from "./utils";
 
-// These tests exercise two boards rendered on the same page. They use the real (non-mocked) d&d
-// controller so that cross-board isolation is validated end to end: both boards subscribe to the
-// same singleton controller, so a drag started in one board must not disturb the other.
-
 describe("Multiple boards on the same page", () => {
   beforeAll(() => {
     // jsdom does not support this function.
@@ -83,14 +79,12 @@ describe("Multiple boards on the same page", () => {
     const onItemsChangeB = vi.fn();
     render(<TwoBoards onItemsChangeA={onItemsChangeA} onItemsChangeB={onItemsChangeB} />);
 
-    // Reorder the first item down within board A.
     const dragHandle = boardA().findItemById("1")!.findDragHandle();
     dragHandle.keydown(KeyCode.enter);
     dragHandle.keydown(KeyCode.down);
     dragHandle.keydown(KeyCode.down);
     dragHandle.keydown(KeyCode.enter);
 
-    // Board A committed a reorder.
     expect(onItemsChangeA).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: expect.objectContaining({
@@ -100,7 +94,6 @@ describe("Multiple boards on the same page", () => {
       }),
     );
 
-    // Board B was never disturbed.
     expect(onItemsChangeB).not.toHaveBeenCalled();
   });
 
@@ -150,18 +143,12 @@ describe("Multiple boards on the same page", () => {
     dragHandle.keydown(KeyCode.down);
     dragHandle.keydown(KeyCode.enter);
 
-    // Board B still renders exactly its own items and none from board A.
-    // Note: findItemById searches the whole document, so scope the lookup to board B's element.
     expect(boardB().find('[data-item-id="b1"]')).not.toBeNull();
     expect(boardB().find('[data-item-id="b2"]')).not.toBeNull();
     expect(boardB().find('[data-item-id="1"]')).toBeNull();
     expect(boardB().find('[data-item-id="2"]')).toBeNull();
   });
 
-  // AWSUI-62123 bug bash finding #1: while dragging an item, hovering another item's drag handle
-  // (on the same or another board — they share one controller) used to surface that handle's
-  // "Drag or select to move" tooltip, which is confusing mid-drag. The tooltip is only meaningful at
-  // rest, so it is suppressed for every board item while any drag transition is active.
   describe("drag handle tooltip during an active drag", () => {
     function hover(element: HTMLElement) {
       fireEvent(element, new MouseEvent("pointerover", { bubbles: true }));

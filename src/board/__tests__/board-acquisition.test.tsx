@@ -22,9 +22,6 @@ import boardStyles from "../../../lib/components/board/styles.css.js";
 
 vi.mock("../../../lib/components/internal/dnd-controller/controller");
 
-// Placeholder droppable IDs are scoped with a runtime-generated boardId
-// (`awsui-placeholder-<boardId>-<row>-<col>`), so resolve the target placeholder by its row/col
-// suffix instead of hardcoding the full ID.
 afterEach(cleanup);
 
 function getPlaceholderId(row: number, col: number): string {
@@ -141,9 +138,6 @@ describe("start event ownership filtering", () => {
 
     // The board did not react — no placeholder shows hover state.
     expect(document.querySelectorAll(`.${boardStyles["placeholder--hover"]}`).length).toBe(0);
-
-    // Submitting should be safe (no-op).
-    act(() => mockController.submit());
   });
 
   test("does not filter insert events even for foreign items", () => {
@@ -160,9 +154,6 @@ describe("start event ownership filtering", () => {
         coordinates: new Coordinates({ x: 0, y: 0 }),
       } as DragAndDropData),
     );
-
-    // The board accepted the event — discard cleans up without error.
-    act(() => mockController.discard());
   });
 });
 
@@ -232,9 +223,6 @@ describe("keyboard boundary transfer for acquired items", () => {
     acquiredItemDragHandle().keydown(KeyCode.left);
     expect(createWrapper().findBoard()!.findItemById("test")).toBeNull();
 
-    // The item is transferred back onto this board. Because the earlier transfer-out cleared the
-    // transition, the board must re-initialize one on acquire instead of silently dropping the
-    // item (AWSUI-62123: item vanished when moved back to a board it had left).
     act(() =>
       mockController.acquire({
         droppableId: getPlaceholderId(1, 0),
@@ -278,14 +266,12 @@ describe("keyboard boundary transfer for acquired items", () => {
 
     // The board reserves a limited number of extra rows below existing content. Pressing down
     // repeatedly must eventually hit the boundary (no transfer target, so item stays put). This
-    // prevents unbounded grid growth that caused infinite scrolling (AWSUI-62123).
+    // prevents unbounded grid growth that caused infinite scrolling.
     for (let i = 0; i < 20; i++) {
       acquiredItemDragHandle().keydown(KeyCode.down);
     }
 
-    // Item is still on this board (not transferred, not lost).
     expect(createWrapper().findBoard()!.findItemById("test")).not.toBeNull();
-    // No transfer was attempted since no foreign droppable was exposed.
     expect(mockBoardTransfer.acquire).not.toHaveBeenCalled();
   });
 
@@ -299,7 +285,6 @@ describe("keyboard boundary transfer for acquired items", () => {
 });
 
 describe("pointer collision scoping", () => {
-  // isElementOverBoard relies on elementFromPoint; jsdom has no layout, so point it at the board.
   let boardElement: Element | null = null;
   beforeAll(() => {
     document.elementFromPoint = () => boardElement;
@@ -356,10 +341,6 @@ describe("pointer collision scoping", () => {
     expect(hoveredPlaceholderCount()).toBe(0);
   });
 
-  // Regression for the "infinite loop in appendPath" crash: collisions that do not map onto this
-  // board's placeholder grid must never seed or extend the transition path. Before the fix, an
-  // unmatched collision produced an Infinity rect that poisoned the path, so the next matching
-  // update looped forever. Feeding an unmatched collision first, then a matching one, must not throw.
   test("does not crash when an unmatched collision precedes a matching one", () => {
     const { container } = render(<Board {...defaultProps} />);
     boardElement = container.querySelector(`.${boardStyles.root}`);

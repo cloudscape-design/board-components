@@ -41,9 +41,6 @@ export function InternalBoardItem({
 }: BoardItemProps & InternalBaseComponentProps) {
   const { dragHandle, resizeHandle, isActive, isHidden } = useItemContext();
 
-  // True while any drag is in progress (the shared controller reports drags from every board).
-  // Used to hide the handle hover tooltips mid-drag: hovering another item's handle while dragging
-  // would otherwise pop its "Drag or select to move" tooltip, which is only useful at rest.
   const [isDragActive, setIsDragActive] = useState(false);
   useDragSubscription("start", () => setIsDragActive(true));
   useDragSubscription("submit", () => setIsDragActive(false));

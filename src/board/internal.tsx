@@ -134,11 +134,6 @@ export function InternalBoard<D>({
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
   const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns, boardId);
 
-  // The set of placeholder droppable IDs owned by this board. All boards share one d&d controller,
-  // which computes collisions against every registered droppable on the page, so a pointer rect
-  // straddling two adjacent boards can surface a neighbor's placeholder IDs here. Restricting the
-  // collision IDs to this board's own placeholders keeps each board's transition state (hovered
-  // cells, collision counts, resulting layout shift) driven only by its own grid.
   const ownPlaceholderIds = new Set(placeholdersLayout.items.map((placeholder) => placeholder.id));
   const filterOwnCollisions = (collisionIds: readonly ItemId[]) =>
     collisionIds.filter((id) => ownPlaceholderIds.has(id));

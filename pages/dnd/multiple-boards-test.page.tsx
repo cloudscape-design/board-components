@@ -11,8 +11,6 @@ import { boardI18nStrings, boardItemI18nStrings, itemsPaletteI18nStrings } from 
 import { ItemData } from "../shared/interfaces";
 import { createLetterItems, letterWidgets } from "./items";
 
-// A functional-test-oriented page: two independent boards seeded with disjoint letter items.
-// Board A uses A–D, board B uses E–H, so cross-board leakage (if any) would be obvious.
 const boardAItems = createLetterItems([
   ["A", "B"],
   ["C", "D"],
@@ -50,7 +48,6 @@ function LetterBoard({
   );
 }
 
-// Palette items for testing cross-board keyboard insert. Items I and J are simple 1×2 widgets.
 const paletteItems: readonly ItemsPaletteProps.Item<ItemData>[] = [
   { id: "I", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: letterWidgets.I.data },
   { id: "J", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: letterWidgets.J.data },

@@ -216,41 +216,44 @@ function ItemContainerComponent(
     coordinates,
     dropTarget,
   }: DragAndDropData) {
-    if (item.id === draggableItem.id) {
-      // A palette item and the board item created by inserting it share the same id (until the app
-      // removes the palette copy), and both listen on the shared d&d controller. An "insert" is
-      // owned by the palette container (placed=false); "reorder"/"resize" by the board container
-      // (placed=true). Ignore events meant for the other container, or a palette item would react to
-      // the board item's resize and crash in getItemSize.
-      const handledHere = operation === "insert" ? !placed : placed;
-      if (!handledHere) {
-        return;
-      }
+    // Ignore events for other items.
+    if (item.id !== draggableItem.id) {
+      return;
+    }
 
-      const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
-      const pointerOffset = pointerOffsetRef.current;
+    // A palette item and the board item created by inserting it share the same id (until the app
+    // removes the palette copy), and both listen on the shared d&d controller. The palette container
+    // (placed=false) handles "insert"; the board container (placed=true) handles "reorder"/"resize".
+    // Ignore events aimed at the other container, or a palette item would react to the board item's
+    // resize and crash in getItemSize.
+    const handlesInsert = !placed;
+    if ((operation === "insert") !== handlesInsert) {
+      return;
+    }
 
-      if (operation === "resize") {
-        setTransition({
-          operation,
-          interactionType,
-          itemId: draggableItem.id,
-          sizeTransform: {
-            width: Math.max(getItemSize(null).minWidth, Math.min(getItemSize(null).maxWidth, width - pointerOffset.x)),
-            height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
-          },
-          positionTransform: null,
-        });
-      } else if (operation === "insert" || operation === "reorder") {
-        setTransition({
-          operation,
-          interactionType,
-          itemId: draggableItem.id,
-          sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
-          positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
-          hasDropTarget: !!dropTarget,
-        });
-      }
+    const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
+    const pointerOffset = pointerOffsetRef.current;
+
+    if (operation === "resize") {
+      setTransition({
+        operation,
+        interactionType,
+        itemId: draggableItem.id,
+        sizeTransform: {
+          width: Math.max(getItemSize(null).minWidth, Math.min(getItemSize(null).maxWidth, width - pointerOffset.x)),
+          height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
+        },
+        positionTransform: null,
+      });
+    } else if (operation === "insert" || operation === "reorder") {
+      setTransition({
+        operation,
+        interactionType,
+        itemId: draggableItem.id,
+        sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
+        positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
+        hasDropTarget: !!dropTarget,
+      });
     }
   }
 
@@ -368,7 +371,7 @@ function ItemContainerComponent(
     // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
     // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
     // 3. If muteEventsRef is set (the item was transferred to another board and will unmount — the
-    //    blur from unmounting must not trigger a spurious submit that would nuke the target board's state).
+    //    blur from unmounting must not trigger a submit that would break the target board's state).
     selectedHook.current.processBlur();
 
     if (muteEventsRef.current) {

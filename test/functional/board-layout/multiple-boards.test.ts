@@ -73,15 +73,6 @@ test(
     await expect(itemIds(page, "board-a")).resolves.toEqual(["A", "B", "C", "D"]);
     await expect(itemIds(page, "board-b")).resolves.toEqual(["E", "F", "G", "H"]);
 
-    // Drag an item from board A and release it over an item that lives in board B. Because all
-    // boards share one d&d controller, the drag rect crosses into board B's droppable
-    // region. This used to crash: board A received board B's placeholder collision ids and
-    // dereferenced them in getHoveredRect / appendPath. The regression guards ensure that instead:
-    //   - the page does not crash,
-    //   - no item ever crosses into board B, and
-    //   - board B keeps its exact items and order.
-    // (Board A may legitimately reorder its own items, since the drag passes over board A's own
-    // tiles on the way out; that is not what this test asserts.)
     await page.dragAndDropTo(
       boardA.findItemById("A").findDragHandle().toSelector(),
       boardB.findItemById("E").findDragHandle().toSelector(),
@@ -95,8 +86,6 @@ test(
   }),
 );
 
-// AWSUI-62123 bug bash finding #2: on keyboard insert-start, non-target boards should NOT grow.
-// Only the board that actually acquires the item should reserve extra landing rows.
 test(
   "keyboard palette insert does not expand non-target boards",
   setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
@@ -118,9 +107,6 @@ test(
   }),
 );
 
-// AWSUI-62123 bug bash finding #3: keyboard palette insert should reach any board, not just the
-// nearest. After acquiring into the bottom board, pressing ArrowUp at the top of that board should
-// transfer the item to the board above it.
 test(
   "keyboard palette insert can transfer through boards via ArrowUp",
   setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
@@ -153,8 +139,6 @@ test(
   }),
 );
 
-// Cross-board transfer via lateral boundary: item at column 0, pressing ArrowLeft transfers to
-// the board above (or nearest board in that direction from the DOM element's position).
 test(
   "keyboard insert transfers via ArrowLeft at column boundary",
   setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
