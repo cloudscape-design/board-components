@@ -52,10 +52,12 @@ export function QueryContainer({
   children,
   minWidth = 0,
   minHeight = 0,
+  showBorder = true,
 }: {
   children: (size: { width?: number; height?: number }) => ReactNode;
   minWidth?: number;
   minHeight?: number;
+  showBorder?: boolean;
 }) {
   const [size, containerQueryRef] = useContainerQuery((entry) => ({
     height: entry.contentBoxHeight,
@@ -65,18 +67,11 @@ export function QueryContainer({
   const normalizedWidth = Math.max(size?.width ?? 0, minWidth);
   const normalizedHeight = Math.max(size?.height ?? 0, minHeight);
 
-  const useScroll = (size?.width ?? 0) < minWidth || (size?.height ?? 0) < minHeight;
-  const content = children({ width: normalizedWidth, height: normalizedHeight });
-
   return (
     <div ref={containerQueryRef} style={{ height: "100%", width: "100%" }}>
-      {useScroll ? (
-        <ScrollableContainer width={minWidth} height={minHeight}>
-          {content}
-        </ScrollableContainer>
-      ) : (
-        content
-      )}
+      <ScrollableContainer width={minWidth} height={minHeight} showBorder={showBorder}>
+        {children({ width: normalizedWidth, height: normalizedHeight })}
+      </ScrollableContainer>
     </div>
   );
 }
