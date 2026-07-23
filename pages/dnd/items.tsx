@@ -138,7 +138,7 @@ export const demoWidgets: ItemWidgets = {
           {() => (
             <TwoColContainer
               left={
-                <QueryContainer minHeight={200}>
+                <QueryContainer minHeight={200} showBorder={false}>
                   {({ height = 0 }) => (
                     <SpaceBetween size="xs">
                       <Box fontSize="heading-s" fontWeight="bold">
@@ -150,7 +150,7 @@ export const demoWidgets: ItemWidgets = {
                 </QueryContainer>
               }
               right={
-                <QueryContainer>
+                <QueryContainer showBorder={false}>
                   {({ width = 0, height = 0 }) => {
                     let size: "small" | "medium" | "large" = "small";
                     if (width > 300 && height > 300) {
