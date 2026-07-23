@@ -1,0 +1,10 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+.root {
+  /* Layout-neutral wrapper: the provider only supplies a DnD context and should
+     not introduce its own box in the layout of the wrapped board components. */
+  display: contents;
+}

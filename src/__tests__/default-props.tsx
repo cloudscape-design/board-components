@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import type { BoardItemProps, BoardProps, ItemsPaletteProps } from "../../lib/components";
+import type { BoardDndProviderProps, BoardItemProps, BoardProps, ItemsPaletteProps } from "../../lib/components";
 import { ItemContextWrapper } from "../board-item/__tests__/board-item-wrapper";
 
 const boardProps: BoardProps = {
@@ -38,10 +38,15 @@ const itemsPaletteProps: ItemsPaletteProps = {
   },
 };
 
+const boardDndProviderProps: BoardDndProviderProps = {
+  children: null,
+};
+
 export const defaultProps = {
   board: boardProps,
   "board-item": boardItemProps,
   "items-palette": itemsPaletteProps,
+  "board-dnd-provider": boardDndProviderProps,
 } as const;
 
 export const wrappers = {

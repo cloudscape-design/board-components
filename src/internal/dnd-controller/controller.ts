@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ReactNode, useEffect } from "react";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 
 import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 
@@ -63,7 +63,7 @@ interface Transition {
   startCoordinates: Coordinates;
 }
 
-class DragAndDropController extends EventEmitter<DragAndDropEvents> {
+export class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   private droppables = new Map<ItemId, Droppable>();
   private transition: null | Transition = null;
 
@@ -166,12 +166,39 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   }
 }
 
-// Controller is a singleton and is shared between all d&d elements.
+// The default controller is a singleton and is shared between all d&d elements
+// that are not wrapped in a dedicated DnD context provider. This preserves the
+// historical single-board behavior (all boards and palettes on a page interact).
 const controller = new DragAndDropController();
 
+/**
+ * The DnD context determines which draggables and droppables can interact with
+ * each other. Every board component reads its controller from this context.
+ *
+ * By default (no provider) the shared global {@link controller} singleton is
+ * used, which keeps the original behavior where all Board/ItemsPalette instances
+ * on the page belong to a single drag-and-drop context.
+ *
+ * Wrapping a subtree in a provider that supplies a dedicated
+ * {@link DragAndDropController} instance isolates that subtree's drag-and-drop
+ * from the rest of the page. This is what enables multiple independent Board
+ * instances on one page - see the public `BoardDndProvider` component and the
+ * internal `DndContextProvider` helper.
+ */
+export const DndControllerContext = createContext<DragAndDropController>(controller);
+
+/**
+ * Returns the drag-and-drop controller for the current DnD context.
+ * Falls back to the shared global singleton when no provider is present.
+ */
+export function useDndController(): DragAndDropController {
+  return useContext(DndControllerContext);
+}
+
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
+  const controller = useDndController();
   const stableHandler = useStableCallback(handler);
-  useEffect(() => controller.on(event, stableHandler), [event, stableHandler]);
+  useEffect(() => controller.on(event, stableHandler), [controller, event, stableHandler]);
 }
 
 export function useDraggable({
@@ -181,6 +208,7 @@ export function useDraggable({
   draggableItem: Item;
   getCollisionRect: (operation: Operation, coordinates: Coordinates, dropTarget: null | DropTargetContext) => Rect;
 }) {
+  const controller = useDndController();
   return {
     start(operation: Operation, interactionType: InteractionType, startCoordinates: Coordinates) {
       controller.start({ operation, interactionType, draggableItem, getCollisionRect, startCoordinates });
@@ -212,8 +240,9 @@ export function useDroppable({
   context: DropTargetContext;
   getElement: () => HTMLElement;
 }) {
+  const controller = useDndController();
   useEffect(() => {
     controller.addDroppable(itemId, context, getElement());
     return () => controller.removeDroppable(itemId);
-  }, [itemId, context, getElement]);
+  }, [controller, itemId, context, getElement]);
 }
