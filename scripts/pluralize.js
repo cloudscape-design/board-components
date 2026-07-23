@@ -5,6 +5,7 @@ const pluralizationMap = {
   BoardItem: "BoardItems",
   ItemsPalette: "ItemsPalettes",
   PaletteItem: "PaletteItems",
+  BoardDndProvider: "BoardDndProviders",
 };
 
 function pluralizeComponentName(componentName) {

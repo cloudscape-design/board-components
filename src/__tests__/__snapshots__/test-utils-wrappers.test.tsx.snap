@@ -10,12 +10,14 @@ import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
 export { ElementWrapper };
 
 import BoardWrapper from './board';
+import BoardDndProviderWrapper from './board-dnd-provider';
 import BoardItemWrapper from './board-item';
 import ItemsPaletteWrapper from './items-palette';
 import PaletteItemWrapper from './palette-item';
 
 
 export { BoardWrapper };
+export { BoardDndProviderWrapper };
 export { BoardItemWrapper };
 export { ItemsPaletteWrapper };
 export { PaletteItemWrapper };
@@ -51,6 +53,34 @@ findAllBoards(selector?: string): Array<BoardWrapper>;
  * @returns {BoardWrapper | null}
  */
 findClosestBoard(): BoardWrapper | null;
+/**
+ * Returns the wrapper of the first BoardDndProvider that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first BoardDndProvider.
+ * If no matching BoardDndProvider is found, returns \`null\`.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {BoardDndProviderWrapper | null}
+ */
+findBoardDndProvider(selector?: string): BoardDndProviderWrapper | null;
+
+/**
+ * Returns an array of BoardDndProvider wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the BoardDndProviders inside the current wrapper.
+ * If no matching BoardDndProvider is found, returns an empty array.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {Array<BoardDndProviderWrapper>}
+ */
+findAllBoardDndProviders(selector?: string): Array<BoardDndProviderWrapper>;
+
+/**
+ * Returns the wrapper of the closest parent BoardDndProvider for the current element,
+ * or the element itself if it is an instance of BoardDndProvider.
+ * If no BoardDndProvider is found, returns \`null\`.
+ *
+ * @returns {BoardDndProviderWrapper | null}
+ */
+findClosestBoardDndProvider(): BoardDndProviderWrapper | null;
 /**
  * Returns the wrapper of the first BoardItem that matches the specified CSS selector.
  * If no CSS selector is specified, returns the wrapper of the first BoardItem.
@@ -152,6 +182,19 @@ ElementWrapper.prototype.findBoard = function(selector) {
 ElementWrapper.prototype.findAllBoards = function(selector) {
   return this.findAllComponents(BoardWrapper, selector);
 };
+ElementWrapper.prototype.findBoardDndProvider = function(selector) {
+  let rootSelector = \`.\${BoardDndProviderWrapper.rootSelector}\`;
+  if("legacyRootSelector" in BoardDndProviderWrapper && BoardDndProviderWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${BoardDndProviderWrapper.rootSelector}, .\${BoardDndProviderWrapper.legacyRootSelector})\`;
+  }
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardDndProviderWrapper);
+};
+
+ElementWrapper.prototype.findAllBoardDndProviders = function(selector) {
+  return this.findAllComponents(BoardDndProviderWrapper, selector);
+};
 ElementWrapper.prototype.findBoardItem = function(selector) {
   let rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;
   if("legacyRootSelector" in BoardItemWrapper && BoardItemWrapper.legacyRootSelector){
@@ -197,6 +240,11 @@ ElementWrapper.prototype.findClosestBoard = function() {
   // https://github.com/microsoft/TypeScript/issues/29132
   return (this as any).findClosestComponent(BoardWrapper);
 };
+ElementWrapper.prototype.findClosestBoardDndProvider = function() {
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findClosestComponent(BoardDndProviderWrapper);
+};
 ElementWrapper.prototype.findClosestBoardItem = function() {
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
@@ -232,12 +280,14 @@ import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
 export { ElementWrapper };
 
 import BoardWrapper from './board';
+import BoardDndProviderWrapper from './board-dnd-provider';
 import BoardItemWrapper from './board-item';
 import ItemsPaletteWrapper from './items-palette';
 import PaletteItemWrapper from './palette-item';
 
 
 export { BoardWrapper };
+export { BoardDndProviderWrapper };
 export { BoardItemWrapper };
 export { ItemsPaletteWrapper };
 export { PaletteItemWrapper };
@@ -262,6 +312,23 @@ findBoard(selector?: string): BoardWrapper;
  * @returns {MultiElementWrapper<BoardWrapper>}
  */
 findAllBoards(selector?: string): MultiElementWrapper<BoardWrapper>;
+/**
+ * Returns a wrapper that matches the BoardDndProviders with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches BoardDndProviders.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {BoardDndProviderWrapper}
+ */
+findBoardDndProvider(selector?: string): BoardDndProviderWrapper;
+
+/**
+ * Returns a multi-element wrapper that matches BoardDndProviders with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches BoardDndProviders.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {MultiElementWrapper<BoardDndProviderWrapper>}
+ */
+findAllBoardDndProviders(selector?: string): MultiElementWrapper<BoardDndProviderWrapper>;
 /**
  * Returns a wrapper that matches the BoardItems with the specified CSS selector.
  * If no CSS selector is specified, returns a wrapper that matches BoardItems.
@@ -329,6 +396,19 @@ ElementWrapper.prototype.findBoard = function(selector) {
 
 ElementWrapper.prototype.findAllBoards = function(selector) {
   return this.findAllComponents(BoardWrapper, selector);
+};
+ElementWrapper.prototype.findBoardDndProvider = function(selector) {
+  let rootSelector = \`.\${BoardDndProviderWrapper.rootSelector}\`;
+  if("legacyRootSelector" in BoardDndProviderWrapper && BoardDndProviderWrapper.legacyRootSelector){
+    rootSelector = \`:is(.\${BoardDndProviderWrapper.rootSelector}, .\${BoardDndProviderWrapper.legacyRootSelector})\`;
+  }
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, BoardDndProviderWrapper);
+};
+
+ElementWrapper.prototype.findAllBoardDndProviders = function(selector) {
+  return this.findAllComponents(BoardDndProviderWrapper, selector);
 };
 ElementWrapper.prototype.findBoardItem = function(selector) {
   let rootSelector = \`.\${BoardItemWrapper.rootSelector}\`;

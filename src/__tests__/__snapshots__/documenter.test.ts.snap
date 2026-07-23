@@ -548,6 +548,52 @@ When items are loading the slot can be used to render the loading indicator.",
 }
 `;
 
+exports[`definition for 'board-dnd-provider' matches the snapshot 1`] = `
+{
+  "dashCaseName": "board-dnd-provider",
+  "description": "\`BoardDndProvider\` establishes an isolated drag-and-drop context for the
+\`Board\` (and optional \`ItemsPalette\`) components rendered within it.
+
+Use it to render multiple independent Board instances on the same page:
+- Wrap each board in its own \`BoardDndProvider\` to fully isolate their
+  drag-and-drop interactions.
+- Wrap several boards (and/or a palette) in a single \`BoardDndProvider\` to let
+  them share one context, so items can be dragged between them.
+
+Boards rendered without a \`BoardDndProvider\` keep the default page-wide
+drag-and-drop context, preserving backwards compatibility.
+
+This component is additive and opt-in: existing usages that do not use it are
+unaffected. The wrapper element uses \`display: contents\`, so it does not
+affect the layout of the wrapped board components.",
+  "events": [],
+  "functions": [],
+  "name": "BoardDndProvider",
+  "properties": [],
+  "regions": [
+    {
+      "description": "The board components to render within a single, isolated drag-and-drop context.
+
+Any \`Board\` and \`ItemsPalette\` instances rendered inside the same
+\`BoardDndProvider\` share one drag-and-drop context and can exchange items
+with each other (for example, dragging an item from one board to another,
+or from a palette into a board).
+
+Board components rendered in different \`BoardDndProvider\` instances are
+isolated from one another, which is what enables multiple independent Board
+instances on a single page.
+
+Board components rendered outside of any \`BoardDndProvider\` continue to use
+the shared page-wide drag-and-drop context (the default, backwards-compatible
+behavior).",
+      "isDefault": true,
+      "name": "children",
+    },
+  ],
+  "releaseStatus": "stable",
+}
+`;
+
 exports[`definition for 'board-item' matches the snapshot 1`] = `
 {
   "dashCaseName": "board-item",

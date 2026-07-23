@@ -9,3 +9,6 @@ export type { ItemsPaletteProps } from "./items-palette";
 
 export { default as BoardItem } from "./board-item";
 export type { BoardItemProps } from "./board-item";
+
+export { default as BoardDndProvider } from "./board-dnd-provider";
+export type { BoardDndProviderProps } from "./board-dnd-provider";
