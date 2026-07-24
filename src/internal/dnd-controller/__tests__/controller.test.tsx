@@ -73,9 +73,7 @@ describe("shared controller", () => {
 
     rendered.queryByTestId("start-a")!.click();
 
-    // The singleton controller broadcasts to every subscriber, which preserves the legacy
-    // Board + ItemsPalette sibling behavior. Isolation between multiple boards is achieved at the
-    // board level (scoped placeholder ids + event/collision filtering), not by separate controllers.
+    // The singleton controller broadcasts every event to all subscribers.
     expect(startA).toHaveBeenCalledTimes(1);
     expect(startB).toHaveBeenCalledTimes(1);
 
@@ -134,8 +132,7 @@ describe("useBoardTransfer", () => {
       </>,
     );
 
-    // Start a transition first (acquire is a no-op on the controller if there's no active transition,
-    // but the event emitter still fires).
+    // A transition must be active for the controller to emit "acquire".
     queryByTestId("start-target-drop")!.click();
     queryByTestId("do-acquire")!.click();
 

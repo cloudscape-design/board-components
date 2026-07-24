@@ -31,7 +31,7 @@ export type Action<D> =
   | TransferOutAction
   | UpdateWithPointerAction
   | UpdateWithKeyboardAction
-  | AcquireItemAction<D>;
+  | AcquireItemAction;
 
 interface InitAction<D> {
   type: "init";
@@ -68,21 +68,11 @@ interface UpdateWithKeyboardAction {
   type: "update-with-keyboard";
   direction: Direction;
 }
-interface AcquireItemAction<D> {
+interface AcquireItemAction {
   type: "acquire-item";
   position: Position;
   layoutElement: HTMLElement;
   acquiredItemElement?: ReactNode;
-  // Fallback init data used when the board has no active transition at acquire time. This happens
-  // when an item is transferred back to a board that previously transferred it out (which cleared
-  // its transition). See acquireTransitionItem.
-  init: {
-    boardId: string;
-    itemsLayout: GridLayout;
-    draggableItem: BoardItemDefinitionBase<D>;
-    draggableRect: Rect;
-    interactionType: InteractionType;
-  };
 }
 
 export function useTransition<D>({ isRtl }: { isRtl: () => boolean }): [TransitionState<D>, Dispatch<Action<D>>] {
@@ -109,10 +99,7 @@ function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
       case "discard":
         return discardTransition(state);
       case "transfer-out":
-        // Clears the transition silently (no announcement) when the item is being transferred to
-        // an adjacent board via keyboard navigation. Unlike "discard" this does not produce a
-        // "dnd-discarded" announcement because the drag is continuing on the other board.
-        return { transition: null, removeTransition: null, announcement: null };
+        return transferOutTransition(state);
       case "update-with-pointer":
         return updateTransitionWithPointerEvent(state, action);
       case "update-with-keyboard":
@@ -155,8 +142,9 @@ function initTransition<D>({
   if (interactionType === "pointer" || operation === "insert") {
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-    // No collision rect means the reported collisions do not belong to this board's grid; start with
-    // an empty path rather than seeding it with an out-of-range position.
+    // An insert start is broadcast to every board so each can reserve landing rows. The palette item
+    // is not in any board layout yet, so its path remains empty until that board receives a pointer
+    // update or acquires the item.
     path = layoutItem && collisionRect ? appendPath([], collisionRect) : [];
   } else if (layoutItem) {
     path =
@@ -208,6 +196,33 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
         removeTransition: null,
         announcement: itemBelongsToBoard ? { type: "dnd-discarded", item, operation } : null,
       };
+}
+
+function transferOutTransition<D>(state: TransitionState<D>): TransitionState<D> {
+  const { transition } = state;
+
+  if (!transition) {
+    return { transition: null, removeTransition: null, announcement: null };
+  }
+
+  // The acquired item is being transferred to an adjacent board via keyboard navigation. Drop the
+  // acquired state but keep the insert transition alive so this board still reserves landing rows,
+  // matching a pointer insert, where every board shows drop zones for the whole drag (not just the
+  // one currently holding the item). This runs silently: no "dnd-discarded" announcement, because
+  // the drag continues on the other board. If the item is transferred back, acquire reuses this
+  // transition (see acquireTransitionItem).
+  return {
+    transition: {
+      ...transition,
+      acquiredItem: null,
+      acquiredItemElement: undefined,
+      collisionIds: new Set(),
+      layoutShift: null,
+      path: [],
+    },
+    removeTransition: null,
+    announcement: null,
+  };
 }
 
 function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
@@ -362,27 +377,16 @@ function updateTransitionWithKeyboardEvent<D>(
 
 function acquireTransitionItem<D>(
   state: TransitionState<D>,
-  { position, layoutElement, acquiredItemElement, init }: AcquireItemAction<D>,
+  { position, layoutElement, acquiredItemElement }: AcquireItemAction,
 ): TransitionState<D> {
-  // If the board has no active transition, initialize one. This happens when an item is transferred
-  // back to a board that previously transferred it out (transfer-out clears the transition). Without
-  // this, the acquire would be a silent no-op and the item would be lost.
-  const transition = state.transition ?? {
-    operation: "insert" as const,
-    interactionType: init.interactionType,
-    boardId: init.boardId,
-    itemsLayout: init.itemsLayout,
-    layoutEngine: new LayoutEngine(init.itemsLayout),
-    insertionDirection: null,
-    draggableItem: init.draggableItem,
-    draggableRect: init.draggableRect,
-    acquiredItem: null,
-    collisionIds: new Set<ItemId>(),
-    layoutShift: null,
-    path: [],
-  };
+  const { transition } = state;
+
+  if (!transition) {
+    return { transition: null, removeTransition: null, announcement: null };
+  }
 
   const { columns } = transition.itemsLayout;
+  const rows = getLayoutRows(transition);
 
   const layoutRect = getLogicalBoundingClientRect(layoutElement);
   const itemRect = transition.draggableRect;
@@ -390,9 +394,13 @@ function acquireTransitionItem<D>(
   const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.insetBlockStart });
   const insertionDirection = getInsertionDirection(offset);
 
-  // Update original insertion position if the item can't fit into the layout by width.
+  // Keep the acquired item inside the board's reserved landing area.
   const width = getDefaultColumnSpan(transition.draggableItem, columns);
-  position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
+  const height = getDefaultRowSpan(transition.draggableItem);
+  position = new Position({
+    x: Math.min(columns - width, position.x),
+    y: Math.min(rows - height, position.y),
+  });
 
   const path = [...transition.path, position];
 

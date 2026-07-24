@@ -115,7 +115,7 @@ describe("getLayoutRows", () => {
     expect(getLayoutRows(insertTransition)).toBe(4);
   });
 
-  describe("insert row scoping for multiple boards", () => {
+  describe("insert row reservation for multiple boards", () => {
     const itemsLayout = fromMatrix([
       ["A", "A"],
       ["A", "A"],
@@ -127,27 +127,16 @@ describe("getLayoutRows", () => {
       return { ...createMockTransition("insert", layout, shift), interactionType };
     }
 
-    test("a keyboard insert does not grow a board that has not acquired the item", () => {
-      expect(getLayoutRows(createInsertTransition("keyboard"))).toBe(3);
+    // Every board reserves landing rows the moment an insert starts, regardless of interaction type,
+    // so all boards show a drop-zone affordance. Item default row span is 2, so rows grow from 3 to 5.
+    test.each(["pointer", "keyboard"] as const)("a %s insert grows the board on start", (interactionType) => {
+      expect(getLayoutRows(createInsertTransition(interactionType))).toBe(5);
     });
 
-    test("a keyboard insert grows the board once it has acquired the item", () => {
-      const transition = createInsertTransition("keyboard");
-      transition.acquiredItem = { id: "X", definition: { defaultColumnSpan: 1, defaultRowSpan: 2 }, data: null };
-      // Item default row span is 2, so rows grow from 3 to 3 + 2 = 5.
-      expect(getLayoutRows(transition)).toBe(5);
-    });
-
-    test("an empty board reserves keyboard landing rows so it is a reachable target", () => {
+    test.each(["pointer", "keyboard"] as const)("an empty board reserves %s landing rows", (interactionType) => {
       const emptyLayout: GridLayout = { items: [], columns: 2, rows: 0 };
-      // Item default row span is 2, so an empty board still exposes 0 + 2 = 2 rows to navigate onto.
-      expect(getLayoutRows(createInsertTransition("keyboard", emptyLayout))).toBe(2);
-    });
-
-    test("a pointer insert still grows on start (drop-zone affordance is preserved)", () => {
-      // Pointer inserts are unchanged: the board pre-reserves rows even before any collision so the
-      // user sees where the held item can drop.
-      expect(getLayoutRows(createInsertTransition("pointer"))).toBe(5);
+      // Item default row span is 2, so an empty board exposes 0 + 2 = 2 rows to drop onto.
+      expect(getLayoutRows(createInsertTransition(interactionType, emptyLayout))).toBe(2);
     });
   });
 });

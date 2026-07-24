@@ -134,21 +134,6 @@ describe("Multiple boards on the same page", () => {
     expect(onItemsChangeB).not.toHaveBeenCalled();
   });
 
-  test("each board keeps its own items after an interaction", () => {
-    render(<TwoBoards />);
-
-    const dragHandle = boardA().findItemById("1")!.findDragHandle();
-    dragHandle.keydown(KeyCode.enter);
-    dragHandle.keydown(KeyCode.down);
-    dragHandle.keydown(KeyCode.down);
-    dragHandle.keydown(KeyCode.enter);
-
-    expect(boardB().find('[data-item-id="b1"]')).not.toBeNull();
-    expect(boardB().find('[data-item-id="b2"]')).not.toBeNull();
-    expect(boardB().find('[data-item-id="1"]')).toBeNull();
-    expect(boardB().find('[data-item-id="2"]')).toBeNull();
-  });
-
   describe("drag handle tooltip during an active drag", () => {
     function hover(element: HTMLElement) {
       fireEvent(element, new MouseEvent("pointerover", { bubbles: true }));

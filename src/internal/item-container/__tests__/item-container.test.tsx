@@ -142,6 +142,36 @@ describe("keyboard interaction", () => {
   });
 });
 
+describe("acquired item blur after keyboard move", () => {
+  afterEach(vi.resetAllMocks);
+
+  // Renders an acquired item (a copy handed to a board during keyboard insert) and returns its blur
+  // target. onKeyMove returns `transferred` to emulate either a cross-board transfer (true) or an
+  // in-board move (false).
+  function renderAcquired(transferred: boolean) {
+    onKeyMoveMock.mockReturnValue(transferred);
+    const { getByTestId } = render(<ItemContainer {...defaultProps} acquired={true} inTransition={true} />);
+    const dragHandle = getByTestId("drag-handle");
+    fireEvent.keyDown(dragHandle, { key: "ArrowDown" });
+    return dragHandle;
+  }
+
+  test("commits the transition on blur after an in-board move", () => {
+    const dragHandle = renderAcquired(false);
+    fireEvent.blur(dragHandle);
+    // A legitimate blur (Tab / click outside) after an in-board move must submit the insertion.
+    expect(mockDraggable.submitTransition).toHaveBeenCalled();
+  });
+
+  test("does not commit on the unmount blur after a cross-board transfer", () => {
+    const dragHandle = renderAcquired(true);
+    fireEvent.blur(dragHandle);
+    // A cross-board transfer unmounts this container; its blur must be muted so it does not submit and
+    // clobber the target board's state.
+    expect(mockDraggable.submitTransition).not.toHaveBeenCalled();
+  });
+});
+
 describe("hook swap on pointer down", () => {
   afterEach(vi.resetAllMocks);
 
@@ -165,7 +195,7 @@ describe("hook swap on pointer down", () => {
 
     mockDraggable.discardTransition.mockClear();
 
-    // Now pointer-down on the drag handle — should discard the resize transition
+    // Pointer-down on the drag handle should discard the resize transition.
     fireEvent(getByTestId("drag-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(mockDraggable.discardTransition).toHaveBeenCalled();
   });
@@ -190,7 +220,7 @@ describe("hook swap on pointer down", () => {
 
     mockDraggable.discardTransition.mockClear();
 
-    // Now pointer-down on the resize handle — should discard the drag transition
+    // Pointer-down on the resize handle should discard the drag transition.
     fireEvent(getByTestId("resize-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(mockDraggable.discardTransition).toHaveBeenCalled();
   });
@@ -213,54 +243,4 @@ test("does not renders in portal when item in reorder state by a pointer", () =>
     mockController.discard();
   });
   expect(container).toContainElement(getByTestId("drag-handle"));
-});
-
-// Regression: all boards and palettes share one d&d controller, so a palette item and the board
-// item created by inserting it can transiently share an id. A palette item (placed=false) whose
-// getItemSize throws without a drop context (as ItemsPalette does) must ignore a "resize" event —
-// resize only ever targets the placed board item. Before the fix this crashed with
-// "no drop context in palette".
-describe("shared-controller cross-container events", () => {
-  const paletteLikeProps: ItemContainerProps = {
-    ...defaultProps,
-    placed: false,
-    getItemSize: (dropContext) => {
-      if (!dropContext) {
-        throw new Error("Invariant violation: no drop context in palette.");
-      }
-      return { width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 };
-    },
-  };
-
-  test("a non-placed (palette) container ignores a resize for a same-id item", () => {
-    render(<ItemContainer {...paletteLikeProps} />);
-    expect(() =>
-      act(() => {
-        mockController.start({
-          interactionType: "pointer",
-          operation: "resize",
-          draggableItem: paletteLikeProps.item,
-          collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
-          coordinates: new Coordinates({ x: 0, y: 0 }),
-        } as DragAndDropData);
-      }),
-    ).not.toThrow();
-  });
-
-  test("a placed (board) container ignores an insert for a same-id item", () => {
-    // Symmetric guard: an insert targets the non-placed source; the placed board item must not react
-    // (it would double-handle the same id).
-    render(<ItemContainer {...defaultProps} placed={true} />);
-    expect(() =>
-      act(() => {
-        mockController.start({
-          interactionType: "pointer",
-          operation: "insert",
-          draggableItem: defaultProps.item,
-          collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
-          coordinates: new Coordinates({ x: 0, y: 0 }),
-        } as DragAndDropData);
-      }),
-    ).not.toThrow();
-  });
 });

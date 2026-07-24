@@ -14,6 +14,7 @@ import {
   mockDroppables,
 } from "../../../lib/components/internal/dnd-controller/__mocks__/controller";
 import { DragAndDropData } from "../../../lib/components/internal/dnd-controller/controller";
+import { ItemId } from "../../../lib/components/internal/interfaces";
 import { Coordinates } from "../../../lib/components/internal/utils/coordinates";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { defaultProps } from "./utils";
@@ -24,13 +25,13 @@ vi.mock("../../../lib/components/internal/dnd-controller/controller");
 
 afterEach(cleanup);
 
-function getPlaceholderId(row: number, col: number): string {
+function getPlaceholderId(row: number, col: number): ItemId {
   const suffix = `-${row}-${col}`;
   const id = [...mockDroppables].find((droppableId) => String(droppableId).endsWith(suffix));
   if (!id) {
     throw new Error(`No placeholder droppable registered for row ${row}, col ${col}.`);
   }
-  return String(id);
+  return id;
 }
 
 test("renders acquired item", () => {
@@ -59,6 +60,31 @@ test("renders acquired item", () => {
 
   act(() => mockController.discard());
   expect(screen.queryByTestId("acquired-item")).toBeNull();
+});
+
+test("an empty board exposes a target and acquires a keyboard insert", () => {
+  render(<Board {...defaultProps} items={[]} />);
+  const draggableItem = { id: "test", data: { title: "Test item" }, definition: {} };
+
+  act(() =>
+    mockController.start({
+      interactionType: "keyboard",
+      operation: "insert",
+      draggableItem,
+      collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+      coordinates: new Coordinates({ x: 0, y: 0 }),
+    } as DragAndDropData),
+  );
+
+  act(() =>
+    mockController.acquire({
+      droppableId: getPlaceholderId(0, 0),
+      draggableItem,
+      renderAcquiredItem: () => <div data-testid="acquired-item"></div>,
+    }),
+  );
+
+  expect(screen.queryByTestId("acquired-item")).toBeInTheDOM();
 });
 
 test("ignores acquire for a droppable that belongs to another board", () => {
@@ -136,24 +162,8 @@ describe("start event ownership filtering", () => {
       } as DragAndDropData),
     );
 
-    // The board did not react — no placeholder shows hover state.
+    // The board did not react: no placeholder shows hover state.
     expect(document.querySelectorAll(`.${boardStyles["placeholder--hover"]}`).length).toBe(0);
-  });
-
-  test("does not filter insert events even for foreign items", () => {
-    render(<Board {...defaultProps} />);
-    const paletteItem = { id: "palette-item", data: { title: "From palette" }, definition: {} };
-
-    // Insert operations from a palette can target any board, so they must not be filtered.
-    act(() =>
-      mockController.start({
-        interactionType: "keyboard",
-        operation: "insert",
-        draggableItem: paletteItem,
-        collisionRect: zeroRect,
-        coordinates: new Coordinates({ x: 0, y: 0 }),
-      } as DragAndDropData),
-    );
   });
 });
 
@@ -204,10 +214,94 @@ describe("keyboard boundary transfer for acquired items", () => {
 
     acquiredItemDragHandle().keydown(KeyCode.left);
 
-    // The board transferred the item: acquire fired for the foreign droppable and this board's
-    // transition was cleared silently, so the acquired item is no longer rendered here.
+    // The board transferred the item: acquire fired for the foreign droppable and the acquired state
+    // was cleared silently, so the item is no longer rendered here.
     expect(mockBoardTransfer.acquire).toHaveBeenCalledWith("awsui-placeholder-other-board-0-0", expect.any(Function));
     expect(createWrapper().findBoard()!.findItemById("test")).toBeNull();
+  });
+
+  test("transfers past the logical start boundary with ArrowRight in RTL", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(
+      <div style={{ direction: "rtl" }}>
+        <Board {...defaultProps} />
+      </div>,
+    );
+    startInsertAndAcquire();
+
+    const acquiredItem = createWrapper().findBoard()!.findItemById("test")!.getElement();
+    vi.spyOn(acquiredItem, "getBoundingClientRect").mockReturnValue({
+      left: 100,
+      right: 200,
+      top: 0,
+      bottom: 100,
+      width: 100,
+      height: 100,
+    } as DOMRect);
+
+    // In RTL the logical start edge is physically on the right. The target placeholder is therefore
+    // to the right of the acquired item, while ArrowRight decrements its logical x coordinate.
+    const foreignElement = document.createElement("div");
+    foreignElement.style.direction = "rtl";
+    vi.spyOn(foreignElement, "getBoundingClientRect").mockReturnValue({
+      left: 200,
+      right: 300,
+      top: 0,
+      bottom: 100,
+      width: 100,
+      height: 100,
+    } as DOMRect);
+    mockBoardTransfer.getDroppables.mockReturnValueOnce([
+      ["awsui-placeholder-other-board-0-0", { element: foreignElement, context: {} }],
+    ] as ReturnType<typeof mockBoardTransfer.getDroppables>);
+
+    acquiredItemDragHandle().keydown(KeyCode.right);
+
+    expect(mockBoardTransfer.acquire).toHaveBeenCalledWith("awsui-placeholder-other-board-0-0", expect.any(Function));
+  });
+
+  test("preserves the item's row when transferring across a horizontal board boundary", () => {
+    mockBoardTransfer.acquire.mockClear();
+    render(<Board {...defaultProps} />);
+    startInsertAndAcquire();
+
+    const acquiredItem = createWrapper().findBoard()!.findItemById("test")!.getElement();
+    vi.spyOn(acquiredItem, "getBoundingClientRect").mockReturnValue({
+      left: 100,
+      right: 200,
+      top: 100,
+      bottom: 200,
+      width: 100,
+      height: 100,
+    } as DOMRect);
+
+    const rowZeroElement = document.createElement("div");
+    vi.spyOn(rowZeroElement, "getBoundingClientRect").mockReturnValue({
+      left: -100,
+      right: 0,
+      top: 0,
+      bottom: 100,
+      width: 100,
+      height: 100,
+    } as DOMRect);
+    const alignedRowElement = document.createElement("div");
+    vi.spyOn(alignedRowElement, "getBoundingClientRect").mockReturnValue({
+      left: -100,
+      right: 0,
+      top: 100,
+      bottom: 200,
+      width: 100,
+      height: 100,
+    } as DOMRect);
+
+    mockBoardTransfer.getDroppables.mockReturnValueOnce([
+      ["awsui-placeholder-other-board-0-0", { element: rowZeroElement, context: {} }],
+      ["awsui-placeholder-other-board-1-0", { element: alignedRowElement, context: {} }],
+    ] as ReturnType<typeof mockBoardTransfer.getDroppables>);
+
+    acquiredItemDragHandle().keydown(KeyCode.left);
+
+    expect(mockBoardTransfer.acquire).toHaveBeenCalledWith("awsui-placeholder-other-board-1-0", expect.any(Function));
   });
 
   test("re-acquires an item that was previously transferred out (transfer back)", () => {
@@ -215,7 +309,8 @@ describe("keyboard boundary transfer for acquired items", () => {
     render(<Board {...defaultProps} />);
     startInsertAndAcquire();
 
-    // Transfer the item out to a neighboring board — this clears THIS board's transition.
+    // Transfer the item out to a neighboring board. The board keeps its insert transition but clears
+    // the acquired state, allowing the same transition to receive the item again.
     const foreignElement = document.createElement("div");
     mockBoardTransfer.getDroppables.mockReturnValueOnce([
       ["awsui-placeholder-other-board-0-0", { element: foreignElement, context: {} }],
@@ -264,9 +359,10 @@ describe("keyboard boundary transfer for acquired items", () => {
     render(<Board {...defaultProps} />);
     startInsertAndAcquire();
 
-    // The board reserves a limited number of extra rows below existing content. Pressing down
-    // repeatedly must eventually hit the boundary (no transfer target, so item stays put). This
-    // prevents unbounded grid growth that caused infinite scrolling.
+    // The downward boundary is computed from layout data (maxRows), not DOM geometry, so it is
+    // exercisable in jsdom. The board reserves a limited number of extra rows below existing content;
+    // pressing down repeatedly must eventually hit the boundary (no transfer target, so the item
+    // stays put). This prevents the unbounded grid growth that caused infinite scrolling.
     for (let i = 0; i < 20; i++) {
       acquiredItemDragHandle().keydown(KeyCode.down);
     }
@@ -276,11 +372,14 @@ describe("keyboard boundary transfer for acquired items", () => {
   });
 
   test("arrow keys on a drag handle without an active transition are ignored", () => {
-    render(<Board {...defaultProps} />);
+    const onItemsChange = vi.fn();
+    render(<Board {...defaultProps} onItemsChange={onItemsChange} />);
 
-    // No transition was started: onItemMove must return early without dispatching anything.
+    // No transition was started, so onItemMove returns early: the arrow key must not move the item.
     const dragHandle = createWrapper().findBoard()!.findItemById("1")!.findDragHandle();
-    expect(() => dragHandle.keydown(KeyCode.down)).not.toThrow();
+    dragHandle.keydown(KeyCode.down);
+
+    expect(onItemsChange).not.toHaveBeenCalled();
   });
 });
 
@@ -300,7 +399,7 @@ describe("pointer collision scoping", () => {
   const draggableItem = { id: "1", data: { title: "Item 1" }, definition: {} };
   const zeroRect = { top: 0, bottom: 0, left: 0, right: 0 };
 
-  function startReorder(collisionIds: string[]) {
+  function startReorder(collisionIds: ItemId[]) {
     act(() =>
       mockController.start({
         interactionType: "pointer",
@@ -315,7 +414,7 @@ describe("pointer collision scoping", () => {
     );
   }
 
-  function updateReorder(collisionIds: string[]) {
+  function updateReorder(collisionIds: ItemId[]) {
     act(() =>
       mockController.update({
         interactionType: "pointer",

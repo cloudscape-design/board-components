@@ -19,27 +19,16 @@ export function getLayoutRows<D>(transition: Transition<D>) {
 
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
   const itemHeight = layoutItem?.height ?? getDefaultRowSpan(transition.draggableItem);
+
   // Add extra row for resize when already at the bottom.
   if (transition.operation === "resize") {
     return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
   }
-  // An insert is broadcast to every board sharing the controller. A keyboard insert must NOT make
-  // every board reserve landing rows up front: that shifts all boards at once and scrolls the
-  // focused palette handle out of view So a keyboard board reserves rows
-  // only once involved — it has acquired the item, or it is empty and would otherwise render no
-  // placeholder to navigate onto. Pointer inserts keep the pre-reservation: it is a useful drop-zone
-  // affordance and pointer moves don't shift focus.
-  else if (transition.operation === "insert") {
-    const isParticipating = !!transition.acquiredItem || transition.itemsLayout.rows === 0;
-    if (transition.interactionType === "keyboard" && !isParticipating) {
-      return layout.rows;
-    }
-    return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
-  }
-  // Add extra row(s) for reorder based on item's height.
-  else {
-    return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
-  }
+
+  // Reserve extra row(s) for the item's height. For an insert this happens on every board as soon as
+  // the drag starts (the operation is broadcast to all boards sharing the controller), so each board
+  // shows landing rows as a drop-zone affordance — identically for pointer and keyboard interactions.
+  return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
 }
 
 export function getLayoutPlaceholders<D>(transition: Transition<D>) {

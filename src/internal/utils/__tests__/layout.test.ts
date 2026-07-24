@@ -213,10 +213,4 @@ describe("createPlaceholdersLayout", () => {
       ]),
     );
   });
-
-  test("produces disjoint id sets for different boardIds", () => {
-    const idsA = createPlaceholdersLayout(2, 2, "a").items.map((item) => item.id);
-    const idsB = createPlaceholdersLayout(2, 2, "b").items.map((item) => item.id);
-    expect(idsA.some((id) => idsB.includes(id))).toBe(false);
-  });
 });

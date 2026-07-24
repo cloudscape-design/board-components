@@ -27,6 +27,17 @@ class MultiBoardPageObject extends DndPageObject {
       return el ? el.getBoundingClientRect().height : 0;
     }, selector);
   }
+
+  getItemLeft(boardTestId: string, itemId: string) {
+    return this.browser.execute(
+      (boardTestId, itemId) => {
+        const item = document.querySelector(`[data-testid="${boardTestId}"] [data-item-id="${itemId}"]`);
+        return item?.getBoundingClientRect().left ?? null;
+      },
+      boardTestId,
+      itemId,
+    );
+  }
 }
 
 function itemIds(page: MultiBoardPageObject, boardTestId: string) {
@@ -87,79 +98,185 @@ test(
 );
 
 test(
-  "keyboard palette insert does not expand non-target boards",
+  "keyboard palette insert expands all boards on start (matching pointer)",
   setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
-    // Measure Board A's height before and after starting a keyboard insert from the palette.
+    // A keyboard insert reserves landing rows on every board (a drop-zone affordance), identically
+    // to a pointer insert. Measure a non-target board's height before and during the insert.
     const boardAHeight = () => page.getElementHeight('[data-testid="board-a"]');
 
     const before = await boardAHeight();
 
-    // Start a keyboard insert from the palette and acquire into Board B (the nearest above).
+    // Start a keyboard insert from the palette (do not acquire into any board yet).
     await page.focus(palette.findItemById("I").findDragHandle().toSelector());
     await page.keys(["Enter"]);
-    await page.keys(["ArrowUp"]);
 
-    // Board A (not the target) must not have grown.
-    const after = await boardAHeight();
-    expect(after).toBe(before);
+    // Board A grows even though the item has not been acquired into it: landing rows are reserved.
+    const during = await boardAHeight();
+    expect(during).toBeGreaterThan(before);
 
     await page.keys(["Escape"]);
   }),
 );
 
 test(
-  "keyboard palette insert can transfer through boards via ArrowUp",
+  "keyboard palette insert acquires into the nearest board via ArrowLeft",
   setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
-    // Palette item I is below Board B. Start a keyboard insert.
+    // The palette sits to the right of the stacked boards. Start a keyboard insert.
     await page.focus(palette.findItemById("I").findDragHandle().toSelector());
     await page.keys(["Enter"]); // start insert transition
 
-    // First ArrowUp acquires item I into Board B (the nearest board above the palette).
-    await page.keys(["ArrowUp"]);
-    await expect(itemIds(page, "board-b")).resolves.toContain("I");
-
-    // Move item I to the top of Board B (row 0). Board B has 2 rows (items are 1×2 each in a 2-col grid).
-    // The item starts at the bottom; move it to the top.
-    await page.keys(["ArrowUp"]);
-    await page.keys(["ArrowUp"]);
-    await page.keys(["ArrowUp"]);
-
-    // One more ArrowUp at the boundary of Board B should transfer item I into Board A.
-    await page.keys(["ArrowUp"]);
-
-    // Item I is now in Board A (and no longer in Board B).
-    await expect(itemIds(page, "board-a")).resolves.toContain("I");
-
-    // Submit the insert.
-    await page.keys(["Enter"]);
-
-    // After submission, Board A has item I, Board B does not.
+    // ArrowLeft acquires item I into Board A, the nearest board to the left of the palette.
+    await page.keys(["ArrowLeft"]);
     await expect(itemIds(page, "board-a")).resolves.toContain("I");
     await expect(itemIds(page, "board-b")).resolves.not.toContain("I");
+
+    await page.keys(["Escape"]);
   }),
 );
 
 test(
-  "keyboard insert transfers via ArrowLeft at column boundary",
+  "keyboard insert transfers between boards across the row boundary",
   setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
-    // Start a keyboard insert from the palette and acquire into Board B.
+    // Acquire item I into Board A (the nearest board left of the palette).
     await page.focus(palette.findItemById("I").findDragHandle().toSelector());
     await page.keys(["Enter"]);
-    await page.keys(["ArrowUp"]); // acquire into Board B
+    await page.keys(["ArrowLeft"]);
+    await expect(itemIds(page, "board-a")).resolves.toContain("I");
+    await page.pause(150);
+    const sourceColumnLeft = await page.getItemLeft("board-a", "I");
+
+    // Walk the acquired item down through Board A; past its bottom boundary it transfers into Board B
+    // (rendered below A). Board A is 2 rows and the landing area adds room, so several presses are
+    // needed to cross.
+    for (let i = 0; i < 5; i++) {
+      await page.keys(["ArrowDown"]);
+    }
+
+    // Item I is now in Board B and no longer in Board A.
+    await expect(itemIds(page, "board-b")).resolves.toContain("I");
+    await expect(itemIds(page, "board-a")).resolves.not.toContain("I");
+    await page.pause(150);
+    expect(await page.getItemLeft("board-b", "I")).toBeCloseTo(sourceColumnLeft!, 0);
+
+    // Submit the insert: Board B keeps item I, Board A does not.
+    await page.keys(["Enter"]);
+    await expect(itemIds(page, "board-b")).resolves.toContain("I");
+    await expect(itemIds(page, "board-a")).resolves.not.toContain("I");
+  }),
+);
+
+test(
+  "upward transfer does not add landing rows to the target board",
+  setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
+    const boardAHeight = () => page.getElementHeight('[data-testid="board-a"]');
+
+    await page.focus(palette.findItemById("I").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
+    const reservedHeight = await boardAHeight();
+
+    await page.keys(["ArrowLeft"]);
+    for (let i = 0; i < 5; i++) {
+      await page.keys(["ArrowDown"]);
+    }
+    await expect(itemIds(page, "board-b")).resolves.toContain("I");
+    expect(await boardAHeight()).toBe(reservedHeight);
+
+    // Board A is above Board B. Moving up selects a placeholder at Board A's bottom edge, but the
+    // acquired item must fit inside the rows Board A already reserved when the insertion started.
+    await page.keys(["ArrowUp"]);
+
+    await expect(itemIds(page, "board-a")).resolves.toContain("I");
+    expect(await boardAHeight()).toBe(reservedHeight);
+
+    await page.keys(["Escape"]);
+  }),
+);
+
+test(
+  "Tab commits a transferred keyboard insert and clears non-target board state",
+  setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
+    const boardAHeight = () => page.getElementHeight('[data-testid="board-a"]');
+    const boardCHeight = () => page.getElementHeight('[data-testid="board-c"]');
+    const restingBoardAHeight = await boardAHeight();
+    const restingBoardCHeight = await boardCHeight();
+
+    await page.focus(palette.findItemById("I").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
+    await page.keys(["ArrowLeft"]);
+    for (let i = 0; i < 5; i++) {
+      await page.keys(["ArrowDown"]);
+    }
 
     await expect(itemIds(page, "board-b")).resolves.toContain("I");
+    expect(await boardAHeight()).toBeGreaterThan(restingBoardAHeight);
+    expect(await boardCHeight()).toBeGreaterThan(restingBoardCHeight);
 
-    // Item I acquired at column 0. Pressing ArrowLeft at x=0 → boundary → attempts transfer.
+    // Blurring the acquired item must commit on its current board. The source and untouched empty
+    // board must also leave their shared insert transition and collapse their landing rows.
+    await page.keys(["Tab"]);
+
+    await expect(itemIds(page, "board-b")).resolves.toContain("I");
+    await expect(itemIds(page, "palette")).resolves.not.toContain("I");
+    await page.waitForAssertion(async () => {
+      expect(await boardAHeight()).toBe(restingBoardAHeight);
+      expect(await boardCHeight()).toBe(restingBoardCHeight);
+    });
+  }),
+);
+
+test(
+  "keyboard insert transfers through populated boards into an empty board",
+  setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
+    await expect(itemIds(page, "board-c")).resolves.toEqual([]);
+
+    await page.focus(palette.findItemById("I").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
     await page.keys(["ArrowLeft"]);
+    await expect(itemIds(page, "board-a")).resolves.toContain("I");
+    await page.pause(150);
+    const sourceColumnLeft = await page.getItemLeft("board-a", "I");
 
-    // The item should have transferred to Board A (the board above/left in the DOM).
-    // If no board was found in that direction, it stays in Board B (which is also acceptable —
-    // the key thing is it doesn't crash or silently swallow the key).
-    const inA = await itemIds(page, "board-a").then((ids) => ids.includes("I"));
-    const inB = await itemIds(page, "board-b").then((ids) => ids.includes("I"));
+    let visitedBoardB = false;
+    let reachedBoardC = false;
+    for (let i = 0; i < 12 && !reachedBoardC; i++) {
+      await page.keys(["ArrowDown"]);
+      visitedBoardB ||= (await itemIds(page, "board-b")).includes("I");
+      reachedBoardC = (await itemIds(page, "board-c")).includes("I");
+    }
 
-    // It should be in exactly one board.
-    expect(inA || inB).toBe(true);
+    expect(visitedBoardB).toBe(true);
+    expect(reachedBoardC).toBe(true);
+    await expect(itemIds(page, "board-a")).resolves.not.toContain("I");
+    await expect(itemIds(page, "board-b")).resolves.not.toContain("I");
+    await page.pause(150);
+    expect(await page.getItemLeft("board-c", "I")).toBeCloseTo(sourceColumnLeft!, 0);
+
+    await page.keys(["Enter"]);
+    await expect(itemIds(page, "board-c")).resolves.toEqual(["I"]);
+  }),
+);
+
+test(
+  "a board keeps its landing rows after the item is transferred out of it",
+  setupTest("/index.html#/dnd/multiple-boards-test", MultiBoardPageObject, async (page) => {
+    const boardAHeight = () => page.getElementHeight('[data-testid="board-a"]');
+
+    // Start a keyboard insert; every board grows to show landing rows.
+    await page.focus(palette.findItemById("I").findDragHandle().toSelector());
+    await page.keys(["Enter"]);
+    const grown = await boardAHeight();
+
+    // Acquire into Board A, then transfer the item down into Board B.
+    await page.keys(["ArrowLeft"]);
+    await expect(itemIds(page, "board-a")).resolves.toContain("I");
+    for (let i = 0; i < 5; i++) {
+      await page.keys(["ArrowDown"]);
+    }
+    await expect(itemIds(page, "board-b")).resolves.toContain("I");
+
+    // Board A handed the item off but the insert is still in progress, so it must keep its landing
+    // rows (same as a pointer insert) rather than collapsing back to its resting height.
+    expect(await boardAHeight()).toBe(grown);
 
     await page.keys(["Escape"]);
   }),

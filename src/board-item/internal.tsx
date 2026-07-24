@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useId, useState } from "react";
+import { useId } from "react";
 import clsx from "clsx";
 
 import Container from "@cloudscape-design/components/container";
@@ -8,7 +8,6 @@ import { InternalDragHandleProps } from "@cloudscape-design/components/internal/
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
-import { useDragSubscription } from "../internal/dnd-controller/controller";
 import DragHandle from "../internal/drag-handle";
 import { Direction } from "../internal/interfaces";
 import { useItemContext } from "../internal/item-container";
@@ -39,12 +38,7 @@ export function InternalBoardItem({
   __internalRootRef,
   ...rest
 }: BoardItemProps & InternalBaseComponentProps) {
-  const { dragHandle, resizeHandle, isActive, isHidden } = useItemContext();
-
-  const [isDragActive, setIsDragActive] = useState(false);
-  useDragSubscription("start", () => setIsDragActive(true));
-  useDragSubscription("submit", () => setIsDragActive(false));
-  useDragSubscription("discard", () => setIsDragActive(false));
+  const { dragHandle, resizeHandle, isActive, isDragActive, isHidden } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();
   const dragHandleAriaDescribedBy = useId();
