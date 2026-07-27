@@ -166,7 +166,9 @@ class DragAndDropController extends EventEmitter<DragAndDropEvents> {
   }
 }
 
-// Controller is a singleton and is shared between all d&d elements.
+// Controller is a singleton and is shared between all d&d elements. Multiple boards on the same
+// page therefore share this controller; isolation between them is achieved by scoping placeholder
+// droppable IDs per board and filtering events/collisions to the owning board (see InternalBoard).
 const controller = new DragAndDropController();
 
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
@@ -194,6 +196,21 @@ export function useDraggable({
     discardTransition() {
       controller.discard();
     },
+    acquire(droppableId: ItemId, renderAcquiredItem: () => ReactNode) {
+      controller.acquire(droppableId, renderAcquiredItem);
+    },
+    getDroppables() {
+      return controller.getDroppables();
+    },
+  };
+}
+
+/**
+ * Provides board-level access to acquire and droppable lookup. Used by InternalBoard to orchestrate
+ * cross-board keyboard transfers (moving an acquired item from one board to an adjacent one).
+ */
+export function useBoardTransfer() {
+  return {
     acquire(droppableId: ItemId, renderAcquiredItem: () => ReactNode) {
       controller.acquire(droppableId, renderAcquiredItem);
     },

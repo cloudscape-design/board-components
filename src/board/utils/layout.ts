@@ -19,20 +19,22 @@ export function getLayoutRows<D>(transition: Transition<D>) {
 
   const layoutItem = layout.items.find((it) => it.id === transition.draggableItem.id);
   const itemHeight = layoutItem?.height ?? getDefaultRowSpan(transition.draggableItem);
+
   // Add extra row for resize when already at the bottom.
   if (transition.operation === "resize") {
     return Math.max(layout.rows, layoutItem ? layoutItem.y + layoutItem.height + 1 : 0);
   }
-  // Add extra row(s) for reorder/insert based on item's height.
-  else {
-    return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
-  }
+
+  // Reserve extra row(s) for the item's height. For an insert this happens on every board as soon as
+  // the drag starts (the operation is broadcast to all boards sharing the controller), so each board
+  // shows landing rows as a drop-zone affordance — identically for pointer and keyboard interactions.
+  return Math.max(layout.rows, transition.itemsLayout.rows + itemHeight);
 }
 
 export function getLayoutPlaceholders<D>(transition: Transition<D>) {
   const rows = getLayoutRows(transition);
   const columns = getLayoutColumns(transition);
-  return createPlaceholdersLayout(rows, columns);
+  return createPlaceholdersLayout(rows, columns, transition.boardId);
 }
 
 /**

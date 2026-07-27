@@ -28,6 +28,7 @@ export type Action<D> =
   | InitRemoveAction<D>
   | SubmitAction
   | DiscardAction
+  | TransferOutAction
   | UpdateWithPointerAction
   | UpdateWithKeyboardAction
   | AcquireItemAction;
@@ -36,6 +37,7 @@ interface InitAction<D> {
   type: "init";
   operation: Operation;
   interactionType: InteractionType;
+  boardId: string;
   itemsLayout: GridLayout;
   draggableItem: BoardItemDefinitionBase<D>;
   draggableRect: Rect;
@@ -52,6 +54,9 @@ interface SubmitAction {
 }
 interface DiscardAction {
   type: "discard";
+}
+interface TransferOutAction {
+  type: "transfer-out";
 }
 interface UpdateWithPointerAction {
   type: "update-with-pointer";
@@ -93,6 +98,8 @@ function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
         return submitTransition(state);
       case "discard":
         return discardTransition(state);
+      case "transfer-out":
+        return transferOutTransition(state);
       case "update-with-pointer":
         return updateTransitionWithPointerEvent(state, action);
       case "update-with-keyboard":
@@ -106,6 +113,7 @@ function createTransitionReducer<D>({ isRtl }: { isRtl: () => boolean }) {
 function initTransition<D>({
   operation,
   interactionType,
+  boardId,
   itemsLayout,
   draggableItem,
   draggableRect,
@@ -114,6 +122,7 @@ function initTransition<D>({
   const transition: Transition<D> = {
     operation,
     interactionType,
+    boardId,
     itemsLayout,
     layoutEngine: new LayoutEngine(itemsLayout),
     insertionDirection: null,
@@ -133,7 +142,10 @@ function initTransition<D>({
   if (interactionType === "pointer" || operation === "insert") {
     const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
     const appendPath = operation === "resize" ? appendResizePath : appendMovePath;
-    path = layoutItem ? appendPath([], collisionRect) : [];
+    // An insert start is broadcast to every board so each can reserve landing rows. The palette item
+    // is not in any board layout yet, so its path remains empty until that board receives a pointer
+    // update or acquires the item.
+    path = layoutItem && collisionRect ? appendPath([], collisionRect) : [];
   } else if (layoutItem) {
     path =
       operation === "resize"
@@ -184,6 +196,33 @@ function submitTransition<D>(state: TransitionState<D>): TransitionState<D> {
         removeTransition: null,
         announcement: itemBelongsToBoard ? { type: "dnd-discarded", item, operation } : null,
       };
+}
+
+function transferOutTransition<D>(state: TransitionState<D>): TransitionState<D> {
+  const { transition } = state;
+
+  if (!transition) {
+    return { transition: null, removeTransition: null, announcement: null };
+  }
+
+  // The acquired item is being transferred to an adjacent board via keyboard navigation. Drop the
+  // acquired state but keep the insert transition alive so this board still reserves landing rows,
+  // matching a pointer insert, where every board shows drop zones for the whole drag (not just the
+  // one currently holding the item). This runs silently: no "dnd-discarded" announcement, because
+  // the drag continues on the other board. If the item is transferred back, acquire reuses this
+  // transition (see acquireTransitionItem).
+  return {
+    transition: {
+      ...transition,
+      acquiredItem: null,
+      acquiredItemElement: undefined,
+      collisionIds: new Set(),
+      layoutShift: null,
+      path: [],
+    },
+    removeTransition: null,
+    announcement: null,
+  };
 }
 
 function discardTransition<D>(state: TransitionState<D>): TransitionState<D> {
@@ -241,6 +280,24 @@ function updateTransitionWithPointerEvent<D>(
 
   const placeholdersLayout = getLayoutPlaceholders(transition);
   const collisionRect = getHoveredRect(collisionIds, placeholdersLayout.items);
+
+  // The collisions do not map onto this board's placeholder grid (e.g. they belong to another board
+  // sharing the controller, or are stale). Treat this like being out of boundaries instead of
+  // extending the path with an out-of-range position.
+  if (!collisionRect) {
+    return {
+      transition: {
+        ...transition,
+        draggableRect,
+        collisionIds: new Set(),
+        layoutShift: null,
+        insertionDirection: null,
+      },
+      removeTransition: null,
+      announcement: null,
+    };
+  }
+
   const appendPath = transition.operation === "resize" ? appendResizePath : appendMovePath;
   const path = appendPath(transition.path, collisionRect);
 
@@ -329,6 +386,7 @@ function acquireTransitionItem<D>(
   }
 
   const { columns } = transition.itemsLayout;
+  const rows = getLayoutRows(transition);
 
   const layoutRect = getLogicalBoundingClientRect(layoutElement);
   const itemRect = transition.draggableRect;
@@ -336,9 +394,13 @@ function acquireTransitionItem<D>(
   const offset = new Coordinates({ x: coordinatesX, y: itemRect.top - layoutRect.insetBlockStart });
   const insertionDirection = getInsertionDirection(offset);
 
-  // Update original insertion position if the item can't fit into the layout by width.
+  // Keep the acquired item inside the board's reserved landing area.
   const width = getDefaultColumnSpan(transition.draggableItem, columns);
-  position = new Position({ x: Math.min(columns - width, position.x), y: position.y });
+  const height = getDefaultRowSpan(transition.draggableItem);
+  position = new Position({
+    x: Math.min(columns - width, position.x),
+    y: Math.min(rows - height, position.y),
+  });
 
   const path = [...transition.path, position];
 
