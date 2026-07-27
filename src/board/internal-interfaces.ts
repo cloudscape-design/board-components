@@ -12,6 +12,7 @@ import { BoardProps } from "./interfaces";
 export interface Transition<D> {
   operation: Operation;
   interactionType: InteractionType;
+  boardId: string;
   itemsLayout: GridLayout;
   layoutEngine: LayoutEngine;
   insertionDirection: null | Direction;

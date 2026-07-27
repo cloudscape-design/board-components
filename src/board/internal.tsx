@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useId, useRef } from "react";
 import { usePrevious } from "@dnd-kit/utilities";
 import clsx from "clsx";
 
@@ -10,11 +10,12 @@ import { getDataAttributes } from "../internal/base-component/get-data-attribute
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { useContainerColumns } from "../internal/breakpoints";
 import { TRANSITION_DURATION_MS } from "../internal/constants";
-import { useDragSubscription } from "../internal/dnd-controller/controller";
+import { useBoardTransfer, useDragSubscription } from "../internal/dnd-controller/controller";
 import { useGlobalDragStateStyles } from "../internal/global-drag-state-styles";
 import Grid from "../internal/grid";
 import { BoardItemDefinition, BoardItemDefinitionBase, Direction, ItemId, Rect } from "../internal/interfaces";
 import { ItemContainer, ItemContainerRef } from "../internal/item-container";
+import { getNextDroppable } from "../internal/item-container/get-next-droppable";
 import LiveRegion from "../internal/live-region";
 import {
   createPlaceholdersLayout,
@@ -49,10 +50,15 @@ export function InternalBoard<D>({
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
+  // Scopes this board's placeholder droppable IDs so that multiple boards sharing a single d&d
+  // controller do not register colliding droppables. See createPlaceholdersLayout.
+  const boardId = useId();
+
   const isRtl = () => getIsRtl(containerAccessRef.current);
 
   useGlobalDragStateStyles();
 
+  const boardTransfer = useBoardTransfer();
   const autoScrollHandlers = useAutoScroll();
 
   const [transitionState, dispatch] = useTransition<D>({ isRtl });
@@ -85,7 +91,9 @@ export function InternalBoard<D>({
   useEffect(() => {
     const focusTarget = focusNextRenderIdRef.current;
     if (focusTarget) {
-      itemContainerRef.current[focusTarget].focusDragHandle();
+      // The ref entry can be missing when the acquired item was transferred to another board before
+      // this effect ran (its container unmounts here), so there is nothing to focus on this board.
+      itemContainerRef.current[focusTarget]?.focusDragHandle();
     }
     focusNextRenderIdRef.current = null;
   });
@@ -125,7 +133,11 @@ export function InternalBoard<D>({
   }, [acquiredItemId, previousAcquiredItemElement, acquiredItemElement]);
 
   const rows = selectTransitionRows(transitionState) || itemsLayout.rows;
-  const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns);
+  const placeholdersLayout = createPlaceholdersLayout(rows, itemsLayout.columns, boardId);
+
+  const ownPlaceholderIds = new Set(placeholdersLayout.items.map((placeholder) => placeholder.id));
+  const filterOwnCollisions = (collisionIds: readonly ItemId[]) =>
+    collisionIds.filter((id) => ownPlaceholderIds.has(id));
 
   function isElementOverBoard(rect: Rect) {
     const board = containerAccessRef.current!;
@@ -142,17 +154,27 @@ export function InternalBoard<D>({
   }
 
   useDragSubscription("start", ({ operation, interactionType, draggableItem, collisionRect, collisionIds }) => {
+    // The board only reacts to drag operations on its own items or to items being inserted from a
+    // palette (an insert can target any board, so the drop target is resolved via collisions /
+    // placeholder ownership instead of here).
+    const ownsDraggable = itemsLayout.items.some((it) => it.id === draggableItem.id);
+    if (operation !== "insert" && !ownsDraggable) {
+      return;
+    }
+
     dispatch({
       type: "init",
       operation,
       interactionType,
+      boardId,
       itemsLayout,
       // TODO: resolve any
       // The code only works assuming the board can take any draggable.
       // If draggables can be of different types a check of some sort is required here.
       draggableItem: draggableItem as BoardItemDefinitionBase<any>,
       draggableRect: collisionRect,
-      collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
+      collisionIds:
+        interactionType === "pointer" && isElementOverBoard(collisionRect) ? filterOwnCollisions(collisionIds) : [],
     });
 
     autoScrollHandlers.run();
@@ -161,7 +183,8 @@ export function InternalBoard<D>({
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
     dispatch({
       type: "update-with-pointer",
-      collisionIds: interactionType === "pointer" && isElementOverBoard(collisionRect) ? collisionIds : [],
+      collisionIds:
+        interactionType === "pointer" && isElementOverBoard(collisionRect) ? filterOwnCollisions(collisionIds) : [],
       positionOffset,
       draggableRect: collisionRect,
     });
@@ -218,11 +241,79 @@ export function InternalBoard<D>({
     dispatch({ type: "init-remove", items, itemsLayout, removedItem });
   };
 
-  function onItemMove(direction: Direction) {
-    if (transition) {
-      dispatch({ type: "update-with-keyboard", direction });
-      autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+  // Hands an acquired palette item off to a neighboring board when it is moved past this board's
+  // grid edge. Returns null when the move is not a cross-board case (caller does a normal in-board
+  // move), true when the item was transferred, or false when it is at the edge but there is no
+  // neighboring board to receive it (so it stays put).
+  function tryTransferAcrossBoundary(direction: Direction): boolean | null {
+    if (!transition || transition.operation !== "insert" || !transition.acquiredItem) {
+      return null;
     }
+    const lastPosition = transition.path[transition.path.length - 1];
+    if (!lastPosition) {
+      return null;
+    }
+
+    const layout = transition.layoutShift?.next ?? transition.itemsLayout;
+    // This only runs for an insert (guarded above); an item cannot be inserted and resized at once, so
+    // its size is always the default span rather than a resized layout size.
+    const width = getDefaultColumnSpan(transition.draggableItem, layout.columns);
+    const height = getDefaultRowSpan(transition.draggableItem);
+
+    // The path holds logical grid coordinates (x increases in reading order), so a physical arrow key
+    // maps to the opposite column delta under RTL; mirror the swap done in updateTransitionWithKeyboardEvent.
+    const gridDirection =
+      isRtl() && direction === "left" ? "right" : isRtl() && direction === "right" ? "left" : direction;
+    const nextX = lastPosition.x + (gridDirection === "left" ? -1 : gridDirection === "right" ? 1 : 0);
+    const nextY = lastPosition.y + (gridDirection === "up" ? -1 : gridDirection === "down" ? 1 : 0);
+
+    // maxRows = existing content plus one item-height of landing space; moving past it would grow
+    // the grid unboundedly.
+    const maxRows = Math.max(layout.rows, transition.itemsLayout.rows + height);
+    if (!(nextX < 0 || nextY < 0 || nextX + width > layout.columns || nextY + height > maxRows)) {
+      return null;
+    }
+
+    const foreignDroppables = boardTransfer.getDroppables().filter(([id]) => !ownPlaceholderIds.has(id));
+    const acquiredItemContainer = itemContainerRef.current[transition.draggableItem.id]?.getElement();
+    if (!acquiredItemContainer) {
+      return false;
+    }
+
+    const nextDroppable = getNextDroppable({
+      // Measure from the acquired item rather than the whole board so the target cell stays aligned
+      // with the row or column the user was navigating along.
+      draggableElement: acquiredItemContainer,
+      droppables: foreignDroppables,
+      direction,
+      isRtl: isRtl(),
+    });
+    if (!nextDroppable) {
+      return false;
+    }
+
+    const itemElement = transition.acquiredItemElement;
+    dispatch({ type: "transfer-out" });
+    boardTransfer.acquire(nextDroppable, () => itemElement);
+    return true;
+  }
+
+  // Returns true only when the item was handed off to another board (its container unmounts here), so
+  // the caller can mute the unmount blur. In-board moves and edge no-ops return false so a subsequent
+  // blur (Tab / click outside) still commits the transition normally.
+  function onItemMove(direction: Direction): boolean {
+    if (!transition) {
+      return false;
+    }
+
+    const transferred = tryTransferAcrossBoundary(direction);
+    if (transferred !== null) {
+      return transferred;
+    }
+
+    dispatch({ type: "update-with-keyboard", direction });
+    autoScrollHandlers.scheduleActiveElementScrollIntoView(TRANSITION_DURATION_MS);
+    return false;
   }
 
   const announcement = transitionAnnouncement

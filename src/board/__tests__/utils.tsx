@@ -39,6 +39,8 @@ const i18nStrings: BoardProps.I18nStrings<ItemData> = {
 const itemI18nStrings = {
   dragHandleAriaLabel: "Drag handle",
   resizeHandleAriaLabel: "Resize handle",
+  dragHandleTooltipText: "Drag or select to move",
+  resizeHandleTooltipText: "Drag or select to resize",
 };
 
 export const defaultProps: BoardProps<{ title: string }> = {

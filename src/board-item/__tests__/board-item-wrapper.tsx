@@ -9,6 +9,7 @@ export function ItemContextWrapper({ children }: { children: ReactNode }) {
     <ItemContext.Provider
       value={{
         isActive: false,
+        isDragActive: false,
         isHidden: false,
         dragHandle: {
           ref: { current: null },

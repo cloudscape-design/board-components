@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { vi } from "vitest";
 
+import { ItemId } from "../../interfaces";
 import { AcquireData, DragAndDropData, DragAndDropEvents } from "../controller";
 import { EventEmitter } from "../event-emitter";
 
@@ -31,6 +32,8 @@ class MockController extends EventEmitter<DragAndDropEvents> {
 
 export const mockController = new MockController();
 
+export const mockDroppables = new Set<ItemId>();
+
 export function useDragSubscription<K extends keyof DragAndDropEvents>(event: K, handler: DragAndDropEvents[K]) {
   useEffect(() => mockController.on(event, handler), [event, handler]);
 }
@@ -47,4 +50,22 @@ export function useDraggable() {
   return mockDraggable;
 }
 
-export function useDroppable() {}
+// Shared instance so tests can assert on cross-board transfer calls (e.g. acquire on a foreign
+// droppable) regardless of how many times the hook re-runs across renders.
+export const mockBoardTransfer = {
+  acquire: vi.fn(),
+  getDroppables: vi.fn(() => [...mockDroppables].map((id) => [id, { element: document.body, context: {} }])),
+};
+
+export function useBoardTransfer() {
+  return mockBoardTransfer;
+}
+
+export function useDroppable({ itemId }: { itemId: ItemId }) {
+  useEffect(() => {
+    mockDroppables.add(itemId);
+    return () => {
+      mockDroppables.delete(itemId);
+    };
+  }, [itemId]);
+}

@@ -19,6 +19,7 @@ function createMockTransition(
     operation,
     acquiredItem: null,
     interactionType: "keyboard",
+    boardId: "test-board",
     itemsLayout,
     layoutEngine: new LayoutEngine(itemsLayout),
     insertionDirection: null,
@@ -112,5 +113,30 @@ describe("getLayoutRows", () => {
 
     const insertTransition = createMockTransition("insert", current, { current, next, moves: [], conflicts: [] });
     expect(getLayoutRows(insertTransition)).toBe(4);
+  });
+
+  describe("insert row reservation for multiple boards", () => {
+    const itemsLayout = fromMatrix([
+      ["A", "A"],
+      ["A", "A"],
+      ["B", "B"],
+    ]);
+
+    function createInsertTransition(interactionType: "pointer" | "keyboard", layout = itemsLayout) {
+      const shift: LayoutShift = { current: layout, next: layout, moves: [], conflicts: [] };
+      return { ...createMockTransition("insert", layout, shift), interactionType };
+    }
+
+    // Every board reserves landing rows the moment an insert starts, regardless of interaction type,
+    // so all boards show a drop-zone affordance. Item default row span is 2, so rows grow from 3 to 5.
+    test.each(["pointer", "keyboard"] as const)("a %s insert grows the board on start", (interactionType) => {
+      expect(getLayoutRows(createInsertTransition(interactionType))).toBe(5);
+    });
+
+    test.each(["pointer", "keyboard"] as const)("an empty board reserves %s landing rows", (interactionType) => {
+      const emptyLayout: GridLayout = { items: [], columns: 2, rows: 0 };
+      // Item default row span is 2, so an empty board exposes 0 + 2 = 2 rows to drop onto.
+      expect(getLayoutRows(createInsertTransition(interactionType, emptyLayout))).toBe(2);
+    });
   });
 });

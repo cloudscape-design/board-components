@@ -142,6 +142,36 @@ describe("keyboard interaction", () => {
   });
 });
 
+describe("acquired item blur after keyboard move", () => {
+  afterEach(vi.resetAllMocks);
+
+  // Renders an acquired item (a copy handed to a board during keyboard insert) and returns its blur
+  // target. onKeyMove returns `transferred` to emulate either a cross-board transfer (true) or an
+  // in-board move (false).
+  function renderAcquired(transferred: boolean) {
+    onKeyMoveMock.mockReturnValue(transferred);
+    const { getByTestId } = render(<ItemContainer {...defaultProps} acquired={true} inTransition={true} />);
+    const dragHandle = getByTestId("drag-handle");
+    fireEvent.keyDown(dragHandle, { key: "ArrowDown" });
+    return dragHandle;
+  }
+
+  test("commits the transition on blur after an in-board move", () => {
+    const dragHandle = renderAcquired(false);
+    fireEvent.blur(dragHandle);
+    // A legitimate blur (Tab / click outside) after an in-board move must submit the insertion.
+    expect(mockDraggable.submitTransition).toHaveBeenCalled();
+  });
+
+  test("does not commit on the unmount blur after a cross-board transfer", () => {
+    const dragHandle = renderAcquired(true);
+    fireEvent.blur(dragHandle);
+    // A cross-board transfer unmounts this container; its blur must be muted so it does not submit and
+    // clobber the target board's state.
+    expect(mockDraggable.submitTransition).not.toHaveBeenCalled();
+  });
+});
+
 describe("hook swap on pointer down", () => {
   afterEach(vi.resetAllMocks);
 
@@ -165,7 +195,7 @@ describe("hook swap on pointer down", () => {
 
     mockDraggable.discardTransition.mockClear();
 
-    // Now pointer-down on the drag handle — should discard the resize transition
+    // Pointer-down on the drag handle should discard the resize transition.
     fireEvent(getByTestId("drag-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(mockDraggable.discardTransition).toHaveBeenCalled();
   });
@@ -190,7 +220,7 @@ describe("hook swap on pointer down", () => {
 
     mockDraggable.discardTransition.mockClear();
 
-    // Now pointer-down on the resize handle — should discard the drag transition
+    // Pointer-down on the resize handle should discard the drag transition.
     fireEvent(getByTestId("resize-handle"), new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(mockDraggable.discardTransition).toHaveBeenCalled();
   });

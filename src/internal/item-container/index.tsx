@@ -49,15 +49,24 @@ import styles from "./styles.css.js";
 
 export interface ItemContainerRef {
   focusDragHandle(): void;
+  getElement(): HTMLElement | null;
 }
 
 export type HandleActiveState = null | "pointer" | "uap";
 
 interface ItemContextType {
   /**
-   * Flag indicating if a drag or resize interaction is currently active.
+   * Flag indicating if a drag or resize interaction is currently active on THIS item
+   * (it has a local transition or is the acquired item).
    */
   isActive: boolean;
+  /**
+   * Flag indicating if a drag or resize interaction is active anywhere on the page (any item, any
+   * board). Unlike `isActive` this is global: all items and boards share a single d&d controller, so
+   * a drag started on one item flips this on every item. Used to suppress drag/resize handle tooltips
+   * across the page while a drag is in progress.
+   */
+  isDragActive: boolean;
   /**
    * Flag indicating if the item is currently hidden.
    * (When a board item is moved from the palette to the board and the transition is not submitted)
@@ -143,7 +152,8 @@ export function useItemContext() {
  * `inTransition` - specifies if the item is currently being moved.
  * `transform` - specifies if the item's position needs to be altered.
  * `getItemSize` - item size getter that takes droppable context as argument.
- * `onKeyMove` - a callback that fires when arrow keys are pressed in drag- or resize handle.
+ * `onKeyMove` - a callback that fires when arrow keys are pressed in drag- or resize handle. Returns
+ * true only when the key handed the acquired item off to another board (so this container unmounts).
  */
 export interface ItemContainerProps {
   item: BoardItemDefinitionBase<unknown>;
@@ -160,7 +170,7 @@ export interface ItemContainerProps {
     maxHeight: number;
   };
 
-  onKeyMove?(direction: Direction): void;
+  onKeyMove?(direction: Direction): boolean;
 
   children: (hasDropTarget: boolean) => ReactNode;
   isRtl: () => boolean;
@@ -195,6 +205,10 @@ function ItemContainerComponent(
   const pointerBoundariesRef = useRef<null | Coordinates>(null);
   const [transition, setTransition] = useState<null | Transition>(null);
   const [isHidden, setIsHidden] = useState(false);
+  // Tracks whether a drag/resize is active anywhere on the page (the controller is a page-global
+  // singleton, so "start"/"submit"/"discard" fire on every item). Exposed via context so presentational
+  // items (e.g. BoardItem) can suppress their handle tooltips during any drag.
+  const [isDragActive, setIsDragActive] = useState(false);
   const muteEventsRef = useRef(false);
   const itemRef = useRef<HTMLDivElement>(null);
   // Keeps the starting position of active pointer-based d&d transition.
@@ -216,42 +230,50 @@ function ItemContainerComponent(
     coordinates,
     dropTarget,
   }: DragAndDropData) {
-    if (item.id === draggableItem.id) {
-      const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
-      const pointerOffset = pointerOffsetRef.current;
+    // Ignore events for other items.
+    if (item.id !== draggableItem.id) {
+      return;
+    }
 
-      if (operation === "resize") {
-        setTransition({
-          operation,
-          interactionType,
-          itemId: draggableItem.id,
-          sizeTransform: {
-            width: Math.max(getItemSize(null).minWidth, Math.min(getItemSize(null).maxWidth, width - pointerOffset.x)),
-            height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
-          },
-          positionTransform: null,
-        });
-      } else if (operation === "insert" || operation === "reorder") {
-        setTransition({
-          operation,
-          interactionType,
-          itemId: draggableItem.id,
-          sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
-          positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
-          hasDropTarget: !!dropTarget,
-        });
-      }
+    const [width, height] = [collisionRect.right - collisionRect.left, collisionRect.bottom - collisionRect.top];
+    const pointerOffset = pointerOffsetRef.current;
+
+    if (operation === "resize") {
+      setTransition({
+        operation,
+        interactionType,
+        itemId: draggableItem.id,
+        sizeTransform: {
+          width: Math.max(getItemSize(null).minWidth, Math.min(getItemSize(null).maxWidth, width - pointerOffset.x)),
+          height: Math.max(getItemSize(null).minHeight, height - pointerOffset.y),
+        },
+        positionTransform: null,
+      });
+    } else if (operation === "insert" || operation === "reorder") {
+      setTransition({
+        operation,
+        interactionType,
+        itemId: draggableItem.id,
+        sizeTransform: dropTarget ? getItemSize(dropTarget) : originalSizeRef.current,
+        positionTransform: { x: coordinates.x - pointerOffset.x, y: coordinates.y - pointerOffset.y },
+        hasDropTarget: !!dropTarget,
+      });
     }
   }
 
-  useDragSubscription("start", (detail) => updateTransition(detail));
+  useDragSubscription("start", (detail) => {
+    setIsDragActive(true);
+    updateTransition(detail);
+  });
   useDragSubscription("update", (detail) => updateTransition(detail));
   useDragSubscription("submit", () => {
+    setIsDragActive(false);
     setTransition(null);
     setIsHidden(false);
     muteEventsRef.current = false;
   });
   useDragSubscription("discard", () => {
+    setIsDragActive(false);
     setTransition(null);
     setIsHidden(false);
     muteEventsRef.current = false;
@@ -315,7 +337,13 @@ function ItemContainerComponent(
     if (canInsert) {
       handleInsert(direction);
     } else if (canNavigate) {
-      onKeyMove?.(direction);
+      const transferredToAnotherBoard = onKeyMove?.(direction);
+      // Only a cross-board transfer unmounts this container; mute events so the resulting unmount blur
+      // does not submit and clobber the target board's state. An in-board move must NOT mute, or a
+      // later legitimate blur (Tab / click outside) would be swallowed and never commit.
+      if (transferredToAnotherBoard && acquired) {
+        muteEventsRef.current = true;
+      }
     }
   }
 
@@ -351,12 +379,20 @@ function ItemContainerComponent(
   }
 
   function onBlur() {
-    // When drag- or resize handle on palette or board item loses focus the transition must be submitted with two exceptions:
-    // 1. If the last interaction is not "keyboard" (the user clicked on another handle issuing a new transition);
-    // 2. If the item is acquired by the board (in that case the focus moves to the board item which is expected, palette item is hidden and all events handlers must be muted).
+    // When a drag- or resize handle on a palette or board item loses focus the transition is submitted,
+    // with two exceptions:
+    // 1. The last interaction is not "keyboard" (the user clicked another handle, issuing a new transition).
+    // 2. muteEventsRef is set. This is set only when the acquired item was handed off to another board
+    //    and this container is about to unmount; the unmount blur must not submit and clobber the target
+    //    board's state. (An ordinary in-board move does not set it, so a legitimate blur from Tab or
+    //    clicking outside still commits.)
     selectedHook.current.processBlur();
 
-    if (acquired || (transition && transition.interactionType === "keyboard" && !muteEventsRef.current)) {
+    if (muteEventsRef.current) {
+      return;
+    }
+
+    if (acquired || (transition && transition.interactionType === "keyboard")) {
       initialPointerDownPosition.current = undefined;
       draggableApi.submitTransition();
     }
@@ -489,6 +525,7 @@ function ItemContainerComponent(
     focusDragHandle: () => {
       return dragHandleRef.current?.focus();
     },
+    getElement: () => itemRef.current,
   }));
 
   const dragHookProps: UseInternalDragHandleInteractionStateProps = {
@@ -531,6 +568,7 @@ function ItemContainerComponent(
       <ItemContext.Provider
         value={{
           isActive,
+          isDragActive,
           isHidden,
           dragHandle: {
             ref: dragHandleRef,
