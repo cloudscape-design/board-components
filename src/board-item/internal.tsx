@@ -38,7 +38,7 @@ export function InternalBoardItem({
   __internalRootRef,
   ...rest
 }: BoardItemProps & InternalBaseComponentProps) {
-  const { dragHandle, resizeHandle, isActive, isHidden } = useItemContext();
+  const { dragHandle, resizeHandle, isActive, isDragActive, isHidden } = useItemContext();
 
   const dragHandleAriaLabelledBy = useId();
   const dragHandleAriaDescribedBy = useId();
@@ -69,7 +69,7 @@ export function InternalBoardItem({
                 activeState={dragHandle.activeState}
                 initialShowButtons={dragHandle.initialShowButtons}
                 onDirectionClick={(direction) => dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")}
-                dragHandleTooltipText={i18nStrings.dragHandleTooltipText}
+                dragHandleTooltipText={isDragActive ? undefined : i18nStrings.dragHandleTooltipText}
               />
             }
             settings={settings}
@@ -94,7 +94,7 @@ export function InternalBoardItem({
             onDirectionClick={(direction) => {
               resizeHandle.onDirectionClick(mapToKeyboardDirection(direction), "resize");
             }}
-            resizeHandleTooltipText={i18nStrings.resizeHandleTooltipText}
+            resizeHandleTooltipText={isDragActive ? undefined : i18nStrings.resizeHandleTooltipText}
           />
         </div>
       )}

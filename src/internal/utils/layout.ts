@@ -121,12 +121,19 @@ export function transformItems<D>(
   return items;
 }
 
-export function createPlaceholdersLayout(rows: number, columns: number): GridLayout {
+/**
+ * Produces the grid of placeholder drop targets for a board.
+ *
+ * The `boardId` scopes the generated placeholder IDs to a single board. All boards on a page share
+ * one d&d controller, so without scoping every board would register colliding placeholder IDs
+ * (`awsui-placeholder-0-0`, ...) into the same droppables map and clobber each other.
+ */
+export function createPlaceholdersLayout(rows: number, columns: number, boardId: string): GridLayout {
   const layoutItems: GridLayoutItem[] = [];
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < columns; col++) {
-      layoutItems.push({ id: `awsui-placeholder-${row}-${col}`, x: col, y: row, width: 1, height: 1 });
+      layoutItems.push({ id: `awsui-placeholder-${boardId}-${row}-${col}`, x: col, y: row, width: 1, height: 1 });
     }
   }
 

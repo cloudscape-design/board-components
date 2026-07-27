@@ -203,13 +203,13 @@ describe("item setting getters", () => {
 });
 
 describe("createPlaceholdersLayout", () => {
-  test("Creates placeholder layout for the given rows, cols", () => {
-    const layout = createPlaceholdersLayout(3, 2);
+  test("Creates placeholder layout for the given rows, cols, scoped to the boardId", () => {
+    const layout = createPlaceholdersLayout(3, 2, "board42");
     expect(toString(layout)).toBe(
       toString([
-        ["awsui-placeholder-0-0", "awsui-placeholder-0-1"],
-        ["awsui-placeholder-1-0", "awsui-placeholder-1-1"],
-        ["awsui-placeholder-2-0", "awsui-placeholder-2-1"],
+        ["awsui-placeholder-board42-0-0", "awsui-placeholder-board42-0-1"],
+        ["awsui-placeholder-board42-1-0", "awsui-placeholder-board42-1-1"],
+        ["awsui-placeholder-board42-2-0", "awsui-placeholder-board42-2-1"],
       ]),
     );
   });
