@@ -167,5 +167,11 @@ describe("WidgetContainer", () => {
 
     // In RTL the inline-start button is rendered on the physical right, so it must move the item right.
     expect(onKeyMove).toHaveBeenCalledWith("right");
+
+    const inlineEndButton = new DragHandleWrapper(document.body).findVisibleDirectionButtonInlineEnd()!.getElement();
+    fireEvent.click(inlineEndButton);
+
+    // In RTL the inline-end button is rendered on the physical left, so it must move the item left.
+    expect(onKeyMove).toHaveBeenCalledWith("left");
   });
 });
