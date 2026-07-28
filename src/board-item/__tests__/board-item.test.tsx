@@ -18,6 +18,8 @@ import { ItemContainer } from "../../../lib/components/internal/item-container";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { ItemContextWrapper } from "./board-item-wrapper";
 
+vi.mock("../../../lib/components/internal/dnd-controller/controller");
+
 const i18nStrings = {
   dragHandleAriaLabel: "Drag handle",
   resizeHandleAriaLabel: "Resize handle",
@@ -163,7 +165,7 @@ describe("WidgetContainer", () => {
       .getElement();
     fireEvent.click(inlineStartButton);
 
-    // In RTL the inline-start (left) UAP button must move the item in the physical "right" direction.
+    // In RTL the inline-start button is rendered on the physical right, so it must move the item right.
     expect(onKeyMove).toHaveBeenCalledWith("right");
   });
 });
