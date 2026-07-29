@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useId } from "react";
+import { useId, useRef } from "react";
 import clsx from "clsx";
 
+import { getIsRtl, useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import Container from "@cloudscape-design/components/container";
 import { InternalDragHandleProps } from "@cloudscape-design/components/internal/do-not-use/drag-handle";
 
@@ -18,10 +19,13 @@ import type { BoardItemProps } from "./interfaces";
 
 import styles from "./styles.css.js";
 
-const mapToKeyboardDirection = (direction: InternalDragHandleProps.Direction) => {
+const mapToKeyboardDirection = (direction: InternalDragHandleProps.Direction, isRtl: boolean): Direction => {
+  // inline-start/inline-end are relative to the reading direction, but arrow keys
+  // map directly to cardinal directions. So we need to flip pointer presses based on
+  // the page's reading direction.
   const directionMap: Record<InternalDragHandleProps.Direction, Direction> = {
-    "inline-start": "left",
-    "inline-end": "right",
+    "inline-start": isRtl ? "right" : "left",
+    "inline-end": isRtl ? "left" : "right",
     "block-start": "up",
     "block-end": "down",
   };
@@ -40,6 +44,9 @@ export function InternalBoardItem({
 }: BoardItemProps & InternalBaseComponentProps) {
   const { dragHandle, resizeHandle, isActive, isDragActive, isHidden } = useItemContext();
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
+
   const dragHandleAriaLabelledBy = useId();
   const dragHandleAriaDescribedBy = useId();
 
@@ -53,7 +60,7 @@ export function InternalBoardItem({
   }
 
   return (
-    <div ref={__internalRootRef} className={styles.root} {...getDataAttributes(rest)}>
+    <div ref={mergedRootRef} className={styles.root} {...getDataAttributes(rest)}>
       <Container
         fitHeight={true}
         disableHeaderPaddings={true}
@@ -68,7 +75,9 @@ export function InternalBoardItem({
                 onKeyDown={dragHandle.onKeyDown}
                 activeState={dragHandle.activeState}
                 initialShowButtons={dragHandle.initialShowButtons}
-                onDirectionClick={(direction) => dragHandle.onDirectionClick(mapToKeyboardDirection(direction), "drag")}
+                onDirectionClick={(direction) => {
+                  dragHandle.onDirectionClick(mapToKeyboardDirection(direction, getIsRtl(rootRef.current)), "drag");
+                }}
                 dragHandleTooltipText={isDragActive ? undefined : i18nStrings.dragHandleTooltipText}
               />
             }
@@ -92,7 +101,7 @@ export function InternalBoardItem({
             onKeyDown={resizeHandle.onKeyDown}
             activeState={resizeHandle.activeState}
             onDirectionClick={(direction) => {
-              resizeHandle.onDirectionClick(mapToKeyboardDirection(direction), "resize");
+              resizeHandle.onDirectionClick(mapToKeyboardDirection(direction, getIsRtl(rootRef.current)), "resize");
             }}
             resizeHandleTooltipText={isDragActive ? undefined : i18nStrings.resizeHandleTooltipText}
           />
