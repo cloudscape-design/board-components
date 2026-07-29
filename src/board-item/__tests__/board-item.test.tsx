@@ -3,7 +3,7 @@
 
 import { ReactElement } from "react";
 import { cleanup, fireEvent, render as libRender } from "@testing-library/react";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import Button from "@cloudscape-design/components/button";
 import Container from "@cloudscape-design/components/container";
@@ -14,8 +14,11 @@ import TooltipWrapper from "@cloudscape-design/components/test-utils/dom/interna
 
 import "@cloudscape-design/components/test-utils/dom";
 import BoardItem from "../../../lib/components/board-item";
+import { ItemContainer } from "../../../lib/components/internal/item-container";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { ItemContextWrapper } from "./board-item-wrapper";
+
+vi.mock("../../../lib/components/internal/dnd-controller/controller");
 
 const i18nStrings = {
   dragHandleAriaLabel: "Drag handle",
@@ -132,5 +135,43 @@ describe("WidgetContainer", () => {
     expect(dragHandleWrapper.findVisibleDirectionButtonBlockEnd()).toBeDefined();
     expect(dragHandleWrapper.findVisibleDirectionButtonInlineStart()).toBeDefined();
     expect(dragHandleWrapper.findVisibleDirectionButtonInlineEnd()).toBeDefined();
+  });
+
+  test("maps the inline-start UAP button to the physical right direction in RTL", () => {
+    const onKeyMove = vi.fn();
+    libRender(
+      <div style={{ direction: "rtl" }}>
+        <ItemContainer
+          item={{ id: "1", data: { title: "Item 1" } }}
+          placed={true}
+          acquired={false}
+          transform={undefined}
+          inTransition={false}
+          getItemSize={() => ({ width: 1, minWidth: 1, maxWidth: 1, height: 1, minHeight: 1, maxHeight: 1 })}
+          isRtl={() => true}
+          onKeyMove={onKeyMove}
+        >
+          {() => <BoardItem i18nStrings={i18nStrings} />}
+        </ItemContainer>
+      </div>,
+    );
+
+    const dragHandleEl = createWrapper().findBoardItem()!.findDragHandle()!.getElement();
+    fireEvent(dragHandleEl, new MouseEvent("pointerdown", { bubbles: true }));
+    fireEvent(dragHandleEl, new MouseEvent("pointerup", { bubbles: true }));
+
+    const inlineStartButton = new DragHandleWrapper(document.body)
+      .findVisibleDirectionButtonInlineStart()!
+      .getElement();
+    fireEvent.click(inlineStartButton);
+
+    // In RTL the inline-start button is rendered on the physical right, so it must move the item right.
+    expect(onKeyMove).toHaveBeenCalledWith("right");
+
+    const inlineEndButton = new DragHandleWrapper(document.body).findVisibleDirectionButtonInlineEnd()!.getElement();
+    fireEvent.click(inlineEndButton);
+
+    // In RTL the inline-end button is rendered on the physical left, so it must move the item left.
+    expect(onKeyMove).toHaveBeenCalledWith("left");
   });
 });
