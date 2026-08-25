@@ -1,0 +1,16 @@
+name: Codecov fork upload
+
+on:
+  workflow_run:
+    workflows: ["Build, lint and test"]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  codecov-fork:
+    uses: cloudscape-design/actions/.github/workflows/codecov-fork-upload.yml@main
+    secrets: inherit
