@@ -42,6 +42,7 @@ export function InternalBoard<D>({
   onItemsChange,
   empty,
   i18nStrings,
+  rowHeight,
   __internalRootRef,
   ...rest
 }: BoardProps<D> & InternalBaseComponentProps) {
@@ -328,6 +329,7 @@ export function InternalBoard<D>({
             isRtl={isRtl}
             columns={itemsLayout.columns}
             layout={[...placeholdersLayout.items, ...itemsLayout.items]}
+            rowHeight={rowHeight}
           >
             {(gridContext) => {
               const layoutShift = transition?.layoutShift ?? removeTransition?.layoutShift;
