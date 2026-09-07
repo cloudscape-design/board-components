@@ -31,8 +31,15 @@ test("renders children content", async () => {
 test("assigns styles on root element", () => {
   const { container } = render(<Grid {...defaultProps} />);
 
-  const root = container.querySelector(`.${gridStyles.grid}`);
-  expect(root).toHaveClass(gridStyles["columns-4"]);
+  const root = container.querySelector<HTMLElement>(`.${gridStyles.grid}`);
+  expect(root?.style.getPropertyValue("--awsui-board-grid-columns")).toBe("4");
+});
+
+test("supports an arbitrary number of columns", () => {
+  const { container } = render(<Grid {...defaultProps} columns={8} />);
+
+  const root = container.querySelector<HTMLElement>(`.${gridStyles.grid}`);
+  expect(root?.style.getPropertyValue("--awsui-board-grid-columns")).toBe("8");
 });
 
 test("assigns styles on individual elements", () => {
