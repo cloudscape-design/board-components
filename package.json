@@ -114,7 +114,7 @@
     "typescript": "^4.9.4",
     "typescript-eslint": "^8.58.1",
     "vite": "^6.4.1",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
   "overrides": {
