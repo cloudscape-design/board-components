@@ -12,27 +12,12 @@ $grid-col-width: minmax(0, 1fr);
   gap: 20px;
   /* Matches ROWSPAN_HEIGHT constant used for calculations. */
   grid-auto-rows: 96px;
+  grid-template-columns: repeat(var(--awsui-board-grid-columns), $grid-col-width);
 
   &-compact {
     gap: 16px;
     grid-auto-rows: 76px;
   }
-}
-
-.grid.columns-1 {
-  grid-template-columns: $grid-col-width;
-}
-
-.grid.columns-2 {
-  grid-template-columns: repeat(2, $grid-col-width);
-}
-
-.grid.columns-4 {
-  grid-template-columns: repeat(4, $grid-col-width);
-}
-
-.grid.columns-6 {
-  grid-template-columns: repeat(6, $grid-col-width);
 }
 
 .grid__item {

@@ -42,11 +42,12 @@ export function InternalBoard<D>({
   onItemsChange,
   empty,
   i18nStrings,
+  columnLayout,
   __internalRootRef,
   ...rest
 }: BoardProps<D> & InternalBaseComponentProps) {
   const containerAccessRef = useRef<HTMLDivElement>(null);
-  const [currentColumns, containerQueryRef] = useContainerColumns();
+  const [currentColumns, containerQueryRef] = useContainerColumns(columnLayout);
   const containerRef = useMergeRefs(containerAccessRef, containerQueryRef);
   const itemContainerRef = useRef<{ [id: ItemId]: ItemContainerRef }>({});
 
