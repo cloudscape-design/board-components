@@ -11,6 +11,7 @@ import {
   RefObject,
   useContext,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -557,6 +558,78 @@ function ItemContainerComponent(
     childrenRef.current = children(!!transition?.hasDropTarget);
   }
 
+  // Every board item consumes this context, so a fresh value would re-render all of them on every
+  // frame of a drag even though only the dragged item changes. The handlers are recreated each
+  // render, so the memoized value reaches them through a ref rather than capturing them.
+  //
+  // Assigning during render, rather than in a passive effect the way useStableCallback does, keeps
+  // this independent of effect-flush timing, and mirrors the childrenRef assignment above. These
+  // handlers read `transition`, and handleDirectionalMovement feeds onKeyMove into the board's
+  // tryTransferAcrossBoundary, which tolerates no lag: making the wrappers read the previous render's
+  // handlers fails 39 of 77 functional tests, including every cross-board keyboard transfer.
+  const handlers = { onHandlePointerDown, onHandleKeyDown, handleDirectionalMovement };
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+  const stableHandlers = useMemo(
+    () => ({
+      dragPointerDown: (event: ReactPointerEvent) => handlersRef.current.onHandlePointerDown(event, "drag"),
+      dragKeyDown: (event: KeyboardEvent) => handlersRef.current.onHandleKeyDown("drag", event),
+      resizePointerDown: (event: ReactPointerEvent) => handlersRef.current.onHandlePointerDown(event, "resize"),
+      resizeKeyDown: (event: KeyboardEvent) => handlersRef.current.onHandleKeyDown("resize", event),
+      directionClick: (direction: Direction, operation: HandleOperation) =>
+        handlersRef.current.handleDirectionalMovement(direction, operation),
+    }),
+    [],
+  );
+
+  const dragHandleActiveState = determineHandleActiveState({
+    isHandleActive: isActive,
+    currentTransition: transition,
+    interactionHookValue: dragInteractionHook.interaction.value,
+    targetOperation: "reorder",
+  });
+  const resizeHandleActiveState = determineHandleActiveState({
+    isHandleActive: isActive,
+    currentTransition: transition,
+    interactionHookValue: resizeInteractionHook.interaction.value,
+    targetOperation: "resize",
+  });
+  const initialShowButtons = dragInteractionHook.interaction.value === "uap-action-start" || (inTransition && acquired);
+
+  const itemContext = useMemo<ItemContextType>(
+    () => ({
+      isActive,
+      isDragActive,
+      isHidden,
+      dragHandle: {
+        ref: dragHandleRef,
+        onPointerDown: stableHandlers.dragPointerDown,
+        onKeyDown: stableHandlers.dragKeyDown,
+        activeState: dragHandleActiveState,
+        onDirectionClick: stableHandlers.directionClick,
+        initialShowButtons,
+      },
+      resizeHandle: placed
+        ? {
+            onPointerDown: stableHandlers.resizePointerDown,
+            onKeyDown: stableHandlers.resizeKeyDown,
+            activeState: resizeHandleActiveState,
+            onDirectionClick: stableHandlers.directionClick,
+          }
+        : null,
+    }),
+    [
+      isActive,
+      isDragActive,
+      isHidden,
+      placed,
+      dragHandleActiveState,
+      resizeHandleActiveState,
+      initialShowButtons,
+      stableHandlers,
+    ],
+  );
+
   const content = (
     <div
       ref={itemRef}
@@ -565,42 +638,7 @@ function ItemContainerComponent(
       data-item-id={item.id}
       onBlur={onBlur}
     >
-      <ItemContext.Provider
-        value={{
-          isActive,
-          isDragActive,
-          isHidden,
-          dragHandle: {
-            ref: dragHandleRef,
-            onPointerDown: (e) => onHandlePointerDown(e, "drag"),
-            onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("drag", event),
-            activeState: determineHandleActiveState({
-              isHandleActive: isActive,
-              currentTransition: transition,
-              interactionHookValue: dragInteractionHook.interaction.value,
-              targetOperation: "reorder",
-            }),
-            onDirectionClick: handleDirectionalMovement,
-            initialShowButtons:
-              dragInteractionHook.interaction.value === "uap-action-start" || (inTransition && acquired),
-          },
-          resizeHandle: placed
-            ? {
-                onPointerDown: (e) => onHandlePointerDown(e, "resize"),
-                onKeyDown: (event: KeyboardEvent) => onHandleKeyDown("resize", event),
-                activeState: determineHandleActiveState({
-                  isHandleActive: isActive,
-                  currentTransition: transition,
-                  interactionHookValue: resizeInteractionHook.interaction.value,
-                  targetOperation: "resize",
-                }),
-                onDirectionClick: handleDirectionalMovement,
-              }
-            : null,
-        }}
-      >
-        {childrenRef.current}
-      </ItemContext.Provider>
+      <ItemContext.Provider value={itemContext}>{childrenRef.current}</ItemContext.Provider>
     </div>
   );
 
