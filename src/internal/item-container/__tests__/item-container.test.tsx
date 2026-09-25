@@ -244,3 +244,21 @@ test("does not renders in portal when item in reorder state by a pointer", () =>
   });
   expect(container).toContainElement(getByTestId("drag-handle"));
 });
+
+test("unmount does not discard a transition owned by another item", () => {
+  const { unmount } = render(<ItemContainer {...defaultProps} placed={true} />);
+
+  act(() => {
+    mockController.start({
+      interactionType: "pointer",
+      operation: "resize",
+      draggableItem: { id: "ANOTHER", data: {} },
+      collisionRect: { top: 0, bottom: 0, left: 0, right: 0 },
+      coordinates: new Coordinates({ x: 0, y: 0 }),
+    } as DragAndDropData);
+  });
+  mockDraggable.discardTransition.mockClear();
+
+  unmount();
+  expect(mockDraggable.discardTransition).not.toHaveBeenCalled();
+});
