@@ -10,12 +10,13 @@ $grid-col-width: minmax(0, 1fr);
   display: grid;
   /* Matches GRID_GAP constant used for calculations. */
   gap: 20px;
-  /* Matches ROWSPAN_HEIGHT constant used for calculations. */
-  grid-auto-rows: 96px;
+  /* Matches ROWSPAN_HEIGHT constant used for calculations. The custom property is set by the
+     Grid component and defaults to the comfortable-mode row height when absent. */
+  grid-auto-rows: var(--awsui-board-row-height, 96px);
 
   &-compact {
     gap: 16px;
-    grid-auto-rows: 76px;
+    grid-auto-rows: var(--awsui-board-row-height, 76px);
   }
 }
 
