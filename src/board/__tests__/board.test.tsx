@@ -83,6 +83,22 @@ describe("Board", () => {
     expect(container.ownerDocument.body).not.toHaveClass(resizeClass);
   });
 
+  test("removes operation classnames when the board unmounts mid-interaction", () => {
+    const { unmount } = render(<Board {...defaultProps} />);
+
+    const resizeClass = globalStateStyles["show-resize-cursor"];
+    const selectionClass = globalStateStyles["disable-selection"];
+    const handle = createWrapper().findBoardItem()!.findResizeHandle()!.getElement();
+
+    fireEvent(handle, new MouseEvent("pointerdown", { bubbles: true }));
+    expect(document.body).toHaveClass(resizeClass);
+    expect(document.body).toHaveClass(selectionClass);
+
+    unmount();
+    expect(document.body).not.toHaveClass(resizeClass);
+    expect(document.body).not.toHaveClass(selectionClass);
+  });
+
   test("applies pointer interaction class name", () => {
     const { container } = render(<Board {...defaultProps} />);
 

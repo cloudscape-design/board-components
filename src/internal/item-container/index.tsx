@@ -12,6 +12,7 @@ import {
   useContext,
   useImperativeHandle,
   useMemo,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -279,6 +280,16 @@ function ItemContainerComponent(
     setIsHidden(false);
     muteEventsRef.current = false;
   });
+
+  // Must be a layout effect: other subscribers unsubscribe in passive cleanups, which React runs before
+  // a child's, so a passive effect here would emit "discard" after they stopped listening.
+  const discardOnUnmountRef = useRef<() => void>(() => {});
+  discardOnUnmountRef.current = () => {
+    if (transition) {
+      draggableApi.discardTransition();
+    }
+  };
+  useLayoutEffect(() => () => discardOnUnmountRef.current(), []);
 
   // Handles incremental transition logic shared between different keyboard and UAP interactions.
   function handleIncrementalTransition(operation: HandleOperation, submitExisting = false) {
