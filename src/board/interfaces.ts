@@ -72,9 +72,28 @@ export interface BoardProps<D = DataFallbackType> {
    * When items are loading the slot can be used to render the loading indicator.
    */
   empty: ReactNode;
+
+  /**
+   * Configures the number of grid columns used at Cloudscape container breakpoints.
+   * Values apply at the specified breakpoint and wider breakpoints until overridden.
+   * For example, `{ default: 1, xs: 2, s: 4, l: 8 }` uses one column by default,
+   * two columns at `xs`, four columns at `s` and `m`, and eight columns at `l` and `xl`.
+   * The breakpoints are `default` (up to 465px), `xxs` (over 465px), `xs` (over 688px),
+   * `s` (over 912px), `m` (over 1120px), `l` (over 1320px), and `xl` (over 1840px).
+   *
+   * When not set, the board uses its default responsive layout of one, two, four, or six columns.
+   * Unspecified breakpoints inherit the value from the closest narrower configured breakpoint.
+   * If there is no configured value at or below the active breakpoint, the default board layout is used.
+   * Invalid values that are not positive integers are ignored.
+   */
+  columnLayout?: BoardProps.ColumnLayout;
 }
 
 export namespace BoardProps {
+  export type Breakpoint = "default" | "xxs" | "xs" | "s" | "m" | "l" | "xl";
+
+  export type ColumnLayout = Partial<Record<Breakpoint, number>>;
+
   export interface Item<D = DataFallbackType> {
     id: string;
     data: D;
