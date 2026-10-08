@@ -21,6 +21,12 @@ const defaultProps: GridProps = {
   ),
 };
 
+const ROW_HEIGHT_CSS_PROPERTY = "--awsui-board-row-height";
+
+function getGridRoot(container: HTMLElement) {
+  return container.querySelector<HTMLElement>(`.${gridStyles.grid}`)!;
+}
+
 test("renders children content", async () => {
   const result = render(<Grid {...defaultProps} />);
 
@@ -51,4 +57,23 @@ test("assigns styles on individual elements", () => {
     "grid-column-start": "3",
     "grid-column-end": "span 2",
   });
+});
+
+test("uses the default row height when rowHeight is not provided", () => {
+  const { container } = render(<Grid {...defaultProps} />);
+
+  // Defaults to the comfortable-mode row height (96px).
+  expect(getGridRoot(container).style.getPropertyValue(ROW_HEIGHT_CSS_PROPERTY)).toBe("96px");
+});
+
+test("applies a custom row height when rowHeight is provided", () => {
+  const { container } = render(<Grid {...defaultProps} rowHeight={32} />);
+
+  expect(getGridRoot(container).style.getPropertyValue(ROW_HEIGHT_CSS_PROPERTY)).toBe("32px");
+});
+
+test.each([0, -10, NaN, Infinity])("ignores invalid rowHeight value %s and falls back to default", (rowHeight) => {
+  const { container } = render(<Grid {...defaultProps} rowHeight={rowHeight} />);
+
+  expect(getGridRoot(container).style.getPropertyValue(ROW_HEIGHT_CSS_PROPERTY)).toBe("96px");
 });

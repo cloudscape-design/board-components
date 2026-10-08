@@ -72,6 +72,16 @@ export interface BoardProps<D = DataFallbackType> {
    * When items are loading the slot can be used to render the loading indicator.
    */
   empty: ReactNode;
+
+  /**
+   * Overrides the height, in pixels, of a single board row. Board items span a whole number of
+   * rows, so this value controls the granularity of their vertical sizing (for example, a smaller
+   * row height lets content-light items occupy less vertical space and increases sizing precision).
+   *
+   * When not set, the density-based default is used (96px in comfortable mode, 76px in compact mode),
+   * which preserves the existing behavior. Values that are not positive finite numbers are ignored.
+   */
+  rowHeight?: number;
 }
 
 export namespace BoardProps {

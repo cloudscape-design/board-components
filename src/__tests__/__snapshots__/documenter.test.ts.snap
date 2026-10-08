@@ -534,6 +534,17 @@ The function takes the item and its associated actions (BoardProps.ItemActions) 
       "optional": false,
       "type": "(item: BoardProps.Item<D>, actions: BoardProps.ItemActions) => JSX.Element",
     },
+    {
+      "description": "Overrides the height, in pixels, of a single board row. Board items span a whole number of
+rows, so this value controls the granularity of their vertical sizing (for example, a smaller
+row height lets content-light items occupy less vertical space and increases sizing precision).
+
+When not set, the density-based default is used (96px in comfortable mode, 76px in compact mode),
+which preserves the existing behavior. Values that are not positive finite numbers are ignored.",
+      "name": "rowHeight",
+      "optional": true,
+      "type": "number",
+    },
   ],
   "regions": [
     {
