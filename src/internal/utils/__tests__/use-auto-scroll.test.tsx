@@ -28,6 +28,15 @@ describe("useAutoScroll", () => {
     vi.spyOn(global, "setTimeout");
     vi.spyOn(global, "clearTimeout");
 
+    // The document is scrolled through document.documentElement in jsdom (no scrollingElement, no Element.scrollBy):
+    // stub it as scrolled by 100px with room in both directions, and route its scrollBy to the window.scrollBy spy.
+    Object.defineProperties(document.documentElement, {
+      scrollTop: { value: 100, configurable: true },
+      clientHeight: { value: 600, configurable: true },
+      scrollHeight: { value: 2000, configurable: true },
+    });
+    document.documentElement.scrollBy = window.scrollBy;
+
     mockScrollIntoView = vi.fn();
 
     // Mock window dimensions
@@ -72,7 +81,7 @@ describe("useAutoScroll", () => {
     const controller = result.current;
 
     controller.init();
-    controller.run();
+    controller.run(document.createElement("div"));
 
     // Simulate pointer move to bottom margin (clientY > innerHeight - 50)
     const pointerMoveHandler = vi
@@ -92,7 +101,7 @@ describe("useAutoScroll", () => {
     const controller = result.current;
 
     controller.init();
-    controller.run();
+    controller.run(document.createElement("div"));
 
     // Simulate pointer move to top margin (clientY < 50)
     const pointerMoveHandler = vi
@@ -112,7 +121,7 @@ describe("useAutoScroll", () => {
     const controller = result.current;
 
     controller.init();
-    controller.run();
+    controller.run(document.createElement("div"));
 
     const pointerMoveHandler = vi
       .mocked(window.addEventListener)
@@ -137,7 +146,7 @@ describe("useAutoScroll", () => {
     const controller = result.current;
 
     controller.init();
-    controller.run();
+    controller.run(document.createElement("div"));
 
     const pointerMoveHandler = vi
       .mocked(window.addEventListener)
@@ -159,7 +168,7 @@ describe("useAutoScroll", () => {
     const controller = result.current;
 
     controller.init();
-    controller.run();
+    controller.run(document.createElement("div"));
 
     const pointerMoveHandler = vi
       .mocked(window.addEventListener)
@@ -309,7 +318,7 @@ describe("useAutoScroll", () => {
     const controller = result.current;
 
     controller.init();
-    controller.run();
+    controller.run(document.createElement("div"));
 
     const pointerMoveHandler = vi
       .mocked(window.addEventListener)
@@ -335,5 +344,105 @@ describe("useAutoScroll", () => {
 
     // All calls should be the same
     expect(window.scrollBy).toHaveBeenCalledWith({ top: 5 });
+  });
+
+  describe("scrollable parents", () => {
+    function createScrollableParent({
+      top,
+      bottom,
+      scrollTop = 0,
+      clientHeight = bottom - top,
+      scrollHeight = clientHeight * 2,
+      overflowY = "auto",
+    }: {
+      top: number;
+      bottom: number;
+      scrollTop?: number;
+      clientHeight?: number;
+      scrollHeight?: number;
+      overflowY?: string;
+    }) {
+      const parent = document.createElement("div");
+      parent.style.overflowY = overflowY;
+      const child = document.createElement("div");
+      parent.appendChild(child);
+      document.body.appendChild(parent);
+
+      parent.getBoundingClientRect = () => ({ top, bottom, left: 0, right: 500 }) as DOMRect;
+      Object.defineProperties(parent, {
+        scrollTop: { value: scrollTop, configurable: true },
+        clientHeight: { value: clientHeight, configurable: true },
+        scrollHeight: { value: scrollHeight, configurable: true },
+      });
+      parent.scrollBy = vi.fn();
+
+      const { result } = renderHook(() => useAutoScroll());
+      result.current.run(child);
+      const movePointer = (clientY: number, clientX = 250) => {
+        const pointerMoveHandler = vi
+          .mocked(window.addEventListener)
+          .mock.calls.find((call) => call[0] === "pointermove")?.[1] as (event: PointerEvent) => void;
+        pointerMoveHandler({ clientX, clientY } as PointerEvent);
+        vi.advanceTimersByTime(10);
+      };
+      return { parent, movePointer };
+    }
+
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
+
+    it("scrolls the parent instead of the window when the pointer is near its visible edge", () => {
+      const { parent, movePointer } = createScrollableParent({ top: 100, bottom: 400, scrollTop: 50 });
+
+      movePointer(380);
+      expect(parent.scrollBy).toHaveBeenLastCalledWith({ top: 5 });
+
+      movePointer(120);
+      expect(parent.scrollBy).toHaveBeenLastCalledWith({ top: -5 });
+
+      // Just past the bottom edge: overshooting keeps scrolling.
+      movePointer(420);
+      expect(parent.scrollBy).toHaveBeenLastCalledWith({ top: 5 });
+
+      // Middle of the parent, further than a margin below it, and beside it.
+      movePointer(250);
+      movePointer(470);
+      movePointer(380, 600);
+      expect(parent.scrollBy).toHaveBeenCalledTimes(3);
+      expect(window.scrollBy).not.toHaveBeenCalled();
+    });
+
+    it("falls back to the window when the parent cannot scroll further", () => {
+      const { parent, movePointer } = createScrollableParent({ top: 100, bottom: 600, scrollTop: 0 });
+
+      movePointer(120);
+      expect(parent.scrollBy).not.toHaveBeenCalled();
+      expect(window.scrollBy).not.toHaveBeenCalled();
+
+      Object.defineProperty(parent, "scrollTop", { value: 500, configurable: true });
+      movePointer(580);
+      expect(parent.scrollBy).not.toHaveBeenCalled();
+      expect(window.scrollBy).toHaveBeenCalledWith({ top: 5 });
+    });
+
+    it("scrolls toward the nearer edge when less than two margins of the parent are visible", () => {
+      // Only the top 60px of the parent is within the viewport.
+      const { parent, movePointer } = createScrollableParent({ top: 540, bottom: 1000, scrollTop: 100 });
+
+      movePointer(560);
+      expect(parent.scrollBy).toHaveBeenLastCalledWith({ top: -5 });
+
+      movePointer(580);
+      expect(parent.scrollBy).toHaveBeenLastCalledWith({ top: 5 });
+    });
+
+    it("ignores parents without scrollable overflow", () => {
+      const { parent, movePointer } = createScrollableParent({ top: 100, bottom: 600, overflowY: "visible" });
+
+      movePointer(580);
+      expect(parent.scrollBy).not.toHaveBeenCalled();
+      expect(window.scrollBy).toHaveBeenCalledWith({ top: 5 });
+    });
   });
 });

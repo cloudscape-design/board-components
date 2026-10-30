@@ -24,55 +24,63 @@ export function EnginePageTemplate({
   initialBoardItems: readonly BoardProps.Item<ItemData>[];
   initialPaletteItems: readonly ItemsPaletteProps.Item<ItemData>[];
   widgets: ItemWidgets;
-  layout?: "grid" | "absolute";
+  layout?: "grid" | "absolute" | "scroll-container";
   asyncOnChangeItems?: boolean;
 }) {
   const [boardItems, setBoardItems] = useState(initialBoardItems);
   const [paletteItems, setPaletteItems] = useState(initialPaletteItems);
 
+  const board = (
+    <Board
+      i18nStrings={boardI18nStrings}
+      items={boardItems}
+      renderItem={(item, actions) => (
+        <BoardItem
+          header={<Header>{item.data.title}</Header>}
+          footer={item.data.footer}
+          settings={
+            <ButtonDropdown
+              items={[{ id: "remove", text: "Remove widget" }]}
+              ariaLabel="Widget settings"
+              variant="icon"
+              onItemClick={() => actions.removeItem()}
+              expandToViewport={true}
+            />
+          }
+          i18nStrings={boardItemI18nStrings}
+        >
+          {item.data.content}
+        </BoardItem>
+      )}
+      onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
+        if (asyncOnChangeItems) {
+          setTimeout(() => {
+            setBoardItems(items);
+          }, 50);
+        } else {
+          setBoardItems(items);
+        }
+        if (addedItem) {
+          setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
+        }
+        if (removedItem) {
+          setPaletteItems((prev) => [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title)));
+        }
+      }}
+      empty="No items"
+    />
+  );
+
   return (
     <PageLayout header={<Header variant="h1">Configurable board demo</Header>}>
       <div className={classnames[`layout-${layout}`]}>
-        <Board
-          i18nStrings={boardI18nStrings}
-          items={boardItems}
-          renderItem={(item, actions) => (
-            <BoardItem
-              header={<Header>{item.data.title}</Header>}
-              footer={item.data.footer}
-              settings={
-                <ButtonDropdown
-                  items={[{ id: "remove", text: "Remove widget" }]}
-                  ariaLabel="Widget settings"
-                  variant="icon"
-                  onItemClick={() => actions.removeItem()}
-                  expandToViewport={true}
-                />
-              }
-              i18nStrings={boardItemI18nStrings}
-            >
-              {item.data.content}
-            </BoardItem>
-          )}
-          onItemsChange={({ detail: { items, addedItem, removedItem } }) => {
-            if (asyncOnChangeItems) {
-              setTimeout(() => {
-                setBoardItems(items);
-              }, 50);
-            } else {
-              setBoardItems(items);
-            }
-            if (addedItem) {
-              setPaletteItems((paletteItems) => paletteItems.filter((item) => item.id !== addedItem.id));
-            }
-            if (removedItem) {
-              setPaletteItems((prev) =>
-                [...prev, removedItem].sort((a, b) => a.data.title.localeCompare(b.data.title)),
-              );
-            }
-          }}
-          empty="No items"
-        />
+        {layout === "scroll-container" ? (
+          <div className={classnames["scroll-container"]} data-testid="scroll-container">
+            {board}
+          </div>
+        ) : (
+          board
+        )}
         <div className={classnames.palette}>
           <Header>Add widgets</Header>
           <ItemsPalette
