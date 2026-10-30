@@ -28,10 +28,8 @@ describe("useAutoScroll", () => {
     vi.spyOn(global, "setTimeout");
     vi.spyOn(global, "clearTimeout");
 
-    // The document is scrolled through document.documentElement in jsdom (no scrollingElement, no layout,
-    // no Element.scrollBy): stub it as a 600px viewport scrolled by 100px with room in both directions,
-    // and route its scrollBy to the window.scrollBy spy.
-    document.documentElement.getBoundingClientRect = () => ({ top: -100, bottom: 1900 }) as DOMRect;
+    // The document is scrolled through document.documentElement in jsdom (no scrollingElement, no Element.scrollBy):
+    // stub it as scrolled by 100px with room in both directions, and route its scrollBy to the window.scrollBy spy.
     Object.defineProperties(document.documentElement, {
       scrollTop: { value: 100, configurable: true },
       clientHeight: { value: 600, configurable: true },
@@ -370,7 +368,7 @@ describe("useAutoScroll", () => {
       parent.appendChild(child);
       document.body.appendChild(parent);
 
-      parent.getBoundingClientRect = () => ({ top, bottom }) as DOMRect;
+      parent.getBoundingClientRect = () => ({ top, bottom, left: 0, right: 500 }) as DOMRect;
       Object.defineProperties(parent, {
         scrollTop: { value: scrollTop, configurable: true },
         clientHeight: { value: clientHeight, configurable: true },
@@ -380,11 +378,11 @@ describe("useAutoScroll", () => {
 
       const { result } = renderHook(() => useAutoScroll());
       result.current.run(child);
-      const movePointer = (clientY: number) => {
+      const movePointer = (clientY: number, clientX = 250) => {
         const pointerMoveHandler = vi
           .mocked(window.addEventListener)
           .mock.calls.find((call) => call[0] === "pointermove")?.[1] as (event: PointerEvent) => void;
-        pointerMoveHandler({ clientY } as PointerEvent);
+        pointerMoveHandler({ clientX, clientY } as PointerEvent);
         vi.advanceTimersByTime(10);
       };
       return { parent, movePointer };
@@ -407,9 +405,10 @@ describe("useAutoScroll", () => {
       movePointer(420);
       expect(parent.scrollBy).toHaveBeenLastCalledWith({ top: 5 });
 
-      // Middle of the parent, and further than a margin outside of it.
+      // Middle of the parent, further than a margin below it, and beside it.
       movePointer(250);
       movePointer(470);
+      movePointer(380, 600);
       expect(parent.scrollBy).toHaveBeenCalledTimes(3);
       expect(window.scrollBy).not.toHaveBeenCalled();
     });
