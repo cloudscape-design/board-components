@@ -334,6 +334,63 @@ The change detail has the following properties:
   "name": "Board",
   "properties": [
     {
+      "description": "Configures the number of grid columns used at Cloudscape container breakpoints.
+Values apply at the specified breakpoint and wider breakpoints until overridden.
+For example, \`{ default: 1, xs: 2, s: 4, l: 8 }\` uses one column by default,
+two columns at \`xs\`, four columns at \`s\` and \`m\`, and eight columns at \`l\` and \`xl\`.
+The breakpoints are \`default\` (up to 465px), \`xxs\` (over 465px), \`xs\` (over 688px),
+\`s\` (over 912px), \`m\` (over 1120px), \`l\` (over 1320px), and \`xl\` (over 1840px).
+
+When not set, the board uses its default responsive layout of one, two, four, or six columns.
+Unspecified breakpoints inherit the value from the closest narrower configured breakpoint.
+If there is no configured value at or below the active breakpoint, the default board layout is used.
+Invalid values that are not positive integers are ignored.",
+      "inlineType": {
+        "name": "Partial<Record<BoardProps.Breakpoint, number>>",
+        "properties": [
+          {
+            "name": "default",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "l",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "m",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "s",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "xl",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "xs",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "xxs",
+            "optional": true,
+            "type": "number",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "columnLayout",
+      "optional": true,
+      "type": "Partial<Record<BoardProps.Breakpoint, number>>",
+    },
+    {
       "description": "An object containing all the necessary localized strings required by the component.
 
 Live announcements:

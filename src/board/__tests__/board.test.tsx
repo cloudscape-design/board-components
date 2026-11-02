@@ -41,6 +41,12 @@ describe("Board", () => {
     expect(item.getElement().textContent).toBe("Item 2");
   });
 
+  test("does not pass columnLayout to the root element", () => {
+    const { container } = render(<Board {...defaultProps} columnLayout={{ default: 1, l: 8 }} />);
+
+    expect(container.firstElementChild?.hasAttribute("columnlayout")).toBe(false);
+  });
+
   test("pressing 'Escape' when there is no transition does not cause errors", () => {
     render(<Board {...defaultProps} />);
     const itemDragHandle = createWrapper().findBoard()!.findItemById("2")!.findDragHandle();
