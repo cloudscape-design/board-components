@@ -37,3 +37,15 @@
   border-radius: 4px;
   padding: 8px;
 }
+
+/* used in test pages: the board scrolls inside this container instead of the page */
+.layout-scroll-container {
+  display: grid;
+  grid-template-columns: 9fr 3fr;
+  gap: 16px;
+}
+
+.scroll-container {
+  height: 400px;
+  overflow-y: auto;
+}

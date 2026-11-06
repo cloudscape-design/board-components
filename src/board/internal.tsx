@@ -177,7 +177,7 @@ export function InternalBoard<D>({
         interactionType === "pointer" && isElementOverBoard(collisionRect) ? filterOwnCollisions(collisionIds) : [],
     });
 
-    autoScrollHandlers.run();
+    autoScrollHandlers.run(containerAccessRef.current!);
   });
 
   useDragSubscription("update", ({ interactionType, collisionIds, positionOffset, collisionRect }) => {
