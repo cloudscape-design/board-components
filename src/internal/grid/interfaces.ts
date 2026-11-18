@@ -10,6 +10,12 @@ export interface GridProps {
   columns: number;
   children?: (context: GridContext) => ReactNode;
   isRtl?: () => boolean;
+  /**
+   * Overrides the default height (in pixels) of a single grid row. When not set, the
+   * density-based default is used (96px in comfortable mode, 76px in compact mode).
+   * Values that are not positive finite numbers are ignored and the default is used.
+   */
+  rowHeight?: number;
 }
 
 export interface GridContext {

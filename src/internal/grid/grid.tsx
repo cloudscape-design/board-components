@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Children, useRef } from "react";
+import { Children, CSSProperties, useRef } from "react";
 import clsx from "clsx";
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
@@ -19,12 +19,21 @@ const GRID_GAP = { comfortable: 20, compact: 16 };
 /* Matches grid-auto-rows in CSS. */
 const ROWSPAN_HEIGHT = { comfortable: 96, compact: 76 };
 
-export default function Grid({ layout, children: render, columns, isRtl }: GridProps) {
+/* Custom property consumed by grid-auto-rows in CSS to allow overriding the row height. */
+const ROW_HEIGHT_CSS_PROPERTY = "--awsui-board-row-height";
+
+function isValidRowHeight(rowHeight?: number): rowHeight is number {
+  return typeof rowHeight === "number" && isFinite(rowHeight) && rowHeight > 0;
+}
+
+export default function Grid({ layout, children: render, columns, isRtl, rowHeight }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const [gridWidth, containerQueryRef] = useContainerQuery((entry) => entry.contentBoxWidth, []);
   const densityMode = useDensityMode(gridRef);
   const gridGap = GRID_GAP[densityMode];
-  const rowspanHeight = ROWSPAN_HEIGHT[densityMode];
+  // An explicit row height, when provided, overrides the density-based default so that
+  // consumers can achieve finer-grained vertical sizing.
+  const rowspanHeight = isValidRowHeight(rowHeight) ? rowHeight : ROWSPAN_HEIGHT[densityMode];
 
   // The below getters translate relative grid units into size/offset values in pixels.
   const getWidth = (colspan: number) => {
@@ -44,9 +53,17 @@ export default function Grid({ layout, children: render, columns, isRtl }: GridP
 
   const zipped = zipTwoArrays(layout, Children.toArray(children));
 
+  // Keep the rendered CSS row height in sync with the pixel math above. The custom property is
+  // always set to the resolved value so grid-auto-rows matches getHeight() exactly.
+  const gridStyle = { [ROW_HEIGHT_CSS_PROPERTY]: `${rowspanHeight}px` } as CSSProperties;
+
   const ref = useMergeRefs(gridRef, containerQueryRef);
   return (
-    <div ref={ref} className={clsx(styles.grid, styles[`grid-${densityMode}`], styles[`columns-${columns}`])}>
+    <div
+      ref={ref}
+      className={clsx(styles.grid, styles[`grid-${densityMode}`], styles[`columns-${columns}`])}
+      style={gridStyle}
+    >
       {zipped.map(([item, children]) => (
         <GridItem key={item.id} item={item}>
           {children}
