@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Children, useRef } from "react";
+import { Children, CSSProperties, useRef } from "react";
 import clsx from "clsx";
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
@@ -18,6 +18,8 @@ const GRID_GAP = { comfortable: 20, compact: 16 };
 
 /* Matches grid-auto-rows in CSS. */
 const ROWSPAN_HEIGHT = { comfortable: 96, compact: 76 };
+
+const GRID_COLUMNS_CSS_PROPERTY = "--awsui-board-grid-columns";
 
 export default function Grid({ layout, children: render, columns, isRtl }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -45,8 +47,9 @@ export default function Grid({ layout, children: render, columns, isRtl }: GridP
   const zipped = zipTwoArrays(layout, Children.toArray(children));
 
   const ref = useMergeRefs(gridRef, containerQueryRef);
+  const gridStyle = { [GRID_COLUMNS_CSS_PROPERTY]: columns } as CSSProperties;
   return (
-    <div ref={ref} className={clsx(styles.grid, styles[`grid-${densityMode}`], styles[`columns-${columns}`])}>
+    <div ref={ref} className={clsx(styles.grid, styles[`grid-${densityMode}`])} style={gridStyle}>
       {zipped.map(([item, children]) => (
         <GridItem key={item.id} item={item}>
           {children}
